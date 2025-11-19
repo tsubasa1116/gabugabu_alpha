@@ -1,0 +1,26 @@
+# ビルド成果物
+[Bb]in/
+[Oo]bj/
+x64/
+Debug/
+Release/
+
+# Visual Studio関連
+.vs/
+*.suo
+*.user
+
+# キャッシュ・中間生成物
+*.pdb
+*.ipch
+*.tlog
+*.log
+*.tmp
+*.cache
+*.opendb
+
+# その他
+*.ilk
+*.exe
+*.dll
+*.lib
