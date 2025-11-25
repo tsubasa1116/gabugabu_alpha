@@ -42,9 +42,12 @@ void	Camera_Finalize()
 }
 void	Camera_Update()
 {
-	////ボールの座標取得<<<<<<<<<<<<<<<<<<<<<<
-	//XMFLOAT3	pos = g_BallPosOld;
-	//g_BallPosOld = GetBallPosition();
+	//ボールの座標取得<<<<<<<<<<<<<<<<<<<<<<
+	XMFLOAT3	pos = g_BallPosOld;
+	g_BallPosOld = GetBallPosition();
+
+	//CameraObject.Position.x += pos.x;
+	//CameraObject.Position.z += pos.z;
 
 	////前回のボールと現在のボールの座標の差分<<<<<<<<<<<<<<<
 	//pos.x = g_BallPosOld.x - pos.x;
@@ -140,6 +143,22 @@ void	Camera_Draw()
 		CameraObject.NearClip,
 		CameraObject.FarClip
 	);
+
+	//// ★★★ 修正箇所はここ！：平行投影行列を作成する ★★★
+	//// プロジェクション行列作成
+	//// XMMatrixOrthographicLH(幅, 高さ, NearClip, FarClip) を使用する
+	//// ※幅と高さは、画面サイズをそのまま使うのが一般的です
+	//float width = (float)Direct3D_GetBackBufferWidth();
+	//float height = (float)Direct3D_GetBackBufferHeight();
+
+	//CameraObject.Projection = XMMatrixOrthographicLH
+	//(
+	//	// 幅と高さ。この値がそのまま描画範囲（スクリーンサイズ）になる
+	//	width / CameraObject.Aspect, // 幅 (アスペクト比で補正)
+	//	height / CameraObject.Aspect, // 高さ (アスペクト比で補正)
+	//	CameraObject.NearClip,
+	//	CameraObject.FarClip
+	//);
 
 	//ビュー行列作成
 	XMVECTOR	vpos = XMVectorSet(

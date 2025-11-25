@@ -14,6 +14,8 @@ using namespace DirectX;
 //konnichiwa
 
 
+//konbanwa
+
 
 static IXAudio2* g_Xaudio{};
 static IXAudio2MasteringVoice* g_MasteringVoice{};
