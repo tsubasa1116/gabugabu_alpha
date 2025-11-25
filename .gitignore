@@ -18,6 +18,7 @@ Release/
 *.tmp
 *.cache
 *.opendb
+*.cso
 
 # その他
 *.ilk

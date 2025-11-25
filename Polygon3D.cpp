@@ -498,13 +498,13 @@ void Polygon3D_Update()
 			{
 				continue; // 次のオブジェクトへ
 			}
-			//if(CheckAABBCollision(object[0].boundingBox, fieldObjects->boundingBox)&& fieldObjects->no==FIELD_BUILDING)
-			if (CheckAABBCollision(object[i].boundingBox, fieldObjects[j].boundingBox) && fieldObjects[j].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
-			{
-				// 建物に衝突していて、かつスペースキーが押されていたら
-				fieldObjects[j].isActive = false;
-				object[i].form = (Form)((int)object[i].form + 1); // 進化
-			}
+			////if(CheckAABBCollision(object[0].boundingBox, fieldObjects->boundingBox)&& fieldObjects->no==FIELD_BUILDING)
+			//if (CheckAABBCollision(object[i].boundingBox, fieldObjects[j].boundingBox) && fieldObjects[j].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
+			//{
+			//	// 建物に衝突していて、かつスペースキーが押されていたら
+			//	fieldObjects[j].isActive = false;
+			//	object[i].form = (Form)((int)object[i].form + 1); // 進化
+			//}
 			if (CheckAABBCollision(object[0].boundingBox, object[1].boundingBox) && Keyboard_IsKeyDown(KK_SPACE))
 			{
 				// スキル使用時
@@ -527,14 +527,14 @@ void Polygon3D_Update()
 					// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
 					CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
 				}
-				else if (fieldObjects[j].no == FIELD::FIELD_BUILDING)
-				{
-					object[i].position.x += collision.translation.x;
-					object[i].position.y += collision.translation.y;
-					object[i].position.z += collision.translation.z;
+				//else if (fieldObjects[j].no == FIELD::FIELD_BUILDING)
+				//{
+				//	object[i].position.x += collision.translation.x;
+				//	object[i].position.y += collision.translation.y;
+				//	object[i].position.z += collision.translation.z;
 
-					CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-				}
+				//	CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
+				//}
 
 				// デバッグ出力
 				hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " <<
