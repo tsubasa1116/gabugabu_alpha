@@ -201,11 +201,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 #endif
 
 				//更新処理
-				Manager_Update();
+				
 
 				// ======= ImGui初期化 =======
 				BeginImGuiFrame();
-
+                Manager_Update();
 				// ======= ImGui描画テスト =======
 				ImGui::Begin("Debug Window");
 

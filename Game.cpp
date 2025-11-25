@@ -16,6 +16,7 @@
 #include	"Effect.h"
 #include	"score.h"
 #include	"Audio.h"
+#include    "gauge.h"
 
 #include	"Polygon3D.h"
 #include	"Camera.h"
@@ -108,6 +109,8 @@ void Game_Update()
 	//Effect_Update();
 	//Score_Update();
 	Polygon3D_Update();
+	Gauge_Update();
+
 
 }
 
@@ -124,6 +127,7 @@ void Game_Draw()
 	Field_Draw();
 	BallDraw();
 	Polygon3D_Draw();
+	Gauge_Draw();
 
 	//2D描画
 	Light.SetEnable(FALSE);			//ライティングOFF
