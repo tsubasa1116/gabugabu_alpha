@@ -11,7 +11,7 @@ using namespace DirectX;
 
 
 
-
+//konbanwa
 
 
 static IXAudio2* g_Xaudio{};
