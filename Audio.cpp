@@ -10,7 +10,7 @@ using namespace DirectX;
 #include "audio.h"
 
 
-
+//ohayogozaimasu
 
 
 
