@@ -15,7 +15,7 @@ using namespace DirectX;
 enum FIELD
 {
 	FIELD_BOX = 0,
-	FIELD_BUILDING,
+	//FIELD_BUILDING,
 	FIELD_MAX
 };
 //MAPデータ構造体
@@ -28,6 +28,7 @@ public:
 	//その他必要な物は追加する
 
 	bool isActive = true;
+	//MODEL fModel;		//モデルデータ
 };
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Field_Finalize(void);

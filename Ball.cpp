@@ -11,7 +11,7 @@
 #include	"shader.h"
 
 
-//ボールオブジェクト
+// ボールオブジェクト
 BALL	g_Ball;
 
 ID3D11Device* g_pDevice;
@@ -23,7 +23,7 @@ void	BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	g_Ball.Model = ModelLoad("asset\\model\\test.fbx");
+	g_Ball.Model = ModelLoad("asset\\model\\ball.fbx");
 
 	g_Ball.Position = XMFLOAT3(0.0f, 0.5f, 0.0f);
 	g_Ball.Rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -36,8 +36,6 @@ void	BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 }
 void	BallFinalize()
 {
-
-
 	ModelRelease(g_Ball.Model);
 
 }
@@ -107,7 +105,6 @@ void	BallDraw()
 
 	//モデルの描画リクエスト
 	ModelDraw(g_Ball.Model);
-
 }
 
 XMFLOAT3 GetBallPosition()

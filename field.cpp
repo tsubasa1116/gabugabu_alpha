@@ -38,7 +38,7 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
-	L"Asset\\Texture\\block_field.png", 
+	L"Asset\\Texture\\green.png", 
 	L"Asset\\Texture\\TileA3.png"
 };
 
@@ -210,156 +210,197 @@ static UINT	Box_idxdata[6 * 6] =
 //マップデータ配列
 MAPDATA		Map[] =
 {
-	// 障害物
-	{ XMFLOAT3(0.0f,	0.0f,	2.0f), {}, FIELD::FIELD_BUILDING },
-	{ XMFLOAT3(2.0f,	0.0f,	0.0f), {}, FIELD::FIELD_BUILDING },
-	{ XMFLOAT3(-4.0f,	0.0f,	1.0f), {}, FIELD::FIELD_BUILDING },
-	{ XMFLOAT3(-3.0f,	0.0f,	-2.0f), {}, FIELD::FIELD_BUILDING },
+	// 建物は別で作る
+	//// 障害物
+	//{ XMFLOAT3(0.0f,	0.0f,	2.0f), {}, FIELD::FIELD_BUILDING },
+	//{ XMFLOAT3(2.0f,	0.0f,	0.0f), {}, FIELD::FIELD_BUILDING },
+	//{ XMFLOAT3(-4.0f,	0.0f,	1.0f), {}, FIELD::FIELD_BUILDING },
+	//{ XMFLOAT3(-3.0f,	0.0f,	-2.0f), {}, FIELD::FIELD_BUILDING },
 
 	// 地面
-	{ XMFLOAT3(-5.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	-5.0f), {}, FIELD::FIELD_BOX },
-
-	{ XMFLOAT3(-5.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	-4.0f), {}, FIELD::FIELD_BOX },
-
-	{ XMFLOAT3(-5.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	-3.0f), {}, FIELD::FIELD_BOX },
-
-	{ XMFLOAT3(-5.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	-2.0f), {}, FIELD::FIELD_BOX },
-
-	{ XMFLOAT3(-5.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	-1.0f), {}, FIELD::FIELD_BOX },
-
-	{ XMFLOAT3(-5.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	0.0f), {}, FIELD::FIELD_BOX },
-
-	{ XMFLOAT3(-5.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	1.0f), {}, FIELD::FIELD_BOX },
-
-	{ XMFLOAT3(-5.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	2.0f), {}, FIELD::FIELD_BOX },
-
-	{ XMFLOAT3(-5.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	3.0f), {}, FIELD::FIELD_BOX },
-
-	{ XMFLOAT3(-5.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	4.0f), {}, FIELD::FIELD_BOX },
-
-	{ XMFLOAT3(-5.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-4.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-3.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-2.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(-1.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(0.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(1.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(2.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(3.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(4.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
-	{ XMFLOAT3(5.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
 
 	{ XMFLOAT3(2.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_MAX }	// MAPデータ終了
 };
-
-
 
 //======================================================
 //	初期化関数
 //======================================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Test = ModelLoad("asset\\model\\test.fbx");//デバッグ
+	Test = ModelLoad("asset\\model\\field_v3.fbx");//デバッグ
+
+	const int NUM = 10;		// 1行/列あたりのfieldの個数
+	//int count = sizeof(Map) / sizeof(Map[0]);	// 配列の要素数
+	int count = GetFieldObjectCount();
+
+	float r = 1.0f; // 半径
+	float sin60 = sinf(XMConvertToRadians(60.0f)); // 60度のcos値
+
+	// ----------------------------------------------------
+	// ★★★ 中央補正のためのオフセット計算 ★★★
+	// ----------------------------------------------------
+
+		// 1. Z軸方向の列数を確定 (FIELD_MAXを除くため count-1 で考えるのが確実)
+	int tiles_count = count - 1; // 描画対象のタイル数
+	int col_max = tiles_count / NUM;
+
+	if (tiles_count % NUM != 0) {
+		col_max++;
+	}
+
+	// 2. X軸の最大座標とZ軸の最大座標を計算
+	// X軸の最大位置 (最後のタイル位置)
+	float max_x_pos = (NUM - 1) * r * 3.0f;
+	// Z軸の最大位置 (最後のタイル位置)
+	float max_z_pos = (col_max - 1) * (sin60 * r);
+
+	// 3. 中心オフセットを決定 (全体の最大位置の半分を引く)
+	float offset_x = max_x_pos / 2.0f;
+	float offset_z = max_z_pos / 2.0f;
+
+	for (int i = 0; i < count; i++)
+	{
+		int row = i % NUM;	// 行番号
+		int col = i / NUM;	// 列番号
+
+		// もしアクティブじゃなかったら次へ
+		if (Map[i].no == FIELD::FIELD_MAX) continue;
+
+		// 行
+		if (col % 2 == 0)	Map[i].pos.x = row * r * 3.0f;	// 偶数行
+		else				Map[i].pos.x = row * r * 3.0f + r * 1.5f;	// 奇数行 
+
+		// 列
+		Map[i].pos.z = col * (sin60 * r);
+
+		// y 座標
+		Map[i].pos.y = -1.0f;
+
+		// 計算した座標から、中心オフセットを引く
+		Map[i].pos.x -= offset_x;
+		Map[i].pos.z -= offset_z;
+	}
 
 
 
@@ -386,7 +427,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	while (Map[i].no != FIELD::FIELD_MAX && Map[i].isActive) {
 		if (i == 0) {
-			CreateBox();
+			//CreateBox();
 		}
 
 		// 全てのマップオブジェクトに対してAABBを計算する
@@ -455,7 +496,7 @@ void Field_Draw(void)
 		//回転行列の作成
 		XMMATRIX	RotationMatrix = XMMatrixRotationRollPitchYaw
 		(
-			XMConvertToRadians(0.0f),
+			XMConvertToRadians(-90),
 			//XMConvertToRadians(rot),
 			XMConvertToRadians(0.0f),
 			XMConvertToRadians(0.0f)
@@ -478,21 +519,21 @@ void Field_Draw(void)
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
 		}
 
-		//頂点バッファをセット
-		UINT	stride = sizeof(Vertex3D);	//頂点１個のデータサイズ
-		UINT	offset = 0;
-		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		////頂点バッファをセット
+		//UINT	stride = sizeof(Vertex3D);	//頂点１個のデータサイズ
+		//UINT	offset = 0;
+		//g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 
-		//インデックスバッファをセット
-		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		////インデックスバッファをセット
+		//g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-		//描画するポリゴンの種類をセット 3頂点でポリゴン１枚として表示
-		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		////描画するポリゴンの種類をセット 3頂点でポリゴン１枚として表示
+		//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		////描画リクエスト
-		g_pContext->DrawIndexed(6 * 6, 0, 0);
+		//////描画リクエスト
+		//g_pContext->DrawIndexed(6 * 6, 0, 0);
 
-		//ModelDraw(Test);//デバッグ
+		ModelDraw(Test);//デバッグ
 
 		i++;
 	}
