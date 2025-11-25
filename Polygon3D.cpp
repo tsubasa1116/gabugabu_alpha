@@ -422,7 +422,7 @@ void Polygon3D_Update()
 
 		// Y軸の移動量 (重力 + ジャンプ)
 		// 重力加速度のない簡易的な重力
-		object[i].position.y += -0.1f;
+		//object[i].position.y += -0.1f;
 
 		// デバッグ出力
 		if (posBuff.x != object[i].position.x ||
