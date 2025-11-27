@@ -9,7 +9,10 @@
 #include	"Ball.h"
 #include	"Camera.h"
 #include	"shader.h"
+#include	"color.h"
+#include    "hp.h"
 
+static HP b_HPBar;
 
 // ボールオブジェクト
 BALL	g_Ball;
@@ -33,6 +36,12 @@ void	BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	g_Ball.State = BALL_STATE::BALL_STATE_MOVE;
 
+	g_Ball.HP = 10; //仮
+	g_Ball.maxHP = 10; //仮
+
+	InitializeHP(pDevice, pContext, &b_HPBar, { 250.0f, 500.0f }, { 400.0f, 20.0f }, color::red, color::green);
+
+
 }
 void	BallFinalize()
 {
@@ -41,6 +50,10 @@ void	BallFinalize()
 }
 void	BallUpdate()
 {
+	// HPバー
+	SetHPValue(&b_HPBar, (int)g_Ball.HP, (int)g_Ball.maxHP);
+	UpdateHP(&b_HPBar);
+
 	switch (g_Ball.State)
 	{
 	case BALL_STATE::BALL_STATE_IDLE:
@@ -79,6 +92,7 @@ void	BallUpdate()
 }
 void	BallDraw() 
 {
+
 	//ワールド行列作成
 	XMMATRIX	scale = XMMatrixScaling(
 		g_Ball.Scaling.x,
@@ -105,6 +119,15 @@ void	BallDraw()
 
 	//モデルの描画リクエスト
 	ModelDraw(g_Ball.Model);
+}
+
+void BallDrawHP()
+{
+
+	Shader_Begin();
+
+
+	DrawHP(&b_HPBar);
 }
 
 XMFLOAT3 GetBallPosition()

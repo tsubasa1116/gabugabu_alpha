@@ -31,6 +31,7 @@ void Shader_SetGaugeMulti(float fire, float water, float wind, float earth,
 	XMFLOAT4 fireColor, XMFLOAT4 waterColor,
 	XMFLOAT4 windColor, XMFLOAT4 earthColor);
 void Shader_SetOutGauge(float value, XMFLOAT4 color);
+void Shader_SetColor(const XMFLOAT4& color);
 
 
 #endif // SHADER_H

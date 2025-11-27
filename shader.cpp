@@ -29,6 +29,7 @@ static ID3D11PixelShader* g_pOutGaugeShader = nullptr;
 
 static ID3D11Buffer* g_pGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pOutGaugeBuffer = nullptr;
+static ID3D11Buffer* g_pColorBuffer = nullptr;
 
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
@@ -56,6 +57,11 @@ struct OUTGAUGEBUFFER
 	float gaugeValue;
 	float pad[3];
 	XMFLOAT4 gaugeColor;
+};
+
+struct COLORBUFFER
+{
+	XMFLOAT4 setColor;
 };
 
 //======================================================
@@ -94,6 +100,13 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&desc, nullptr, &g_pOutGaugeBuffer);
 	}
+
+	D3D11_BUFFER_DESC cbd{};
+	cbd.Usage = D3D11_USAGE_DYNAMIC;
+	cbd.ByteWidth = sizeof(COLORBUFFER);
+	cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	pDevice->CreateBuffer(&cbd, NULL, &g_pColorBuffer);
 
 
 	// 事前コンパイル済み頂点シェーダーの読み込み
@@ -375,4 +388,22 @@ void Shader_SetOutGauge(float value, XMFLOAT4 color)
 	g_pContext->Unmap(g_pOutGaugeBuffer, 0);
 
 	g_pContext->PSSetConstantBuffers(4, 1, &g_pOutGaugeBuffer);
+}
+
+
+void Shader_SetColor(const XMFLOAT4& color)
+{
+	if (!g_pColorBuffer) return;
+
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	g_pContext->Map(g_pColorBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+
+	COLORBUFFER cb{};
+	cb.setColor = color;
+	memcpy(mapped.pData, &cb, sizeof(cb));
+
+	g_pContext->Unmap(g_pColorBuffer, 0);
+
+	// register(b1)に送る
+	g_pContext->PSSetConstantBuffers(1, 1, &g_pColorBuffer);
 }

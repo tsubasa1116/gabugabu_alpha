@@ -13,6 +13,7 @@ void	BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void	BallFinalize();
 void	BallUpdate();
 void	BallDraw();
+void BallDrawHP();
 
 XMFLOAT3 GetBallPosition();
 
@@ -36,8 +37,11 @@ class BALL
 		XMFLOAT3	Velocity;	//速度
 
 		BALL_STATE	State;		//状態
-		MODEL*		Model;		//モデルデータ
+		MODEL*		Model;		//モデルデータ]
 
+		// (仮)
+		int HP;
+		int maxHP;
 };
 
 

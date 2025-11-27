@@ -11,6 +11,7 @@
 #include	"keyboard.h"
 
 #include	"player.h"
+#include    "p.h"
 #include	"Block.h"
 #include	"field.h"
 #include	"Effect.h"
@@ -44,6 +45,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Field_Initialize(pDevice, pContext); // フィールドの初期化
 	BallInitialize(pDevice, pContext); // ボールの初期化
 
+	P_Initialize(pDevice, pContext); // プレイヤーの初期化
 	//Player_Initialize(pDevice, pContext); // ポリゴンの初期化
 	//Block_Initialize(pDevice, pContext);//ブロックの初期化
 	//Effect_Initialize(pDevice, pContext);//エフェクト初期化
@@ -85,6 +87,7 @@ void Game_Finalize()
 {
 	Field_Finalize();
 	BallFinalize();
+	P_Finalize();
 	//Block_Finalize();
 	//Player_Finalize();	// ポリゴンの終了処理
 	//Effect_Finalize();
@@ -104,6 +107,7 @@ void Game_Update()
 	Camera_Update();
 	BallUpdate();
 	Field_Update();
+	P_Update();
 	//Player_Update();
 	//Block_Update();
 	//Effect_Update();
@@ -126,6 +130,7 @@ void Game_Draw()
 	Camera_Draw();		//Drawの最初で呼ぶ！
 	Field_Draw();
 	BallDraw();
+	BallDrawHP();
 	Polygon3D_Draw();
 	Gauge_Draw();
 
@@ -135,7 +140,7 @@ void Game_Draw()
 	SetDepthTest(FALSE);
 
 
-
+	P_Draw();
 	//Block_Draw();
 	//Player_Draw();
 	//Effect_Draw();
