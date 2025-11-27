@@ -1,7 +1,8 @@
+// Polygon3D.h
+
 #pragma once
 
-//Polygon3D.h
-#include	"d3d11.h"
+#include "d3d11.h"
 #include "collider.h" // AABB を使うためにインクルード
 
 enum Form
@@ -18,15 +19,24 @@ struct PlayerObject
 	XMFLOAT3 rotation;	// 回転角度
 	XMFLOAT3 scaling;	// 拡大率
 	AABB boundingBox;	// 当たり判定
+	float hp;			// 体力
+	float maxHp;		// 最大体力
+	float power;		// パワー
+	float speed;		// スピード
+	int residue;		// 残機
+	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
+	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 
-	Form form;		// 変身形態
+	int breakCount_Glass;		// 破壊した数 ガラス
+	int breakCount_Plant;		// 破壊した数 植物
+	int breakCount_Concrete;	// 破壊した数 コンクリート
+	int breakCount_Electricity;	// 破壊した数 電気
 
-	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f }; // 吹き飛ばし用の速度ベクトル
-	bool is_knocked_back = false;                       // 吹き飛ばし中かどうか
-	float knockback_duration = 0.0f;                    // 吹き飛ばしの残り時間（フレーム数
+	Form form;	// 変身形態
 
-	float power;	// パワー
-	float speed;
+	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル
+	bool is_knocked_back = false;						// 吹き飛ばし中かどうか
+	float knockback_duration = 0.0f;					// 吹き飛ばしの残り時間（フレーム数
 };
 
 void	Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
