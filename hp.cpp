@@ -79,6 +79,13 @@ void DrawHP(const HP* bar)
 	Shader_SetColor(color::white);
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
+
+	const float border = 3.0f; // 外枠の太さ
+
+	XMFLOAT2 borderPos = bar->pos;
+	XMFLOAT2 borderSize = { bar->size.x + border * 2, bar->size.y + border * 2 };
+
+	DrawSprite(borderPos, borderSize, color::black);
     
 	// 残量（current分だけ横幅を縮める）
 	XMFLOAT2 fillPos = {
