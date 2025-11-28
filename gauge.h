@@ -33,10 +33,8 @@ void Gauge_Update(void);
 //==========================================
 // 描画セット（Setで設定しDrawで描画する）
 //==========================================
-void Gauge_Set(int index,
-    float fire, float water, float wind, float earth,
-    float outer,
-    const XMFLOAT2& pos);
+void Gauge_Set(int i, float fire, float water, float wind, float earth,
+               float outer, const XMFLOAT2& pos);
 void Gauge_Draw(int i);
 
 

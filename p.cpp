@@ -16,11 +16,11 @@
 
 #define PLAYER_MAX 4
 #define HPBER_SIZE_X 180.0f
-#define HPBER_SIZE_Y 30.0f
+#define HPBER_SIZE_Y 25.0f
 
 static HP g_HPBar[PLAYER_MAX];
 
-static ID3D11ShaderResourceView* g_Texture = NULL;
+static ID3D11ShaderResourceView* g_Texture[5];
 
 static constexpr int NUM_VERTEX = 24; // 使用できる最大頂点数
 
@@ -81,21 +81,11 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		p[i].HP = 10.0f;
+		p[i].HP    = 10.0f;
 		p[i].MaxHP = 10.0f;
-		p[i].pos = { 0.0f, 1.0f, 0.0f };
+		p[i].stock = 3;
 		p[i].scale = { 1.0f, 1.0f, 1.0f };
 		p[i].color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-		p[i].isIllum = false;
-		p[i].illumTimer = 0.0f;
-		p[i].illumTotal = 0.0f;
-		p[i].illumInterval = 0.0f;
-		p[i].illumInTimer = 0.0f;
-		p[i].illumColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-		p[i].isStar = false;
-		p[i].starTimer = 0.0f;
 
 		p[i].fi = 1.0f;
 		p[i].wa = 1.0f;
@@ -106,9 +96,14 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		p[i].active = true;
 	}
 
+	p[0].pos = { 0.0f, 1.0f, 0.0f };
+	p[1].pos = { 3.0f, 1.0f, 0.0f };
+	p[2].pos = { 6.0f, 1.0f, 0.0f };
+	p[3].pos = { 9.0f, 1.0f, 0.0f };
+
 
 	// デバイスとデバイスコンテキストの保存
-	g_pDevice = pDevice;
+	g_pDevice  = pDevice;
 	g_pContext = pContext;
 
 	// 頂点バッファ生成
@@ -134,21 +129,39 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	D3D11_SUBRESOURCE_DATA initI = { cubeIndices };
 	g_pDevice->CreateBuffer(&ibd, &initI, &g_pIndexBuffer);
+    
 
-	// テクスチャ画像読み込み
-	{
-		TexMetadata  metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\runningman003.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-		assert(g_Texture);// 読み込み失敗時にダイアログを表示
-	}
+	TexMetadata  metadata;
+	ScratchImage image;
+
+	
+    LoadFromWICFile(L"asset\\texture\\uiStockYellow_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
+	assert(g_Texture[0]);
+
+	LoadFromWICFile(L"asset\\texture\\uiStockBrue_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
+	assert(g_Texture[1]);
+
+	LoadFromWICFile(L"asset\\texture\\uiStockRed_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
+	assert(g_Texture[2]);
+
+	LoadFromWICFile(L"asset\\texture\\uiStockGreen_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
+	assert(g_Texture[3]);
+	
+	LoadFromWICFile(L"asset\\texture\\texture.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
+	assert(g_Texture[4]);
+
+	
 
 	// HPバー初期化
-	InitializeHP(pDevice, pContext, &g_HPBar[0], { 200.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
-	InitializeHP(pDevice, pContext, &g_HPBar[1], { 500.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
-	InitializeHP(pDevice, pContext, &g_HPBar[2], { 800.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
-	InitializeHP(pDevice, pContext, &g_HPBar[3], { 1100.0f, 650.0f },{ HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+	InitializeHP(pDevice, pContext, &g_HPBar[0], { 200.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+	InitializeHP(pDevice, pContext, &g_HPBar[1], { 500.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+	InitializeHP(pDevice, pContext, &g_HPBar[2], { 800.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+	InitializeHP(pDevice, pContext, &g_HPBar[3], { 1100.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
 
 }
 
@@ -193,6 +206,26 @@ void P_Update()
 		// 当たり判定取得
 		Player_UpdateAABB();
 
+		// HPが0になったら残基を減らし、HPをもそす
+		if (p[i].HP <= 0 && p[i].active)
+		{
+			p[i].stock--;
+
+			// 残基があれば復活
+			if (p[i].stock > 0)
+			{
+				p[i].HP = p[i].MaxHP;
+
+				// リスポーン
+
+			}
+			else
+			{
+				// 残基がなければfalse
+				p[i].active = false;
+			}
+		}
+
 		SetHPValue(&g_HPBar[i], (int)p[i].HP, (int)p[i].MaxHP);
 		UpdateHP(&g_HPBar[i]);
 
@@ -207,6 +240,11 @@ void P_Update()
 		ImGui::SliderInt("2p:HP", &p[1].HP, 0.0f, p[1].MaxHP);
 		ImGui::SliderInt("3p:HP", &p[2].HP, 0.0f, p[2].MaxHP);
 		ImGui::SliderInt("4p:HP", &p[3].HP, 0.0f, p[3].MaxHP);
+
+		if (ImGui::Button("hp -1"))
+		{
+			p[0].HP -= 0.1f;
+		}
 
 		if (ImGui::Button("fi +1"))
 		{
@@ -234,6 +272,36 @@ void P_Update()
 }
 
 
+
+//====================================================================================
+// 残基描画
+//====================================================================================
+void PStock_Draw(int i)
+{
+	Shader_Begin();
+	Shader_BeginUI();
+
+	// HPバー位置取得・ゲージ座標設定
+	float bx = g_HPBar[i].pos.x + 40.0f;
+	float by = g_HPBar[i].pos.y - 10.0f;
+
+	// プレイヤーごとのストック描画
+	for (int j = 0; j < p[i].stock; j++)
+	{
+		// ストック描画変数
+		XMFLOAT2 pos = { bx + j * 30.0f, by }; // 横並び
+		XMFLOAT2 size = { 300.0f, 100.0f };
+
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
+
+		SetBlendState(BLENDSTATE_ALFA);
+		DrawSprite(pos, size, color::white);
+	}
+}
+
+
+
+
 //====================================================================================
 // 描画
 //====================================================================================
@@ -251,21 +319,25 @@ void P_Draw(void)
 
 		// ゲージ描画用設定
 		Gauge_Set(i, p[i].fi, p[i].wa, p[i].wi, p[i].ea,
-			      p[i].gaugeOuter, { hp.x - 100.0f , hp.y});
+			      p[i].gaugeOuter, { hp.x - 120.0f , hp.y});
 
 		// ゲージ描画
 		Gauge_Draw(i);
 
 		// シェーダーリセット
 		Shader_Begin();
+
+		PStock_Draw(i);
 	}
 
+	// 画面サイズ取得
 	float w = (float)Direct3D_GetBackBufferWidth();
 	float h = (float)Direct3D_GetBackBufferHeight();
 
+	// カメラ設定
 	XMVECTOR Eye = XMVectorSet(g_Eye.x, g_Eye.y, g_Eye.z, 1.0f);
-	XMVECTOR At = XMVectorSet(g_At.x, g_At.y, g_At.z, 1.0f);
-	XMVECTOR Up = XMVectorSet(g_Up.x, g_Up.y, g_Up.z, 0.0f);
+	XMVECTOR At  = XMVectorSet(g_At.x, g_At.y, g_At.z, 1.0f);
+	XMVECTOR Up  = XMVectorSet(g_Up.x, g_Up.y, g_Up.z, 0.0f);
 
 	// 頂点バッファをロックする
 	D3D11_MAPPED_SUBRESOURCE msr;
@@ -289,8 +361,7 @@ void P_Draw(void)
 			XMMATRIX view = XMMatrixLookAtLH(Eye, At, Up);
 
 			// 透視投影
-			XMMATRIX proj = XMMatrixPerspectiveFovLH(
-				XMConvertToRadians(45.0f), w / h, 0.1f, 100.0f);
+			XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), w / h, 0.1f, 100.0f);
 
 			// オブジェクトのワールド変換
 			static float angle = 0.0f;
@@ -305,14 +376,13 @@ void P_Draw(void)
 			// 定数バッファに送信
 			Shader_SetMatrix(wvp);
 
-			//Shader_SetColor(p.color);
-
 			// 三角形リストで描画
 			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			g_pContext->PSSetShaderResources(0, 1, &g_Texture);
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture[4]);
 
 			// 描画命令
+			SetBlendState(BLENDSTATE_NONE);
 			g_pContext->DrawIndexed(36, 0, 0);
 			//g_pContext->Draw(NUM_VERTEX, 0);
 
@@ -322,9 +392,10 @@ void P_Draw(void)
 
 	}
    
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
 
 }
+
+
 
 //====================================================================================
 // プレイヤー判定

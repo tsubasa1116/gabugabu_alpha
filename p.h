@@ -19,20 +19,11 @@ struct P
 {
 	int HP;
 	int MaxHP;
+	int stock;
 	XMFLOAT3 pos;
 	XMFLOAT3 scale;
 	XMFLOAT4 color;
 	bool active;
-
-	bool isIllum;
-	float illumTimer;
-	float illumTotal;
-	float illumInterval;
-	float illumInTimer;
-	XMFLOAT4 illumColor;
-
-	bool isStar;
-	float starTimer;
 
 	float fi, wa, wi, ea;
 	float gaugeOuter;
@@ -45,7 +36,7 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void P_Finalize(void);
 void P_Update();
 void P_Draw(void);
-void P_Color(const XMFLOAT4& color, bool illum);
+void PStock_Draw(int i);
 
 P* GetP();
 
