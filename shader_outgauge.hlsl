@@ -30,7 +30,7 @@ float4 main(PS_INPUT input) : SV_Target
     // Šp“x
     float angle = atan2(p.y, p.x);
     angle += 3.14 * 0.5;
-    angle = -angle;
+    // angle = -angle;
     angle = frac(angle / (2 * 3.14));
 
     if (dist > outerRadius - borderThickness)

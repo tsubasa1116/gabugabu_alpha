@@ -12,10 +12,13 @@
 #include "sprite.h"
 #include "hp.h"
 #include "imgui.h"
+#include "gauge.h"
 
-#define PLAYER_MAX 10
+#define PLAYER_MAX 4
+#define HPBER_SIZE_X 180.0f
+#define HPBER_SIZE_Y 30.0f
 
-static HP g_HPBar;
+static HP g_HPBar[PLAYER_MAX];
 
 static ID3D11ShaderResourceView* g_Texture = NULL;
 
@@ -31,7 +34,6 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 static ID3D11DeviceContext* g_pContext2 = nullptr;
 
 P p[PLAYER_MAX];
-
 
 XMFLOAT3 g_Eye = { 0.0f, 10.0f, 15.0f }; // カメラ位置
 XMFLOAT3 g_At = { 0.0f, 0.0f, 0.0f }; // 注視点
@@ -71,47 +73,39 @@ static bool debug = false;
 void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	// デバイスとデバイスコンテキストのチェック
-	if (!pDevice || !pContext) 
+	if (!pDevice || !pContext)
 	{
 		hal::dout << "P_Initialize() : 与えられたデバイスかコンテキストが不正です" << std::endl;
 		return;
 	}
 
-	p[0].HP = 10.0f;
-	p[0].MaxHP = 10.0f;
-	p[0].pos = { 0.0f, 1.0f, 0.0f };
-	p[0].scale = { 1.0f, 1.0f, 1.0f };
-	p[0].color = { 1.0f, 1.0f, 1.0f, 1.0f }; // 白
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		p[i].HP = 10.0f;
+		p[i].MaxHP = 10.0f;
+		p[i].pos = { 0.0f, 1.0f, 0.0f };
+		p[i].scale = { 1.0f, 1.0f, 1.0f };
+		p[i].color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-	p[0].isIllum = false;
-	p[0].illumTimer = 0.0f;
-	p[0].illumTotal = 0.0f;
-	p[0].illumInterval = 0.0f;
-	p[0].illumInTimer = 0.0f;
-	p[0].illumColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 白
+		p[i].isIllum = false;
+		p[i].illumTimer = 0.0f;
+		p[i].illumTotal = 0.0f;
+		p[i].illumInterval = 0.0f;
+		p[i].illumInTimer = 0.0f;
+		p[i].illumColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-	p[0].isStar = false;
-	p[0].starTimer = 0.0f;
+		p[i].isStar = false;
+		p[i].starTimer = 0.0f;
 
-	p[0].active = true;
+		p[i].fi = 1.0f;
+		p[i].wa = 1.0f;
+		p[i].wi = 1.0f;
+		p[i].ea = 1.0f;
+		p[i].gaugeOuter = 1.0f;
 
-	p[1].HP = 10.0f;
-	p[1].MaxHP = 10.0f;
-	p[1].pos = { 0.0f, 1.0f, 0.0f };
-	p[1].scale = { 1.0f, 1.0f, 1.0f };
-	p[1].color = { 1.0f, 1.0f, 1.0f, 1.0f }; // 白
+		p[i].active = true;
+	}
 
-	p[1].isIllum = false;
-	p[1].illumTimer = 0.0f;
-	p[1].illumTotal = 0.0f;
-	p[1].illumInterval = 0.0f;
-	p[1].illumInTimer = 0.0f;
-	p[1].illumColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 白
-
-	p[1].isStar = false;
-	p[1].starTimer = 0.0f;
-
-	p[1].active = true;
 
 	// デバイスとデバイスコンテキストの保存
 	g_pDevice = pDevice;
@@ -150,9 +144,11 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		assert(g_Texture);// 読み込み失敗時にダイアログを表示
 	}
 
-	InitializeHP(pDevice, pContext, &g_HPBar, { 250.0f, 50.0f }, { 400.0f, 20.0f },color::red, color::green);
-
-	
+	// HPバー初期化
+	InitializeHP(pDevice, pContext, &g_HPBar[0], { 200.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+	InitializeHP(pDevice, pContext, &g_HPBar[1], { 500.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+	InitializeHP(pDevice, pContext, &g_HPBar[2], { 800.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+	InitializeHP(pDevice, pContext, &g_HPBar[3], { 1100.0f, 650.0f },{ HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
 
 }
 
@@ -176,80 +172,64 @@ void P_Finalize(void)
 //====================================================================================
 void P_Update()
 {
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		const float moveSpeed = 0.1f;
 
-	const float moveSpeed = 0.1f;
+		// プレイヤーの移動
+		if (Keyboard_IsKeyDown(KK_W)) p[i].pos.z -= moveSpeed;
+		if (Keyboard_IsKeyDown(KK_S)) p[i].pos.z += moveSpeed;
+		if (Keyboard_IsKeyDown(KK_A)) p[i].pos.x += moveSpeed;
+		if (Keyboard_IsKeyDown(KK_D)) p[i].pos.x -= moveSpeed;
 
-	// プレイヤーの移動
-	if (Keyboard_IsKeyDown(KK_W)) p.pos.z -= moveSpeed;
-	if (Keyboard_IsKeyDown(KK_S)) p.pos.z += moveSpeed;
-	if (Keyboard_IsKeyDown(KK_A)) p.pos.x += moveSpeed;
-	if (Keyboard_IsKeyDown(KK_D)) p.pos.x -= moveSpeed;
+		// カメラをプレイヤーの位置に追従
+		g_Eye.x = p[i].pos.x + g_CamOffset.x;
+		g_Eye.y = p[i].pos.y + g_CamOffset.y;
+		g_Eye.z = p[i].pos.z + g_CamOffset.z;
 
-	// カメラをプレイヤーの位置に追従
-	g_Eye.x = p.pos.x + g_CamOffset.x;
-	g_Eye.y = p.pos.y + g_CamOffset.y;
-	g_Eye.z = p.pos.z + g_CamOffset.z;
+		// カメラが見る注視点はプレイヤー自身
+		g_At = p[i].pos;
 
-	// カメラが見る注視点はプレイヤー自身
-	g_At = p.pos;
+		// 当たり判定取得
+		Player_UpdateAABB();
 
-	// 当たり判定取得
-	Player_UpdateAABB();
+		SetHPValue(&g_HPBar[i], (int)p[i].HP, (int)p[i].MaxHP);
+		UpdateHP(&g_HPBar[i]);
 
-	// HPバー
-	SetHPValue(&g_HPBar, (int)p.HP, (int)p.MaxHP);
-	UpdateHP(&g_HPBar);
-
-	//===========================================================//
-
-	ImGui::Begin("Debug Switch");
-	ImGui::Checkbox("Debug Logic", &debug);
-	ImGui::End();
+	}
 
 	//==================== ImGui デバッグ表示 ====================//
 	{
 		ImGui::Begin("P Debug");
 
 		// HP
-		ImGui::SliderInt("HP", &p.HP, 0.0f, p.MaxHP);
+		ImGui::SliderInt("1p:HP", &p[0].HP, 0.0f, p[0].MaxHP);
+		ImGui::SliderInt("2p:HP", &p[1].HP, 0.0f, p[1].MaxHP);
+		ImGui::SliderInt("3p:HP", &p[2].HP, 0.0f, p[2].MaxHP);
+		ImGui::SliderInt("4p:HP", &p[3].HP, 0.0f, p[3].MaxHP);
 
-		// 無敵情報
-		ImGui::Separator();
-		ImGui::Text("Invincible (Star Mode)");
-		ImGui::Checkbox("isStar", &p.isStar);
-		ImGui::SliderFloat("Star Timer", &p.starTimer, 0.0f, 5.0f);
-
-		// 点滅情報
-		ImGui::Separator();
-		ImGui::Text("Illumination");
-		ImGui::Checkbox("isIllum", &p.isIllum);
-		ImGui::SliderFloat("illumTimer", &p.illumTimer, 0.0f, p.illumTotal);
-		ImGui::SliderFloat("illumTotal", &p.illumTotal, 0.0f, 3.0f);
-		ImGui::SliderFloat("illumInterval", &p.illumInterval, 0.0f, 1.0f);
-
-		// 座標
-		ImGui::Separator();
-		ImGui::Text("Position");
-		ImGui::DragFloat3("pos", (float*)&p.pos, 0.1f);
-
-		// カラー
-		ImGui::ColorEdit4("Color", (float*)&p.color);
-
-		// 速度調整
-		static float moveSpeedDebug = 0.1f;
-		ImGui::SliderFloat("Move Speed", &moveSpeedDebug, 0.01f, 1.0f);
-
-		// HP回復
-		if (ImGui::Button("Heal +1"))
+		if (ImGui::Button("fi +1"))
 		{
-			p.HP += 1.0f;
-			if (p.HP > p.MaxHP) p.HP = p.MaxHP;
+			p[0].fi += 0.1f;
 		}
+		else if (ImGui::Button("wa +1"))
+		{
+			p[0].fi += 0.1f;
+		}
+		else if (ImGui::Button("wi +1"))
+		{
+			p[0].wi += 0.1f;
+		}
+		else if (ImGui::Button("ea +1"))
+		{
+			p[0].ea += 0.1f;
+		}
+
+		ImGui::SliderFloat("Outer", &p[0].gaugeOuter, 0.0f, 1.0f);
 
 		ImGui::End();
 	}
-
-	//==================== Enemy Debug ====================//
+	//============================================================//
 
 }
 
@@ -262,7 +242,23 @@ void P_Draw(void)
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
 
-	DrawHP(&g_HPBar);
+	// 個別UIステータス描画
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		// HPバー描画
+		DrawHP(&g_HPBar[i]);
+		XMFLOAT2 hp = g_HPBar[i].pos;
+
+		// ゲージ描画用設定
+		Gauge_Set(i, p[i].fi, p[i].wa, p[i].wi, p[i].ea,
+			      p[i].gaugeOuter, { hp.x - 100.0f , hp.y});
+
+		// ゲージ描画
+		Gauge_Draw(i);
+
+		// シェーダーリセット
+		Shader_Begin();
+	}
 
 	float w = (float)Direct3D_GetBackBufferWidth();
 	float h = (float)Direct3D_GetBackBufferHeight();
@@ -282,46 +278,47 @@ void P_Draw(void)
 	g_pContext->Unmap(g_pVertexBuffer, 0);
 
 	{// プレイヤー
+		for (int i = 0; i < PLAYER_MAX; i++)
+		{
+			// 頂点バッファを描画パイプラインに設定
+			UINT stride = sizeof(Vertex);
+			UINT offset = 0;
+			g_pContext->IASetVertexBuffers(0, 1, &g_pCubeVertexBuffer, &stride, &offset);
+			g_pContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-		// 頂点バッファを描画パイプラインに設定
-		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
-		g_pContext->IASetVertexBuffers(0, 1, &g_pCubeVertexBuffer, &stride, &offset);
-		g_pContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+			XMMATRIX view = XMMatrixLookAtLH(Eye, At, Up);
 
-		XMMATRIX view = XMMatrixLookAtLH(Eye, At, Up);
+			// 透視投影
+			XMMATRIX proj = XMMatrixPerspectiveFovLH(
+				XMConvertToRadians(45.0f), w / h, 0.1f, 100.0f);
 
-		// 透視投影
-		XMMATRIX proj = XMMatrixPerspectiveFovLH(
-			XMConvertToRadians(45.0f), w / h, 0.1f, 100.0f);
+			// オブジェクトのワールド変換
+			static float angle = 0.0f;
+			angle += 0.01f;
+			XMMATRIX world =
+				/*XMMatrixRotationY(angle) **/
+				XMMatrixTranslation(p[i].pos.x, p[i].pos.y, p[i].pos.z);
 
-		// オブジェクトのワールド変換
-		static float angle = 0.0f;
-		angle += 0.01f;
-		XMMATRIX world =
-			/*XMMatrixRotationY(angle) **/
-			XMMatrixTranslation(p.pos.x, p.pos.y, p.pos.z);
+			// 最終的な行列
+			XMMATRIX wvp = world * view * proj;
 
-		// 最終的な行列
-		XMMATRIX wvp = world * view * proj;
+			// 定数バッファに送信
+			Shader_SetMatrix(wvp);
 
-		// 定数バッファに送信
-		Shader_SetMatrix(wvp);
+			//Shader_SetColor(p.color);
 
-		//Shader_SetColor(p.color);
+			// 三角形リストで描画
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		// 三角形リストで描画
-		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture);
 
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture);
+			// 描画命令
+			g_pContext->DrawIndexed(36, 0, 0);
+			//g_pContext->Draw(NUM_VERTEX, 0);
 
-		// 描画命令
-		g_pContext->DrawIndexed(36, 0, 0);
-		//g_pContext->Draw(NUM_VERTEX, 0);
-
-		// 頂点シェーダーに変換行列を設定
-		//Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 1.0f));
-
+			// 頂点シェーダーに変換行列を設定
+			//Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 1.0f));
+		}
 
 	}
    
@@ -334,16 +331,23 @@ void P_Draw(void)
 //====================================================================================
 void Player_UpdateAABB()
 {
-	float sx = p.scale.x;
-	float sy = p.scale.y;
-	float sz = p.scale.z;
-	float px = p.pos.x;
-	float py = p.pos.y;
-	float pz = p.pos.z;
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		float sx = p[i].scale.x;
+		float sy = p[i].scale.y;
+		float sz = p[i].scale.z;
+		float px = p[i].pos.x;
+		float py = p[i].pos.y;
+		float pz = p[i].pos.z;
 
-	p.box.Min = { px - sx * COLL, py - sy * COLL, pz - sz * COLL };
-	p.box.Max = { px + sx * COLL, py + sy * COLL, pz + sz * COLL };
+
+		p[i].box.Min = { px - sx * COLL, py - sy * COLL, pz - sz * COLL };
+		p[i].box.Max = { px + sx * COLL, py + sy * COLL, pz + sz * COLL };
+	}
 }
 
 
-P* GetP() { return &p; }
+P* GetP() 
+{
+	for (int i = 0; i < PLAYER_MAX; i++) return &p[i]; 
+}

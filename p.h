@@ -34,6 +34,9 @@ struct P
 	bool isStar;
 	float starTimer;
 
+	float fi, wa, wi, ea;
+	float gaugeOuter;
+
 	AABB box;
 };
 

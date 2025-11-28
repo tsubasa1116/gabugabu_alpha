@@ -11,17 +11,14 @@
 #include "color.h"
 #include "shader.h"
 
+static GaugeData g_Gauge[GAUGE_PLAYER_MAX];
+
 static ID3D11ShaderResourceView* g_Texture = NULL;
 
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
-float fireValue = 1;
-float waterValue = 1;
-float windValue = 1;
-float earthValue = 1;
-float OuterGaugeValue = 1;
 
 //====================================================================================
 // 初期化
@@ -37,6 +34,16 @@ void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// デバイスとデバイスコンテキストの保存
 	g_pDevice = pDevice;
 	g_pContext = pContext;
+
+	for (int i = 0; i < GAUGE_PLAYER_MAX; i++)
+	{
+		g_Gauge[i].fire  = 1;
+		g_Gauge[i].water = 1;
+		g_Gauge[i].wind  = 1;
+		g_Gauge[i].earth = 1;
+		g_Gauge[i].outer = 1;
+		g_Gauge[i].pos   = { 0,0 };
+	}
 
 }
 
@@ -55,51 +62,44 @@ void Gauge_Finalize(void)
 //====================================================================================
 void Gauge_Update(void)
 {
-	ImGui::Begin("Gauge Debug");
-	if (ImGui::Button("1 +1"))
-	{
-		fireValue += 0.1f;
-	}
-	else if (ImGui::Button("2 +1"))
-	{
-		waterValue += 0.1f;
-	}
-	else if (ImGui::Button("3 +1"))
-	{
-		windValue += 0.1f;
-	}
-	else if (ImGui::Button("4 +1"))
-	{
-		earthValue += 0.1f;
-	}
 
-	if (ImGui::Button("out +1"))
-	{
-		OuterGaugeValue += 0.1f;
-	}
-	else if (ImGui::Button("out -1"))
-	{
-		OuterGaugeValue -= 0.1f;
-	}
-	ImGui::End();
+}
+
+
+//====================================================================================
+// 他のファイルでゲージをセットする関数
+//====================================================================================
+void Gauge_Set(int i, float fire, float water, float wind, float earth,
+	           float outer, const XMFLOAT2& pos)
+{
+	if (i < 0 || i >= GAUGE_PLAYER_MAX) return;
+
+	g_Gauge[i].fire  = fire;
+	g_Gauge[i].water = water;
+	g_Gauge[i].wind  = wind;
+	g_Gauge[i].earth = earth;
+	g_Gauge[i].outer = outer;
+	g_Gauge[i].pos   = pos;
 }
 
 
 //====================================================================================
 // 描画
 //====================================================================================
-void Gauge_Draw(void)
+void Gauge_Draw(int i)
 {
+	const GaugeData& g = g_Gauge[i];
+
 	Shader_BeginUI();
 
 	Shader_BeginOutGauge();
-	Shader_SetOutGauge(OuterGaugeValue, color::blue);
-	DrawSprite({ 100,100 }, { 90,90 }, color::white);
+	Shader_SetOutGauge(g.outer, color::sky);
+	DrawSprite(g.pos, { 70,70 }, color::white);
 
 	Shader_BeginGauge();
-	Shader_SetGaugeMulti(fireValue, waterValue, windValue, earthValue,
-		color::red, color::blue, color::green, color::yellow);
+	Shader_SetGaugeMulti(g.fire, g.water, g.wind, g.earth,
+		                 color::red, color::blue, color::green, color::yellow);
 
-	DrawSprite({ 100,100 }, { 80,80 }, color::white);
+	DrawSprite(g.pos, { 60,60 }, color::white);
 }
 

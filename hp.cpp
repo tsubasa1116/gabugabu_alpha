@@ -9,7 +9,7 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 static	ID3D11ShaderResourceView* g_Texture;
 
 // HPバーのスムーズ減少速度
-#define HPBAR_SPEED 1.0f
+#define HPBAR_SPEED 3.0f
 
 
 // -------------------------------------------------------------
@@ -52,7 +52,7 @@ void UpdateHP(HP* bar)
 		if (bar->current < bar->target)
 		{
 			bar->current = bar->target;
-			bar->pos.x -= HPBAR_SPEED;
+			//bar->pos.x -= HPBAR_SPEED;
 		}
 	}
 	else if (bar->current < bar->target)

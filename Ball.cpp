@@ -36,12 +36,6 @@ void	BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	g_Ball.State = BALL_STATE::BALL_STATE_MOVE;
 
-	g_Ball.HP = 10; //âº
-	g_Ball.maxHP = 10; //âº
-
-	InitializeHP(pDevice, pContext, &b_HPBar, { 250.0f, 500.0f }, { 400.0f, 20.0f }, color::red, color::green);
-
-
 }
 void	BallFinalize()
 {
@@ -50,9 +44,6 @@ void	BallFinalize()
 }
 void	BallUpdate()
 {
-	// HPÉoÅ[
-	SetHPValue(&b_HPBar, (int)g_Ball.HP, (int)g_Ball.maxHP);
-	UpdateHP(&b_HPBar);
 
 	switch (g_Ball.State)
 	{
@@ -121,14 +112,6 @@ void	BallDraw()
 	ModelDraw(g_Ball.Model);
 }
 
-void BallDrawHP()
-{
-
-	Shader_Begin();
-
-
-	DrawHP(&b_HPBar);
-}
 
 XMFLOAT3 GetBallPosition()
 {

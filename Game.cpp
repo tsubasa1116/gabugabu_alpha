@@ -130,9 +130,8 @@ void Game_Draw()
 	Camera_Draw();		//Drawの最初で呼ぶ！
 	Field_Draw();
 	BallDraw();
-	BallDrawHP();
 	Polygon3D_Draw();
-	Gauge_Draw();
+	
 
 	//2D描画
 	Light.SetEnable(FALSE);			//ライティングOFF
