@@ -18,7 +18,9 @@ struct HP {
 	XMFLOAT4 fillColor;  // 残量色
 };
 
-
+//=============================================
+// HPバーを設定したいcppで呼び出す(参考:p.cpp)
+//=============================================
 void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HP* bar, XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 backColor, XMFLOAT4 fillColor);
 void UpdateHP(HP* bar);
 void DrawHP(const HP* bar);

@@ -101,12 +101,15 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		pDevice->CreateBuffer(&desc, nullptr, &g_pOutGaugeBuffer);
 	}
 
-	D3D11_BUFFER_DESC cbd{};
-	cbd.Usage = D3D11_USAGE_DYNAMIC;
-	cbd.ByteWidth = sizeof(COLORBUFFER);
-	cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	pDevice->CreateBuffer(&cbd, NULL, &g_pColorBuffer);
+	//ColorBuffer
+	{
+		D3D11_BUFFER_DESC cbd{};
+		cbd.Usage = D3D11_USAGE_DYNAMIC;
+		cbd.ByteWidth = sizeof(COLORBUFFER);
+		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		pDevice->CreateBuffer(&cbd, NULL, &g_pColorBuffer);
+	}
 
 
 	// 事前コンパイル済み頂点シェーダーの読み込み
@@ -238,6 +241,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	return true;
 }
 
+
 //======================================================
 //	終了処理関数
 //======================================================
@@ -252,6 +256,7 @@ void Shader_Finalize()
 	SAFE_RELEASE(g_pLightConstantBuffer);
 
 }
+
 
 //======================================================
 //	行列関数
@@ -268,6 +273,7 @@ void Shader_SetMatrix(const DirectX::XMMATRIX& matrix)
 	g_pContext->UpdateSubresource(g_pVSConstantBuffer, 0, nullptr, &transpose, 0, 0);
 }
 
+
 //======================================================
 //	ワールド行列関数
 //======================================================
@@ -283,6 +289,7 @@ void Shader_SetWorldMatrix(const DirectX::XMMATRIX& matrix)
 	g_pContext->UpdateSubresource(g_pWorldConstantBuffer, 0, nullptr, &transpose, 0, 0);
 }
 
+
 //======================================================
 //	セットライト関数
 //======================================================
@@ -294,7 +301,9 @@ void Shader_SetLight(LIGHT light)
 
 
 
-
+//======================================================
+//	シェーダー設定
+//======================================================
 void Shader_Begin()
 {
 	// 頂点シェーダーとピクセルシェーダーを描画パイプラインに設定
@@ -308,16 +317,25 @@ void Shader_Begin()
 	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
 }
 
+
+//======================================================
+//	UI用シェーダー設定
+//======================================================
 void Shader_BeginUI()
 {
 	float w = (float)Direct3D_GetBackBufferWidth();
 	float h = (float)Direct3D_GetBackBufferHeight();
 
+	// 正射影行列の計算（2D）
 	XMMATRIX UI = XMMatrixOrthographicOffCenterLH(0, w, h, 0, 0, 1);
 
 	Shader_SetMatrix(UI);
 }
 
+
+//======================================================
+//	内ゲージ用シェーダー設定●
+//======================================================
 void Shader_BeginGauge()
 {
 	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
@@ -327,6 +345,10 @@ void Shader_BeginGauge()
 	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
 }
 
+
+//======================================================
+//	外ゲージ用シェーダー設定〇
+//======================================================
 void Shader_BeginOutGauge()
 {
 	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
@@ -336,6 +358,10 @@ void Shader_BeginOutGauge()
 	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
 }
 
+
+//======================================================
+//	内ゲージ
+//======================================================
 void Shader_SetGaugeMulti(float fire, float water, float wind, float earth,
 	XMFLOAT4 fireColor, XMFLOAT4 waterColor,
 	XMFLOAT4 windColor, XMFLOAT4 earthColor)
@@ -374,6 +400,9 @@ void Shader_SetGaugeMulti(float fire, float water, float wind, float earth,
 }
 
 
+//======================================================
+//	外ゲージ
+//======================================================
 void Shader_SetOutGauge(float value, XMFLOAT4 color)
 {
 	D3D11_MAPPED_SUBRESOURCE mapped{};
@@ -391,6 +420,9 @@ void Shader_SetOutGauge(float value, XMFLOAT4 color)
 }
 
 
+//======================================================
+//	色設定
+//======================================================
 void Shader_SetColor(const XMFLOAT4& color)
 {
 	if (!g_pColorBuffer) return;

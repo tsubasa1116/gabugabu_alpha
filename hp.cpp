@@ -91,9 +91,6 @@ void DrawHP(const HP* bar)
 	XMFLOAT2 fillSize = { bar->current, bar->size.y };
 	DrawSprite(fillPos, fillSize, bar->fillColor);
 
-	
-	
-
 }
 
 

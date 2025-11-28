@@ -13,6 +13,8 @@
 #include "hp.h"
 #include "imgui.h"
 
+#define PLAYER_MAX 10
+
 static HP g_HPBar;
 
 static ID3D11ShaderResourceView* g_Texture = NULL;
@@ -28,7 +30,7 @@ static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 static ID3D11DeviceContext* g_pContext2 = nullptr;
 
-P p;
+P p[PLAYER_MAX];
 
 
 XMFLOAT3 g_Eye = { 0.0f, 10.0f, 15.0f }; // カメラ位置
@@ -75,23 +77,41 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		return;
 	}
 
-	p.HP = 10.0f;
-	p.MaxHP = 10.0f;
-	p.pos = { 0.0f, 1.0f, 0.0f };
-	p.scale = { 1.0f, 1.0f, 1.0f };
-	p.color = { 1.0f, 1.0f, 1.0f, 1.0f }; // 白
+	p[0].HP = 10.0f;
+	p[0].MaxHP = 10.0f;
+	p[0].pos = { 0.0f, 1.0f, 0.0f };
+	p[0].scale = { 1.0f, 1.0f, 1.0f };
+	p[0].color = { 1.0f, 1.0f, 1.0f, 1.0f }; // 白
 
-	p.isIllum = false;
-	p.illumTimer = 0.0f;
-	p.illumTotal = 0.0f;
-	p.illumInterval = 0.0f;
-	p.illumInTimer = 0.0f;
-	p.illumColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 白
+	p[0].isIllum = false;
+	p[0].illumTimer = 0.0f;
+	p[0].illumTotal = 0.0f;
+	p[0].illumInterval = 0.0f;
+	p[0].illumInTimer = 0.0f;
+	p[0].illumColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 白
 
-	p.isStar = false;
-	p.starTimer = 0.0f;
+	p[0].isStar = false;
+	p[0].starTimer = 0.0f;
 
-	p.active = true;
+	p[0].active = true;
+
+	p[1].HP = 10.0f;
+	p[1].MaxHP = 10.0f;
+	p[1].pos = { 0.0f, 1.0f, 0.0f };
+	p[1].scale = { 1.0f, 1.0f, 1.0f };
+	p[1].color = { 1.0f, 1.0f, 1.0f, 1.0f }; // 白
+
+	p[1].isIllum = false;
+	p[1].illumTimer = 0.0f;
+	p[1].illumTotal = 0.0f;
+	p[1].illumInterval = 0.0f;
+	p[1].illumInTimer = 0.0f;
+	p[1].illumColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 白
+
+	p[1].isStar = false;
+	p[1].starTimer = 0.0f;
+
+	p[1].active = true;
 
 	// デバイスとデバイスコンテキストの保存
 	g_pDevice = pDevice;
@@ -151,101 +171,6 @@ void P_Finalize(void)
 }
 
 
-
-//====================================================================================
-// 色制御
-//====================================================================================
-void P_Color(const XMFLOAT4& color, bool illum)
-{
-	if (!p.active) return;
-
-	if (illum)
-	{
-		p.isIllum = true;
-		p.illumTimer = 0.0f;
-	}
-	else
-	{
-		p.color = color;
-		p.isIllum = false;
-	}
-}
-
-
-
-//====================================================================================
-// 点滅呼び出し関数
-//====================================================================================
-void P_StartIllum(const XMFLOAT4& color, float total, float interval)
-{
-	p.isIllum = true;
-	p.illumTimer = 0.0f;
-	p.illumInTimer = 0.0f;
-
-	p.illumTotal = total;
-	p.illumInterval = interval;
-
-	p.illumColor = color;
-}
-
-
-
-//====================================================================================
-// 点滅関数
-//====================================================================================
-void P_UpdateIllum()
-{
-	if (!p.isIllum) return;
-
-	// 全体時間
-	p.illumTimer += 1.0f / 60.0f;
-
-	// 点滅間隔
-	p.illumInTimer += 1.0f / 60.0f;
-
-	// 一定間隔で色を反転
-	if (p.illumInTimer >= p.illumInterval)
-	{
-		p.illumInTimer = 0.0f;
-
-		// 白-点滅色 の切り替え
-		if (p.color.x == p.illumColor.x &&
-			p.color.y == p.illumColor.y &&
-			p.color.z == p.illumColor.z)
-		{
-			p.color = color::white;
-		}
-		else
-		{
-			p.color = p.illumColor;
-		}
-	}
-
-	// 点滅終了
-	if (p.illumTimer >= p.illumTotal)
-	{
-		p.isIllum = false;
-		p.color = color::white;
-	}
-}
-
-
-
-
-//====================================================================================
-// 無敵呼び出し関数
-//====================================================================================
-void P_StartStar(float time)
-{
-	p.isStar = true;
-	p.starTimer = time;
-
-	// 無敵中は赤点滅など入れるなら
-	P_StartIllum(color::red, time, 0.2f);
-}
-
-
-
 //====================================================================================
 // 描画
 //====================================================================================
@@ -271,34 +196,9 @@ void P_Update()
 	// 当たり判定取得
 	Player_UpdateAABB();
 
-	// 点滅関数取得
-	P_UpdateIllum();
-
-
 	// HPバー
 	SetHPValue(&g_HPBar, (int)p.HP, (int)p.MaxHP);
 	UpdateHP(&g_HPBar);
-
-	
-
-
-
-
-
-	// 無敵判定
-	if (p.isStar)
-	{
-		p.starTimer -= 1.0f / 60.0f;  // 1フレーム経過
-
-		if (p.starTimer <= 0.0f)
-		{
-			p.isStar = false;
-			p.starTimer = 0.0f;
-		}
-	}
-
-
-
 
 	//===========================================================//
 

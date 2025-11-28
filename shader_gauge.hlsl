@@ -1,14 +1,14 @@
 cbuffer cbGauge : register(b3)
 {
-    float fire;
-    float water;
-    float wind;
-    float earth;
-
-    float4 fireColor;
-    float4 waterColor;
-    float4 windColor;
-    float4 earthColor;
+     float fire;
+     float water;
+     float wind;
+     float earth;
+     
+     float4 fireColor;
+     float4 waterColor;
+     float4 windColor;
+     float4 earthColor;
 };
 
 static const float2 center = float2(0.5, 0.5);
