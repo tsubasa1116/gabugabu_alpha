@@ -45,6 +45,12 @@ void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Gauge[i].pos   = { 0,0 };
 	}
 
+	TexMetadata		metadata;
+	ScratchImage	image;
+	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
+	assert(g_Texture);//読み込み失敗時にダイアログを表示
+
 }
 
 
@@ -101,5 +107,9 @@ void Gauge_Draw(int i)
 		                 color::red, color::blue, color::green, color::yellow);
 
 	DrawSprite(g.pos, { 60,60 }, color::white);
+
+	/*SetBlendState(BLENDSTATE_ALFA);
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
+	DrawSprite({ 10, 10 }, { 10, 10 }, color::white);*/
 }
 
