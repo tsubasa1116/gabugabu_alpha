@@ -1,15 +1,15 @@
 //======================================================
-//	title.cpp[]
+//	start.cpp[]
 // 
 //	制作者：田中佑奈			日付：2024//
 //======================================================
 
-//Title.cpp
+//Start.cpp
 #include	"Manager.h"
 #include	"sprite.h"
 #include	"keyboard.h"
 
-#include	"Title.h"
+#include	"Start.h"
 
 #include "fade.h"
 #include "shader.h"
@@ -19,7 +19,7 @@ static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 
-void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void Start_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -27,35 +27,64 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//テクスチャ読み込みなど
 	TexMetadata		metadata;
 	ScratchImage	image;
-	LoadFromWICFile(L"asset\\texture\\title.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\gameStart.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 	assert(g_Texture);//読み込み失敗時にダイアログを表示
 
 	//フェードインのセット
-	XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	SetFade(60.0f, color, FADE_IN, SCENE_START);
-
+	//設定シーンへ遷移
+	if (Keyboard_IsKeyDown(KK_TAB))
+	{
+		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(60.0f, color, FADE_IN, SCENE_SETTING);
+	}
+	//サウンドテストシーンへ遷移
+	if (Keyboard_IsKeyDown(KK_SPACE))
+	{
+		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(60.0f, color, FADE_IN, SCENE_SOUND);
+	}
+	//ゲームシーンへ遷移
+	if (Keyboard_IsKeyDown(KK_ENTER))
+	{
+		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(60.0f, color, FADE_IN, SCENE_GAME);
+	}
 }
-void Title_Finalize()
+void Start_Finalize()
 {
 	//テクスチャの解放など
 	SAFE_RELEASE(g_Texture);
 
 }
-void Title_Update()
+void Start_Update()
 {
 	//キー入力チェック
 	//スタートボタンが押されたらシーンを切り替え
 	//フェード処理中はキーを受け付けない
+	//設定シーンへ遷移
+	if (Keyboard_IsKeyDownTrigger(KK_TAB) && (GetFadeState() == FADE_NONE))
+	{
+		//フェードアウトさせてシーンを切り替える
+		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(40.0f, color, FADE_OUT, SCENE_SETTING);
+	}
+	//サウンドテストへ遷移
+	if (Keyboard_IsKeyDownTrigger(KK_SPACE) && (GetFadeState() == FADE_NONE))
+	{
+		//フェードアウトさせてシーンを切り替える
+		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(40.0f, color, FADE_OUT, SCENE_SOUND);
+	}
+	//ゲームシーンへ遷移
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
 		//フェードアウトさせてシーンを切り替える
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_START);
+		SetFade(40.0f, color, FADE_OUT, SCENE_GAME);
 	}
-
 }
-void Title_Draw()
+void Start_Draw()
 {
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
@@ -88,5 +117,4 @@ void Title_Draw()
 	DrawSprite(pos, size, col);//1枚絵を表示
 
 }
-
 

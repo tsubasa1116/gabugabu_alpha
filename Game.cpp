@@ -19,6 +19,7 @@
 
 #include	"Polygon3D.h"
 #include	"Camera.h"
+#include	"fade.h"
 
 #include "Ball.h"
 
@@ -75,6 +76,13 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	para.z /= len;
 	Light.SetDirection(para);//光の方向（正規化済）
 
+	//ゲームリザルトへ遷移
+	if (Keyboard_IsKeyDown(KK_F1))
+	{
+		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(60.0f, color, FADE_IN, SCENE_RESULT);
+	}
+
 }
 
 //======================================================
@@ -109,6 +117,13 @@ void Game_Update()
 	//Score_Update();
 	Polygon3D_Update();
 
+	//ゲームシーンへ遷移
+	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
+	{
+		//フェードアウトさせてシーンを切り替える
+		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
+	}
 }
 
 //======================================================
