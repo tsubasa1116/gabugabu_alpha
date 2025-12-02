@@ -18,6 +18,8 @@
 //GetTexture() で現在のフェーズのテクスチャ名を取得可能
 
 
+//nya------
+
 //Building.cpp
 #include "Building.h"
 #include "model.h"   // ModelLoad / ModelRelease / ModelDraw
