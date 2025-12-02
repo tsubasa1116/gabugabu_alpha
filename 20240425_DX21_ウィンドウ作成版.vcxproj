@@ -161,6 +161,7 @@
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="score.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="skill.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="Title.cpp" />
   </ItemGroup>
@@ -195,6 +196,7 @@
     <ClInclude Include="Result.h" />
     <ClInclude Include="score.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="skill.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="Title.h" />
   </ItemGroup>
