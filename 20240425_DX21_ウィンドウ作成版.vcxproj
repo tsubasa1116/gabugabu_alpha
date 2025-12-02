@@ -146,6 +146,8 @@
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Ball.cpp" />
     <ClCompile Include="Block.cpp" />
+    <ClCompile Include="Build.cpp" />
+    <ClCompile Include="Building.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="collider.cpp" />
     <ClCompile Include="debug_ostream.cpp" />
@@ -181,6 +183,8 @@
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Ball.h" />
     <ClInclude Include="Block.h" />
+    <ClInclude Include="Build.h" />
+    <ClInclude Include="Building.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="collider.h" />
     <ClInclude Include="color.h" />

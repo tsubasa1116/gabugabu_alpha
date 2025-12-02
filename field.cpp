@@ -11,6 +11,8 @@
 ///////////////////////////////////////
 
 #include "model.h"
+
+#include "Building.h"
 //======================================================
 //	マクロ定義
 //======================================================
@@ -207,15 +209,13 @@ static UINT	Box_idxdata[6 * 6] =
 	20, 21, 22, 22, 21, 23,		//-Y面
 };
 
+
+
 //マップデータ配列
 MAPDATA		Map[] =
 {
-	// 建物は別で作る
-	//// 障害物
-	//{ XMFLOAT3(0.0f,	0.0f,	2.0f), {}, FIELD::FIELD_BUILDING },
-	//{ XMFLOAT3(2.0f,	0.0f,	0.0f), {}, FIELD::FIELD_BUILDING },
-	//{ XMFLOAT3(-4.0f,	0.0f,	1.0f), {}, FIELD::FIELD_BUILDING },
-	//{ XMFLOAT3(-3.0f,	0.0f,	-2.0f), {}, FIELD::FIELD_BUILDING },
+	
+
 
 	// 地面
 	{ {},{}, FIELD::FIELD_BOX },
@@ -340,7 +340,7 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 
-	{ XMFLOAT3(2.0f,	-1.0f,	5.0f), {}, FIELD::FIELD_MAX }	// MAPデータ終了
+	{ XMFLOAT3(2.0f,-1.0f,	5.0f), {}, FIELD::FIELD_MAX }	// MAPデータ終了
 };
 
 //======================================================
@@ -361,7 +361,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// ★★★ 中央補正のためのオフセット計算 ★★★
 	// ----------------------------------------------------
 
-		// 1. Z軸方向の列数を確定 (FIELD_MAXを除くため count-1 で考えるのが確実)
+	// 1. Z軸方向の列数を確定 (FIELD_MAXを除くため count-1 で考えるのが確実)
 	int tiles_count = count - 1; // 描画対象のタイル数
 	int col_max = tiles_count / NUM;
 
@@ -436,7 +436,6 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 		i++;
 	}
-
 }
 
 //======================================================
@@ -556,6 +555,9 @@ MAPDATA* GetFieldObjects() // ★新しい型
 {
 	return Map;
 }
+
+
+
 
 // フィールドオブジェクトの総数を返す
 int GetFieldObjectCount()
