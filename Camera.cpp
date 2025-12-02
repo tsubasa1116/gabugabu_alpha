@@ -18,7 +18,7 @@ XMFLOAT3		g_BallPosOld;//<<<<<<<<<<<<<<
 void	Camera_Initialize()
 { 
 	// セッターを使った初期化
-	XMFLOAT3 pos = XMFLOAT3(0.0f, 10.0f, -10.0f);
+	XMFLOAT3 pos = XMFLOAT3(0.0f, 10.0f, -0.00001f);
 	XMFLOAT3 at = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	SetCameraPosition(pos);

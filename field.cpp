@@ -207,6 +207,15 @@ static UINT	Box_idxdata[6 * 6] =
 	20, 21, 22, 22, 21, 23,		//-Y面
 };
 
+
+static const char* g_ModelName[] = { 
+	"propsConcreteMain_v2",		// 3マス大建物
+	"propsConcreteSub_v2",		// マンション
+	"propsElectricitySub_v2",	// 車と信号
+	"propsGlassSub_v2",			// ビル
+	"propsTreeSub_v2",			// 広葉樹
+	"DynThunder"
+};
 //マップデータ配列
 MAPDATA		Map[] =
 {
@@ -348,20 +357,24 @@ MAPDATA		Map[] =
 //======================================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Test = ModelLoad("asset\\model\\field_v3.fbx");//デバッグ
+    // 元のコード:
+    // Test = ModelLoad("asset\\model\\" << g_ModelName[2] << ".fbx");//デバッグ
 
+    // 修正後
+    char modelPath[256];
+    snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[3]); // g_ModelName[2]は範囲外なので[1]に修正
+    Test = ModelLoad(modelPath);//デバッグ
 	const int NUM = 10;		// 1行/列あたりのfieldの個数
 	//int count = sizeof(Map) / sizeof(Map[0]);	// 配列の要素数
 	int count = GetFieldObjectCount();
 
-	float r = 1.0f; // 半径
 	float sin60 = sinf(XMConvertToRadians(60.0f)); // 60度のcos値
 
 	// ----------------------------------------------------
 	// ★★★ 中央補正のためのオフセット計算 ★★★
 	// ----------------------------------------------------
 
-		// 1. Z軸方向の列数を確定 (FIELD_MAXを除くため count-1 で考えるのが確実)
+	// 1. Z軸方向の列数を確定 (FIELD_MAXを除くため count-1 で考えるのが確実)
 	int tiles_count = count - 1; // 描画対象のタイル数
 	int col_max = tiles_count / NUM;
 
@@ -371,9 +384,9 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	// 2. X軸の最大座標とZ軸の最大座標を計算
 	// X軸の最大位置 (最後のタイル位置)
-	float max_x_pos = (NUM - 1) * r * 3.0f;
+	float max_x_pos = (NUM - 1) * Map->radius * 3.0f;
 	// Z軸の最大位置 (最後のタイル位置)
-	float max_z_pos = (col_max - 1) * (sin60 * r);
+	float max_z_pos = (col_max - 1) * (sin60 * Map->radius);
 
 	// 3. 中心オフセットを決定 (全体の最大位置の半分を引く)
 	float offset_x = max_x_pos / 2.0f;
@@ -388,11 +401,11 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		if (Map[i].no == FIELD::FIELD_MAX) continue;
 
 		// 行
-		if (col % 2 == 0)	Map[i].pos.x = row * r * 3.0f;	// 偶数行
-		else				Map[i].pos.x = row * r * 3.0f + r * 1.5f;	// 奇数行 
+		if (col % 2 == 0)	Map[i].pos.x = row * Map->radius * 3.0f;	// 偶数行
+		else				Map[i].pos.x = row * Map->radius * 3.0f + Map->radius * 1.5f;	// 奇数行 
 
 		// 列
-		Map[i].pos.z = col * (sin60 * r);
+		Map[i].pos.z = col * (sin60 * Map->radius);
 
 		// y 座標
 		Map[i].pos.y = -1.0f;
@@ -400,6 +413,9 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		// 計算した座標から、中心オフセットを引く
 		Map[i].pos.x -= offset_x;
 		Map[i].pos.z -= offset_z;
+
+		if (i % 3 == 0)
+			Map[i].isActive = false;
 	}
 
 
@@ -436,7 +452,6 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 		i++;
 	}
-
 }
 
 //======================================================
@@ -496,8 +511,8 @@ void Field_Draw(void)
 		//回転行列の作成
 		XMMATRIX	RotationMatrix = XMMatrixRotationRollPitchYaw
 		(
-			XMConvertToRadians(-90),
-			//XMConvertToRadians(rot),
+			//-3.141592 / 2,
+			XMConvertToRadians(-90.0f),
 			XMConvertToRadians(0.0f),
 			XMConvertToRadians(0.0f)
 		);

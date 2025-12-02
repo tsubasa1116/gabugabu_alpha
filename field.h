@@ -27,6 +27,7 @@ public:
 	FIELD		no;		//ブロックの種類
 	//その他必要な物は追加する
 
+	float radius = 1.0f;
 	bool isActive = true;
 	//MODEL fModel;		//モデルデータ
 };
