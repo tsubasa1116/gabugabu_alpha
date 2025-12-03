@@ -6,7 +6,7 @@ static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 //プレイヤー関連変数
-static	ID3D11ShaderResourceView* g_Texture[1];
+static	ID3D11ShaderResourceView* g_Texture[2];
 
 // HPバーのスムーズ減少速度
 #define HPBAR_SPEED 3.0f
@@ -116,18 +116,25 @@ void DrawHP(const HP* bar)
 	float ratio = bar->current / bar->size.x;
 	ratio = max(0.0f, min(1.0f, ratio));
 
-	// 背景（
-	DrawSprite(bar->pos, bar->size, bar->backColor);
+	
 
 	// 画像バー本体（横に削る）
 	XMFLOAT2 uvMin = { 0.0f, 0.0f };
 	XMFLOAT2 uvMax = { ratio, 1.0f };
-
+    
+	XMFLOAT2 backSize = { bar->size.x, bar->size.y };
+	XMFLOAT2 backPos = { bar->pos.x - (bar->size.x / 2.0f) + backSize.x / 2.0f, bar->pos.y
+	};
+	
 	XMFLOAT2 fillSize = { bar->size.x * ratio, bar->size.y };
 	XMFLOAT2 fillPos = { bar->pos.x - (bar->size.x / 2.0f) + fillSize.x / 2.0f, bar->pos.y
 	};
+
+	
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
+	DrawSprite(backPos, backSize, bar->backColor);
 	DrawSpriteUV(fillPos, fillSize, bar->fillColor, uvMin, uvMax);
+
 
 	SetBlendState(BLENDSTATE_ALFA);
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
