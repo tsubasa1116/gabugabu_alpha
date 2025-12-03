@@ -1,20 +1,23 @@
 //======================================================
 //	polygon3D.cpp[]
 // 
-//	制作者：前野翼			日付：2024//
+//	制作者：平岡颯馬	日付：2025/12/02
 //======================================================
 ////Polygon3D.cpp
 
-#include	"d3d11.h"
-#include	"DirectXMath.h"
+#include "d3d11.h"
+#include "DirectXMath.h"
 using namespace DirectX;
-#include	"direct3d.h"
-#include	"shader.h"
-#include	"keyboard.h"
-#include	"sprite.h"
+#include "direct3d.h"
+#include "shader.h"
+#include "keyboard.h"
+#include "sprite.h"
+#include "color.h"
+#include "hp.h"
+#include "gauge.h"
 
 #include "polygon3D.h"
-#include	"Camera.h"
+#include "Camera.h"
 
 ///////////////////////////////////////
 #include "field.h"
@@ -22,39 +25,42 @@ using namespace DirectX;
 
 #include <iostream>
 #include "debug_ostream.h"
-//#include "skill.h" 
+#include "skill.h" 
 ///////////////////////////////////////
 
-//======================================================
-//	グローバル変数
-//======================================================
-//グローバル変数
-static	ID3D11Device* g_pDevice = NULL;
-static	ID3D11DeviceContext* g_pContext = NULL;
-//頂点バッファ
-static	ID3D11Buffer* g_VertexBuffer = NULL;
-//インデックスバッファ
-static	ID3D11Buffer* g_IndexBuffer = NULL;
-//テクスチャ変数
-static ID3D11ShaderResourceView* g_Texture;
-
-//ポリゴン表示座標
-static	XMFLOAT3	Position;
-//ポリゴン回転角度
-static	XMFLOAT3	Rotation;
-//ポリゴン拡大率
-static	XMFLOAT3	Scaling;
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
 
 //======================================================
 //	マクロ定義
 //======================================================
-#define		NUM_VERTEX	(100)
+#define	NUM_VERTEX	(100)
+#define	PLAYER_MAX	(2)
+#define HPBER_SIZE_X 180.0f
+#define HPBER_SIZE_Y 25.0f
 
 //======================================================
 //	構造謡宣言
 //======================================================
 // オブジェクト
-PlayerObject object[2];
+PLAYEROBJECT object[PLAYER_MAX];
+
+//======================================================
+//	グローバル変数
+//======================================================
+static	ID3D11Device* g_pDevice = NULL;
+static	ID3D11DeviceContext* g_pContext = NULL;
+static HP HPBar[PLAYER_MAX];
+
+//頂点バッファ
+static	ID3D11Buffer* g_VertexBuffer = NULL;
+
+//インデックスバッファ
+static	ID3D11Buffer* g_IndexBuffer = NULL;
+
+//テクスチャ変数
+static ID3D11ShaderResourceView* g_Texture[PLAYER_MAX];
 
 static	Vertex vdata[NUM_VERTEX] =
 {
@@ -64,7 +70,7 @@ static	Vertex vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//カラー
 		XMFLOAT2(0.0f,0.0f)					//テクスチャ座標
 	},
-	{//頂点1 RIHGT-TOP
+	{//頂点1 RIGHT-TOP
 		XMFLOAT3(0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
@@ -79,12 +85,12 @@ static	Vertex vdata[NUM_VERTEX] =
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(0.0f,1.0f)
 	//},
-	//{//頂点4 RIHGT-TOP
+	//{//頂点4 RIGHT-TOP
 	//	XMFLOAT3(0.5f, 0.5f, -0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(1.0f,0.0f)
 	//},
-	{//頂点5 RIHGT-BOTTOM
+	{//頂点5 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
@@ -249,7 +255,6 @@ static	Vertex vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
-
 };
 
 //インデックス配列
@@ -261,21 +266,50 @@ static UINT idxdata[6 * 6] = {
 	16,17,18,18,17,19,	// +Y面
 	20,21,22,22,21,23,	// -Y面
 };
+
 //======================================================
 //	初期化関数
 //======================================================
-void	Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
-{ 
+void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
 	// ポリゴン表示の初期化
-	object[0].position = XMFLOAT3(-2.0f, 2.0f, 0.0f);
+	object[0].position = XMFLOAT3(-2.0f, 1.5f, 0.0f);
 	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	object[0].speed = 0.0f;
+	object[0].maxHp = 100.0f;
+	object[0].hp = object[0].maxHp;
+	object[0].residue = 2;
+	object[0].isAttaking = false;
+	object[0].attackTimer = 0.0f;
+	object[0].breakCount_Glass = 0;
+	object[0].breakCount_Plant = 0;
+	object[0].breakCount_Concrete = 0;
+	object[0].breakCount_Electricity = 0;
+	object[0].gl = 1.0f;
+	object[0].pl = 1.0f;
+	object[0].co = 1.0f;
+	object[0].el = 1.0f;
+	object[0].gaugeOuter = 1.0f;
 
-	object[1].position = XMFLOAT3(2.0f, 4.0f, 3.0f);
+	object[1].position = XMFLOAT3(1.5f, 2.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	object[1].speed = 0.0f;
+	object[1].maxHp = 100.0f;
+	object[1].hp = object[1].maxHp;
+	object[1].residue = 2;
+	object[1].isAttaking = false;
+	object[1].attackTimer = 0.0f;
+	object[1].breakCount_Glass = 0;
+	object[1].breakCount_Plant = 0;
+	object[1].breakCount_Concrete = 0;
+	object[1].breakCount_Electricity = 0;
+	object[1].gl = 1.0f;
+	object[1].pl = 1.0f;
+	object[1].co = 1.0f;
+	object[1].el = 1.0f;
+	object[1].gaugeOuter = 1.0f;
 
 	//頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
@@ -289,15 +323,17 @@ void	Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-
 	// テクスチャ読み込み
 	TexMetadata metadata;
 	ScratchImage image;
-	LoadFromWICFile(L"Asset\\Texture\\texture.jpg", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(),
-		image.GetImageCount(), metadata, &g_Texture);
-	assert(g_Texture);
 
+	LoadFromWICFile(L"Asset\\Texture\\TileA3.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
+	assert(g_Texture[0]);
+
+	LoadFromWICFile(L"Asset\\Texture\\texture.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
+	assert(g_Texture[1]);
 
 	//インデックスバッファ作成
 	{
@@ -317,14 +353,17 @@ void	Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		//インデックスデータをバッファへコピー
 		CopyMemory(&index[0], &idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
-
 	}
+
+	InitializeHP(pDevice, pContext, &HPBar[0], { 200.0f,  350.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[1], { 500.0f,  350.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+
 }
 
 //======================================================
 //	終了処理関数
 //======================================================
-void	Polygon3D_Finalize()
+void Polygon3D_Finalize()
 {
 	if (g_IndexBuffer != NULL)
 	{
@@ -338,13 +377,12 @@ void	Polygon3D_Finalize()
 		g_VertexBuffer = NULL;
 	}
 
-	if (g_Texture != NULL)
+	//テクスチャの解放
+	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		g_Texture->Release();
-		g_Texture = NULL;
+		g_Texture[i]->Release();
+		g_Texture[i] = NULL;
 	}
-
-
 }
 
 // ======================================================
@@ -352,12 +390,12 @@ void	Polygon3D_Finalize()
 // ------------------------------------------------------
 // 移動ベクトルと向いている方向ベクトルは別で持った方がいい
 // ======================================================
-void Move(PlayerObject& object, XMFLOAT3 moveDir)
+void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 {
-	// 進みたい方向（3平方）
+	//for (int i = 0; i < PLAYER_MAX; i++)
+	//{
+		// 進みたい方向（3平方）
 	float length = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
-
-	static float currentAngle = 0.0f; // 現在向いている角度
 
 	if (length > 0.0f)
 	{
@@ -370,22 +408,73 @@ void Move(PlayerObject& object, XMFLOAT3 moveDir)
 		targetAngle = XMConvertToDegrees(targetAngle);		// ラジアン → 度
 
 		// 差分を調整（180度超えないように）
-		float diff = targetAngle - currentAngle;	// 角度差
+		float diff = targetAngle - object.moveAngle;	// 角度差
 		if (diff > 180.0f) diff -= 360.0f;
 		if (diff < -180.0f) diff += 360.0f;
 
 		static float angSpeed = 0.5f;
 
 		// スムーズに補間（0.1fが補間スピード）
-		currentAngle += diff * angSpeed;
+		object.moveAngle += diff * angSpeed;
 
-		object.rotation.y = currentAngle;	// 角度の反映
+		object.rotation.y = object.moveAngle;	// 角度の反映
 
 		// 前進
-		float rad = XMConvertToRadians(currentAngle);
+		float rad = XMConvertToRadians(object.moveAngle);
 		object.position.x += sinf(rad) * object.speed;
 		object.position.z += cosf(rad) * object.speed;
 	}
+	//	}
+}
+
+//======================================================
+//	攻撃関数
+//======================================================
+//void Polygon3D_Attack()
+//{
+//	// Player1がPlayer2を攻撃する
+//	if (Keyboard_IsKeyDown(KK_SPACE))
+//	{
+//
+//	}
+//
+//	// Player2がPlayer1を攻撃する
+//	if (Keyboard_IsKeyDown(KK_ENTER))
+//	{
+//
+//	}
+//
+//}
+
+void Polygon3D_Respawn()
+{
+	object[0].position = XMFLOAT3(-2.0f, 2.0f, 0.0f);
+	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	object[0].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	object[0].speed = 0.0f;
+	object[0].hp = 100.0f;
+	object[0].maxHp = object[0].hp;
+	object[0].residue = 2;
+	object[0].isAttaking = false;
+	object[0].attackTimer = 0.0f;
+	object[0].breakCount_Glass = 0;
+	object[0].breakCount_Plant = 0;
+	object[0].breakCount_Concrete = 0;
+	object[0].breakCount_Electricity = 0;
+
+	object[1].position = XMFLOAT3(2.0f, 4.0f, 3.0f);
+	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	object[1].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	object[1].speed = 0.0f;
+	object[1].hp = 100.0f;
+	object[1].maxHp = object[1].hp;
+	object[1].residue = 2;
+	object[1].isAttaking = false;
+	object[1].attackTimer = 0.0f;
+	object[1].breakCount_Glass = 0;
+	object[1].breakCount_Plant = 0;
+	object[1].breakCount_Concrete = 0;
+	object[1].breakCount_Electricity = 0;
 }
 
 //======================================================
@@ -393,36 +482,58 @@ void Move(PlayerObject& object, XMFLOAT3 moveDir)
 //======================================================
 void Polygon3D_Update()
 {
+	// プレイヤー1 スキル発動
+	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
+	{
+		object[0].isAttaking = true;
+	}
+	if (object[0].isAttaking == true)
+	{
+		Player1_Skill_Update();
+	}
 
-	//// プレイヤー1 スキル
-	//if (Keyboard_IsKeyDownTrigger(KK_ENTER))
-	//{
-	//	skillActive[0] = true;
-	//}
-	//Player1_Skill_Update();
+	// プレイヤー2 スキル発動
+	if (Keyboard_IsKeyDownTrigger(KK_ENTER))
+	{
+		object[1].isAttaking = true;
+		Player2_Skill_Update();
+	}
 
-	XMFLOAT3 moveDir0 = { 0.0f, 1.0f, 0.0f };	// 移動ベクトル
-	XMFLOAT3 moveDir1 = { 0.0f, 1.0f, 0.0f };	// 移動ベクトル
+	ImGui::Begin("Player Debug");
 
-	if (Keyboard_IsKeyDown(KK_UP))		moveDir0.z += 1.0f;
-	if (Keyboard_IsKeyDown(KK_DOWN))	moveDir0.z -= 1.0f;
-	if (Keyboard_IsKeyDown(KK_LEFT))	moveDir0.x -= 1.0f;
-	if (Keyboard_IsKeyDown(KK_RIGHT))	moveDir0.x += 1.0f;
+	// HPバー
+	ImGui::SliderFloat("HP", &object[0].hp, 0.0f, object[0].maxHp);
 
-	if (Keyboard_IsKeyDown(KK_I))		moveDir1.z += 1.0f;
-	if (Keyboard_IsKeyDown(KK_K))		moveDir1.z -= 1.0f;
-	if (Keyboard_IsKeyDown(KK_J))		moveDir1.x -= 1.0f;
-	if (Keyboard_IsKeyDown(KK_L))		moveDir1.x += 1.0f;
+	// 座標調整
+	ImGui::Text("Position");
+	ImGui::DragFloat3("pos", (float*)&object[0].position, 0.1f);
 
-	Move(object[0], moveDir0);
-	Move(object[1], moveDir1);
-	for (int i = 0; i < 2; i++)
+	ImGui::SliderInt("residue", &object[0].residue, 0.0f, object[0].residue);
+
+	ImGui::End();
+
+	object[0].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
+	object[1].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
+
+	if (Keyboard_IsKeyDown(KK_W))	object[0].moveDir.z += 1.0f;
+	if (Keyboard_IsKeyDown(KK_S))	object[0].moveDir.z -= 1.0f;
+	if (Keyboard_IsKeyDown(KK_A))	object[0].moveDir.x -= 1.0f;
+	if (Keyboard_IsKeyDown(KK_D))	object[0].moveDir.x += 1.0f;
+
+	if (Keyboard_IsKeyDown(KK_UP))		object[1].moveDir.z += 1.0f;
+	if (Keyboard_IsKeyDown(KK_DOWN))	object[1].moveDir.z -= 1.0f;
+	if (Keyboard_IsKeyDown(KK_LEFT))	object[1].moveDir.x -= 1.0f;
+	if (Keyboard_IsKeyDown(KK_RIGHT))	object[1].moveDir.x += 1.0f;
+
+	Move(object[0], object[0].moveDir);
+	Move(object[1], object[1].moveDir);
+	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		static XMFLOAT3 posBuff = object[i].position;	// デバッグ表示座標
 
 		// Y軸の移動量 (重力 + ジャンプ)
 		// 重力加速度のない簡易的な重力
-		object[i].position.y += -0.1f;
+		//object[i].position.y += -0.1f;
 
 		// デバッグ出力
 		if (posBuff.x != object[i].position.x ||
@@ -447,7 +558,7 @@ void Polygon3D_Update()
 			object[i].scaling.x = 0.5f;
 			object[i].scaling.y = 0.5f;
 			object[i].scaling.z = 0.5f;
-			object[i].speed = 0.03f;
+			object[i].speed = 0.05f;
 			object[i].power = 0.8f;
 			break;
 
@@ -455,7 +566,7 @@ void Polygon3D_Update()
 			object[i].scaling.x = 1.0f;
 			object[i].scaling.y = 1.0f;
 			object[i].scaling.z = 1.0f;
-			object[i].speed = 0.02f;
+			object[i].speed = 0.03f;
 			object[i].power = 1.0f;
 			break;
 
@@ -463,7 +574,7 @@ void Polygon3D_Update()
 			object[i].scaling.x = 1.5f;
 			object[i].scaling.y = 1.5f;
 			object[i].scaling.z = 1.5f;
-			object[i].speed = 0.01f;
+			object[i].speed = 0.02f;
 			object[i].power = 1.5f;
 			break;
 
@@ -482,11 +593,10 @@ void Polygon3D_Update()
 		// 全てのフィールドオブジェクトと衝突判定を行う
 		for (int j = 0; j < fieldCount; ++j)
 		{
-
 			// フィールドオブジェクトのリストを取得
 			MAPDATA* fieldObjects = GetFieldObjects();
 
-			// i番目のフィールドオブジェクトのAABBを取得
+			// j番目のフィールドオブジェクトのAABBを取得
 			AABB pStaticObjectAABB = fieldObjects[j].boundingBox;
 
 			CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
@@ -498,13 +608,13 @@ void Polygon3D_Update()
 			{
 				continue; // 次のオブジェクトへ
 			}
-			////if(CheckAABBCollision(object[0].boundingBox, fieldObjects->boundingBox)&& fieldObjects->no==FIELD_BUILDING)
-			//if (CheckAABBCollision(object[i].boundingBox, fieldObjects[j].boundingBox) && fieldObjects[j].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
-			//{
-			//	// 建物に衝突していて、かつスペースキーが押されていたら
-			//	fieldObjects[j].isActive = false;
-			//	object[i].form = (Form)((int)object[i].form + 1); // 進化
-			//}
+			//if(CheckAABBCollision(object[0].boundingBox, fieldObjects->boundingBox)&& fieldObjects->no==FIELD_BUILDING)
+			if (CheckAABBCollision(object[i].boundingBox, fieldObjects[j].boundingBox) && fieldObjects[j].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
+			{
+				// 建物に衝突していて、かつスペースキーが押されていたら
+				fieldObjects[j].isActive = false;
+				object[i].form = (Form)((int)object[i].form + 1); // 進化
+			}
 			if (CheckAABBCollision(object[0].boundingBox, object[1].boundingBox) && Keyboard_IsKeyDown(KK_SPACE))
 			{
 				// スキル使用時
@@ -519,22 +629,22 @@ void Polygon3D_Update()
 				if (fieldObjects[j].no == FIELD::FIELD_BOX)
 				{
 					// 衝突していたら、MTVの分だけ位置を戻す
-					//object[0].position.x += collision.translation.x;
+					//object[i].position.x += collision.translation.x;
 					object[i].position.y += collision.translation.y;
-					//object[0].position.z += collision.translation.z;
+					//object[i].position.z += collision.translation.z;
 
 					// 押し戻し後の新しいAABBを再計算
 					// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
 					CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
 				}
-				//else if (fieldObjects[j].no == FIELD::FIELD_BUILDING)
-				//{
-				//	object[i].position.x += collision.translation.x;
-				//	object[i].position.y += collision.translation.y;
-				//	object[i].position.z += collision.translation.z;
+				else if (fieldObjects[j].no == FIELD::FIELD_BUILDING)
+				{
+					object[i].position.x += collision.translation.x;
+					object[i].position.y += collision.translation.y;
+					object[i].position.z += collision.translation.z;
 
-				//	CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-				//}
+					CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
+				}
 
 				// デバッグ出力
 				hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " <<
@@ -559,32 +669,36 @@ void Polygon3D_Update()
 		// プレイヤー0 (A) と プレイヤー1 (B) の衝突をチェック
 		MTV collision_player = CalculateAABBMTV(object[0].boundingBox, object[1].boundingBox);
 
-		if (collision_player.isColliding) {
+		if (collision_player.isColliding)
+		{
 			hal::dout << "?? プレイヤー衝突！ 互いに吹き飛ばし実行" << std::endl;
+			// 吹き飛ばしの強さ（X-Z方向）
+			const float knockbackPowerXZ = 0.5f; // 強さを調整
+			// 吹き飛ばしの強さ（Y方向）
+			const float knockbackPowerY = 0.3f; // 高さを調整
+
+			// プレイヤー0 の向き（ラジアン）を計算
+			float rad_0 = XMConvertToRadians(object[0].rotation.y);
+			// プレイヤー0 の向きベクトル（X-Z平面）
+			float dir0_x = sinf(rad_0);
+			float dir0_z = cosf(rad_0);
+
+			// プレイヤー1 の向き（ラジアン）を計算
+			float rad_1 = XMConvertToRadians(object[1].rotation.y);
+			// プレイヤー1 の向きベクトル（X-Z平面）
+			float dir1_x = sinf(rad_1);
+			float dir1_z = cosf(rad_1);
+
 			if (Keyboard_IsKeyDown(KK_SPACE))
 			{
-				// 吹き飛ばしの強さ（X-Z方向）
-				const float knockbackPowerXZ = 0.5f; // 強さを調整
-				// 吹き飛ばしの強さ（Y方向）
-				const float knockbackPowerY = 0.3f; // 高さを調整
-
-				// プレイヤー0 の向き（ラジアン）を計算
-				float rad_0 = XMConvertToRadians(object[0].rotation.y);
-				// プレイヤー0 の向きベクトル（X-Z平面）
-				float dir0_x = sinf(rad_0);
-				float dir0_z = cosf(rad_0);
-
-				// プレイヤー1 の向き（ラジアン）を計算
-				float rad_1 = XMConvertToRadians(object[1].rotation.y);
-				// プレイヤー1 の向きベクトル（X-Z平面）
-				float dir1_x = sinf(rad_1);
-				float dir1_z = cosf(rad_1);
-
 				// プレイヤー1 を、プレイヤー0の向いている方向に吹き飛ばす
 				object[1].position.x += dir0_x * object[0].power;
 				object[1].position.z += dir0_z * object[0].power;
 				object[1].position.y += object[0].power; // Y方向にも飛ばす
+			}
 
+			if (Keyboard_IsKeyDown(KK_ENTER))
+			{
 				// プレイヤー0 を、プレイヤー1の向いている方向に吹き飛ばす
 				object[0].position.x += dir1_x * object[1].power;
 				object[0].position.z += dir1_z * object[1].power;
@@ -605,12 +719,30 @@ void Polygon3D_Update()
 			object[0].position.x += half_translation.x;
 			object[0].position.y += half_translation.y;
 			object[0].position.z += half_translation.z;
+			object[0].hp -= object[1].power;
+
+			// HPが0以下
+			if (object[0].hp < 0.0f)
+			{
+				object[0].hp = 0.0f;
+				object[0].residue -= 1;
+				Polygon3D_Respawn();
+			}
 
 			// プレイヤー1 (object[1]) を **MTVの逆方向の半分だけ** 押す
 			// 逆方向にするために、X, Y, Z の符号を反転させる
 			object[1].position.x -= half_translation.x;
 			object[1].position.y -= half_translation.y;
 			object[1].position.z -= half_translation.z;
+			object[1].hp -= object[0].power;
+
+			// HPが0以下
+			if (object[1].hp < 0.0f)
+			{
+				object[1].hp = 0.0f;
+				object[1].residue -= 1;
+				Polygon3D_Respawn();
+			}
 
 			// 押し戻し後の新しいAABBを再計算 (次フレームや他の衝突判定に備える)
 			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
@@ -619,7 +751,6 @@ void Polygon3D_Update()
 			// 吹き飛ばし後の新しいAABBを再計算 (他の衝突判定に備える)
 			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
 			CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
-
 
 			// -------------------------------------------------------------
 			// 当たり判定 Player1とSkill2
@@ -660,6 +791,8 @@ void Polygon3D_Update()
 
 		///////////////////////////////////////////////////////////////////////////////////////////////
 
+		SetHPValue(&HPBar[i], (int)object[i].hp, (int)object[i].maxHp);
+		UpdateHP(&HPBar[i]);
 	}
 }
 
@@ -668,7 +801,39 @@ void Polygon3D_Update()
 //======================================================
 void Polygon3D_Draw()
 {
-	for (int i = 0; i < 2; i++)
+	//// スキル使用時のみスキルを表示
+	//if (object[0].isAttaking == true)
+	//{
+	//}
+
+	//// スキル使用時のみスキルを表示
+	//if (object[1].isAttaking == true)
+	//{
+	//}
+
+	Shader_Begin(); 
+
+	// 個別UIステータス描画
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		// HPバー描画
+		DrawHP(&HPBar[i]);
+		XMFLOAT2 hp = HPBar[i].pos;
+
+		// ゲージ描画用設定
+		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
+			      object[i].gaugeOuter, { hp.x - 120.0f , hp.y });
+
+		// ゲージ描画
+		Gauge_Draw(i);
+
+		// シェーダーリセット
+		Shader_Begin();
+		
+		//PStock_Draw(i);
+	}
+
+	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		//===================
 		// ワールド行列の作成
@@ -710,7 +875,7 @@ void Polygon3D_Draw()
 
 		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	// 頂点データをコピーする
 		g_pContext->Unmap(g_VertexBuffer, 0);							// コピー完了
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture);				// テクスチャをセット
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);				// テクスチャをセット
 
 		// 頂点バッファをセット
 		UINT stride = sizeof(Vertex);	// 頂点1個のデータサイズ
@@ -723,17 +888,17 @@ void Polygon3D_Draw()
 
 		// 描画リクエスト
 		//g_pContext->Draw(NUM_VERTEX, 0);
-
-		// スキル使用時のみスキルを表示
-		//if (skillActive[i])
-		//{
-		//	bool Skill1_Use = skill[i].use;
-		//	Skill1_Use = true;
-
-
-		//}
 	}
-	//Player1_Skill_Draw();
+}
+
+PLAYEROBJECT* GetPlayer1()
+{
+	return &object[0];
+}
+
+PLAYEROBJECT* GetPlayer2()
+{
+	return &object[1];
 }
 
 

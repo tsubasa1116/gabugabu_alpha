@@ -75,15 +75,15 @@ void Gauge_Update(void)
 //====================================================================================
 // 他のファイルでゲージをセットする関数
 //====================================================================================
-void Gauge_Set(int i, float fire, float water, float wind, float earth,
+void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricity,
 	           float outer, const XMFLOAT2& pos)
 {
 	if (i < 0 || i >= GAUGE_PLAYER_MAX) return;
 
-	g_Gauge[i].fire  = fire;
-	g_Gauge[i].water = water;
-	g_Gauge[i].wind  = wind;
-	g_Gauge[i].earth = earth;
+	g_Gauge[i].fire  = Glass;
+	g_Gauge[i].water = Plant;
+	g_Gauge[i].wind  = Concrete;
+	g_Gauge[i].earth = Electricity;
 	g_Gauge[i].outer = outer;
 	g_Gauge[i].pos   = pos;
 }
@@ -99,12 +99,12 @@ void Gauge_Draw(int i)
 	Shader_BeginUI();
 
 	Shader_BeginOutGauge();
-	Shader_SetOutGauge(g.outer, color::sky);
+	Shader_SetOutGauge(g.outer, color::blue);
 	DrawSprite(g.pos, { 70,70 }, color::white);
 
 	Shader_BeginGauge();
 	Shader_SetGaugeMulti(g.fire, g.water, g.wind, g.earth,
-		                 color::red, color::blue, color::green, color::yellow);
+		                 color::sky, color::green, color::gray, color::yellow);
 
 	DrawSprite(g.pos, { 60,60 }, color::white);
 

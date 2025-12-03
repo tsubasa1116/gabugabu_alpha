@@ -146,6 +146,8 @@
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Ball.cpp" />
     <ClCompile Include="Block.cpp" />
+    <ClCompile Include="Build.cpp" />
+    <ClCompile Include="Building.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="collider.cpp" />
     <ClCompile Include="debug_ostream.cpp" />
@@ -174,6 +176,7 @@
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="score.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="skill.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="Title.cpp" />
   </ItemGroup>
@@ -181,6 +184,8 @@
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Ball.h" />
     <ClInclude Include="Block.h" />
+    <ClInclude Include="Build.h" />
+    <ClInclude Include="Building.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="collider.h" />
     <ClInclude Include="color.h" />
@@ -210,6 +215,7 @@
     <ClInclude Include="Result.h" />
     <ClInclude Include="score.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="skill.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="Title.h" />
   </ItemGroup>

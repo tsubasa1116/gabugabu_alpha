@@ -58,7 +58,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 
 	g_BgmID = LoadAudio("asset\\Audio\\bgm.wav");	//サウンドロード
-	//PlayAudio(g_BgmID, true);	//再生開始（ループあり）
+	//PlayAudio(g_BgmID, true);		//再生開始（ループあり）
 	//PlayAudio(g_BgmID);			//再生開始（ループなし）
 	//PlayAudio(g_BgmID, false);	//再生開始（ループなし）
 
@@ -130,7 +130,7 @@ void Game_Draw()
 	Camera_Draw();		//Drawの最初で呼ぶ！
 	Field_Draw();
 	BallDraw();
-	Polygon3D_Draw();
+	
 	
 
 	//2D描画
@@ -138,7 +138,7 @@ void Game_Draw()
 	Shader_SetLight(Light.Light);	//ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
 
-
+    Polygon3D_Draw();
 	P_Draw();
 	//Block_Draw();
 	//Player_Draw();

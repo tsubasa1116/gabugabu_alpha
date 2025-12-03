@@ -238,6 +238,8 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice->CreatePixelShader(psBin_og.data(), psSize_og, nullptr, &g_pOutGaugeShader);
 
 
+
+
 	return true;
 }
 
