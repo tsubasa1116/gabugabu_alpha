@@ -34,6 +34,10 @@ struct PLAYEROBJECT
 	int breakCount_Concrete;	// 破壊した数 コンクリート
 	int breakCount_Electricity;	// 破壊した数 電気
 
+
+	float gl, pl, co, el;
+	float gaugeOuter;
+
 	Form form;	// 変身形態
 
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル

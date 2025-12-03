@@ -130,7 +130,7 @@ void Game_Draw()
 	Camera_Draw();		//Drawの最初で呼ぶ！
 	Field_Draw();
 	BallDraw();
-	Polygon3D_Draw();
+	
 	
 
 	//2D描画
@@ -138,7 +138,7 @@ void Game_Draw()
 	Shader_SetLight(Light.Light);	//ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
 
-
+    Polygon3D_Draw();
 	P_Draw();
 	//Block_Draw();
 	//Player_Draw();

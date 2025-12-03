@@ -12,6 +12,9 @@ using namespace DirectX;
 #include "shader.h"
 #include "keyboard.h"
 #include "sprite.h"
+#include "color.h"
+#include "hp.h"
+#include "gauge.h"
 
 #include "polygon3D.h"
 #include "Camera.h"
@@ -34,6 +37,8 @@ using namespace DirectX;
 //======================================================
 #define	NUM_VERTEX	(100)
 #define	PLAYER_MAX	(2)
+#define HPBER_SIZE_X 180.0f
+#define HPBER_SIZE_Y 25.0f
 
 //======================================================
 //	構造謡宣言
@@ -46,6 +51,7 @@ PLAYEROBJECT object[PLAYER_MAX];
 //======================================================
 static	ID3D11Device* g_pDevice = NULL;
 static	ID3D11DeviceContext* g_pContext = NULL;
+static HP HPBar[PLAYER_MAX];
 
 //頂点バッファ
 static	ID3D11Buffer* g_VertexBuffer = NULL;
@@ -280,6 +286,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].breakCount_Plant = 0;
 	object[0].breakCount_Concrete = 0;
 	object[0].breakCount_Electricity = 0;
+	object[0].gl = 1.0f;
+	object[0].pl = 1.0f;
+	object[0].co = 1.0f;
+	object[0].el = 1.0f;
+	object[0].gaugeOuter = 1.0f;
 
 	object[1].position = XMFLOAT3(1.5f, 2.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -294,6 +305,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].breakCount_Plant = 0;
 	object[1].breakCount_Concrete = 0;
 	object[1].breakCount_Electricity = 0;
+	object[1].gl = 1.0f;
+	object[1].pl = 1.0f;
+	object[1].co = 1.0f;
+	object[1].el = 1.0f;
+	object[1].gaugeOuter = 1.0f;
 
 	//頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
@@ -338,6 +354,10 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		CopyMemory(&index[0], &idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
+
+	InitializeHP(pDevice, pContext, &HPBar[0], { 200.0f,  350.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[1], { 500.0f,  350.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+
 }
 
 //======================================================
@@ -771,6 +791,8 @@ void Polygon3D_Update()
 
 		///////////////////////////////////////////////////////////////////////////////////////////////
 
+		SetHPValue(&HPBar[i], (int)object[i].hp, (int)object[i].maxHp);
+		UpdateHP(&HPBar[i]);
 	}
 }
 
@@ -788,6 +810,28 @@ void Polygon3D_Draw()
 	//if (object[1].isAttaking == true)
 	//{
 	//}
+
+	Shader_Begin(); 
+
+	// 個別UIステータス描画
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		// HPバー描画
+		DrawHP(&HPBar[i]);
+		XMFLOAT2 hp = HPBar[i].pos;
+
+		// ゲージ描画用設定
+		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
+			      object[i].gaugeOuter, { hp.x - 120.0f , hp.y });
+
+		// ゲージ描画
+		Gauge_Draw(i);
+
+		// シェーダーリセット
+		Shader_Begin();
+		
+		//PStock_Draw(i);
+	}
 
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
