@@ -24,13 +24,10 @@
 #include "Manager.h"
 #include "Audio.h"	//<<<<<<<<<<<<<’Ç‰Á
 
-// =====================================================
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-// =====================================================
 
-///////////////////////////////////////////
 #define		SCREEN_WIDTH	(1280)
 #define		SCREEN_HEIGHT	(720)
 
