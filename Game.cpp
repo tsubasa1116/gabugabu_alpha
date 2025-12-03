@@ -24,7 +24,13 @@
 
 #include "Ball.h"
 
+#include "skill.h"
+
+
+
 #include	"direct3d.h"//<<<<<<<<<<<<<<<<<<<
+
+
 
 //======================================================
 //	構造謡宣言
@@ -54,6 +60,9 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Polygon3D_Initialize(pDevice, pContext);//３Dテスト初期化
 
 	Camera_Initialize();	//カメラ初期化
+
+	Player1_Skill_Initialize(pDevice, pContext);
+	Player2_Skill_Initialize(pDevice, pContext);
 
 
 
@@ -94,6 +103,7 @@ void Game_Finalize()
 	//Score_Finalize();
 	Polygon3D_Finalize();
 	Camera_Finalize();
+	Skill_Finalize();
 
 	UnloadAudio(g_BgmID);//サウンドの解放
 }
