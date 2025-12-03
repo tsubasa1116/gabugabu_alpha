@@ -530,6 +530,69 @@ void Polygon3D_Update()
 
 		posBuff = object[i].position;
 
+		// 地面の高さ（最低ライン）
+		float groundHeight = -10.0f; // 奈落の底
+		bool isGrounded = false;     // 地面に足がついているかフラグ
+
+		// 2. マップデータ（地面）との当たり判定
+		int fieldCount = GetFieldObjectCount();
+		MAPDATA* fieldObjects = GetFieldObjects();
+
+		for (int j = 0; j < fieldCount; ++j)
+		{
+			// アクティブじゃない、または地面(FIELD_BOX)じゃないならスキップ
+			if (!fieldObjects[j].isActive || fieldObjects[j].no != FIELD::FIELD_BOX)
+			{
+				continue;
+			}
+
+			// --- 六角柱コライダーの準備 ---
+			HexCollider hex;
+			hex.center = fieldObjects[j].pos;
+			hex.radius = 1.0f; // field.cppの生成サイズに合わせる
+			hex.height = 2.0f; // 地面の厚み（十分な高さをとる）
+
+			// ※高さ判定を甘くするために、Hexの高さを少し上にズラして計算しても良い
+			// hex.center.y += 0.0f; 
+
+			// --- 衝突判定 (前回作った関数) ---
+			// プレイヤーの座標が六角柱の中にあるか？
+			if (CheckPointHexCollision(object[i].position, hex))
+			{
+				// 六角形の中にいる！ = このタイルの上にいる
+
+				// タイルの上面のY座標を計算
+				// field.cpp で y = -1.0f, height = 2.0f と仮定すると、上面は 0.0f 付近
+				// ここでは単純にオブジェクトのY座標 + 高さ半分 を地面とする例
+				float tileTopY = fieldObjects[j].pos.y + (hex.height / 2.0f);
+
+				// もし今の足元が、このタイルの高さより下なら「着地」させる
+				// (少し浮いていても吸着させるなら範囲を広げる)
+				if (object[i].position.y <= tileTopY + 0.5f)
+				{
+					object[i].position.y = tileTopY; // 位置を地面の高さに固定（押し戻し）
+					isGrounded = true;
+
+					// ※見つかったらループを抜けるのが高速ですが、
+					// 重なっているタイルがある場合は「一番高い床」を探す処理が必要になります。
+					// 今回はとりあえず break してOK
+					break;
+				}
+			}
+		}
+
+		// 地面になかった場合の処理（落下など）が必要ならここに書く
+		if (!isGrounded)
+		{
+			// ここでは特に何もしない（ループ冒頭で y -= 0.1f しているので落ち続ける）
+			// 落下死のリセット処理などを書いても良い
+			if (object[i].position.y < -5.0f) {
+				object[i].position = XMFLOAT3(0, 2, 0); // リスポーン
+			}
+		}
+
+		// ▲▲▲▲▲ 修正ここまで ▲▲▲▲▲
+
 		// -------------------------------------------------------------
 		// 変身
 		// -------------------------------------------------------------
@@ -570,72 +633,73 @@ void Polygon3D_Update()
 		// -------------------------------------------------------------
 		// AABBの更新
 
-		int fieldCount = GetFieldObjectCount();
+		//int fieldCount = GetFieldObjectCount();
 		// 全てのフィールドオブジェクトと衝突判定を行う
-		for (int j = 0; j < fieldCount; ++j)
-		{
-			// フィールドオブジェクトのリストを取得
-			MAPDATA* fieldObjects = GetFieldObjects();
+		//for (int j = 0; j < fieldCount; ++j)
+		//{
 
-			// j番目のフィールドオブジェクトのAABBを取得
-			AABB pStaticObjectAABB = fieldObjects[j].boundingBox;
+		//	// フィールドオブジェクトのリストを取得
+		//	MAPDATA* fieldObjects = GetFieldObjects();
 
-			CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-			// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
-			MTV collision = CalculateAABBMTV(object[i].boundingBox, pStaticObjectAABB);	// 押し戻す量
+		//	// i番目のフィールドオブジェクトのAABBを取得
+		//	AABB pStaticObjectAABB = fieldObjects[j].boundingBox;
 
-			// 非アクティブなオブジェクトは処理をスキップ
-			if (!fieldObjects[j].isActive)
-			{
-				continue; // 次のオブジェクトへ
-			}
-			//if(CheckAABBCollision(object[0].boundingBox, fieldObjects->boundingBox)&& fieldObjects->no==FIELD_BUILDING)
-			if (CheckAABBCollision(object[i].boundingBox, fieldObjects[j].boundingBox) && fieldObjects[j].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
-			{
-				// 建物に衝突していて、かつスペースキーが押されていたら
-				fieldObjects[j].isActive = false;
-				object[i].form = (Form)((int)object[i].form + 1); // 進化
-			}
-			if (CheckAABBCollision(object[0].boundingBox, object[1].boundingBox) && Keyboard_IsKeyDown(KK_SPACE))
-			{
-				// スキル使用時
-				object[i].form = (Form)((int)object[i].form - 1); // 進化
-			}
+		//	CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
+		//	// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
+		//	MTV collision = CalculateAABBMTV(object[i].boundingBox, pStaticObjectAABB);	// 押し戻す量
 
-			if (collision.isColliding)
-			{
-				//////////////////////////////////////////////
-				// ↓↓↓ 無理やり押し戻しているから要修正
-				//////////////////////////////////////////////
-				if (fieldObjects[j].no == FIELD::FIELD_BOX)
-				{
-					// 衝突していたら、MTVの分だけ位置を戻す
-					//object[i].position.x += collision.translation.x;
-					object[i].position.y += collision.translation.y;
-					//object[i].position.z += collision.translation.z;
+		//	// 非アクティブなオブジェクトは処理をスキップ
+		//	if (!fieldObjects[j].isActive)
+		//	{
+		//		continue; // 次のオブジェクトへ
+		//	}
+		//	////if(CheckAABBCollision(object[0].boundingBox, fieldObjects->boundingBox)&& fieldObjects->no==FIELD_BUILDING)
+		//	//if (CheckAABBCollision(object[i].boundingBox, fieldObjects[j].boundingBox) && fieldObjects[j].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
+		//	//{
+		//	//	// 建物に衝突していて、かつスペースキーが押されていたら
+		//	//	fieldObjects[j].isActive = false;
+		//	//	object[i].form = (Form)((int)object[i].form + 1); // 進化
+		//	//}
+		//	if (CheckAABBCollision(object[0].boundingBox, object[1].boundingBox) && Keyboard_IsKeyDown(KK_SPACE))
+		//	{
+		//		// スキル使用時
+		//		object[i].form = (Form)((int)object[i].form - 1); // 進化
+		//	}
 
-					// 押し戻し後の新しいAABBを再計算
-					// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
-					CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-				}
-				else if (fieldObjects[j].no == FIELD::FIELD_BUILDING)
-				{
-					object[i].position.x += collision.translation.x;
-					object[i].position.y += collision.translation.y;
-					object[i].position.z += collision.translation.z;
+		//	if (collision.isColliding)
+		//	{
+		//		//////////////////////////////////////////////
+		//		// ↓↓↓ 無理やり押し戻しているから要修正
+		//		//////////////////////////////////////////////
+		//		if (fieldObjects[j].no == FIELD::FIELD_BOX)
+		//		{
+		//			// 衝突していたら、MTVの分だけ位置を戻す
+		//			//object[0].position.x += collision.translation.x;
+		//			object[i].position.y += collision.translation.y;
+		//			//object[0].position.z += collision.translation.z;
 
-					CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-				}
+		//			// 押し戻し後の新しいAABBを再計算
+		//			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
+		//			CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
+		//		}
+		//		//else if (fieldObjects[j].no == FIELD::FIELD_BUILDING)
+		//		//{
+		//		//	object[i].position.x += collision.translation.x;
+		//		//	object[i].position.y += collision.translation.y;
+		//		//	object[i].position.z += collision.translation.z;
 
-				// デバッグ出力
-				hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " <<
-					(collision.translation.x != 0 ? "X軸" :
-						(collision.translation.y != 0 ? "Y軸" :
-							"Z軸")) << std::endl;
+		//		//	CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
+		//		//}
 
-				// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
-			}
-		}
+		//		// デバッグ出力
+		//		hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " <<
+		//			(collision.translation.x != 0 ? "X軸" :
+		//				(collision.translation.y != 0 ? "Y軸" :
+		//					"Z軸")) << std::endl;
+
+		//		// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
+		//	}
+		//}
 
 		// Polygon3D_Update() 関数の中のフィールドとの衝突判定ループの直後に追加
 

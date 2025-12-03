@@ -51,5 +51,5 @@ void Field_Update(void);
 MAPDATA* GetFieldObjects();
 int GetFieldObjectCount();
 
-void CreateBox();
+//BOXì¬ŠÖ”
 void	CreateBox();
