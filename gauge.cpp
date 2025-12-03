@@ -99,7 +99,7 @@ void Gauge_Draw(int i)
 	Shader_BeginUI();
 
 	Shader_BeginOutGauge();
-	Shader_SetOutGauge(g.outer, color::blue);
+	Shader_SetOutGauge(g.outer, color::red);
 	DrawSprite(g.pos, { 70,70 }, color::white);
 
 	Shader_BeginGauge();

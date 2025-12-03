@@ -138,7 +138,7 @@ void DrawHP(const HP* bar)
 
 	SetBlendState(BLENDSTATE_ALFA);
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
-	DrawSprite({ 84, 647 }, {112, 112}, color::white);
+	DrawSprite({ 84, 647 }, {110, 110}, XMFLOAT4(1, 1, 1, 0.6));
 }
 
 

@@ -22,6 +22,7 @@ struct GaugeData
     float fire, water, wind, earth;
     float outer;
     XMFLOAT2 pos;
+    XMFLOAT4 outercolor;
 };
 
 extern GaugeData g_Gauge[GAUGE_PLAYER_MAX];
