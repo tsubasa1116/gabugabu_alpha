@@ -258,6 +258,8 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice->CreatePixelShader(psBin_dbg.data(), psSize_dbg, nullptr, &g_pDebugColorShader);
 
 
+
+
 	return true;
 }
 
