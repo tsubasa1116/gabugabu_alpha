@@ -1,4 +1,3 @@
-
 //field.h
 #pragma once
 
@@ -8,36 +7,55 @@
 #include "sprite.h"
 #include "shader.h"
 #include "collider.h"
+#include "Building.h"
 
 using namespace DirectX;
 
-//MAP構成ブロックの種類
+//=========================================
+// MAP構成ブロックの種類
+//=========================================
 enum FIELD
 {
-	FIELD_BOX = 0,
-	//FIELD_BUILDING,
+	FIELD_BOX = 0,			// 箱
+
+	FIELD_Glass,		// ガラス建物
+	FIELD_Concrete,		// コンクリ建物
+	FIELD_Plant,		// 植物建物
+	FIELD_Electric,		// 電気建物
+
 	FIELD_MAX
 };
-//MAPデータ構造体
+
+
+//=========================================
+// MAPデータ構造体（1マス分）
+//=========================================
 class MAPDATA
 {
 public:
-	XMFLOAT3	pos;	//ブロックの座標
-	AABB boundingBox;	// 当たり判定
-	FIELD		no;		//ブロックの種類
-	//その他必要な物は追加する
+	XMFLOAT3 pos;			// 座標
+	AABB boundingBox;		// 当たり判定
+	FIELD no;				// 種類（FIELD_BOX / FIELD_BUILDING）
 
 	bool isActive = true;
-	//MODEL fModel;		//モデルデータ
+
+	// --- ここを追加！ ---
+	//BuildingType type = BuildingType::None;
+	float radius = 1.0f;	// 六角形の半径
+	float height = 2.25f;	// 柱の高さ
 };
+
+
+//=========================================
+// Field 関数
+//=========================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Field_Finalize(void);
-void Field_Draw(void);
+void Field_Draw(bool s_IsKonamiCodeEntered);
 void Field_Update(void);
 
-// ゲッターの戻り値の型を MapBlock* に変更
 MAPDATA* GetFieldObjects();
 int GetFieldObjectCount();
 
-//BOX作成関数
-void	CreateBox();
+// BOX作成関数
+//void	CreateBox();
