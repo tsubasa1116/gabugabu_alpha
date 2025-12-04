@@ -383,7 +383,7 @@ void P_Draw(void)
 
 			// 描画命令
 			SetBlendState(BLENDSTATE_NONE);
-			g_pContext->DrawIndexed(36, 0, 0);
+			//g_pContext->DrawIndexed(36, 0, 0);
 			//g_pContext->Draw(NUM_VERTEX, 0);
 
 			// 頂点シェーダーに変換行列を設定

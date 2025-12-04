@@ -48,7 +48,7 @@ struct PLAYEROBJECT
 void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Polygon3D_Finalize();
 void Polygon3D_Update();
-void Polygon3D_Draw();
+void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 
 void Polygon3D_Attack();
 void Polygon3D_Respawn();

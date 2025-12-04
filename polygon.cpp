@@ -37,7 +37,7 @@ void Polygon_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//テクスチャ画像読み込み
 	TexMetadata		metadata;
 	ScratchImage	image;
-//	LoadFromWICFile(L"asset\\texture\\shadow.png", WIC_FLAGS_NONE, &metadata, image);
+	//LoadFromWICFile(L"asset\\texture\\shadow.png", WIC_FLAGS_NONE, &metadata, image);
 	LoadFromWICFile(L"asset\\texture\\runningman003.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 	assert(g_Texture);//読み込み失敗時にダイアログを表示
