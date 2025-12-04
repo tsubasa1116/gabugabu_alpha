@@ -42,5 +42,5 @@ float4 main(PS_INPUT input) : SV_Target
     if (angle <= gaugeValue)
         return gaugeColor;
 
-    return float4(0, 0, 0, 0); // –¢’B•”•ª‚Í“§–¾
+    return float4(1, 1, 1, 1); // –¢’B•”•ª‚Í“§–¾
 }

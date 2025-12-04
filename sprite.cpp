@@ -321,3 +321,52 @@ void	DrawSprite(XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc)
 
 
 }
+
+void DrawSpriteUV(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col,
+	XMFLOAT2 uvMin, XMFLOAT2 uvMax)
+{
+	g_pDevice = Direct3D_GetDevice();
+	g_pContext = Direct3D_GetDeviceContext();
+
+	// 頂点バッファをロック
+	D3D11_MAPPED_SUBRESOURCE msr;
+	g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+
+	Vertex3D* v = (Vertex3D*)msr.pData;
+
+	//===============================
+	// 頂点座標
+	//===============================
+	float left = pos.x - (size.x / 2);
+	float right = pos.x + (size.x / 2);
+	float top = pos.y - (size.y / 2);
+	float bottom = pos.y + (size.y / 2);
+
+	v[0].position = { left,  top,    0.0f };
+	v[1].position = { right, top,    0.0f };
+	v[2].position = { left,  bottom, 0.0f };
+	v[3].position = { right, bottom, 0.0f };
+
+	//===============================
+	// UV（ここで自由に切り抜ける）
+	//===============================
+	v[0].texCoord = { uvMin.x, uvMin.y };
+	v[1].texCoord = { uvMax.x, uvMin.y };
+	v[2].texCoord = { uvMin.x, uvMax.y };
+	v[3].texCoord = { uvMax.x, uvMax.y };
+
+	// 色
+	for (int i = 0; i < 4; i++)
+		v[i].color = col;
+
+	// アンマップ
+	g_pContext->Unmap(g_pVertexBuffer, 0);
+
+	// セット & 描画
+	UINT stride = sizeof(Vertex3D);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	g_pContext->Draw(4, 0);
+}
