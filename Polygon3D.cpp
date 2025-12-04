@@ -1,9 +1,8 @@
 //======================================================
 //	polygon3D.cpp[]
 // 
-//	制作者：平岡颯馬	日付：2025/12/02
+//	制作者：平岡颯馬			日付：2025/12/04
 //======================================================
-////Polygon3D.cpp
 
 #include "d3d11.h"
 #include "DirectXMath.h"
@@ -33,7 +32,6 @@ using namespace DirectX;
 //	マクロ定義
 //======================================================
 #define	NUM_VERTEX	(100)
-#define	PLAYER_MAX	(2)
 
 //======================================================
 //	構造謡宣言
@@ -269,13 +267,15 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// ポリゴン表示の初期化
 	object[0].position = XMFLOAT3(-2.0f, 1.5f, 0.0f);
 	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[0].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	object[0].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].speed = 0.0f;
+	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].maxHp = 100.0f;
 	object[0].hp = object[0].maxHp;
 	object[0].residue = 2;
-	object[0].isAttaking = false;
+	object[0].isAttacking = false;
 	object[0].attackTimer = 0.0f;
+	object[0].attackDuration = 5.0f;
 	object[0].breakCount_Glass = 0;
 	object[0].breakCount_Plant = 0;
 	object[0].breakCount_Concrete = 0;
@@ -283,13 +283,15 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	object[1].position = XMFLOAT3(1.5f, 2.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[1].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	object[1].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].speed = 0.0f;
+	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].maxHp = 100.0f;
 	object[1].hp = object[1].maxHp;
 	object[1].residue = 2;
-	object[1].isAttaking = false;
+	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
+	object[1].attackDuration = 5.0f;
 	object[1].breakCount_Glass = 0;
 	object[1].breakCount_Plant = 0;
 	object[1].breakCount_Concrete = 0;
@@ -408,56 +410,6 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 }
 
 //======================================================
-//	攻撃関数
-//======================================================
-//void Polygon3D_Attack()
-//{
-//	// Player1がPlayer2を攻撃する
-//	if (Keyboard_IsKeyDown(KK_SPACE))
-//	{
-//
-//	}
-//
-//	// Player2がPlayer1を攻撃する
-//	if (Keyboard_IsKeyDown(KK_ENTER))
-//	{
-//
-//	}
-//
-//}
-
-void Polygon3D_Respawn()
-{
-	object[0].position = XMFLOAT3(-2.0f, 2.0f, 0.0f);
-	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[0].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	object[0].speed = 0.0f;
-	object[0].hp = 100.0f;
-	object[0].maxHp = object[0].hp;
-	object[0].residue = 2;
-	object[0].isAttaking = false;
-	object[0].attackTimer = 0.0f;
-	object[0].breakCount_Glass = 0;
-	object[0].breakCount_Plant = 0;
-	object[0].breakCount_Concrete = 0;
-	object[0].breakCount_Electricity = 0;
-
-	object[1].position = XMFLOAT3(2.0f, 4.0f, 3.0f);
-	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[1].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	object[1].speed = 0.0f;
-	object[1].hp = 100.0f;
-	object[1].maxHp = object[1].hp;
-	object[1].residue = 2;
-	object[1].isAttaking = false;
-	object[1].attackTimer = 0.0f;
-	object[1].breakCount_Glass = 0;
-	object[1].breakCount_Plant = 0;
-	object[1].breakCount_Concrete = 0;
-	object[1].breakCount_Electricity = 0;
-}
-
-//======================================================
 //	更新関数
 //======================================================
 void Polygon3D_Update()
@@ -465,9 +417,9 @@ void Polygon3D_Update()
 	// プレイヤー1 スキル発動
 	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
 	{
-		object[0].isAttaking = true;
+		object[0].isAttacking = true;
 	}
-	if (object[0].isAttaking == true)
+	if (object[0].isAttacking == true)
 	{
 		Player1_Skill_Update();
 	}
@@ -475,22 +427,33 @@ void Polygon3D_Update()
 	// プレイヤー2 スキル発動
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER))
 	{
-		object[1].isAttaking = true;
+		object[1].isAttacking = true;
+	}
+	if (object[1].isAttacking == true)
+	{
 		Player2_Skill_Update();
 	}
 
-	ImGui::Begin("Player Debug");
+	// スキルとプレイヤーの当たり判定（object[0] <-> Skill2、object[1] <-> Skill1）
+	SkillPlayerCollisions();
 
-	// HPバー
-	ImGui::SliderFloat("HP", &object[0].hp, 0.0f, object[0].maxHp);
+	// ImGui
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		ImGui::Begin("Player Debug");
 
-	// 座標調整
-	ImGui::Text("Position");
-	ImGui::DragFloat3("pos", (float*)&object[0].position, 0.1f);
+		ImGui::Text("Player");
+		// HPバー
+		ImGui::SliderFloat("HP", &object[i].hp, 0.0f, object[i].maxHp);
 
-	ImGui::SliderInt("residue", &object[0].residue, 0.0f, object[0].residue);
+		// 座標調整
+		ImGui::Text("Position");
+		ImGui::DragFloat3("pos", (float*)&object[i].position, 0.1f);
 
-	ImGui::End();
+		ImGui::SliderInt("residue", &object[i].residue, 0.0f, object[i].residue);
+		ImGui::Text("\n");
+		ImGui::End();
+	}
 
 	object[0].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	object[1].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
@@ -532,6 +495,9 @@ void Polygon3D_Update()
 		// -------------------------------------------------------------
 		// 変身
 		// -------------------------------------------------------------
+		SKILL_OBJECT* skill1 = GetSkill(1);
+		SKILL_OBJECT* skill2 = GetSkill(2);
+
 		switch (object[i].form)
 		{
 		case Normal: // 通常
@@ -562,6 +528,15 @@ void Polygon3D_Update()
 			break;
 		}
 
+		// プレイヤー i に対応するスキル（i==0 -> skill1, i==1 -> skill2）をプレイヤーのフォームに合わせてスケーリング同期
+		SKILL_OBJECT* skillForPlayer = (i == 0) ? skill1 : ((i == 1) ? skill2 : nullptr);
+		if (skillForPlayer != nullptr)
+		{
+			// 同期方法：プレイヤーと同じスケールにする（必要なら係数を掛けて調整）
+			skillForPlayer->scaling.x = object[i].scaling.x / 2;
+			skillForPlayer->scaling.y = object[i].scaling.y / 2;
+			skillForPlayer->scaling.z = object[i].scaling.z / 2;
+		}
 		///////////////////////////////////////////////////////////////////////////////////////////////
 
 			// -------------------------------------------------------------
@@ -589,17 +564,17 @@ void Polygon3D_Update()
 				continue; // 次のオブジェクトへ
 			}
 			//if(CheckAABBCollision(object[0].boundingBox, fieldObjects->boundingBox)&& fieldObjects->no==FIELD_BUILDING)
-			if (CheckAABBCollision(object[i].boundingBox, fieldObjects[j].boundingBox) && fieldObjects[j].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
-			{
-				// 建物に衝突していて、かつスペースキーが押されていたら
-				fieldObjects[j].isActive = false;
-				object[i].form = (Form)((int)object[i].form + 1); // 進化
-			}
-			if (CheckAABBCollision(object[0].boundingBox, object[1].boundingBox) && Keyboard_IsKeyDown(KK_SPACE))
-			{
-				// スキル使用時
-				object[i].form = (Form)((int)object[i].form - 1); // 進化
-			}
+			//if (CheckAABBCollision(object[i].boundingBox, fieldObjects[j].boundingBox) && fieldObjects[j].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
+			//{
+			//	// 建物に衝突していて、かつスペースキーが押されていたら
+			//	fieldObjects[j].isActive = false;
+			//	object[i].form = (Form)((int)object[i].form + 1); // 進化
+			//}
+			//if (CheckAABBCollision(object[0].boundingBox, object[1].boundingBox) && Keyboard_IsKeyDown(KK_SPACE))
+			//{
+			//	// スキル使用時
+			//	object[i].form = (Form)((int)object[i].form - 1); // 進化
+			//}
 
 			if (collision.isColliding)
 			{
@@ -660,30 +635,30 @@ void Polygon3D_Update()
 			// プレイヤー0 の向き（ラジアン）を計算
 			float rad_0 = XMConvertToRadians(object[0].rotation.y);
 			// プレイヤー0 の向きベクトル（X-Z平面）
-			float dir0_x = sinf(rad_0);
-			float dir0_z = cosf(rad_0);
+			object[0].dir.x = sinf(rad_0);
+			object[0].dir.z = cosf(rad_0);
 
 			// プレイヤー1 の向き（ラジアン）を計算
 			float rad_1 = XMConvertToRadians(object[1].rotation.y);
 			// プレイヤー1 の向きベクトル（X-Z平面）
-			float dir1_x = sinf(rad_1);
-			float dir1_z = cosf(rad_1);
+			object[1].dir.x = sinf(rad_1);
+			object[1].dir.z = cosf(rad_1);
 
-			if (Keyboard_IsKeyDown(KK_SPACE))
-			{
-				// プレイヤー1 を、プレイヤー0の向いている方向に吹き飛ばす
-				object[1].position.x += dir0_x * object[0].power;
-				object[1].position.z += dir0_z * object[0].power;
-				object[1].position.y += object[0].power; // Y方向にも飛ばす
-			}
+			//if (Keyboard_IsKeyDown(KK_SPACE))
+			//{
+			//	// プレイヤー1 を、プレイヤー0の向いている方向に吹き飛ばす
+			//	object[1].position.x += dir0_x * object[0].power;
+			//	object[1].position.z += dir0_z * object[0].power;
+			//	object[1].position.y += object[0].power; // Y方向にも飛ばす
+			//}
 
-			if (Keyboard_IsKeyDown(KK_ENTER))
-			{
-				// プレイヤー0 を、プレイヤー1の向いている方向に吹き飛ばす
-				object[0].position.x += dir1_x * object[1].power;
-				object[0].position.z += dir1_z * object[1].power;
-				object[0].position.y += object[1].power; // Y方向にも飛ばす
-			}
+			//if (Keyboard_IsKeyDown(KK_ENTER))
+			//{
+			//	// プレイヤー0 を、プレイヤー1の向いている方向に吹き飛ばす
+			//	object[0].position.x += dir1_x * object[1].power;
+			//	object[0].position.z += dir1_z * object[1].power;
+			//	object[0].position.y += object[1].power; // Y方向にも飛ばす
+			//}
 			// 衝突していた場合、MTVの半分ずつをそれぞれのオブジェクトに適用して押し戻す
 
 			// 押し戻し量 (MTV) を半分にする
@@ -699,30 +674,14 @@ void Polygon3D_Update()
 			object[0].position.x += half_translation.x;
 			object[0].position.y += half_translation.y;
 			object[0].position.z += half_translation.z;
-			object[0].hp -= object[1].power;
-
-			// HPが0以下
-			if (object[0].hp < 0.0f)
-			{
-				object[0].hp = 0.0f;
-				object[0].residue -= 1;
-				Polygon3D_Respawn();
-			}
+			//object[0].hp -= object[1].power;
 
 			// プレイヤー1 (object[1]) を **MTVの逆方向の半分だけ** 押す
 			// 逆方向にするために、X, Y, Z の符号を反転させる
 			object[1].position.x -= half_translation.x;
 			object[1].position.y -= half_translation.y;
 			object[1].position.z -= half_translation.z;
-			object[1].hp -= object[0].power;
-
-			// HPが0以下
-			if (object[1].hp < 0.0f)
-			{
-				object[1].hp = 0.0f;
-				object[1].residue -= 1;
-				Polygon3D_Respawn();
-			}
+			//object[1].hp -= object[0].power;
 
 			// 押し戻し後の新しいAABBを再計算 (次フレームや他の衝突判定に備える)
 			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
@@ -731,47 +690,43 @@ void Polygon3D_Update()
 			// 吹き飛ばし後の新しいAABBを再計算 (他の衝突判定に備える)
 			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
 			CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
-
-			// -------------------------------------------------------------
-			// 当たり判定 Player1とSkill2
-			// -------------------------------------------------------------
-			//// AABBの更新
-
-			// フィールドオブジェクトのリストを取得
-			//int Skill2Count = GetSkill1ObjectCount();
-
-			// 全てのフィールドオブジェクトと衝突判定を行う
-			//for (int i = 0; i < Skill2Count; ++i)
-			//{
-			//	// i番目のフィールドオブジェクトのAABBを取得
-			//	// field.cppのInitializeで計算済みのため、そのまま参照
-			//	AABB pStaticObjectAABB = skill[i].boundingBox;
-
-			//	// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
-			//	MTV collision = CalculateAABBMTV(object[0].boundingBox, pStaticObjectAABB);
-
-			//	if (collision.isColliding)
-			//	{
-			//		// 衝突していたら、MTVの分だけ位置を戻す
-			//		object[0].position.x += collision.translation.x * 3.0f;
-			//		object[0].position.y += collision.translation.y * 3.0f;
-			//		object[0].position.z += collision.translation.z * 3.0f;
-
-			//		// 押し戻し後の新しいAABBを再計算
-			//		// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
-			//		CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-
-			//		// デバッグ出力
-			//		hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
-
-			//		// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
-			//	}
-			//}
 		}
-
-		///////////////////////////////////////////////////////////////////////////////////////////////
-
 	}
+
+	// プレイヤーごとのリスポーン判定（関数化した呼び出し）
+	for (int idx = 0; idx < PLAYER_MAX; ++idx)
+	{
+		CheckRespawnPlayer(idx);
+	}
+
+	//// HPが0以下
+	//if (object[0].hp < 0.0f)
+	//{
+	//	object[0].hp = 0.0f;
+	//	object[0].residue -= 1;
+	//	Polygon3D_Respawn();
+	//}
+	//// 落下した場合
+	//if (object[0].position.y < -10.0f)
+	//{
+	//	object[0].residue -= 1;
+	//	Polygon3D_Respawn();
+	//}
+
+	//// HPが0以下
+	//if (object[1].hp < 0.0f)
+	//{
+	//	object[1].hp = 0.0f;
+	//	object[1].residue -= 1;
+	//	Polygon3D_Respawn();
+	//}
+	//// 落下した場合
+	//if (object[1].position.y < -10.0f)
+	//{
+	//	object[1].residue -= 1;
+	//	Polygon3D_Respawn();
+	//}
+
 }
 
 //======================================================
@@ -779,15 +734,17 @@ void Polygon3D_Update()
 //======================================================
 void Polygon3D_Draw()
 {
-	//// スキル使用時のみスキルを表示
-	//if (object[0].isAttaking == true)
-	//{
-	//}
+	// スキル使用時のみスキルを表示
+	if (object[0].isAttacking == true)
+	{
+		Player1_Skill_Draw();
+	}
 
-	//// スキル使用時のみスキルを表示
-	//if (object[1].isAttaking == true)
-	//{
-	//}
+	// スキル使用時のみスキルを表示
+	if (object[1].isAttacking == true)
+	{
+		Player2_Skill_Draw();
+	}
 
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
@@ -847,14 +804,196 @@ void Polygon3D_Draw()
 	}
 }
 
-PLAYEROBJECT* GetPlayer1()
+//======================================================
+//	攻撃関数
+//======================================================
+//void Polygon3D_Attack()
+//{
+//	// Player1がPlayer2を攻撃する
+//	if (Keyboard_IsKeyDown(KK_SPACE))
+//	{
+//
+//	}
+//
+//	// Player2がPlayer1を攻撃する
+//	if (Keyboard_IsKeyDown(KK_ENTER))
+//	{
+//
+//	}
+//
+//}
+
+void Polygon3D_Respawn(int idx)
 {
-	return &object[0];
+	if (idx < 0 || idx >= PLAYER_MAX) return;
+
+	if (idx == 0)
+	{
+		object[0].position = XMFLOAT3(-2.0f, 2.0f, 0.0f);
+		object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[0].speed = 0.0f;
+		object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[0].hp = 100.0f;
+		object[0].maxHp = object[0].hp;
+		object[0].isAttacking = false;
+		object[0].attackTimer = 0.0f;
+		object[0].breakCount_Glass = 0;
+		object[0].breakCount_Plant = 0;
+		object[0].breakCount_Concrete = 0;
+		object[0].breakCount_Electricity = 0;
+		object[0].form = Normal;
+		object[0].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[0].is_knocked_back = false;
+		object[0].knockback_duration = 0.0f;
+	}
+	else if (idx == 1)
+	{
+		object[1].position = XMFLOAT3(2.0f, 4.0f, 3.0f);
+		object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[1].speed = 0.0f;
+		object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[1].hp = 100.0f;
+		object[1].maxHp = object[1].hp;
+		object[1].isAttacking = false;
+		object[1].attackTimer = 0.0f;
+		object[1].breakCount_Glass = 0;
+		object[1].breakCount_Plant = 0;
+		object[1].breakCount_Concrete = 0;
+		object[1].breakCount_Electricity = 0;
+		object[1].form = Normal;
+		object[1].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[1].is_knocked_back = false;
+		object[1].knockback_duration = 0.0f;
+	}
 }
 
-PLAYEROBJECT* GetPlayer2()
+void SkillPlayerCollisions()
 {
-	return &object[1];
+	// Skill / Player オブジェクト取得
+	SKILL_OBJECT* skill1 = GetSkill(1);
+	SKILL_OBJECT* skill2 = GetSkill(2);
+	PLAYEROBJECT* p1 = &object[0];
+	PLAYEROBJECT* p2 = &object[1];
+
+	// AABB を最新化
+	CalculateAABB(p1->boundingBox, p1->position, p1->scaling);
+	CalculateAABB(p2->boundingBox, p2->position, p2->scaling);
+	CalculateAABB(skill1->boundingBox, skill1->position, skill1->scaling);
+	CalculateAABB(skill2->boundingBox, skill2->position, skill2->scaling);
+
+	// ------------------------
+	// object[0] と Skill2 の当たり判定
+	// （Skill2 は object[1] のスキル）
+	// ------------------------
+	if (object[1].isAttacking)
+	{
+		MTV col = CalculateAABBMTV(p1->boundingBox, skill2->boundingBox);
+		if (col.isColliding)
+		{
+			hal::dout << "Skill2 hit object[0] overlap=" << col.overlap << std::endl;
+
+			// ノックバック
+			p1->position.x += p2->dir.x * p2->power;
+			//p1->position.y += p2->power / 3;
+			p1->position.z += p2->dir.z * p2->power;
+
+			// ダメージ（攻撃者の power を使用）
+			p1->hp -= p2->power;
+
+			//// ヒットでスキルを消す（1回ヒット）
+			//object[1].isAttacking = false;
+			//object[1].attackTimer = 0.0f;
+
+			//// 死亡判定 -> リスポーン
+			//if (p1->hp < 0.0f)
+			//{
+			//	p1->hp = 0.0f;
+			//	p1->residue -= 1;
+			//	Polygon3D_Respawn();
+			//}
+
+			// AABB を更新
+			CalculateAABB(p1->boundingBox, p1->position, p1->scaling);
+			CalculateAABB(skill2->boundingBox, skill2->position, skill2->scaling);
+		}
+	}
+
+	// ------------------------
+	// object[1] と Skill1 の当たり判定
+	// （Skill1 は object[0] のスキル）
+	// ------------------------
+	if (object[0].isAttacking)
+	{
+		MTV col = CalculateAABBMTV(p2->boundingBox, skill1->boundingBox);
+		if (col.isColliding)
+		{
+			hal::dout << "Skill1 hit object[1] overlap=" << col.overlap << std::endl;
+
+			// ノックバック
+			p2->position.x += p1->dir.x * p1->power;
+			//p2->position.y += p1->power;
+			p2->position.z += p1->dir.z * p1->power;
+
+			// ダメージ（攻撃者の power を使用）
+			p2->hp -= p1->power;
+
+			//// ヒットでスキルを消す
+			//object[0].isAttacking = false;
+			//object[0].attackTimer = 0.0f;
+
+			//// 死亡判定 -> リスポーン
+			//if (p2->hp < 0.0f)
+			//{
+			//	p2->hp = 0.0f;
+			//	p2->residue -= 1;
+			//	Polygon3D_Respawn();
+			//}
+
+			// AABB を更新
+			CalculateAABB(p2->boundingBox, p2->position, p2->scaling);
+			CalculateAABB(skill1->boundingBox, skill1->position, skill1->scaling);
+		}
+	}
+}
+
+static void CheckRespawnPlayer(int idx)
+{
+	if (idx < 0 || idx >= PLAYER_MAX) return;
+
+	bool needRespawn = false;
+
+	// HP <= 0 または落下判定でリスポーン
+	if (object[idx].hp <= 0.0f)
+	{
+		object[idx].hp = 0.0f;
+		needRespawn = true;
+	}
+
+	if (object[idx].position.y < -10.0f)
+	{
+		needRespawn = true;
+	}
+
+	if (needRespawn)
+	{
+		// 残機を1減らす（1回だけ）
+		object[idx].residue -= 1;
+
+		// 個別リスポーン処理
+		Polygon3D_Respawn(idx);
+	}
+}
+
+PLAYEROBJECT* GetPlayer(int index)
+{
+	if (index > PLAYER_MAX || index <= 0)
+	{
+		return nullptr;
+	}
+
+	return &object[index - 1];
 }
 
 

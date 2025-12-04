@@ -21,8 +21,9 @@
 #include	"Camera.h"
 
 #include "Ball.h"
+#include "skill.h"
 
-#include	"direct3d.h"//<<<<<<<<<<<<<<<<<<<
+#include "direct3d.h"//<<<<<<<<<<<<<<<<<<<
 
 //======================================================
 //	構造謡宣言
@@ -39,7 +40,6 @@ static	int		g_BgmID = NULL;	//サウンド管理ID
 //======================================================
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-
 	Field_Initialize(pDevice, pContext); // フィールドの初期化
 	BallInitialize(pDevice, pContext); // ボールの初期化
 
@@ -47,12 +47,11 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//Block_Initialize(pDevice, pContext);//ブロックの初期化
 	//Effect_Initialize(pDevice, pContext);//エフェクト初期化
 	//Score_Initialize(pDevice, pContext);//スコア初期化
+	Skill_Initialize(pDevice, pContext);
 
 	Polygon3D_Initialize(pDevice, pContext);//３Dテスト初期化
 
 	Camera_Initialize();	//カメラ初期化
-
-
 
 	g_BgmID = LoadAudio("asset\\Audio\\bgm.wav");	//サウンドロード
 	//PlayAudio(g_BgmID, true);	//再生開始（ループあり）
@@ -90,6 +89,7 @@ void Game_Finalize()
 	//Score_Finalize();
 	Polygon3D_Finalize();
 	Camera_Finalize();
+	Skill_Finalize();
 
 	UnloadAudio(g_BgmID);//サウンドの解放
 }
