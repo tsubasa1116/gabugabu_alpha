@@ -706,11 +706,11 @@ void Polygon3D_Update()
 
 		if (collision_player.isColliding)
 		{
-			hal::dout << "?? プレイヤー衝突！ 互いに吹き飛ばし実行" << std::endl;
+			//hal::dout << " プレイヤー衝突！ 互いに吹き飛ばし実行" << std::endl;
 			// 吹き飛ばしの強さ（X-Z方向）
-			const float knockbackPowerXZ = 0.5f; // 強さを調整
+			float knockbackPowerXZ = 0.5f; // 強さを調整
 			// 吹き飛ばしの強さ（Y方向）
-			const float knockbackPowerY = 0.3f; // 高さを調整
+			float knockbackPowerY = 0.3f; // 高さを調整
 
 			// プレイヤー0 の向き（ラジアン）を計算
 			float rad_0 = XMConvertToRadians(object[0].rotation.y);
