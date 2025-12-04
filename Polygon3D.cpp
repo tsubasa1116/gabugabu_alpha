@@ -307,7 +307,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].hp = object[1].maxHp;
 	object[1].residue = 3;
 	object[1].active = true;
-	object[1].isAttaking = false;
+	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
 	object[1].attackDuration = 5.0f;
 	object[1].breakCount_Glass = 0;
@@ -478,23 +478,11 @@ void Polygon3D_Update()
 	// スキルとプレイヤーの当たり判定（object[0] <-> Skill2、object[1] <-> Skill1）
 	SkillPlayerCollisions();
 
-	// ImGui
-	for (int i = 0; i < PLAYER_MAX; i++)
-	{
-		ImGui::Begin("Player Debug");
+	ImGui::Begin("Player Debug");
+	// HPバー
+	ImGui::SliderFloat("HP", &object[0].hp, 0.0f, object[0].maxHp);
 
-		ImGui::Text("Player");
-		// HPバー
-		ImGui::SliderFloat("HP", &object[i].hp, 0.0f, object[i].maxHp);
-
-		// 座標調整
-		ImGui::Text("Position");
-		ImGui::DragFloat3("pos", (float*)&object[i].position, 0.1f);
-
-		ImGui::SliderInt("residue", &object[i].residue, 0.0f, object[i].residue);
-		ImGui::Text("\n");
-		ImGui::End();
-	}
+	ImGui::End();
 
 	object[0].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	object[1].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
@@ -804,27 +792,32 @@ void Polygon3D_Update()
 			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
 			CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
 		}
+
+		if (object[i].hp <= 0 && object[i].active)
+		{
+			object[i].residue--;
+
+			// 残基があれば復活
+			if (object[i].residue > 0)
+			{
+				object[i].hp = object[i].maxHp;
+
+				// リスポーン
+				Polygon3D_Respawn(i);
+			}
+			else
+			{
+				// 残基無しで死亡
+				object[i].active = false;
+			}
+		}
+
+		SetHPValue(&HPBar[i], (int)object[i].hp, (int)object[i].maxHp);
+		UpdateHP(&HPBar[i]);
+
 	}
 
-			// -------------------------------------------------------------
-			if (object[i].hp <= 0 && object[i].active)
-			{
-				object[i].residue--;
-
-				// 残基があれば復活
-				if (object[i].residue > 0)
-				{
-					object[i].hp = object[i].maxHp;
-
-					// リスポーン
-					Polygon3D_Respawn();
-				}
-				else
-				{
-					// 残基無しで死亡
-					object[i].active = false;
-				}
-			}
+			
 
 			// -------------------------------------------------------------
 			// 当たり判定 Player1とSkill2
@@ -864,10 +857,9 @@ void Polygon3D_Update()
 	//	Polygon3D_Respawn();
 	//}
 
-	}
-		UpdateHP(&HPBar[i]);
-	}
-}
+}		
+
+
 
 //======================================================
 //	描画関数
@@ -1175,7 +1167,17 @@ static void CheckRespawnPlayer(int idx)
 		needRespawn = true;
 	}
 
-PLAYEROBJECT* GetPlayer1()
+	if(needRespawn)	
+	{
+		// 残機を1減らす（1回だけ）
+		object[idx].residue -= 1;
+
+		// 個別リスポーン処理
+		Polygon3D_Respawn(idx);
+	}
+}
+
+//==================================
 // 残基描画
 //==================================
 void Polygon3D_DrawResidue(int i)
@@ -1202,18 +1204,8 @@ void Polygon3D_DrawResidue(int i)
 }
 
 
-PLAYEROBJECT* GetPlayer1()
-{
-	return &object[0];
-}
-	{
-		// 残機を1減らす（1回だけ）
-		object[idx].residue -= 1;
 
-		// 個別リスポーン処理
-		Polygon3D_Respawn(idx);
-	}
-}
+
 
 PLAYEROBJECT* GetPlayer(int index)
 {
