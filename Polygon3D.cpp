@@ -382,9 +382,7 @@ void Polygon3D_Finalize()
 // ======================================================
 void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 {
-	//for (int i = 0; i < PLAYER_MAX; i++)
-	//{
-		// 進みたい方向（3平方）
+	// 進みたい方向（3平方）
 	float length = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
 
 	if (length > 0.0f)
@@ -414,7 +412,6 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 		object.position.x += sinf(rad) * object.speed;
 		object.position.z += cosf(rad) * object.speed;
 	}
-	//	}
 }
 
 //======================================================
