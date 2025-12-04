@@ -272,7 +272,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].maxHp = 100.0f;
 	object[0].hp = object[0].maxHp;
-	object[0].residue = 2;
+	object[0].residue = 3;
 	object[0].isAttacking = false;
 	object[0].attackTimer = 0.0f;
 	object[0].attackDuration = 5.0f;
@@ -288,7 +288,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].maxHp = 100.0f;
 	object[1].hp = object[1].maxHp;
-	object[1].residue = 2;
+	object[1].residue = 3;
 	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
 	object[1].attackDuration = 5.0f;
@@ -626,7 +626,7 @@ void Polygon3D_Update()
 
 		if (collision_player.isColliding)
 		{
-			hal::dout << "?? プレイヤー衝突！ 互いに吹き飛ばし実行" << std::endl;
+			//hal::dout << "?? プレイヤー衝突！ 互いに吹き飛ばし実行" << std::endl;
 			// 吹き飛ばしの強さ（X-Z方向）
 			const float knockbackPowerXZ = 0.5f; // 強さを調整
 			// 吹き飛ばしの強さ（Y方向）
@@ -698,35 +698,6 @@ void Polygon3D_Update()
 	{
 		CheckRespawnPlayer(idx);
 	}
-
-	//// HPが0以下
-	//if (object[0].hp < 0.0f)
-	//{
-	//	object[0].hp = 0.0f;
-	//	object[0].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
-	//// 落下した場合
-	//if (object[0].position.y < -10.0f)
-	//{
-	//	object[0].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
-
-	//// HPが0以下
-	//if (object[1].hp < 0.0f)
-	//{
-	//	object[1].hp = 0.0f;
-	//	object[1].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
-	//// 落下した場合
-	//if (object[1].position.y < -10.0f)
-	//{
-	//	object[1].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
-
 }
 
 //======================================================
@@ -906,14 +877,6 @@ void SkillPlayerCollisions()
 			//object[1].isAttacking = false;
 			//object[1].attackTimer = 0.0f;
 
-			//// 死亡判定 -> リスポーン
-			//if (p1->hp < 0.0f)
-			//{
-			//	p1->hp = 0.0f;
-			//	p1->residue -= 1;
-			//	Polygon3D_Respawn();
-			//}
-
 			// AABB を更新
 			CalculateAABB(p1->boundingBox, p1->position, p1->scaling);
 			CalculateAABB(skill2->boundingBox, skill2->position, skill2->scaling);
@@ -942,14 +905,6 @@ void SkillPlayerCollisions()
 			//// ヒットでスキルを消す
 			//object[0].isAttacking = false;
 			//object[0].attackTimer = 0.0f;
-
-			//// 死亡判定 -> リスポーン
-			//if (p2->hp < 0.0f)
-			//{
-			//	p2->hp = 0.0f;
-			//	p2->residue -= 1;
-			//	Polygon3D_Respawn();
-			//}
 
 			// AABB を更新
 			CalculateAABB(p2->boundingBox, p2->position, p2->scaling);
