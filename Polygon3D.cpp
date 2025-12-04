@@ -19,6 +19,7 @@ using namespace DirectX;
 ///////////////////////////////////////
 #include "field.h"
 #include "collider.h"
+#include "debug_render.h"
 
 #include <iostream>
 #include "debug_ostream.h"
@@ -262,13 +263,15 @@ static UINT idxdata[6 * 6] = {
 	20,21,22,22,21,23,	// -Y面
 };
 
+static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
+
 //======================================================
 //	初期化関数
 //======================================================
 void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	// ポリゴン表示の初期化
-	object[0].position = XMFLOAT3(-2.0f, 1.5f, 0.0f);
+	object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	object[0].speed = 0.0f;
@@ -282,7 +285,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].breakCount_Concrete = 0;
 	object[0].breakCount_Electricity = 0;
 
-	object[1].position = XMFLOAT3(1.5f, 2.0f, 2.0f);
+	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	object[1].speed = 0.0f;
@@ -339,6 +342,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		CopyMemory(&index[0], &idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
+	// デバッグレンダラー初期化
+	Debug_Initialize(pDevice, pContext);
 }
 
 //======================================================
@@ -364,6 +369,8 @@ void Polygon3D_Finalize()
 		g_Texture[i]->Release();
 		g_Texture[i] = NULL;
 	}
+
+	Debug_Finalize();
 }
 
 // ======================================================
@@ -429,7 +436,7 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 
 void Polygon3D_Respawn()
 {
-	object[0].position = XMFLOAT3(-2.0f, 2.0f, 0.0f);
+	object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].scaling = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	object[0].speed = 0.0f;
@@ -488,6 +495,7 @@ void Polygon3D_Update()
 	// 座標調整
 	ImGui::Text("Position");
 	ImGui::DragFloat3("pos", (float*)&object[0].position, 0.1f);
+	ImGui::DragFloat("posYmin", &object[0].boundingBox.Min.y, 0.1f);
 
 	ImGui::SliderInt("residue", &object[0].residue, 0.0f, object[0].residue);
 
@@ -514,7 +522,7 @@ void Polygon3D_Update()
 
 		// Y軸の移動量 (重力 + ジャンプ)
 		// 重力加速度のない簡易的な重力
-		//object[i].position.y += -0.1f;
+		object[i].position.y += -0.1f;
 
 		// デバッグ出力
 		if (posBuff.x != object[i].position.x ||
@@ -531,8 +539,9 @@ void Polygon3D_Update()
 		posBuff = object[i].position;
 
 		// 地面の高さ（最低ライン）
-		float groundHeight = -10.0f; // 奈落の底
-		bool isGrounded = false;     // 地面に足がついているかフラグ
+		float groundHeight = -10.0f;	// 奈落の底
+		bool isGrounded = false;		// 地面に足がついているかフラグ
+
 
 		// 2. マップデータ（地面）との当たり判定
 		int fieldCount = GetFieldObjectCount();
@@ -540,46 +549,52 @@ void Polygon3D_Update()
 
 		for (int j = 0; j < fieldCount; ++j)
 		{
-			// アクティブじゃない、または地面(FIELD_BOX)じゃないならスキップ
-			if (!fieldObjects[j].isActive || fieldObjects[j].no != FIELD::FIELD_BOX)
+			// アクティブじゃない、または no が MAX ならスキップ
+			if (!fieldObjects[j].isActive || fieldObjects[j].no == FIELD::FIELD_MAX)
 			{
 				continue;
 			}
 
+
 			// --- 六角柱コライダーの準備 ---
 			HexCollider hex;
-			hex.center = fieldObjects[j].pos;
-			hex.radius = 1.0f; // field.cppの生成サイズに合わせる
-			hex.height = 2.0f; // 地面の厚み（十分な高さをとる）
+			hex.center = fieldObjects[j].pos;		// -1
+			hex.radius = fieldObjects[j].radius;	// 1
+			hex.height = fieldObjects[j].height;	// 3.0
 
-			// ※高さ判定を甘くするために、Hexの高さを少し上にズラして計算しても良い
-			// hex.center.y += 0.0f; 
-
-			// --- 衝突判定 (前回作った関数) ---
-			// プレイヤーの座標が六角柱の中にあるか？
-			if (CheckPointHexCollision(object[i].position, hex))
+			// プレイヤーのAABB（体の一部）が六角柱に乗っているか
+			if (CheckAABBHexCollision(object[i].boundingBox, hex))
 			{
-				// 六角形の中にいる！ = このタイルの上にいる
-
 				// タイルの上面のY座標を計算
-				// field.cpp で y = -1.0f, height = 2.0f と仮定すると、上面は 0.0f 付近
-				// ここでは単純にオブジェクトのY座標 + 高さ半分 を地面とする例
-				float tileTopY = fieldObjects[j].pos.y + (hex.height / 2.0f);
+				float tileTopY = fieldObjects[j].pos.y + (hex.height / 2.0f);	// -1 + 1.5 = 0.5
 
-				// もし今の足元が、このタイルの高さより下なら「着地」させる
-				// (少し浮いていても吸着させるなら範囲を広げる)
-				if (object[i].position.y <= tileTopY + 0.5f)
+				// プレイヤーの底面がタイルの上面以下か
+				if (object[i].boundingBox.Min.y <= tileTopY)
 				{
-					object[i].position.y = tileTopY; // 位置を地面の高さに固定（押し戻し）
+					//float overlap = tileTopY - object[i].boundingBox.Min.y;
+
+					// 中心から底面までの差は0.5のはずなのになぜか0.3くらいになる!!!!!!!!!!
+					//float def = (object[i].position.y - object[i].boundingBox.Min.y);
+					float def = 0.5f;	// とりあえずの0.5f
+					float overlap = tileTopY + def * object[i].scaling.y;
+					// 0.5 + (0.5) = 1.0
+
+					// オブジェクトの中心座標を重なり量だけ持ち上げる（押し戻し）
+					object[i].position.y = overlap;
+
+					//CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
+
+					// 着地フラグをセット
 					isGrounded = true;
 
-					// ※見つかったらループを抜けるのが高速ですが、
-					// 重なっているタイルがある場合は「一番高い床」を探す処理が必要になります。
-					// 今回はとりあえず break してOK
+					top_y = tileTopY;
+
 					break;
 				}
 			}
+
 		}
+
 
 		// 地面になかった場合の処理（落下など）が必要ならここに書く
 		if (!isGrounded)
@@ -590,6 +605,7 @@ void Polygon3D_Update()
 				object[i].position = XMFLOAT3(0, 2, 0); // リスポーン
 			}
 		}
+
 
 		// ▲▲▲▲▲ 修正ここまで ▲▲▲▲▲
 
@@ -842,8 +858,17 @@ void Polygon3D_Update()
 //======================================================
 //	描画関数
 //======================================================
-void Polygon3D_Draw()
+void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 {
+	static bool input1 = false;
+	// デバッグモード中のみキー入力を受け付ける
+	if (s_IsKonamiCodeEntered)
+	{
+		if (Keyboard_IsKeyDownTrigger(KK_D1))
+		{
+			input1 = !input1;	// フラグ反転
+		}
+	}
 	//// スキル使用時のみスキルを表示
 	//if (object[0].isAttaking == true)
 	//{
@@ -896,7 +921,7 @@ void Polygon3D_Draw()
 
 		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	// 頂点データをコピーする
 		g_pContext->Unmap(g_VertexBuffer, 0);							// コピー完了
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);				// テクスチャをセット
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			// テクスチャをセット
 
 		// 頂点バッファをセット
 		UINT stride = sizeof(Vertex);	// 頂点1個のデータサイズ
@@ -905,10 +930,34 @@ void Polygon3D_Draw()
 		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);		// インデックスバッファをセット
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	// 描画するポリゴンの種類をセット　3頂点でポリゴンを1枚として表示
-		g_pContext->DrawIndexed(6 * 6, 0, 0);
+		if (!s_IsKonamiCodeEntered || input1)
+		{
+			g_pContext->DrawIndexed(6 * 6, 0, 0);
+		}
 
 		// 描画リクエスト
 		//g_pContext->Draw(NUM_VERTEX, 0);
+	}
+
+	if (s_IsKonamiCodeEntered)
+	{
+		// ------------------------------------
+		// コライダーフレーム（AABB）の描画
+		// ------------------------------------
+		{
+			// プレイヤーの描画に使われた行列をクリアする
+			XMMATRIX world = XMMatrixIdentity();
+			Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
+			//Shader_Begin(); // シェーダーを再設定
+
+			for (int i = 0; i < PLAYER_MAX; i++)
+			{
+				// AABBを描画
+				// AABBのMin/Maxは既にワールド座標なので、行列はリセットしたまま描画すればOK
+				Debug_DrawAABB(object[i].boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
+			}
+		}
+		//s_IsKonamiCodeEntered = false;
 	}
 }
 

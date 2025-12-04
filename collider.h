@@ -58,10 +58,12 @@ MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject);
 // ==============================================================================
 struct HexCollider
 {
-	XMFLOAT3 center; // 中心座標
-	float radius;             // 半径（中心から角までの距離）
-	float height;             // 高さ（厚み）
+	XMFLOAT3 center;	// 中心座標
+	float radius;		// 半径（中心から角までの距離）
+	float height;		// 高さ（厚み）
 };
 
 // 点と六角柱の当たり判定（中に入っているか？）
 bool CheckPointHexCollision(const XMFLOAT3& point, const HexCollider& hex);
+
+bool CheckAABBHexCollision(const AABB& box, const HexCollider& hex);

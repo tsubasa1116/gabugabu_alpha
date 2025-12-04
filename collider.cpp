@@ -5,6 +5,10 @@ using namespace DirectX;
 
 #include "collider.h"
 
+
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
 // ==============================================================================
 // AABB
 // ------------------------------------------------------------------------------
@@ -38,7 +42,7 @@ void CalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& 
 	boundingBox.Max.z = p.z + half.z;
 }
 
-void FieldCalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& scaling) // 新しい関数
+void FieldCalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& scaling) // 古いフィールドコライダー関数
 {
 	XMFLOAT3 s = scaling;	// オブジェクトのスケール
 	XMFLOAT3 p = position;	// オブジェクトの中心座標
@@ -88,7 +92,7 @@ MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject)
 	MTV result = { {0.0f, 0.0f, 0.0f}, 0.0f, false };
 
 	// --------------------------------------------------------------------------
-	// --- 1. 各軸での重なり範囲を計算 ---
+	// --- 各軸での重なり範囲を計算 ---
 	// --------------------------------------------------------------------------
 	// MinとMaxの差分から、両AABBの中心間距離を引くことで重なりを計算する
 
@@ -123,7 +127,7 @@ MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject)
 	float overlapZ = halfExtentZ - fabsf(centerDiffZ);
 
 	// --------------------------------------------------------------------------
-	// --- 2. 衝突判定 ---
+	// --- 衝突判定 ---
 	// --------------------------------------------------------------------------
 	// 一つでも重なりがなければ衝突していない
 	if (overlapX <= 0.0f || overlapY <= 0.0f || overlapZ <= 0.0f)
@@ -136,7 +140,7 @@ MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject)
 	result.isColliding = true;
 
 	// --------------------------------------------------------------------------
-	// --- 3. 最小重なり軸の特定 (MTVの計算) ---
+	// --- 最小重なり軸の特定 (MTVの計算) ---
 	// --------------------------------------------------------------------------
 	if (overlapX < overlapY && overlapX < overlapZ)
 	{
@@ -197,66 +201,117 @@ MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject)
 // ==============================================================================
 bool CheckPointHexCollision(const XMFLOAT3& point, const HexCollider& hex)
 {
-	// 1. 高さ(Y軸)の判定
-	// 六角柱の底面から上面の間にあるか？
-	// 中心座標を基準に、上下に height/2 の範囲でチェックします
-	float halfHeight = hex.height / 2.0f;
-	if (point.y < hex.center.y - halfHeight || point.y > hex.center.y + halfHeight)
+	// 六角柱の底面から上面の間にあるか
+	float halfH = hex.height / 2.0f;
+
+	// 六角柱の上面と底面のy座標
+	float max_y = hex.center.y + halfH;
+	float min_y = hex.center.y - halfH;
+
+	if (
+		point.y < min_y ||	// プレイヤーが柱より下
+		point.y > max_y)	// プレイヤーが柱より上
 	{
 		return false; // 高さが合わないなら衝突していない
 	}
 
-	// 2. 平面(XZ平面)での六角形判定
-	// ポイント：六角形は対称なので、絶対値を使って第1象限だけで計算できます。
+	// 平面(XZ平面)での六角形判定
+	// 六角形は対称なので、絶対値を使って第1象限だけで計算できる
 
-	// 中心からの距離の絶対値をとる
+	// 点と六角柱の距離の絶対値をとる
 	float dx = fabsf(point.x - hex.center.x);
 	float dz = fabsf(point.z - hex.center.z);
-	float r = hex.radius;
 
-	// A. 外接矩形（バウンディングボックス）による簡易チェック
-	// 横幅は半径、縦幅は 半径 * sin(60°) = r * √3 / 2 (約0.866)
-	// ※六角形の向きによって dx と dz の条件は入れ替わりますが、
-	//   field.cppの配置を見ると、横に平らなタイプか頂点が上なタイプかで微調整が必要です。
-	//   ここでは一般的な「頂点が上下にある」タイプ（Pointy Topped）を想定します。
-	//   もし「頂点が左右にある」タイプなら、dxとdzの計算を入れ替えてください。
+	float sin60 = sinf(XMConvertToRadians(60.0f));
 
-	// Pointy Topped (頂点がZ軸方向) の場合:
-	// 幅: r * sqrt(3)/2, 高さ: r
-	// Flat Topped (頂点がX軸方向) の場合:
-	// 幅: r, 高さ: r * sqrt(3)/2
+	float max_x = hex.radius;		// 六角の最大x座標
+	float max_z = max_x * sin60;	// 六角の最大z座標
 
-	// field.cpp では X間隔が広く、Z間隔が sin60 なので、
-	// ここでは「Flat Topped（頂点がX軸方向）」として計算します。
+	// 六角形が内接している長方形の範囲外なら除外
+	if (dx > max_x || dz > max_z) return false;
 
-	float flat_height = r * 0.866025f; // r * sin(60)
+	// 斜めの辺に対して垂直なベクトル：
+	//	右斜めの辺とx軸のなす角 120度 - 90度 = 30度
+	float nx = cosf(XMConvertToRadians(30.0f));
+	//float ny = sinf(XMConvertToRadians(30.0f));
+	float ny = 0.5f;	// sin30 は 0.5 になる
 
-	// まず、明らかに範囲外なら除外
-	if (dx > r || dz > flat_height) return false;
+	// 法線 n と調べる点 d との内積
+	// （法線 n は単位ベクトルだから内積は dcosφ （φ は n と d のなす角）になる）
+	//	つまりベクトル d を法線 n に射影した時のベクトルが出てくることになる
+	float dn = dx * nx + dz * ny;
 
-	// B. 角のカット判定（斜めの辺の内側か？）
-	// 六角形の斜めの辺の方程式を利用します。
-	// Flat Toppedの場合の条件式: dz <= flat_height - dx * tan(30°)
-	// tan(30°) = 0.57735...
+	// 六角形の中心から斜めの辺までの距離
+	// （アポセム：（多角形の中心）から（多角形の各辺の中点）までの距離）
+	//	法線 n の方向にベクトルを伸ばして、斜めの辺に当たるまでの長さのベクトルになる
+	// 
+	// アポセム：（半径）*（cosθ）より、
+	//		float apothem = hex.radius * cosf(XMConvertToRadians(30.0f));
+	// 
+	// cos30 は sin60 と等しい（cos(90 - 30) = sin60）になる
+	// ついでに hex.radius（半径）は max_x と置ける
+	// 
+	// つまりアポセムは max_x * sin60 = max_z の計算と一致するため、
+	//		float apothm = max_z; // と、置ける
 
-	// もっと単純な内積を使った判定式：
-	// 「長方形部分」と「三角形部分」の組み合わせで判定
-	// 式： dx * 0.5 + dz * 0.866 <= r * 0.866
-
-	// Flat Topped (横長) 用の判定式:
-	// dx * 0.5f + dz * 0.866025f <= r * 0.866025f
-	// でもこれだと分かりにくいので、もっと直感的な方法：
-
-	// 「X軸方向の距離」 + 「Z軸方向の距離の拡大版」が半径を超えていないか
-	if (dx / 2.0f + dz * 0.866025f <= flat_height)
+	if (dn <= max_z)	// 法線に射影された調べたい点 と apothm の比較
 	{
 		return true; // 内側！
 	}
 
+	// 安全のための最後のチェック
 	// 長方形部分のチェック (中心付近)
-	if (dx <= r * 0.5f) // 半分の幅以内なら、高さチェックだけでOK（上で通過済み）
+	//if (dx <= max_x * 0.5f) // 半分の幅以内なら、高さチェックだけでOK（上で通過済み）
+	//{
+	//	return true;
+	//}
+
+	return false;
+}
+
+// collider.cpp の末尾に追加
+
+// ==============================================================================
+// AABBと六角柱の衝突判定（足場判定用）
+// ------------------------------------------------------------------------------
+// AABBの底面の四隅のいずれかが六角形に入っていれば true を返す
+// これにより「ギリギリ端っこに乗っている」状態を判定できます。
+// ==============================================================================
+bool CheckAABBHexCollision(const AABB& box, const HexCollider& hex)
+{
+	//// 1. Y軸（高さ）の判定
+	//// 六角形のY範囲を取得
+	//float hexMinY = hex.center.y - hex.height / 2.0f;
+	//float hexMaxY = hex.center.y + hex.height / 2.0f;
+
+	//// AABBの足元(Min.y)から頭(Max.y)が、六角形の高さ範囲とかすっているか確認
+	//// ※少し余裕(+0.5f)を持たせないと、着地した瞬間に判定が外れることがあります
+	//if (box.Min.y > hexMaxY + 0.5f) return false;	// プレイヤーが高すぎる
+	//if (box.Max.y < hexMinY) return false;			// プレイヤーが低すぎる
+
+	// 2. XZ平面（水平方向）の判定
+	// AABBの底面の4つの角の座標を作成
+	XMFLOAT3 corners[5];
+
+	corners[0] = XMFLOAT3(box.Min.x, box.Min.y, box.Max.z); // 左奥
+	corners[1] = XMFLOAT3(box.Max.x, box.Min.y, box.Max.z); // 右奥
+	corners[2] = XMFLOAT3(box.Min.x, box.Min.y, box.Min.z); // 左手前
+	corners[3] = XMFLOAT3(box.Max.x, box.Min.y, box.Min.z); // 右手前
+
+	// 中心も念のためチェック（プレイヤーが六角形より巨大な場合用）
+	corners[4] = XMFLOAT3(
+		(box.Min.x + box.Max.x) * 0.5f, 
+		//(box.Min.y + box.Max.y) * 0.5f,	// AABBのy座標の中心
+		(box.Min.y),						// AABBの底面のy座標
+		(box.Min.z + box.Max.z) * 0.5f);
+
+	// いずれかの点が六角形の中にあれば「乗っている」とみなす
+	for (int i = 0; i < 5; i++)
 	{
-		return true;
+		if (CheckPointHexCollision(corners[i], hex))
+		{
+			return true;
+		}
 	}
 
 	return false;
