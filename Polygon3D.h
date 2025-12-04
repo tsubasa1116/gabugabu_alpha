@@ -24,6 +24,7 @@ struct PLAYEROBJECT
 	float power;		// パワー
 	float speed;		// スピード
 	int residue;		// 残機
+	bool active;        // 生存フラグ
 	bool isAttaking;	// 攻撃中かどうか
 	float attackTimer;	// 攻撃タイマー
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
@@ -52,6 +53,8 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 
 void Polygon3D_Attack();
 void Polygon3D_Respawn();
+
+void Polygon3D_DrawResidue(int i);
 
 PLAYEROBJECT* GetPlayer1();
 PLAYEROBJECT* GetPlayer2();

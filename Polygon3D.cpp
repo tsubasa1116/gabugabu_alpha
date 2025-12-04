@@ -39,8 +39,8 @@ using namespace DirectX;
 //======================================================
 #define	NUM_VERTEX	(100)
 #define	PLAYER_MAX	(2)
-#define HPBER_SIZE_X 180.0f
-#define HPBER_SIZE_Y 25.0f
+#define HPBER_SIZE_X 200.0f
+#define HPBER_SIZE_Y 150.0f
 
 //======================================================
 //	構造謡宣言
@@ -62,7 +62,7 @@ static	ID3D11Buffer* g_VertexBuffer = NULL;
 static	ID3D11Buffer* g_IndexBuffer = NULL;
 
 //テクスチャ変数
-static ID3D11ShaderResourceView* g_Texture[PLAYER_MAX];
+static ID3D11ShaderResourceView* g_Texture[5];
 
 static	Vertex vdata[NUM_VERTEX] =
 {
@@ -283,7 +283,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].speed = 0.0f;
 	object[0].maxHp = 100.0f;
 	object[0].hp = object[0].maxHp;
-	object[0].residue = 2;
+	object[0].residue = 3;
+	object[0].active = true;
 	object[0].isAttaking = false;
 	object[0].attackTimer = 0.0f;
 	object[0].breakCount_Glass = 0;
@@ -302,7 +303,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].speed = 0.0f;
 	object[1].maxHp = 100.0f;
 	object[1].hp = object[1].maxHp;
-	object[1].residue = 2;
+	object[1].residue = 3;
+	object[1].active = true;
 	object[1].isAttaking = false;
 	object[1].attackTimer = 0.0f;
 	object[1].breakCount_Glass = 0;
@@ -339,6 +341,16 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
 	assert(g_Texture[1]);
 
+	LoadFromWICFile(L"asset\\texture\\uiStockRed_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
+	assert(g_Texture[2]);
+
+	LoadFromWICFile(L"asset\\texture\\uiStockBrue_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
+	assert(g_Texture[3]);
+
+
+
 	//インデックスバッファ作成
 	{
 		D3D11_BUFFER_DESC	bd;
@@ -361,8 +373,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// デバッグレンダラー初期化
 	Debug_Initialize(pDevice, pContext);
 
-	InitializeHP(pDevice, pContext, &HPBar[0], { 200.0f,  350.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[1], { 500.0f,  350.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[0], { 200.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[1], { 500.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 
 }
 
@@ -833,6 +845,26 @@ void Polygon3D_Update()
 			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
 			CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
 
+			// HPが0になったら残基を減らし、HPをもそす
+			if (object[i].hp <= 0 && object[i].active)
+			{
+				object[i].residue--;
+
+				// 残基があれば復活
+				if (object[i].residue > 0)
+				{
+					object[i].hp = object[i].maxHp;
+
+					// リスポーン
+					Polygon3D_Respawn();
+				}
+				else
+				{
+					// 残基無しで死亡
+					object[i].active = false;
+				}
+			}
+
 			// -------------------------------------------------------------
 			// 当たり判定 Player1とSkill2
 			// -------------------------------------------------------------
@@ -912,7 +944,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 		// ゲージ描画用設定
 		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
-			      object[i].gaugeOuter, { hp.x - 120.0f , hp.y });
+			      object[i].gaugeOuter, { hp.x - 130.0f , hp.y });
 
 		// ゲージ描画
 		Gauge_Draw(i);
@@ -920,7 +952,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		// シェーダーリセット
 		Shader_Begin();
 		
-		//PStock_Draw(i);
+		Polygon3D_DrawResidue(i);
 	}
 
 	for (int i = 0; i < PLAYER_MAX; i++)
@@ -1004,6 +1036,33 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		//s_IsKonamiCodeEntered = false;
 	}
 }
+
+//==================================
+// 残基描画
+//==================================
+void Polygon3D_DrawResidue(int i)
+{
+	Shader_Begin();
+	Shader_BeginUI();
+
+	// HPバー位置取得・ゲージ座標設定
+	float bx =HPBar[i].pos.x + 20.0f;
+	float by =HPBar[i].pos.y - 10.0f;
+
+	// プレイヤーごとのストック描画
+	for (int j = 0; j < object[i].residue; j++)
+	{
+		// ストック描画変数
+		XMFLOAT2 pos = { bx + j * 30.0f, by }; // 横並び
+		XMFLOAT2 size = { 300.0f, 100.0f };
+
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 2]);
+
+		SetBlendState(BLENDSTATE_ALFA);
+		DrawSprite(pos, size, color::white);
+	}
+}
+
 
 PLAYEROBJECT* GetPlayer1()
 {

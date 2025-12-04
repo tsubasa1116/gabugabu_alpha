@@ -6,7 +6,7 @@ static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 //プレイヤー関連変数
-static	ID3D11ShaderResourceView* g_Texture[2];
+static	ID3D11ShaderResourceView* g_Texture[3];
 
 // HPバーのスムーズ減少速度
 #define HPBAR_SPEED 3.0f
@@ -31,13 +31,18 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HP* bar,
 	TexMetadata		metadata;
 	ScratchImage	image;
 	
-	LoadFromWICFile(L"asset\\texture\\texture.jpg", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiGaugeGreen_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);//読み込み失敗時にダイアログを表示
+
 
 	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
 	assert(g_Texture[1]);//読み込み失敗時にダイアログを表示
+
+	LoadFromWICFile(L"asset\\texture\\uiGaugeBase_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
+	assert(g_Texture[2]);//読み込み失敗時にダイアログを表示
 }
 
 
@@ -131,14 +136,15 @@ void DrawHP(const HP* bar)
 	};
 
 	
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture[2]);
 	DrawSprite(backPos, backSize, bar->backColor);
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	DrawSpriteUV(fillPos, fillSize, bar->fillColor, uvMin, uvMax);
 
 
 	SetBlendState(BLENDSTATE_ALFA);
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
-	DrawSprite({ 84, 647 }, {110, 110}, XMFLOAT4(1, 1, 1, 0.6));
+	DrawSprite({ 74, 647 }, {110, 110}, XMFLOAT4(1, 1, 1, 0.6));
 }
 
 
