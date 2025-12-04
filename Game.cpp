@@ -22,6 +22,7 @@
 
 #include	"Polygon3D.h"
 #include	"Camera.h"
+#include	"fade.h"
 
 #include "Ball.h"
 #include "skill.h"
@@ -133,6 +134,13 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	para.z /= len;
 	Light.SetDirection(para);//å…‰ã®æ–¹å‘ï¼ˆæ­£è¦åŒ–æ¸ˆï¼‰
 
+	//ƒQ[ƒ€ƒŠƒUƒ‹ƒg‚Ö‘JˆÚ
+	if (Keyboard_IsKeyDown(KK_F1))
+	{
+		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(60.0f, color, FADE_IN, SCENE_RESULT);
+	}
+
 }
 
 //======================================================
@@ -183,6 +191,13 @@ void Game_Update()
 	Gauge_Update();
 
 
+	//ƒQ[ƒ€ƒV[ƒ“‚Ö‘JˆÚ
+	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
+	{
+		//ƒtƒF[ƒhƒAƒEƒg‚³‚¹‚ÄƒV[ƒ“‚ğØ‚è‘Ö‚¦‚é
+		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
+	}
 }
 
 //======================================================

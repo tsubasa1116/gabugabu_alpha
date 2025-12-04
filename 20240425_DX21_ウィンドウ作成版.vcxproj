@@ -176,9 +176,11 @@
     <ClCompile Include="Polygon3D.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="score.cpp" />
+    <ClCompile Include="Setting.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="skill.cpp" />
     <ClCompile Include="sprite.cpp" />
+    <ClCompile Include="Start.cpp" />
     <ClCompile Include="Title.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -216,9 +218,11 @@
     <ClInclude Include="Polygon3D.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="score.h" />
+    <ClInclude Include="Setting.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="skill.h" />
     <ClInclude Include="sprite.h" />
+    <ClInclude Include="Start.h" />
     <ClInclude Include="Title.h" />
   </ItemGroup>
   <ItemGroup>
