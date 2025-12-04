@@ -480,7 +480,8 @@ void Polygon3D_Update()
 
 	ImGui::Begin("Player Debug");
 	// HPバー
-	ImGui::SliderFloat("HP", &object[0].hp, 0.0f, object[0].maxHp);
+	ImGui::SliderFloat("HP", &object[0].hp, 0.0f, object[0
+	].maxHp);
 
 	ImGui::End();
 
@@ -891,27 +892,6 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		Player2_Skill_Draw();
 	}
 
-	Shader_Begin(); 
-
-	// 個別UIステータス描画
-	for (int i = 0; i < PLAYER_MAX; i++)
-	{
-		// HPバー描画
-		DrawHP(&HPBar[i]);
-		XMFLOAT2 hp = HPBar[i].pos;
-
-		// ゲージ描画用設定
-		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
-			      object[i].gaugeOuter, { hp.x - 130.0f , hp.y });
-
-		// ゲージ描画
-		Gauge_Draw(i);
-
-		// シェーダーリセット
-		Shader_Begin();
-		
-		Polygon3D_DrawResidue(i);
-	}
 
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
@@ -956,6 +936,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	// 頂点データをコピーする
 		g_pContext->Unmap(g_VertexBuffer, 0);							// コピー完了
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			// テクスチャをセット
+		Shader_SetColor({1,1,1,1});
 
 		// 頂点バッファをセット
 		UINT stride = sizeof(Vertex);	// 頂点1個のデータサイズ
@@ -1013,6 +994,31 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 //	}
 //
 //}
+
+void Polygon3D_DrawHP()
+{
+	Shader_Begin();
+
+	// 個別UIステータス描画
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		// HPバー描画
+		DrawHP(&HPBar[i]);
+		XMFLOAT2 hp = HPBar[i].pos;
+
+		// ゲージ描画用設定
+		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
+			object[i].gaugeOuter, { hp.x - 130.0f , hp.y });
+
+		// ゲージ描画
+		Gauge_Draw(i);
+
+		// シェーダーリセット
+		Shader_Begin();
+
+		Polygon3D_DrawResidue(i);
+	}
+}
 
 void Polygon3D_Respawn(int idx)
 {

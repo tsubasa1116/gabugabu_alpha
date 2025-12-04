@@ -170,8 +170,8 @@ bool Direct3D_Initialize(HWND hWnd)
 
 	g_pDeviceContext->OMSetDepthStencilState(g_DepthStateDisable, NULL); //デフォルト　深度無効
 
+	return true;
 
-    return true;
 }
 
 void	SetDepthTest(bool flg)
