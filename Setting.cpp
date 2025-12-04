@@ -1,15 +1,15 @@
 //======================================================
-//	title.cpp[]
+//	setting.cpp[]
 // 
 //	制作者：田中佑奈			日付：2024//
 //======================================================
 
-//Title.cpp
+//Setting.cpp
 #include	"Manager.h"
 #include	"sprite.h"
 #include	"keyboard.h"
 
-#include	"Title.h"
+#include	"Setting.h"
 
 #include "fade.h"
 #include "shader.h"
@@ -19,7 +19,7 @@ static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 
-void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void Setting_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -27,7 +27,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//テクスチャ読み込みなど
 	TexMetadata		metadata;
 	ScratchImage	image;
-	LoadFromWICFile(L"asset\\texture\\title.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\setting.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 	assert(g_Texture);//読み込み失敗時にダイアログを表示
 
@@ -36,18 +36,18 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	SetFade(60.0f, color, FADE_IN, SCENE_START);
 
 }
-void Title_Finalize()
+void Setting_Finalize()
 {
 	//テクスチャの解放など
 	SAFE_RELEASE(g_Texture);
 
 }
-void Title_Update()
+void Setting_Update()
 {
 	//キー入力チェック
 	//スタートボタンが押されたらシーンを切り替え
 	//フェード処理中はキーを受け付けない
-	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
+	if (Keyboard_IsKeyDownTrigger(KK_TAB) && (GetFadeState() == FADE_NONE))
 	{
 		//フェードアウトさせてシーンを切り替える
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
@@ -55,7 +55,7 @@ void Title_Update()
 	}
 
 }
-void Title_Draw()
+void Setting_Draw()
 {
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();

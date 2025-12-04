@@ -24,6 +24,7 @@
 #include	"Camera.h"
 
 #include "Ball.h"
+#include "skill.h"
 
 #include "skill.h"
 
@@ -97,7 +98,6 @@ void CheckKonamiCode(int currentKeyCode)
 //======================================================
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-
 	Field_Initialize(pDevice, pContext); // フィールドの初期化
 	//BallInitialize(pDevice, pContext); // ボールの初期化
 
@@ -106,15 +106,11 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//Block_Initialize(pDevice, pContext);//ブロックの初期化
 	//Effect_Initialize(pDevice, pContext);//エフェクト初期化
 	//Score_Initialize(pDevice, pContext);//スコア初期化
+	Skill_Initialize(pDevice, pContext);
 
 	Polygon3D_Initialize(pDevice, pContext);//３Dテスト初期化
 
 	Camera_Initialize();	//カメラ初期化
-
-	Player1_Skill_Initialize(pDevice, pContext);
-	Player2_Skill_Initialize(pDevice, pContext);
-
-
 
 	g_BgmID = LoadAudio("asset\\Audio\\bgm.wav");	//サウンドロード
 	//PlayAudio(g_BgmID, true);		//再生開始（ループあり）

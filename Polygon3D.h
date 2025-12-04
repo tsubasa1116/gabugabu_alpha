@@ -5,6 +5,9 @@
 #include "d3d11.h"
 #include "collider.h" // AABB を使うためにインクルード
 
+// マクロ定義
+#define	PLAYER_MAX	(2)
+
 enum Form
 {
 	Normal = 0,			// 通常
@@ -15,18 +18,20 @@ enum Form
 // プレイヤーオブジェクト専用の構造体
 struct PLAYEROBJECT
 {
-	XMFLOAT3 position;	// 座標
-	XMFLOAT3 rotation;	// 回転角度
-	XMFLOAT3 scaling;	// 拡大率
-	AABB boundingBox;	// 当たり判定
-	float hp;			// 体力
-	float maxHp;		// 最大体力
-	float power;		// パワー
-	float speed;		// スピード
-	int residue;		// 残機
-	bool active;        // 生存フラグ
-	bool isAttaking;	// 攻撃中かどうか
-	float attackTimer;	// 攻撃タイマー
+	XMFLOAT3 position;		// 座標
+	XMFLOAT3 rotation;		// 回転角度
+	XMFLOAT3 scaling;		// 拡大率
+	AABB boundingBox;		// 当たり判定
+	float hp;				// 体力
+	float maxHp;			// 最大体力
+	float power;			// パワー
+	float speed;			// スピード
+	XMFLOAT3 dir;			// 向き
+	int residue;			// 残機
+	bool active;            // 生存フラグ
+	bool isAttacking;		// 攻撃中かどうか
+	float attackTimer;		// 攻撃タイマー
+	float attackDuration;	// 攻撃持続時間
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 
@@ -51,12 +56,12 @@ void Polygon3D_Finalize();
 void Polygon3D_Update();
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 
+void SkillPlayerCollisions();
 void Polygon3D_Attack();
-void Polygon3D_Respawn();
+void Polygon3D_Respawn(int index);
+void CheckRespawnPlayer(int index);
 
 void Polygon3D_DrawResidue(int i);
-
-PLAYEROBJECT* GetPlayer1();
-PLAYEROBJECT* GetPlayer2();
+PLAYEROBJECT* GetPlayer(int index);
 
 
