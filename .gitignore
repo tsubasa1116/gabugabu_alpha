@@ -19,6 +19,7 @@ Release/
 *.cache
 *.opendb
 *.cso
+*.ini
 
 # その他
 *.ilk

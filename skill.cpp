@@ -14,6 +14,7 @@ using namespace DirectX;
 #include "Polygon3D.h"
 #include "keyboard.h"
 
+
 // ƒOƒ[ƒoƒ‹•Ï”
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;

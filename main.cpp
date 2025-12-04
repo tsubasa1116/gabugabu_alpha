@@ -199,13 +199,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 									" FPS : %d", g_CountFPS);
 				SetWindowText(hWnd, g_DebugStr);
 #endif
-                // ======= ImGui初期化 =======				
-				//更新処理
-				
-
 				// ======= ImGui初期化 =======
 				BeginImGuiFrame();
-                Manager_Update();
+				Manager_Update();
 				// ======= ImGui描画テスト =======
 				ImGui::Begin("Debug Window");
 

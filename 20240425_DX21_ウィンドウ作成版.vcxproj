@@ -151,6 +151,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="collider.cpp" />
     <ClCompile Include="debug_ostream.cpp" />
+    <ClCompile Include="debug_render.cpp" />
     <ClCompile Include="direct3d.cpp" />
     <ClCompile Include="Effect.cpp" />
     <ClCompile Include="fade.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="collider.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="debug_ostream.h" />
+    <ClInclude Include="debug_render.h" />
     <ClInclude Include="direct3d.h" />
     <ClInclude Include="Effect.h" />
     <ClInclude Include="fade.h" />
@@ -245,6 +247,12 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="shader_pixel_debug_color.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="shader_vertex_2d.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
