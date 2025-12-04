@@ -26,6 +26,3 @@ float4 main(PS_INPUT ps_in) : SV_TARGET
     col *= ps_in.color * setColor;
     return col;
 }
-
-
-
