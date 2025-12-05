@@ -364,7 +364,7 @@ void Player1_Skill_Update()
 
 		if (collision.isColliding)
 		{
-			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
+			// ガラスに衝突していて、かつスペースキーが押されていたら
 			if (fieldObjects[i].no == FIELD_Glass && Keyboard_IsKeyDown(KK_SPACE))
 			{
 				fieldObjects[i].isActive = false;

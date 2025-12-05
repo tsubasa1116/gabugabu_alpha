@@ -36,7 +36,7 @@ using namespace DirectX;
 //======================================================
 //	マクロ定義
 //======================================================
-#define	NUM_VERTEX	(100)
+#define	NUM_VERTEX	(36)
 #define	PLAYER_MAX	(2)
 #define HPBER_SIZE_X 200.0f
 #define HPBER_SIZE_Y 150.0f
@@ -62,6 +62,8 @@ static	ID3D11Buffer* g_IndexBuffer = NULL;
 
 //テクスチャ変数
 static ID3D11ShaderResourceView* g_Texture[5];
+
+static ID3D11Buffer* g_IndexBuffer_Face = NULL; // -X 面のみ用インデックスバッファ
 
 static	Vertex vdata[NUM_VERTEX] =
 {
@@ -278,7 +280,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// ポリゴン表示の初期化
 	object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[0].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+	object[0].form = Normal;
 	object[0].speed = 0.0f;
 	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].maxHp = 100.0f;
@@ -300,7 +303,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[1].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+	object[1].form = Normal;
 	object[1].speed = 0.0f;
 	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].maxHp = 100.0f;
@@ -336,7 +340,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	TexMetadata metadata;
 	ScratchImage image;
 
-	LoadFromWICFile(L"Asset\\Texture\\TileA3.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);
 
@@ -351,8 +355,6 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"asset\\texture\\uiStockBrue_v1.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
 	assert(g_Texture[3]);
-
-
 
 	//インデックスバッファ作成
 	{
@@ -378,7 +380,6 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	InitializeHP(pDevice, pContext, &HPBar[0], { 200.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 	InitializeHP(pDevice, pContext, &HPBar[1], { 500.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-
 }
 
 //======================================================
@@ -403,6 +404,12 @@ void Polygon3D_Finalize()
 	{
 		g_Texture[i]->Release();
 		g_Texture[i] = NULL;
+	}
+
+	if (g_IndexBuffer_Face != NULL)
+	{
+		g_IndexBuffer_Face->Release();
+		g_IndexBuffer_Face = NULL;
 	}
 
 	Debug_Finalize();
@@ -452,7 +459,6 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 //======================================================
 void Polygon3D_Update()
 {
-
 	// プレイヤー1 スキル発動
 	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
 	{
@@ -607,9 +613,6 @@ void Polygon3D_Update()
 		// -------------------------------------------------------------
 		// 変身
 		// -------------------------------------------------------------
-		SKILL_OBJECT* skill1 = GetSkill(1);
-		SKILL_OBJECT* skill2 = GetSkill(2);
-
 		switch (object[i].form)
 		{
 		case Normal: // 通常
@@ -639,6 +642,9 @@ void Polygon3D_Update()
 		default:
 			break;
 		}
+
+		SKILL_OBJECT* skill1 = GetSkill(1);
+		SKILL_OBJECT* skill2 = GetSkill(2);
 
 		// プレイヤー i に対応するスキル（i==0 -> skill1, i==1 -> skill2）をプレイヤーのフォームに合わせてスケーリング同期
 		SKILL_OBJECT* skillForPlayer = (i == 0) ? skill1 : ((i == 1) ? skill2 : nullptr);
@@ -858,6 +864,13 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	{
 		Player1_Skill_Draw();
 	}
+
+	// スキル使用時のみスキルを表示
+	if (object[1].isAttacking == true)
+	{
+		Player2_Skill_Draw();
+	}
+
 	static bool input1 = false;
 	// デバッグモード中のみキー入力を受け付ける
 	if (s_IsKonamiCodeEntered)
@@ -866,16 +879,6 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		{
 			input1 = !input1;	// フラグ反転
 		}
-	}
-	//// スキル使用時のみスキルを表示
-	//if (object[0].isAttaking == true)
-	//{
-	//}
-
-	// スキル使用時のみスキルを表示
-	if (object[1].isAttacking == true)
-	{
-		Player2_Skill_Draw();
 	}
 
 	Shader_Begin(); 
@@ -949,11 +952,13 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		UINT offset = 0;
 
 		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);		// インデックスバッファをセット
+		//g_pContext->IASetIndexBuffer(g_IndexBuffer_Face, DXGI_FORMAT_R32_UINT, 0);	// 2D表示 インデックスバッファを単一面用に差し替え
+		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);		// インデックスバッファをセット 四角形
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	// 描画するポリゴンの種類をセット　3頂点でポリゴンを1枚として表示
 		if (!s_IsKonamiCodeEntered || input1)
 		{
-			g_pContext->DrawIndexed(6 * 6, 0, 0);
+			g_pContext->DrawIndexed(6 * 6, 0, 0);	// 四角形
+			//g_pContext->DrawIndexed(6, 0, 0);		// -X面のみを描画（6 インデックス）
 		}
 
 		// 描画リクエスト
@@ -982,25 +987,6 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	}
 }
 
-//======================================================
-//	攻撃関数
-//======================================================
-//void Polygon3D_Attack()
-//{
-//	// Player1がPlayer2を攻撃する
-//	if (Keyboard_IsKeyDown(KK_SPACE))
-//	{
-//
-//	}
-//
-//	// Player2がPlayer1を攻撃する
-//	if (Keyboard_IsKeyDown(KK_ENTER))
-//	{
-//
-//	}
-//
-//}
-
 void Polygon3D_Respawn(int idx)
 {
 	if (idx < 0 || idx >= PLAYER_MAX) return;
@@ -1010,6 +996,7 @@ void Polygon3D_Respawn(int idx)
 		object[0].position = XMFLOAT3(-2.0f, 2.0f, 0.0f);
 		object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[0].form = Normal;
 		object[0].speed = 0.0f;
 		object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].hp = 100.0f;
@@ -1030,6 +1017,7 @@ void Polygon3D_Respawn(int idx)
 		object[1].position = XMFLOAT3(2.0f, 4.0f, 3.0f);
 		object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[1].form = Normal;
 		object[1].speed = 0.0f;
 		object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].hp = 100.0f;
