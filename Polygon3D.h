@@ -28,6 +28,7 @@ struct PLAYEROBJECT
 	float speed;			// スピード
 	XMFLOAT3 dir;			// 向き
 	int residue;			// 残機
+	bool active;            // 生存フラグ
 	bool isAttacking;		// 攻撃中かどうか
 	float attackTimer;		// 攻撃タイマー
 	float attackDuration;	// 攻撃持続時間
@@ -38,6 +39,10 @@ struct PLAYEROBJECT
 	int breakCount_Plant;		// 破壊した数 植物
 	int breakCount_Concrete;	// 破壊した数 コンクリート
 	int breakCount_Electricity;	// 破壊した数 電気
+
+
+	float gl, pl, co, el;
+	float gaugeOuter;
 
 	Form form;	// 変身形態
 
@@ -56,6 +61,7 @@ void Polygon3D_Attack();
 void Polygon3D_Respawn(int index);
 void CheckRespawnPlayer(int index);
 
+void Polygon3D_DrawResidue(int i);
 PLAYEROBJECT* GetPlayer(int index);
 
 
