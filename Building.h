@@ -38,11 +38,18 @@ class Building
 {
 private:
 public:
-	XMFLOAT3 m_Pos;			// 座標
-	BuildingType m_Type;	// 建物の種類
-	BuildingPhase m_Phase;	// 現在のフェーズ（状態）
+	XMFLOAT3 position;		// 座標
+	XMFLOAT3 rotation;		// 回転
+	XMFLOAT3 scaling;		// スケール
+
+	BuildingType Type;		// 建物の種類
+	BuildingPhase Phase;	// 現在のフェーズ（状態）
+
+	AABB boundingBox;
 
 	MODEL* m_Model;			// 現在のフェーズ用モデル
+
+	bool isActive;
 
 	// フェーズや種類に応じたモデルを読み込む内部関数
 	void LoadModelForPhase();
@@ -64,9 +71,9 @@ public:
 	void SetPhase(BuildingPhase phase);
 
 	// ゲッター
-	BuildingPhase GetPhase() const { return m_Phase; }
-	BuildingType GetType() const { return m_Type; }
-	XMFLOAT3 GetPosition() const { return m_Pos; }
+	BuildingPhase GetPhase() const { return Phase; }
+	BuildingType GetType() const { return Type; }
+	XMFLOAT3 GetPosition() const { return position; }
 };
 
 //=========================================
@@ -75,4 +82,10 @@ public:
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Building_Finalize();
 void Building_DrawAll(bool s_IsKonamiCodeEntered);
+
+// 建物の総数を取得
 int GetBuildingCount();
+
+// 建物のリスト（ポインタ配列）の先頭アドレスを取得
+// g_Buildings は Building* の配列なので、戻り値は Building** 
+Building** GetBuildings();

@@ -37,19 +37,19 @@ static ID3D11DepthStencilState* g_DepthStateDisable;
 
 bool Direct3D_Initialize(HWND hWnd)
 {
-    /* デバイス、スワップチェーン、コンテキスト生成 */
-    DXGI_SWAP_CHAIN_DESC swap_chain_desc{};
-    swap_chain_desc.Windowed = TRUE;
-    swap_chain_desc.BufferCount = 2;
-    // swap_chain_desc.BufferDesc.Width = 0;
-    // swap_chain_desc.BufferDesc.Height = 0;
+	/* デバイス、スワップチェーン、コンテキスト生成 */
+	DXGI_SWAP_CHAIN_DESC swap_chain_desc{};
+	swap_chain_desc.Windowed = TRUE;
+	swap_chain_desc.BufferCount = 2;
+	// swap_chain_desc.BufferDesc.Width = 0;
+	// swap_chain_desc.BufferDesc.Height = 0;
 	// ⇒ ウィンドウサイズに合わせて自動的に設定される
-    swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swap_chain_desc.SampleDesc.Count = 1;
-    swap_chain_desc.SampleDesc.Quality = 0;
-    swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;//0にしてみる
-    swap_chain_desc.OutputWindow = hWnd;
+	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swap_chain_desc.SampleDesc.Count = 1;
+	swap_chain_desc.SampleDesc.Quality = 0;
+	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;//0にしてみる
+	swap_chain_desc.OutputWindow = hWnd;
 
 	/*
 	IDXGIFactory1* pFactory;
@@ -65,34 +65,34 @@ bool Direct3D_Initialize(HWND hWnd)
 	UINT device_flags = 0;
 
 #if defined(DEBUG) || defined(_DEBUG)
-    //device_flags |= D3D11_CREATE_DEVICE_DEBUG;
+	//device_flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-    D3D_FEATURE_LEVEL levels[] = {
-        D3D_FEATURE_LEVEL_11_1,
-        D3D_FEATURE_LEVEL_11_0
-    };
-    
-    D3D_FEATURE_LEVEL feature_level = D3D_FEATURE_LEVEL_11_0;
+	D3D_FEATURE_LEVEL levels[] = {
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0
+	};
+	
+	D3D_FEATURE_LEVEL feature_level = D3D_FEATURE_LEVEL_11_0;
  
-    HRESULT hr = D3D11CreateDeviceAndSwapChain(
-        nullptr,
-        D3D_DRIVER_TYPE_HARDWARE,
-        nullptr,
-        device_flags,
-        levels,
-        ARRAYSIZE(levels),
-        D3D11_SDK_VERSION,
-        &swap_chain_desc,
-        &g_pSwapChain,
-        &g_pDevice,
-        &feature_level,
-        &g_pDeviceContext);
+	HRESULT hr = D3D11CreateDeviceAndSwapChain(
+		nullptr,
+		D3D_DRIVER_TYPE_HARDWARE,
+		nullptr,
+		device_flags,
+		levels,
+		ARRAYSIZE(levels),
+		D3D11_SDK_VERSION,
+		&swap_chain_desc,
+		&g_pSwapChain,
+		&g_pDevice,
+		&feature_level,
+		&g_pDeviceContext);
 
-    if (FAILED(hr)) {
+	if (FAILED(hr)) {
 		MessageBox(hWnd, "Direct3Dの初期化に失敗しました", "エラー", MB_OK);
-        return false;
-    }
+		return false;
+	}
 
 	if (!configureBackBuffer()) {
 		MessageBox(hWnd, "バックバッファの設定に失敗しました", "エラー", MB_OK);
@@ -138,7 +138,7 @@ bool Direct3D_Initialize(HWND hWnd)
 
 	//αブレンド
 	blendDesc.RenderTarget[0].BlendEnable = TRUE;	//ブレンド有効
-	g_pDevice->CreateBlendState(&blendDesc, &bState[BLENDSTATE_ALFA]);//<<ALPHA！
+	g_pDevice->CreateBlendState(&blendDesc, &bState[BLENDSTATE_ALPHA]);//<<ALPHA！
 
 	//加算合成
 	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -153,7 +153,7 @@ bool Direct3D_Initialize(HWND hWnd)
 //	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_REV_SUBTRACT;//<<<<表示色 = 背景 - ポリゴン
 	g_pDevice->CreateBlendState(&blendDesc, &bState[BLENDSTATE_SUB]);
 
-	SetBlendState(BLENDSTATE_ALFA);//デフォルト設定
+	SetBlendState(BLENDSTATE_ALPHA);//デフォルト設定
 
 
 	// 深度ステンシルステート設定
@@ -171,7 +171,7 @@ bool Direct3D_Initialize(HWND hWnd)
 	g_pDeviceContext->OMSetDepthStencilState(g_DepthStateDisable, NULL); //デフォルト　深度無効
 
 
-    return true;
+	return true;
 }
 
 void	SetDepthTest(bool flg)
@@ -202,7 +202,7 @@ void Direct3D_Finalize()
 		g_pDeviceContext = nullptr;
 	}
 	
-    if (g_pDevice) {
+	if (g_pDevice) {
 		g_pDevice->Release();
 		g_pDevice = nullptr;
 	}
@@ -256,29 +256,29 @@ unsigned int Direct3D_GetBackBufferHeight()
 
 bool configureBackBuffer()
 {
-    HRESULT hr;
+	HRESULT hr;
 
-    ID3D11Texture2D* back_buffer_pointer = nullptr;
+	ID3D11Texture2D* back_buffer_pointer = nullptr;
 
 	// バックバッファの取得
 	hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer_pointer);
 
-    if (FAILED(hr)) {
+	if (FAILED(hr)) {
 		hal::dout << "バックバッファの取得に失敗しました" << std::endl;
-        return false;
-    }
+		return false;
+	}
 
 	// バックバッファのレンダーターゲットビューの生成
 	hr = g_pDevice->CreateRenderTargetView(back_buffer_pointer, nullptr, &g_pRenderTargetView);
 
-    if (FAILED(hr)) {
-        back_buffer_pointer->Release();
-        hal::dout << "バックバッファのレンダーターゲットビューの生成に失敗しました" << std::endl;
-        return false;
-    }
+	if (FAILED(hr)) {
+		back_buffer_pointer->Release();
+		hal::dout << "バックバッファのレンダーターゲットビューの生成に失敗しました" << std::endl;
+		return false;
+	}
 
 	// バックバッファの状態（情報）を取得
-    back_buffer_pointer->GetDesc(&g_BackBufferDesc);
+	back_buffer_pointer->GetDesc(&g_BackBufferDesc);
 
 	back_buffer_pointer->Release(); // バックバッファのポインタは不要なので解放
 
@@ -327,7 +327,7 @@ bool configureBackBuffer()
 	////////////////////////////////////////////追加
 
 
-    return true;
+	return true;
 }
 
 void releaseBackBuffer()

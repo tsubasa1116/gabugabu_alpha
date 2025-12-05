@@ -59,6 +59,7 @@ void Title_Draw()
 {
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
+	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
 	// 画面サイズ取得
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();

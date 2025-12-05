@@ -27,7 +27,7 @@ struct PLAYEROBJECT
 	float power;			// パワー
 	float speed;			// スピード
 	XMFLOAT3 dir;			// 向き
-	int residue;			// 残機
+	int stock;			// 残機
 	bool active;            // 生存フラグ
 	bool isAttacking;		// 攻撃中かどうか
 	float attackTimer;		// 攻撃タイマー
@@ -61,7 +61,7 @@ void Polygon3D_Attack();
 void Polygon3D_Respawn(int index);
 void CheckRespawnPlayer(int index);
 
-void Polygon3D_DrawResidue(int i);
+void Polygon3D_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int index);
 
 
