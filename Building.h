@@ -65,7 +65,7 @@ public:
 	void Update();
 
 	// 描画
-	void Draw();
+	void Draw(bool s_IsKonamiCodeEntered);
 
 	// フェーズ変更（New → Damaged → Broken）
 	void SetPhase(BuildingPhase phase);

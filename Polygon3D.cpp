@@ -584,31 +584,36 @@ void Polygon3D_Update()
 		// -------------------------------------------------------------------------------------
 		// 建物との当たり判定
 		// -------------------------------------------------------------------------------------
-		int buildingCount = GetBuildingCount();		// 数を取得
+		int buildingCount = GetBuildingCount();			// 数を取得
 		Building** buildingObjects = GetBuildings();	// リストを取得
+
 		for (int j = 0; j < buildingCount; ++j)
 		{
+			// アクティブでないなら無視
 			if (!buildingObjects[j]->isActive)	continue;
 
-			// コライダーの作成と更新
-			CalculateAABB(buildingObjects[j]->boundingBox, buildingObjects[j]->position, buildingObjects[j]->scaling);
+			// y座標の調整
+			// Building::Draw() で position.y + 1.0f しているので、判定用の座標も合わせる
+			XMFLOAT3 colliderPos = buildingObjects[j]->position;
+			colliderPos.y += 1.0f;
 
-			for (int k = 0; k < PLAYER_MAX; k++)
+			// コライダーの作成と更新（補正した座標 colliderPos を使う）
+			CalculateAABB(buildingObjects[j]->boundingBox, colliderPos, buildingObjects[j]->scaling);
+
+			// プレイヤー と 建物の当たり判定
+			MTV collision = CalculateAABBMTV(object[i].boundingBox, buildingObjects[j]->boundingBox);
+
+			if (collision.isColliding)
 			{
-				// プレイヤー（0~3）と　建物の当たり判定
-				MTV collision_player = CalculateAABBMTV(object[k].boundingBox, object[1].boundingBox);
+				// 衝突していたら、MTVの分だけ位置を戻す
+				object[i].position.x += collision.translation.x;
+				object[i].position.y += collision.translation.y;
+				object[i].position.z += collision.translation.z;
 
-				if (collision_player.isColliding)
-				{
-
-					// 押し戻された時のAABBを再計算
-					CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
-					CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
-				}
+				// 押し戻し後の新しいAABBを再計算
+				CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
 			}
 		}
-
-		// ▲▲▲▲▲ 修正ここまで ▲▲▲▲▲
 
 		// -------------------------------------------------------------
 		// 変身
@@ -619,7 +624,7 @@ void Polygon3D_Update()
 			object[i].scaling.x = 0.5f;
 			object[i].scaling.y = 0.5f;
 			object[i].scaling.z = 0.5f;
-			object[i].speed = 0.05f;
+			object[i].speed = 0.06f;
 			object[i].power = 0.8f;
 			break;
 
@@ -627,7 +632,7 @@ void Polygon3D_Update()
 			object[i].scaling.x = 1.0f;
 			object[i].scaling.y = 1.0f;
 			object[i].scaling.z = 1.0f;
-			object[i].speed = 0.03f;
+			object[i].speed = 0.05f;
 			object[i].power = 1.0f;
 			break;
 
@@ -635,7 +640,7 @@ void Polygon3D_Update()
 			object[i].scaling.x = 1.5f;
 			object[i].scaling.y = 1.5f;
 			object[i].scaling.z = 1.5f;
-			object[i].speed = 0.02f;
+			object[i].speed = 0.04f;
 			object[i].power = 1.5f;
 			break;
 
@@ -858,19 +863,6 @@ void Polygon3D_Update()
 //======================================================
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 {
-	//Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-	// スキル使用時のみスキルを表示
-	if (object[0].isAttacking == true)
-	{
-		Player1_Skill_Draw();
-	}
-
-	// スキル使用時のみスキルを表示
-	if (object[1].isAttacking == true)
-	{
-		Player2_Skill_Draw();
-	}
-
 	static bool input1 = false;
 	// デバッグモード中のみキー入力を受け付ける
 	if (s_IsKonamiCodeEntered)
@@ -879,6 +871,25 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		{
 			input1 = !input1;	// フラグ反転
 		}
+	}
+	
+	//Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+	// スキル使用時のみスキルを表示
+	if (object[0].isAttacking == true)
+	{
+		Player1_Skill_Draw();
+	}
+
+
+	//// スキル使用時のみスキルを表示
+	//if (object[0].isAttaking == true)
+	//{
+	//}
+
+	// スキル使用時のみスキルを表示
+	if (object[1].isAttacking == true)
+	{
+		Player2_Skill_Draw();
 	}
 
 	Shader_Begin(); 

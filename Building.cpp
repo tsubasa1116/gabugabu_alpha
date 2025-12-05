@@ -25,6 +25,8 @@
 #include "field.h"
 #include "model.h"   // ModelLoad / ModelRelease / ModelDraw
 
+#include "keyboard.h"
+
 ///////////////////////////////////////
 #include "collider.h"
 #include "debug_render.h"
@@ -74,7 +76,8 @@ void Building_DrawAll(bool s_IsKonamiCodeEntered)
 	for (int i = 0; i < BuildingCount; ++i)
 	{
 		if (Buildings[i] != nullptr) {
-			Buildings[i]->Draw();
+			// アクティブなら描画
+			if(Buildings[i]->isActive)	Buildings[i]->Draw(s_IsKonamiCodeEntered);
 		}
 	}
 }
@@ -83,7 +86,7 @@ void Building_DrawAll(bool s_IsKonamiCodeEntered)
 //	コンストラクタ
 //======================================================
 Building::Building(BuildingType type, XMFLOAT3 pos)
-	: Type(type), position(pos), Phase(BuildingPhase::New), m_Model(nullptr)
+	: Type(type), position(pos), Phase(BuildingPhase::New), m_Model(nullptr), isActive(true)
 {
 	scaling = {1.0f,1.0f,1.0f};
 	rotation = {0.0f,0.0f,0.0f};
@@ -264,8 +267,17 @@ void Building::Update()
 //==============================================
 // 描画
 //==============================================
-void Building::Draw()
+void Building::Draw(bool s_IsKonamiCodeEntered)
 {
+	static bool input3 = false;
+	// デバッグモード中のみキー入力を受け付ける
+	if (s_IsKonamiCodeEntered)
+	{
+		if (Keyboard_IsKeyDownTrigger(KK_D1))
+		{
+			input3 = !input3;	// フラグ反転
+		}
+	}
 	// 自分のモデルがロードされているかチェック
 	if (!m_Model) return;
 
@@ -301,8 +313,29 @@ void Building::Draw()
 	Shader_SetWorldMatrix(World);
 	Shader_SetMatrix(WVP);
 
-	// 描画実行
-	ModelDraw(m_Model);
+	if (!s_IsKonamiCodeEntered || input3)
+	{
+		// 描画実行
+		ModelDraw(m_Model);
+	}
+
+	if (s_IsKonamiCodeEntered)
+	{
+		// ------------------------------------
+		// コライダーフレーム（AABB）の描画
+		// ------------------------------------
+		{
+			// プレイヤーの描画に使われた行列をクリアする
+			XMMATRIX world = XMMatrixIdentity();
+			Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
+			//Shader_Begin(); // シェーダーを再設定
+
+			// AABBを描画
+			// AABBのMin/Maxは既にワールド座標なので、行列はリセットしたまま描画すればOK
+			Debug_DrawAABB(boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
+		}
+		//s_IsKonamiCodeEntered = false;
+	}
 }
 
 //======================================================
