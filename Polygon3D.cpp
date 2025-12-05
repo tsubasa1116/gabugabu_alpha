@@ -927,6 +927,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 		Shader_SetMatrix(WVP);// 変換行列を頂点シェーダーへセット
 		Shader_Begin();// シェーダーを描画パイプラインへ設定
+		SetBlendState(BLENDSTATE_NONE);
 
 		// 頂点データを頂点バッファへコピーする
 		D3D11_MAPPED_SUBRESOURCE msr;
@@ -1002,6 +1003,8 @@ void Polygon3D_DrawHP()
 	// 個別UIステータス描画
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
+		SetBlendState(BLENDSTATE_ALFA);
+
 		// HPバー描画
 		DrawHP(&HPBar[i]);
 		XMFLOAT2 hp = HPBar[i].pos;
@@ -1207,6 +1210,7 @@ void Polygon3D_DrawResidue(int i)
 		SetBlendState(BLENDSTATE_ALFA);
 		DrawSprite(pos, size, color::white);
 	}
+	
 }
 
 
