@@ -586,11 +586,6 @@ void Polygon3D_Update()
 			// アクティブでないなら無視
 			if (!buildingObjects[j]->isActive)	continue;
 
-			////////////////////////////////////////////////////////////////////debug
-			//  Glassタイプ以外なら無視（指定通りGlassだけ判定）
-			if (buildingObjects[j]->GetType() != BuildingType::Glass) continue;
-			////////////////////////////////////////////////////////////////////
-
 			// y座標の調整
 			// Building::Draw() で position.y + 1.0f しているので、判定用の座標も合わせる
 			XMFLOAT3 colliderPos = buildingObjects[j]->position;
