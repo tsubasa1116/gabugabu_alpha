@@ -1,7 +1,7 @@
 //======================================================
 //	polygon3D.cpp[]
 // 
-//	åˆ¶ä½œè€…ï¼šå¹³å²¡é¢¯é¦¬			æ—¥ä»˜ï¼š2025/12/04
+//	§ìÒF•½‰ªéD”n			“ú•tF2025/12/04
 //======================================================
 
 #include "d3d11.h"
@@ -34,7 +34,7 @@ using namespace DirectX;
 
 
 //======================================================
-//	ãƒã‚¯ãƒ­å®šç¾©
+//	ƒ}ƒNƒ’è‹`
 //======================================================
 #define	NUM_VERTEX	(100)
 #define	PLAYER_MAX	(2)
@@ -42,240 +42,240 @@ using namespace DirectX;
 #define HPBER_SIZE_Y 150.0f
 
 //======================================================
-//	æ§‹é€ è¬¡å®£è¨€
+//	\‘¢—wéŒ¾
 //======================================================
-// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+// ƒIƒuƒWƒFƒNƒg
 PLAYEROBJECT object[PLAYER_MAX];
 
 //======================================================
-//	ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+//	ƒOƒ[ƒoƒ‹•Ï”
 //======================================================
 static	ID3D11Device* g_pDevice = NULL;
 static	ID3D11DeviceContext* g_pContext = NULL;
 static HP HPBar[PLAYER_MAX];
 
-//é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
+//’¸“_ƒoƒbƒtƒ@
 static	ID3D11Buffer* g_VertexBuffer = NULL;
 
-//ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
+//ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
 static	ID3D11Buffer* g_IndexBuffer = NULL;
 
-//ãƒ†ã‚¯ã‚¹ãƒãƒ£å¤‰æ•°
+//ƒeƒNƒXƒ`ƒƒ•Ï”
 static ID3D11ShaderResourceView* g_Texture[5];
 
 static	Vertex vdata[NUM_VERTEX] =
 {
-	//-Zé¢
-	{//é ‚ç‚¹0 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),		//åº§æ¨™
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//ã‚«ãƒ©ãƒ¼
-		XMFLOAT2(0.0f,0.0f)					//ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™
+	//-Z–Ê
+	{//’¸“_0 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),		//À•W
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//ƒJƒ‰[
+		XMFLOAT2(0.0f,0.0f)					//ƒeƒNƒXƒ`ƒƒÀ•W
 	},
-	{//é ‚ç‚¹1 RIGHT-TOP
+	{//’¸“_1 RIGHT-TOP
 		XMFLOAT3(0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//é ‚ç‚¹2 LEFT-BOTTOM
+	{//’¸“_2 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//é ‚ç‚¹3 LEFT-BOTTOM
+	//{//’¸“_3 LEFT-BOTTOM
 	//	XMFLOAT3(-0.5f, -0.5f, -0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(0.0f,1.0f)
 	//},
-	//{//é ‚ç‚¹4 RIGHT-TOP
+	//{//’¸“_4 RIGHT-TOP
 	//	XMFLOAT3(0.5f, 0.5f, -0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(1.0f,0.0f)
 	//},
-	{//é ‚ç‚¹5 RIGHT-BOTTOM
+	{//’¸“_5 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
-	//+Xé¢
-	{//é ‚ç‚¹6 LEFT-TOP
+	//+X–Ê
+	{//’¸“_6 LEFT-TOP
 		XMFLOAT3(0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{//é ‚ç‚¹7 RIGHT-TOP
+	{//’¸“_7 RIGHT-TOP
 		XMFLOAT3(0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//é ‚ç‚¹8 LEFT-BOTTOM
+	{//’¸“_8 LEFT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//é ‚ç‚¹9 LEFT-BOTTOM
+	//{//’¸“_9 LEFT-BOTTOM
 	//	XMFLOAT3(0.5f, -0.5f, -0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(0.0f,1.0f)
 	//},
-	//{//é ‚ç‚¹10 RIGHT-TOP
+	//{//’¸“_10 RIGHT-TOP
 	//	XMFLOAT3(0.5f, 0.5f, 0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(1.0f,0.0f)
 	//},
-	{//é ‚ç‚¹11 RIGHT-BOTTM
+	{//’¸“_11 RIGHT-BOTTM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
-	//+Zé¢
-	{//é ‚ç‚¹12 LEFT-TOP
+	//+Z–Ê
+	{//’¸“_12 LEFT-TOP
 		XMFLOAT3(0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{//é ‚ç‚¹13 RIGHT-TOP
+	{//’¸“_13 RIGHT-TOP
 		XMFLOAT3(-0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//é ‚ç‚¹14 LEFT-BOTTOM
+	{//’¸“_14 LEFT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//é ‚ç‚¹15 LEFT-BOTTOM
+	//{//’¸“_15 LEFT-BOTTOM
 	//	XMFLOAT3(0.5f, -0.5f, 0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(0.0f,1.0f)
 	//},
-	//{//é ‚ç‚¹16 RIGHT-TOP
+	//{//’¸“_16 RIGHT-TOP
 	//	XMFLOAT3(-0.5f, 0.5f, 0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(1.0f,0.0f)
 	//},
-	{//é ‚ç‚¹17 RIGHT-BOTTOM
+	{//’¸“_17 RIGHT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
-	//-Xé¢
-	{//é ‚ç‚¹18 LEFT-TOP
+	//-X–Ê
+	{//’¸“_18 LEFT-TOP
 		XMFLOAT3(-0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{//é ‚ç‚¹19 RIGHT-TOP
+	{//’¸“_19 RIGHT-TOP
 		XMFLOAT3(-0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//é ‚ç‚¹20 LEFT-BOTTOM
+	{//’¸“_20 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//é ‚ç‚¹21 LEFT-BOTTOM
+	//{//’¸“_21 LEFT-BOTTOM
 	//	XMFLOAT3(-0.5f, -0.5f, 0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(0.0f,1.0f)
 	//},
-	//{//é ‚ç‚¹22 RIGHT-TOP
+	//{//’¸“_22 RIGHT-TOP
 	//	XMFLOAT3(-0.5f, 0.5f, -0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(1.0f,0.0f)
 	//},
-	{//é ‚ç‚¹23 RIGHT-BOTTOM
+	{//’¸“_23 RIGHT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
-	//+Yé¢
-	{//é ‚ç‚¹24 LEFT-TOP
+	//+Y–Ê
+	{//’¸“_24 LEFT-TOP
 		XMFLOAT3(-0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{//é ‚ç‚¹25 RIGHT-TOP
+	{//’¸“_25 RIGHT-TOP
 		XMFLOAT3(0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//é ‚ç‚¹26 LEFT-BOTTOM
+	{//’¸“_26 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//é ‚ç‚¹27 LEFT-BOTTOM
+	//{//’¸“_27 LEFT-BOTTOM
 	//	XMFLOAT3(-0.5f, 0.5f, -0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(0.0f,1.0f)
 	//},
-	//{//é ‚ç‚¹28 RIGHT-TOP
+	//{//’¸“_28 RIGHT-TOP
 	//	XMFLOAT3(0.5f, 0.5f, 0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(1.0f,0.0f)
 	//},
-	{//é ‚ç‚¹29 RIGHT-BOTTOM
+	{//’¸“_29 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
-	//-Yé¢
-	{//é ‚ç‚¹30 LEFT-TOP
+	//-Y–Ê
+	{//’¸“_30 LEFT-TOP
 		XMFLOAT3(-0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{//é ‚ç‚¹31 RIGHT-TOP
+	{//’¸“_31 RIGHT-TOP
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//é ‚ç‚¹32 LEFT-BOTTOM
+	{//’¸“_32 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//é ‚ç‚¹33 LEFT-BOTTOM
+	//{//’¸“_33 LEFT-BOTTOM
 	//	XMFLOAT3(-0.5f, -0.5f, 0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(0.0f,1.0f)
 	//},
-	//{//é ‚ç‚¹34 RIGHT-TOP
+	//{//’¸“_34 RIGHT-TOP
 	//	XMFLOAT3(0.5f, -0.5f, -0.5f),
 	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	//	XMFLOAT2(1.0f,0.0f)
 	//},
-	{//é ‚ç‚¹35 RIGHT-BOTTOM
+	{//’¸“_35 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 };
 
-//ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹é…åˆ—
+//ƒCƒ“ƒfƒbƒNƒX”z—ñ
 static UINT idxdata[6 * 6] = {
-	0,1,2,2,1,3,		// -Zé¢
-	4,5,6,6,5,7,		// +Xé¢
-	8,9,10,10,9,11,		// +Zé¢
-	12,13,14,14,13,15,	// -Xé¢
-	16,17,18,18,17,19,	// +Yé¢
-	20,21,22,22,21,23,	// -Yé¢
+	0,1,2,2,1,3,		// -Z–Ê
+	4,5,6,6,5,7,		// +X–Ê
+	8,9,10,10,9,11,		// +Z–Ê
+	12,13,14,14,13,15,	// -X–Ê
+	16,17,18,18,17,19,	// +Y–Ê
+	20,21,22,22,21,23,	// -Y–Ê
 };
 
-static float top_y = 0;	// å…­è§’å½¢ã®top-yåº§ç¥¨ã®ãƒ‡ãƒãƒƒã‚°è¡¨ç¤º
+static float top_y = 0;	// ˜ZŠpŒ`‚Ìtop-yÀ•[‚ÌƒfƒoƒbƒO•\¦
 
 //======================================================
-//	åˆæœŸåŒ–é–¢æ•°
+//	‰Šú‰»ŠÖ”
 //======================================================
 void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// ãƒãƒªã‚´ãƒ³è¡¨ç¤ºã®åˆæœŸåŒ–
+	// ƒ|ƒŠƒSƒ“•\¦‚Ì‰Šú‰»
 	object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -320,11 +320,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].el = 1.0f;
 	object[1].gaugeOuter = 1.0f;
 
-	//é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
+	//’¸“_ƒoƒbƒtƒ@ì¬
 	D3D11_BUFFER_DESC	bd;
-	ZeroMemory(&bd, sizeof(bd));//ï¼ã§ã‚¯ãƒªã‚¢
+	ZeroMemory(&bd, sizeof(bd));//‚O‚ÅƒNƒŠƒA
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;//æ ¼ç´ã§ãã‚‹é ‚ç‚¹æ•°*é ‚ç‚¹ã‚µã‚¤ã‚º
+	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;//Ši”[‚Å‚«‚é’¸“_”*’¸“_ƒTƒCƒY
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -332,7 +332,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
+	// ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
 	TexMetadata metadata;
 	ScratchImage image;
 
@@ -354,26 +354,26 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 
 
-	//ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
+	//ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@ì¬
 	{
 		D3D11_BUFFER_DESC	bd;
-		ZeroMemory(&bd, sizeof(bd));//ï¼ã§ã‚¯ãƒªã‚¢
+		ZeroMemory(&bd, sizeof(bd));//‚O‚ÅƒNƒŠƒA
 		bd.Usage = D3D11_USAGE_DYNAMIC;
 		bd.ByteWidth = sizeof(UINT) * 6 * 6;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
 
-		//ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã¸æ›¸ãè¾¼ã¿
+		//ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚Ö‘‚«‚İ
 		D3D11_MAPPED_SUBRESOURCE   msr;
 		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		UINT* index = (UINT*)msr.pData;
 
-		//ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ•ã‚¡ã¸ã‚³ãƒ”ãƒ¼
+		//ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^‚ğƒoƒbƒtƒ@‚ÖƒRƒs[
 		CopyMemory(&index[0], &idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
-	// ãƒ‡ãƒãƒƒã‚°ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼åˆæœŸåŒ–
+	// ƒfƒoƒbƒOƒŒƒ“ƒ_ƒ‰[‰Šú‰»
 	Debug_Initialize(pDevice, pContext);
 
 	InitializeHP(pDevice, pContext, &HPBar[0], { 200.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
@@ -382,7 +382,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 }
 
 //======================================================
-//	çµ‚äº†å‡¦ç†é–¢æ•°
+//	I—¹ˆ—ŠÖ”
 //======================================================
 void Polygon3D_Finalize()
 {
@@ -398,7 +398,7 @@ void Polygon3D_Finalize()
 		g_VertexBuffer = NULL;
 	}
 
-	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®è§£æ”¾
+	//ƒeƒNƒXƒ`ƒƒ‚Ì‰ğ•ú
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		g_Texture[i]->Release();
@@ -409,40 +409,40 @@ void Polygon3D_Finalize()
 }
 
 // ======================================================
-// ç§»å‹•é–¢æ•°ï¼ˆè¦å¤‰æ›´ï¼‰
+// ˆÚ“®ŠÖ”i—v•ÏXj
 // ------------------------------------------------------
-// ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«ã¨å‘ã„ã¦ã„ã‚‹æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã¯åˆ¥ã§æŒã£ãŸæ–¹ãŒã„ã„
+// ˆÚ“®ƒxƒNƒgƒ‹‚ÆŒü‚¢‚Ä‚¢‚é•ûŒüƒxƒNƒgƒ‹‚Í•Ê‚Å‚Á‚½•û‚ª‚¢‚¢
 // ======================================================
 void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 {
 	//for (int i = 0; i < PLAYER_MAX; i++)
 	//{
-		// é€²ã¿ãŸã„æ–¹å‘ï¼ˆ3å¹³æ–¹ï¼‰
+		// i‚İ‚½‚¢•ûŒüi3•½•ûj
 	float length = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
 
 	if (length > 0.0f)
 	{
-		// ãƒ™ã‚¯ãƒˆãƒ«ã®æ­£è¦åŒ–
+		// ƒxƒNƒgƒ‹‚Ì³‹K‰»
 		moveDir.x /= length;
 		moveDir.z /= length;
 
-		// ç›®æ¨™è§’åº¦ã‚’æ±‚ã‚ã‚‹
-		float targetAngle = atan2f(moveDir.x, moveDir.z);	// ãƒ™ã‚¯ãƒˆãƒ«ã®è§’åº¦
-		targetAngle = XMConvertToDegrees(targetAngle);		// ãƒ©ã‚¸ã‚¢ãƒ³ â†’ åº¦
+		// –Ú•WŠp“x‚ğ‹‚ß‚é
+		float targetAngle = atan2f(moveDir.x, moveDir.z);	// ƒxƒNƒgƒ‹‚ÌŠp“x
+		targetAngle = XMConvertToDegrees(targetAngle);		// ƒ‰ƒWƒAƒ“ ¨ “x
 
-		// å·®åˆ†ã‚’èª¿æ•´ï¼ˆ180åº¦è¶…ãˆãªã„ã‚ˆã†ã«ï¼‰
-		float diff = targetAngle - object.moveAngle;	// è§’åº¦å·®
+		// ·•ª‚ğ’²®i180“x’´‚¦‚È‚¢‚æ‚¤‚Éj
+		float diff = targetAngle - object.moveAngle;	// Šp“x·
 		if (diff > 180.0f) diff -= 360.0f;
 		if (diff < -180.0f) diff += 360.0f;
 
 		static float angSpeed = 0.5f;
 
-		// ã‚¹ãƒ ãƒ¼ã‚ºã«è£œé–“ï¼ˆ0.1fãŒè£œé–“ã‚¹ãƒ”ãƒ¼ãƒ‰ï¼‰
+		// ƒXƒ€[ƒY‚É•âŠÔi0.1f‚ª•âŠÔƒXƒs[ƒhj
 		object.moveAngle += diff * angSpeed;
 
-		object.rotation.y = object.moveAngle;	// è§’åº¦ã®åæ˜ 
+		object.rotation.y = object.moveAngle;	// Šp“x‚Ì”½‰f
 
-		// å‰é€²
+		// ‘Oi
 		float rad = XMConvertToRadians(object.moveAngle);
 		object.position.x += sinf(rad) * object.speed;
 		object.position.z += cosf(rad) * object.speed;
@@ -451,11 +451,11 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 }
 
 //======================================================
-//	æ›´æ–°é–¢æ•°
+//	XVŠÖ”
 //======================================================
 void Polygon3D_Update()
 {
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1 ã‚¹ã‚­ãƒ«ç™ºå‹•
+	// ƒvƒŒƒCƒ„[1 ƒXƒLƒ‹”­“®
 	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
 	{
 		object[0].isAttacking = true;
@@ -465,7 +465,7 @@ void Polygon3D_Update()
 		Player1_Skill_Update();
 	}
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼2 ã‚¹ã‚­ãƒ«ç™ºå‹•
+	// ƒvƒŒƒCƒ„[2 ƒXƒLƒ‹”­“®
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER))
 	{
 		object[1].isAttacking = true;
@@ -475,17 +475,17 @@ void Polygon3D_Update()
 		Player2_Skill_Update();
 	}
 
-	// ã‚¹ã‚­ãƒ«ã¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å½“ãŸã‚Šåˆ¤å®šï¼ˆobject[0] <-> Skill2ã€object[1] <-> Skill1ï¼‰
+	// ƒXƒLƒ‹‚ÆƒvƒŒƒCƒ„[‚Ì“–‚½‚è”»’èiobject[0] <-> Skill2Aobject[1] <-> Skill1j
 	SkillPlayerCollisions();
 
 	ImGui::Begin("Player Debug");
-	// HPãƒãƒ¼
+	// HPƒo[
 	ImGui::SliderFloat("HP", &object[0].hp, 0.0f, object[0].maxHp);
 
 	ImGui::End();
 
-	object[0].moveDir = { 0.0f, 0.0f, 0.0f };	// ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«
-	object[1].moveDir = { 0.0f, 0.0f, 0.0f };	// ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«
+	object[0].moveDir = { 0.0f, 0.0f, 0.0f };	// ˆÚ“®ƒxƒNƒgƒ‹
+	object[1].moveDir = { 0.0f, 0.0f, 0.0f };	// ˆÚ“®ƒxƒNƒgƒ‹
 
 	if (Keyboard_IsKeyDown(KK_W))	object[0].moveDir.z += 1.0f;
 	if (Keyboard_IsKeyDown(KK_S))	object[0].moveDir.z -= 1.0f;
@@ -501,13 +501,13 @@ void Polygon3D_Update()
 	Move(object[1], object[1].moveDir);
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		static XMFLOAT3 posBuff = object[i].position;	// ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºåº§æ¨™
+		static XMFLOAT3 posBuff = object[i].position;	// ƒfƒoƒbƒO•\¦À•W
 
-		// Yè»¸ã®ç§»å‹•é‡ (é‡åŠ› + ã‚¸ãƒ£ãƒ³ãƒ—)
-		// é‡åŠ›åŠ é€Ÿåº¦ã®ãªã„ç°¡æ˜“çš„ãªé‡åŠ›
+		// Y²‚ÌˆÚ“®—Ê (d—Í + ƒWƒƒƒ“ƒv)
+		// d—Í‰Á‘¬“x‚Ì‚È‚¢ŠÈˆÕ“I‚Èd—Í
 		object[i].position.y += -0.1f;
 
-		// ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›
+		// ƒfƒoƒbƒOo—Í
 		if (posBuff.x != object[i].position.x ||
 			posBuff.y != object[i].position.y ||
 			posBuff.z != object[i].position.z)
@@ -521,53 +521,53 @@ void Polygon3D_Update()
 
 		posBuff = object[i].position;
 
-		// åœ°é¢ã®é«˜ã•ï¼ˆæœ€ä½ãƒ©ã‚¤ãƒ³ï¼‰
-		float groundHeight = -10.0f;	// å¥ˆè½ã®åº•
-		bool isGrounded = false;		// åœ°é¢ã«è¶³ãŒã¤ã„ã¦ã„ã‚‹ã‹ãƒ•ãƒ©ã‚°
+		// ’n–Ê‚Ì‚‚³iÅ’áƒ‰ƒCƒ“j
+		float groundHeight = -10.0f;	// “Ş—‚Ì’ê
+		bool isGrounded = false;		// ’n–Ê‚É‘«‚ª‚Â‚¢‚Ä‚¢‚é‚©ƒtƒ‰ƒO
 
 
-		// 2. ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ï¼ˆåœ°é¢ï¼‰ã¨ã®å½“ãŸã‚Šåˆ¤å®š
+		// 2. ƒ}ƒbƒvƒf[ƒ^i’n–Êj‚Æ‚Ì“–‚½‚è”»’è
 		int fieldCount = GetFieldObjectCount();
 		MAPDATA* fieldObjects = GetFieldObjects();
 
 		for (int j = 0; j < fieldCount; ++j)
 		{
-			// ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã˜ã‚ƒãªã„ã€ã¾ãŸã¯ no ãŒ MAX ãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
+			// ƒAƒNƒeƒBƒu‚¶‚á‚È‚¢A‚Ü‚½‚Í no ‚ª MAX ‚È‚çƒXƒLƒbƒv
 			if (!fieldObjects[j].isActive || fieldObjects[j].no == FIELD::FIELD_MAX)
 			{
 				continue;
 			}
 
 
-			// --- å…­è§’æŸ±ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®æº–å‚™ ---
+			// --- ˜ZŠp’ŒƒRƒ‰ƒCƒ_[‚Ì€”õ ---
 			HexCollider hex;
 			hex.center = fieldObjects[j].pos;		// -1
 			hex.radius = fieldObjects[j].radius;	// 1
 			hex.height = fieldObjects[j].height;	// 3.0
 
-			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®AABBï¼ˆä½“ã®ä¸€éƒ¨ï¼‰ãŒå…­è§’æŸ±ã«ä¹—ã£ã¦ã„ã‚‹ã‹
+			// ƒvƒŒƒCƒ„[‚ÌAABBi‘Ì‚Ìˆê•”j‚ª˜ZŠp’Œ‚Éæ‚Á‚Ä‚¢‚é‚©
 			if (CheckAABBHexCollision(object[i].boundingBox, hex))
 			{
-				// ã‚¿ã‚¤ãƒ«ã®ä¸Šé¢ã®Yåº§æ¨™ã‚’è¨ˆç®—
+				// ƒ^ƒCƒ‹‚Ìã–Ê‚ÌYÀ•W‚ğŒvZ
 				float tileTopY = fieldObjects[j].pos.y + (hex.height / 2.0f);	// -1 + 1.5 = 0.5
 
-				// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®åº•é¢ãŒã‚¿ã‚¤ãƒ«ã®ä¸Šé¢ä»¥ä¸‹ã‹
+				// ƒvƒŒƒCƒ„[‚Ì’ê–Ê‚ªƒ^ƒCƒ‹‚Ìã–ÊˆÈ‰º‚©
 				if (object[i].boundingBox.Min.y <= tileTopY)
 				{
 					//float overlap = tileTopY - object[i].boundingBox.Min.y;
 
-					// ä¸­å¿ƒã‹ã‚‰åº•é¢ã¾ã§ã®å·®ã¯0.5ã®ã¯ãšãªã®ã«ãªãœã‹0.3ãã‚‰ã„ã«ãªã‚‹!!!!!!!!!!
+					// ’†S‚©‚ç’ê–Ê‚Ü‚Å‚Ì·‚Í0.5‚Ì‚Í‚¸‚È‚Ì‚É‚È‚º‚©0.3‚­‚ç‚¢‚É‚È‚é!!!!!!!!!!
 					//float def = (object[i].position.y - object[i].boundingBox.Min.y);
-					float def = 0.5f;	// ã¨ã‚Šã‚ãˆãšã®0.5f
+					float def = 0.5f;	// ‚Æ‚è‚ ‚¦‚¸‚Ì0.5f
 					float overlap = tileTopY + def * object[i].scaling.y;
 					// 0.5 + (0.5) = 1.0
 
-					// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ä¸­å¿ƒåº§æ¨™ã‚’é‡ãªã‚Šé‡ã ã‘æŒã¡ä¸Šã’ã‚‹ï¼ˆæŠ¼ã—æˆ»ã—ï¼‰
+					// ƒIƒuƒWƒFƒNƒg‚Ì’†SÀ•W‚ğd‚È‚è—Ê‚¾‚¯‚¿ã‚°‚éi‰Ÿ‚µ–ß‚µj
 					object[i].position.y = overlap;
 
 					//CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
 
-					// ç€åœ°ãƒ•ãƒ©ã‚°ã‚’ã‚»ãƒƒãƒˆ
+					// ’…’nƒtƒ‰ƒO‚ğƒZƒbƒg
 					isGrounded = true;
 
 					top_y = tileTopY;
@@ -579,28 +579,28 @@ void Polygon3D_Update()
 		}
 
 
-		// åœ°é¢ã«ãªã‹ã£ãŸå ´åˆã®å‡¦ç†ï¼ˆè½ä¸‹ãªã©ï¼‰ãŒå¿…è¦ãªã‚‰ã“ã“ã«æ›¸ã
+		// ’n–Ê‚É‚È‚©‚Á‚½ê‡‚Ìˆ—i—‰º‚È‚Çj‚ª•K—v‚È‚ç‚±‚±‚É‘‚­
 		if (!isGrounded)
 		{
-			// ã“ã“ã§ã¯ç‰¹ã«ä½•ã‚‚ã—ãªã„ï¼ˆãƒ«ãƒ¼ãƒ—å†’é ­ã§ y -= 0.1f ã—ã¦ã„ã‚‹ã®ã§è½ã¡ç¶šã‘ã‚‹ï¼‰
-			// è½ä¸‹æ­»ã®ãƒªã‚»ãƒƒãƒˆå‡¦ç†ãªã©ã‚’æ›¸ã„ã¦ã‚‚è‰¯ã„
+			// ‚±‚±‚Å‚Í“Á‚É‰½‚à‚µ‚È‚¢iƒ‹[ƒv–`“ª‚Å y -= 0.1f ‚µ‚Ä‚¢‚é‚Ì‚Å—‚¿‘±‚¯‚éj
+			// —‰º€‚ÌƒŠƒZƒbƒgˆ—‚È‚Ç‚ğ‘‚¢‚Ä‚à—Ç‚¢
 			if (object[i].position.y < -5.0f) {
-				object[i].position = XMFLOAT3(0, 2, 0); // ãƒªã‚¹ãƒãƒ¼ãƒ³
+				object[i].position = XMFLOAT3(0, 2, 0); // ƒŠƒXƒ|[ƒ“
 			}
 		}
 
 
-		// â–²â–²â–²â–²â–² ä¿®æ­£ã“ã“ã¾ã§ â–²â–²â–²â–²â–²
+		// £££££ C³‚±‚±‚Ü‚Å £££££
 
 		// -------------------------------------------------------------
-		// å¤‰èº«
+		// •Ïg
 		// -------------------------------------------------------------
 		SKILL_OBJECT* skill1 = GetSkill(1);
 		SKILL_OBJECT* skill2 = GetSkill(2);
 
 		switch (object[i].form)
 		{
-		case Normal: // é€šå¸¸
+		case Normal: // ’Êí
 			object[i].scaling.x = 0.5f;
 			object[i].scaling.y = 0.5f;
 			object[i].scaling.z = 0.5f;
@@ -608,7 +608,7 @@ void Polygon3D_Update()
 			object[i].power = 0.8f;
 			break;
 
-		case FirstEvolution: // 1é€²åŒ–
+		case FirstEvolution: // 1i‰»
 			object[i].scaling.x = 1.0f;
 			object[i].scaling.y = 1.0f;
 			object[i].scaling.z = 1.0f;
@@ -616,7 +616,7 @@ void Polygon3D_Update()
 			object[i].power = 1.0f;
 			break;
 
-		case SecondEvolution: // 2é€²åŒ–
+		case SecondEvolution: // 2i‰»
 			object[i].scaling.x = 1.5f;
 			object[i].scaling.y = 1.5f;
 			object[i].scaling.z = 1.5f;
@@ -628,11 +628,11 @@ void Polygon3D_Update()
 			break;
 		}
 
-		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ i ã«å¯¾å¿œã™ã‚‹ã‚¹ã‚­ãƒ«ï¼ˆi==0 -> skill1, i==1 -> skill2ï¼‰ã‚’ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ãƒ•ã‚©ãƒ¼ãƒ ã«åˆã‚ã›ã¦ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°åŒæœŸ
+		// ƒvƒŒƒCƒ„[ i ‚É‘Î‰‚·‚éƒXƒLƒ‹ii==0 -> skill1, i==1 -> skill2j‚ğƒvƒŒƒCƒ„[‚ÌƒtƒH[ƒ€‚É‡‚í‚¹‚ÄƒXƒP[ƒŠƒ“ƒO“¯Šú
 		SKILL_OBJECT* skillForPlayer = (i == 0) ? skill1 : ((i == 1) ? skill2 : nullptr);
 		if (skillForPlayer != nullptr)
 		{
-			// åŒæœŸæ–¹æ³•ï¼šãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨åŒã˜ã‚¹ã‚±ãƒ¼ãƒ«ã«ã™ã‚‹ï¼ˆå¿…è¦ãªã‚‰ä¿‚æ•°ã‚’æ›ã‘ã¦èª¿æ•´ï¼‰
+			// “¯Šú•û–@FƒvƒŒƒCƒ„[‚Æ“¯‚¶ƒXƒP[ƒ‹‚É‚·‚éi•K—v‚È‚çŒW”‚ğŠ|‚¯‚Ä’²®j
 			skillForPlayer->scaling.x = object[i].scaling.x / 2;
 			skillForPlayer->scaling.y = object[i].scaling.y / 2;
 			skillForPlayer->scaling.z = object[i].scaling.z / 2;
@@ -640,57 +640,57 @@ void Polygon3D_Update()
 		///////////////////////////////////////////////////////////////////////////////////////////////
 
 		// -------------------------------------------------------------
-		// å½“ãŸã‚Šåˆ¤å®š
+		// “–‚½‚è”»’è
 		// -------------------------------------------------------------
-		// AABBã®æ›´æ–°
+		// AABB‚ÌXV
 
 		//int fieldCount = GetFieldObjectCount();
-		// å…¨ã¦ã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¨è¡çªåˆ¤å®šã‚’è¡Œã†
+		// ‘S‚Ä‚ÌƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚ÆÕ“Ë”»’è‚ğs‚¤
 		//for (int j = 0; j < fieldCount; ++j)
 		//{
 
-		//	// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒªã‚¹ãƒˆã‚’å–å¾—
+		//	// ƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚ÌƒŠƒXƒg‚ğæ“¾
 		//	MAPDATA* fieldObjects = GetFieldObjects();
 
-		//	// iç•ªç›®ã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®AABBã‚’å–å¾—
+		//	// i”Ô–Ú‚ÌƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚ÌAABB‚ğæ“¾
 		//	AABB pStaticObjectAABB = fieldObjects[j].boundingBox;
 
 		//	CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-		//	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®AABBã¨ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®AABBã§MTVã‚’è¨ˆç®—
-		//	MTV collision = CalculateAABBMTV(object[i].boundingBox, pStaticObjectAABB);	// æŠ¼ã—æˆ»ã™é‡
+		//	// ƒvƒŒƒCƒ„[‚ÌAABB‚ÆƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚ÌAABB‚ÅMTV‚ğŒvZ
+		//	MTV collision = CalculateAABBMTV(object[i].boundingBox, pStaticObjectAABB);	// ‰Ÿ‚µ–ß‚·—Ê
 
-		//	// éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯å‡¦ç†ã‚’ã‚¹ã‚­ãƒƒãƒ—
+		//	// ”ñƒAƒNƒeƒBƒu‚ÈƒIƒuƒWƒFƒNƒg‚Íˆ—‚ğƒXƒLƒbƒv
 		//	if (!fieldObjects[j].isActive)
 		//	{
-		//		continue; // æ¬¡ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¸
+		//		continue; // Ÿ‚ÌƒIƒuƒWƒFƒNƒg‚Ö
 		//	}
 		//	////if(CheckAABBCollision(object[0].boundingBox, fieldObjects->boundingBox)&& fieldObjects->no==FIELD_BUILDING)
 		//	//if (CheckAABBCollision(object[i].boundingBox, fieldObjects[j].boundingBox) && fieldObjects[j].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
 		//	//{
-		//	//	// å»ºç‰©ã«è¡çªã—ã¦ã„ã¦ã€ã‹ã¤ã‚¹ãƒšãƒ¼ã‚¹ã‚­ãƒ¼ãŒæŠ¼ã•ã‚Œã¦ã„ãŸã‚‰
+		//	//	// Œš•¨‚ÉÕ“Ë‚µ‚Ä‚¢‚ÄA‚©‚ÂƒXƒy[ƒXƒL[‚ª‰Ÿ‚³‚ê‚Ä‚¢‚½‚ç
 		//	//	fieldObjects[j].isActive = false;
-		//	//	object[i].form = (Form)((int)object[i].form + 1); // é€²åŒ–
+		//	//	object[i].form = (Form)((int)object[i].form + 1); // i‰»
 		//	//}
 		//	if (CheckAABBCollision(object[0].boundingBox, object[1].boundingBox) && Keyboard_IsKeyDown(KK_SPACE))
 		//	{
-		//		// ã‚¹ã‚­ãƒ«ä½¿ç”¨æ™‚
-		//		object[i].form = (Form)((int)object[i].form - 1); // é€²åŒ–
+		//		// ƒXƒLƒ‹g—p
+		//		object[i].form = (Form)((int)object[i].form - 1); // i‰»
 		//	}
 
 		//	if (collision.isColliding)
 		//	{
 		//		//////////////////////////////////////////////
-		//		// â†“â†“â†“ ç„¡ç†ã‚„ã‚ŠæŠ¼ã—æˆ»ã—ã¦ã„ã‚‹ã‹ã‚‰è¦ä¿®æ­£
+		//		// ««« –³—‚â‚è‰Ÿ‚µ–ß‚µ‚Ä‚¢‚é‚©‚ç—vC³
 		//		//////////////////////////////////////////////
 		//		if (fieldObjects[j].no == FIELD::FIELD_BOX)
 		//		{
-		//			// è¡çªã—ã¦ã„ãŸã‚‰ã€MTVã®åˆ†ã ã‘ä½ç½®ã‚’æˆ»ã™
+		//			// Õ“Ë‚µ‚Ä‚¢‚½‚çAMTV‚Ì•ª‚¾‚¯ˆÊ’u‚ğ–ß‚·
 		//			//object[0].position.x += collision.translation.x;
 		//			object[i].position.y += collision.translation.y;
 		//			//object[0].position.z += collision.translation.z;
 
-		//			// æŠ¼ã—æˆ»ã—å¾Œã®æ–°ã—ã„AABBã‚’å†è¨ˆç®—
-		//			// ã“ã‚Œã«ã‚ˆã‚Šã€åŒã˜ãƒ•ãƒ¬ãƒ¼ãƒ å†…ã§æ¬¡ã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¨ã®åˆ¤å®šã«å‚™ãˆã¾ã™ã€‚
+		//			// ‰Ÿ‚µ–ß‚µŒã‚ÌV‚µ‚¢AABB‚ğÄŒvZ
+		//			// ‚±‚ê‚É‚æ‚èA“¯‚¶ƒtƒŒ[ƒ€“à‚ÅŸ‚ÌƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚Æ‚Ì”»’è‚É”õ‚¦‚Ü‚·B
 		//			CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
 		//		}
 		//		//else if (fieldObjects[j].no == FIELD::FIELD_BUILDING)
@@ -702,67 +702,67 @@ void Polygon3D_Update()
 		//		//	CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
 		//		//}
 
-		//		// ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›
-		//		hal::dout << "è¡çªï¼æŠ¼ã—æˆ»ã—é‡: " << collision.overlap << " @ " <<
-		//			(collision.translation.x != 0 ? "Xè»¸" :
-		//				(collision.translation.y != 0 ? "Yè»¸" :
-		//					"Zè»¸")) << std::endl;
+		//		// ƒfƒoƒbƒOo—Í
+		//		hal::dout << "Õ“ËI‰Ÿ‚µ–ß‚µ—Ê: " << collision.overlap << " @ " <<
+		//			(collision.translation.x != 0 ? "X²" :
+		//				(collision.translation.y != 0 ? "Y²" :
+		//					"Z²")) << std::endl;
 
-		//		// â†‘â†‘â†‘ã€€#include "debug_ostream.h"ã€€ã®ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã§ãƒ‡ãƒãƒƒã‚°ç¢ºèª
+		//		// ªªª@#include "debug_ostream.h"@‚ÌƒCƒ“ƒNƒ‹[ƒh‚ÅƒfƒoƒbƒOŠm”F
 		//	}
 		//}
 
-		// Polygon3D_Update() é–¢æ•°ã®ä¸­ã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã¨ã®è¡çªåˆ¤å®šãƒ«ãƒ¼ãƒ—ã®ç›´å¾Œã«è¿½åŠ 
+		// Polygon3D_Update() ŠÖ”‚Ì’†‚ÌƒtƒB[ƒ‹ƒh‚Æ‚ÌÕ“Ë”»’èƒ‹[ƒv‚Ì’¼Œã‚É’Ç‰Á
 
 		// -------------------------------------------------------------
-		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆåŒå£«ã®å½“ãŸã‚Šåˆ¤å®š
+		// ƒvƒŒƒCƒ„[ƒIƒuƒWƒFƒNƒg“¯m‚Ì“–‚½‚è”»’è
 		// -------------------------------------------------------------
 
-		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼0 ã¨ ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1 ã®AABBã‚’æ›´æ–°
+		// ƒvƒŒƒCƒ„[0 ‚Æ ƒvƒŒƒCƒ„[1 ‚ÌAABB‚ğXV
 		CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
 		CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
 
-		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼0 (A) ã¨ ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1 (B) ã®è¡çªã‚’ãƒã‚§ãƒƒã‚¯
+		// ƒvƒŒƒCƒ„[0 (A) ‚Æ ƒvƒŒƒCƒ„[1 (B) ‚ÌÕ“Ë‚ğƒ`ƒFƒbƒN
 		MTV collision_player = CalculateAABBMTV(object[0].boundingBox, object[1].boundingBox);
 
 		if (collision_player.isColliding)
 		{
-			//hal::dout << " ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼è¡çªï¼ äº’ã„ã«å¹ãé£›ã°ã—å®Ÿè¡Œ" << std::endl;
-			// å¹ãé£›ã°ã—ã®å¼·ã•ï¼ˆX-Zæ–¹å‘ï¼‰
-			float knockbackPowerXZ = 0.5f; // å¼·ã•ã‚’èª¿æ•´
-			// å¹ãé£›ã°ã—ã®å¼·ã•ï¼ˆYæ–¹å‘ï¼‰
-			float knockbackPowerY = 0.3f; // é«˜ã•ã‚’èª¿æ•´
+			//hal::dout << " ƒvƒŒƒCƒ„[Õ“ËI Œİ‚¢‚É‚«”ò‚Î‚µÀs" << std::endl;
+			// ‚«”ò‚Î‚µ‚Ì‹­‚³iX-Z•ûŒüj
+			float knockbackPowerXZ = 0.5f; // ‹­‚³‚ğ’²®
+			// ‚«”ò‚Î‚µ‚Ì‹­‚³iY•ûŒüj
+			float knockbackPowerY = 0.3f; // ‚‚³‚ğ’²®
 
-			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼0 ã®å‘ãï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰ã‚’è¨ˆç®—
+			// ƒvƒŒƒCƒ„[0 ‚ÌŒü‚«iƒ‰ƒWƒAƒ“j‚ğŒvZ
 			float rad_0 = XMConvertToRadians(object[0].rotation.y);
-			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼0 ã®å‘ããƒ™ã‚¯ãƒˆãƒ«ï¼ˆX-Zå¹³é¢ï¼‰
+			// ƒvƒŒƒCƒ„[0 ‚ÌŒü‚«ƒxƒNƒgƒ‹iX-Z•½–Êj
 			object[0].dir.x = sinf(rad_0);
 			object[0].dir.z = cosf(rad_0);
 
-			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1 ã®å‘ãï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰ã‚’è¨ˆç®—
+			// ƒvƒŒƒCƒ„[1 ‚ÌŒü‚«iƒ‰ƒWƒAƒ“j‚ğŒvZ
 			float rad_1 = XMConvertToRadians(object[1].rotation.y);
-			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1 ã®å‘ããƒ™ã‚¯ãƒˆãƒ«ï¼ˆX-Zå¹³é¢ï¼‰
+			// ƒvƒŒƒCƒ„[1 ‚ÌŒü‚«ƒxƒNƒgƒ‹iX-Z•½–Êj
 			object[1].dir.x = sinf(rad_1);
 			object[1].dir.z = cosf(rad_1);
 
 			//if (Keyboard_IsKeyDown(KK_SPACE))
 			//{
-			//	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1 ã‚’ã€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼0ã®å‘ã„ã¦ã„ã‚‹æ–¹å‘ã«å¹ãé£›ã°ã™
+			//	// ƒvƒŒƒCƒ„[1 ‚ğAƒvƒŒƒCƒ„[0‚ÌŒü‚¢‚Ä‚¢‚é•ûŒü‚É‚«”ò‚Î‚·
 			//	object[1].position.x += dir0_x * object[0].power;
 			//	object[1].position.z += dir0_z * object[0].power;
-			//	object[1].position.y += object[0].power; // Yæ–¹å‘ã«ã‚‚é£›ã°ã™
+			//	object[1].position.y += object[0].power; // Y•ûŒü‚É‚à”ò‚Î‚·
 			//}
 
 			//if (Keyboard_IsKeyDown(KK_ENTER))
 			//{
-			//	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼0 ã‚’ã€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1ã®å‘ã„ã¦ã„ã‚‹æ–¹å‘ã«å¹ãé£›ã°ã™
+			//	// ƒvƒŒƒCƒ„[0 ‚ğAƒvƒŒƒCƒ„[1‚ÌŒü‚¢‚Ä‚¢‚é•ûŒü‚É‚«”ò‚Î‚·
 			//	object[0].position.x += dir1_x * object[1].power;
 			//	object[0].position.z += dir1_z * object[1].power;
-			//	object[0].position.y += object[1].power; // Yæ–¹å‘ã«ã‚‚é£›ã°ã™
+			//	object[0].position.y += object[1].power; // Y•ûŒü‚É‚à”ò‚Î‚·
 			//}
-			// è¡çªã—ã¦ã„ãŸå ´åˆã€MTVã®åŠåˆ†ãšã¤ã‚’ãã‚Œãã‚Œã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã«é©ç”¨ã—ã¦æŠ¼ã—æˆ»ã™
+			// Õ“Ë‚µ‚Ä‚¢‚½ê‡AMTV‚Ì”¼•ª‚¸‚Â‚ğ‚»‚ê‚¼‚ê‚ÌƒIƒuƒWƒFƒNƒg‚É“K—p‚µ‚Ä‰Ÿ‚µ–ß‚·
 
-			// æŠ¼ã—æˆ»ã—é‡ (MTV) ã‚’åŠåˆ†ã«ã™ã‚‹
+			// ‰Ÿ‚µ–ß‚µ—Ê (MTV) ‚ğ”¼•ª‚É‚·‚é
 			XMFLOAT3 half_translation =
 			{
 				collision_player.translation.x * 0.5f,
@@ -770,25 +770,25 @@ void Polygon3D_Update()
 				collision_player.translation.z * 0.5f
 			};
 
-			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼0 (object[0]) ã‚’ **MTVã®åŠåˆ†ã ã‘** æŠ¼ã™
-			// MTVã®æ–¹å‘ (collision_player.translation) ã¯ã€ŒAã‚’Bã‹ã‚‰æŠ¼ã—å‡ºã™æ–¹å‘ã€ã ã‹ã‚‰ã€ãã®ã¾ã¾ä½¿ã†
+			// ƒvƒŒƒCƒ„[0 (object[0]) ‚ğ **MTV‚Ì”¼•ª‚¾‚¯** ‰Ÿ‚·
+			// MTV‚Ì•ûŒü (collision_player.translation) ‚ÍuA‚ğB‚©‚ç‰Ÿ‚µo‚·•ûŒüv‚¾‚©‚çA‚»‚Ì‚Ü‚Üg‚¤
 			object[0].position.x += half_translation.x;
 			object[0].position.y += half_translation.y;
 			object[0].position.z += half_translation.z;
 			//object[0].hp -= object[1].power;
 
-			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1 (object[1]) ã‚’ **MTVã®é€†æ–¹å‘ã®åŠåˆ†ã ã‘** æŠ¼ã™
-			// é€†æ–¹å‘ã«ã™ã‚‹ãŸã‚ã«ã€X, Y, Z ã®ç¬¦å·ã‚’åè»¢ã•ã›ã‚‹
+			// ƒvƒŒƒCƒ„[1 (object[1]) ‚ğ **MTV‚Ì‹t•ûŒü‚Ì”¼•ª‚¾‚¯** ‰Ÿ‚·
+			// ‹t•ûŒü‚É‚·‚é‚½‚ß‚ÉAX, Y, Z ‚Ì•„†‚ğ”½“]‚³‚¹‚é
 			object[1].position.x -= half_translation.x;
 			object[1].position.y -= half_translation.y;
 			object[1].position.z -= half_translation.z;
 			//object[1].hp -= object[0].power;
 
-			// æŠ¼ã—æˆ»ã—å¾Œã®æ–°ã—ã„AABBã‚’å†è¨ˆç®— (æ¬¡ãƒ•ãƒ¬ãƒ¼ãƒ ã‚„ä»–ã®è¡çªåˆ¤å®šã«å‚™ãˆã‚‹)
+			// ‰Ÿ‚µ–ß‚µŒã‚ÌV‚µ‚¢AABB‚ğÄŒvZ (ŸƒtƒŒ[ƒ€‚â‘¼‚ÌÕ“Ë”»’è‚É”õ‚¦‚é)
 			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
 			CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
 
-			// å¹ãé£›ã°ã—å¾Œã®æ–°ã—ã„AABBã‚’å†è¨ˆç®— (ä»–ã®è¡çªåˆ¤å®šã«å‚™ãˆã‚‹)
+			// ‚«”ò‚Î‚µŒã‚ÌV‚µ‚¢AABB‚ğÄŒvZ (‘¼‚ÌÕ“Ë”»’è‚É”õ‚¦‚é)
 			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
 			CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
 		}
@@ -797,17 +797,17 @@ void Polygon3D_Update()
 		{
 			object[i].residue--;
 
-			// æ®‹åŸºãŒã‚ã‚Œã°å¾©æ´»
+			// cŠî‚ª‚ ‚ê‚Î•œŠˆ
 			if (object[i].residue > 0)
 			{
 				object[i].hp = object[i].maxHp;
 
-				// ãƒªã‚¹ãƒãƒ¼ãƒ³
+				// ƒŠƒXƒ|[ƒ“
 				Polygon3D_Respawn(i);
 			}
 			else
 			{
-				// æ®‹åŸºç„¡ã—ã§æ­»äº¡
+				// cŠî–³‚µ‚Å€–S
 				object[i].active = false;
 			}
 		}
@@ -820,37 +820,37 @@ void Polygon3D_Update()
 			
 
 			// -------------------------------------------------------------
-			// å½“ãŸã‚Šåˆ¤å®š Player1ã¨Skill2
+			// “–‚½‚è”»’è Player1‚ÆSkill2
 			// -------------------------------------------------------------
-			//// AABBã®æ›´æ–°
+			//// AABB‚ÌXV
 
 	for (int idx = 0; idx < PLAYER_MAX; ++idx)
 	{
 		CheckRespawnPlayer(idx);
 	}
 
-	//// HPãŒ0ä»¥ä¸‹
+	//// HP‚ª0ˆÈ‰º
 	//if (object[0].hp < 0.0f)
 	//{
 	//	object[0].hp = 0.0f;
 	//	object[0].residue -= 1;
 	//	Polygon3D_Respawn();
 	//}
-	//// è½ä¸‹ã—ãŸå ´åˆ
+	//// —‰º‚µ‚½ê‡
 	//if (object[0].position.y < -10.0f)
 	//{
 	//	object[0].residue -= 1;
 	//	Polygon3D_Respawn();
 	//}
 
-	//// HPãŒ0ä»¥ä¸‹
+	//// HP‚ª0ˆÈ‰º
 	//if (object[1].hp < 0.0f)
 	//{
 	//	object[1].hp = 0.0f;
 	//	object[1].residue -= 1;
 	//	Polygon3D_Respawn();
 	//}
-	//// è½ä¸‹ã—ãŸå ´åˆ
+	//// —‰º‚µ‚½ê‡
 	//if (object[1].position.y < -10.0f)
 	//{
 	//	object[1].residue -= 1;
@@ -862,30 +862,30 @@ void Polygon3D_Update()
 
 
 //======================================================
-//	æç”»é–¢æ•°
+//	•`‰æŠÖ”
 //======================================================
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 {
-	// ã‚¹ã‚­ãƒ«ä½¿ç”¨æ™‚ã®ã¿ã‚¹ã‚­ãƒ«ã‚’è¡¨ç¤º
+	// ƒXƒLƒ‹g—p‚Ì‚İƒXƒLƒ‹‚ğ•\¦
 	if (object[0].isAttacking == true)
 	{
 		Player1_Skill_Draw();
 	}
 	static bool input1 = false;
-	// ãƒ‡ãƒãƒƒã‚°ãƒ¢ãƒ¼ãƒ‰ä¸­ã®ã¿ã‚­ãƒ¼å…¥åŠ›ã‚’å—ã‘ä»˜ã‘ã‚‹
+	// ƒfƒoƒbƒOƒ‚[ƒh’†‚Ì‚İƒL[“ü—Í‚ğó‚¯•t‚¯‚é
 	if (s_IsKonamiCodeEntered)
 	{
 		if (Keyboard_IsKeyDownTrigger(KK_D1))
 		{
-			input1 = !input1;	// ãƒ•ãƒ©ã‚°åè»¢
+			input1 = !input1;	// ƒtƒ‰ƒO”½“]
 		}
 	}
-	//// ã‚¹ã‚­ãƒ«ä½¿ç”¨æ™‚ã®ã¿ã‚¹ã‚­ãƒ«ã‚’è¡¨ç¤º
+	//// ƒXƒLƒ‹g—p‚Ì‚İƒXƒLƒ‹‚ğ•\¦
 	//if (object[0].isAttaking == true)
 	//{
 	//}
 
-	// ã‚¹ã‚­ãƒ«ä½¿ç”¨æ™‚ã®ã¿ã‚¹ã‚­ãƒ«ã‚’è¡¨ç¤º
+	// ƒXƒLƒ‹g—p‚Ì‚İƒXƒLƒ‹‚ğ•\¦
 	if (object[1].isAttacking == true)
 	{
 		Player2_Skill_Draw();
@@ -893,21 +893,21 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 	Shader_Begin(); 
 
-	// å€‹åˆ¥UIã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹æç”»
+	// ŒÂ•ÊUIƒXƒe[ƒ^ƒX•`‰æ
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		// HPãƒãƒ¼æç”»
+		// HPƒo[•`‰æ
 		DrawHP(&HPBar[i]);
 		XMFLOAT2 hp = HPBar[i].pos;
 
-		// ã‚²ãƒ¼ã‚¸æç”»ç”¨è¨­å®š
+		// ƒQ[ƒW•`‰æ—pİ’è
 		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
 			      object[i].gaugeOuter, { hp.x - 130.0f , hp.y });
 
-		// ã‚²ãƒ¼ã‚¸æç”»
+		// ƒQ[ƒW•`‰æ
 		Gauge_Draw(i);
 
-		// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒªã‚»ãƒƒãƒˆ
+		// ƒVƒF[ƒ_[ƒŠƒZƒbƒg
 		Shader_Begin();
 		
 		Polygon3D_DrawResidue(i);
@@ -916,78 +916,78 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		//===================
-		// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã®ä½œæˆ
+		// ƒ[ƒ‹ƒhs—ñ‚Ìì¬
 		//===================
 
-		// ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°è¡Œåˆ—ã®ä½œæˆ
+		// ƒXƒP[ƒŠƒ“ƒOs—ñ‚Ìì¬
 		XMMATRIX ScalingMatrix = XMMatrixScaling(
 			object[i].scaling.x,
 			object[i].scaling.y,
 			object[i].scaling.z
 		);
-		// å¹³å‘ç§»å‹•è¡Œåˆ—ã®ä½œæˆ
+		// •½ŒüˆÚ“®s—ñ‚Ìì¬
 		XMMATRIX TranslationMatrix = XMMatrixTranslation(
 			object[i].position.x,
 			object[i].position.y,
 			object[i].position.z
 		);
-		// å›è»¢è¡Œåˆ—ã®ä½œæˆ
+		// ‰ñ“]s—ñ‚Ìì¬
 		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			XMConvertToRadians(object[i].rotation.x),
 			XMConvertToRadians(object[i].rotation.y),
 			XMConvertToRadians(object[i].rotation.z)
 		);
 
-		// ä¹—ç®—ã®é †ç•ªã«æ³¨æ„ï¼ï¼
+		// æZ‚Ì‡”Ô‚É’ˆÓII
 		XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
 
-		XMMATRIX Projection = GetProjectionMatrix();// ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³è¡Œåˆ—ä½œæˆ
-		XMMATRIX View = GetViewMatrix();// ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ä½œæˆ
-		XMMATRIX WVP = WorldMatrix * View * Projection;// æœ€çµ‚çš„ãªå¤‰æ›è¡Œåˆ—ã‚’ä½œæˆã€€ä¹—ç®—ã®é †ç•ªã«æ³¨æ„ï¼ï¼
+		XMMATRIX Projection = GetProjectionMatrix();// ƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñì¬
+		XMMATRIX View = GetViewMatrix();// ƒrƒ…[s—ñì¬
+		XMMATRIX WVP = WorldMatrix * View * Projection;// ÅI“I‚È•ÏŠ·s—ñ‚ğì¬@æZ‚Ì‡”Ô‚É’ˆÓII
 
-		Shader_SetMatrix(WVP);// å¤‰æ›è¡Œåˆ—ã‚’é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¸ã‚»ãƒƒãƒˆ
-		Shader_Begin();// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã¸è¨­å®š
+		Shader_SetMatrix(WVP);// •ÏŠ·s—ñ‚ğ’¸“_ƒVƒF[ƒ_[‚ÖƒZƒbƒg
+		Shader_Begin();// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Öİ’è
 
-		// é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã¸ã‚³ãƒ”ãƒ¼ã™ã‚‹
+		// ’¸“_ƒf[ƒ^‚ğ’¸“_ƒoƒbƒtƒ@‚ÖƒRƒs[‚·‚é
 		D3D11_MAPPED_SUBRESOURCE msr;
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex* vertex = (Vertex*)msr.pData;
 
-		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	// é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹
-		g_pContext->Unmap(g_VertexBuffer, 0);							// ã‚³ãƒ”ãƒ¼å®Œäº†
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã‚»ãƒƒãƒˆ
+		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	// ’¸“_ƒf[ƒ^‚ğƒRƒs[‚·‚é
+		g_pContext->Unmap(g_VertexBuffer, 0);							// ƒRƒs[Š®—¹
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			// ƒeƒNƒXƒ`ƒƒ‚ğƒZƒbƒg
 
-		// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ã‚»ãƒƒãƒˆ
-		UINT stride = sizeof(Vertex);	// é ‚ç‚¹1å€‹ã®ãƒ‡ãƒ¼ã‚¿ã‚µã‚¤ã‚º
+		// ’¸“_ƒoƒbƒtƒ@‚ğƒZƒbƒg
+		UINT stride = sizeof(Vertex);	// ’¸“_1ŒÂ‚Ìƒf[ƒ^ƒTƒCƒY
 		UINT offset = 0;
 
 		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ã‚»ãƒƒãƒˆ
-		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	// æç”»ã™ã‚‹ãƒãƒªã‚´ãƒ³ã®ç¨®é¡ã‚’ã‚»ãƒƒãƒˆã€€3é ‚ç‚¹ã§ãƒãƒªã‚´ãƒ³ã‚’1æšã¨ã—ã¦è¡¨ç¤º
+		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);		// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚ğƒZƒbƒg
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	// •`‰æ‚·‚éƒ|ƒŠƒSƒ“‚Ìí—Ş‚ğƒZƒbƒg@3’¸“_‚Åƒ|ƒŠƒSƒ“‚ğ1–‡‚Æ‚µ‚Ä•\¦
 		if (!s_IsKonamiCodeEntered || input1)
 		{
 			g_pContext->DrawIndexed(6 * 6, 0, 0);
 		}
 
-		// æç”»ãƒªã‚¯ã‚¨ã‚¹ãƒˆ
+		// •`‰æƒŠƒNƒGƒXƒg
 		//g_pContext->Draw(NUM_VERTEX, 0);
 	}
 
 	if (s_IsKonamiCodeEntered)
 	{
 		// ------------------------------------
-		// ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ãƒ•ãƒ¬ãƒ¼ãƒ ï¼ˆAABBï¼‰ã®æç”»
+		// ƒRƒ‰ƒCƒ_[ƒtƒŒ[ƒ€iAABBj‚Ì•`‰æ
 		// ------------------------------------
 		{
-			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æç”»ã«ä½¿ã‚ã‚ŒãŸè¡Œåˆ—ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹
+			// ƒvƒŒƒCƒ„[‚Ì•`‰æ‚Ég‚í‚ê‚½s—ñ‚ğƒNƒŠƒA‚·‚é
 			XMMATRIX world = XMMatrixIdentity();
-			Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVPè¡Œåˆ—ã‚’Identity * View * Projectionã«è¨­å®š
-			//Shader_Begin(); // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’å†è¨­å®š
+			Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVPs—ñ‚ğIdentity * View * Projection‚Éİ’è
+			//Shader_Begin(); // ƒVƒF[ƒ_[‚ğÄİ’è
 
 			for (int i = 0; i < PLAYER_MAX; i++)
 			{
-				// AABBã‚’æç”»
-				// AABBã®Min/Maxã¯æ—¢ã«ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ãªã®ã§ã€è¡Œåˆ—ã¯ãƒªã‚»ãƒƒãƒˆã—ãŸã¾ã¾æç”»ã™ã‚Œã°OK
+				// AABB‚ğ•`‰æ
+				// AABB‚ÌMin/Max‚ÍŠù‚Éƒ[ƒ‹ƒhÀ•W‚È‚Ì‚ÅAs—ñ‚ÍƒŠƒZƒbƒg‚µ‚½‚Ü‚Ü•`‰æ‚·‚ê‚ÎOK
 				Debug_DrawAABB(object[i].boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
 			}
 		}
@@ -996,17 +996,17 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 }
 
 //======================================================
-//	æ”»æ’ƒé–¢æ•°
+//	UŒ‚ŠÖ”
 //======================================================
 //void Polygon3D_Attack()
 //{
-//	// Player1ãŒPlayer2ã‚’æ”»æ’ƒã™ã‚‹
+//	// Player1‚ªPlayer2‚ğUŒ‚‚·‚é
 //	if (Keyboard_IsKeyDown(KK_SPACE))
 //	{
 //
 //	}
 //
-//	// Player2ãŒPlayer1ã‚’æ”»æ’ƒã™ã‚‹
+//	// Player2‚ªPlayer1‚ğUŒ‚‚·‚é
 //	if (Keyboard_IsKeyDown(KK_ENTER))
 //	{
 //
@@ -1062,21 +1062,21 @@ void Polygon3D_Respawn(int idx)
 
 void SkillPlayerCollisions()
 {
-	// Skill / Player ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå–å¾—
+	// Skill / Player ƒIƒuƒWƒFƒNƒgæ“¾
 	SKILL_OBJECT* skill1 = GetSkill(1);
 	SKILL_OBJECT* skill2 = GetSkill(2);
 	PLAYEROBJECT* p1 = &object[0];
 	PLAYEROBJECT* p2 = &object[1];
 
-	// AABB ã‚’æœ€æ–°åŒ–
+	// AABB ‚ğÅV‰»
 	CalculateAABB(p1->boundingBox, p1->position, p1->scaling);
 	CalculateAABB(p2->boundingBox, p2->position, p2->scaling);
 	CalculateAABB(skill1->boundingBox, skill1->position, skill1->scaling);
 	CalculateAABB(skill2->boundingBox, skill2->position, skill2->scaling);
 
 	// ------------------------
-	// object[0] ã¨ Skill2 ã®å½“ãŸã‚Šåˆ¤å®š
-	// ï¼ˆSkill2 ã¯ object[1] ã®ã‚¹ã‚­ãƒ«ï¼‰
+	// object[0] ‚Æ Skill2 ‚Ì“–‚½‚è”»’è
+	// iSkill2 ‚Í object[1] ‚ÌƒXƒLƒ‹j
 	// ------------------------
 	if (object[1].isAttacking)
 	{
@@ -1085,19 +1085,19 @@ void SkillPlayerCollisions()
 		{
 			hal::dout << "Skill2 hit object[0] overlap=" << col.overlap << std::endl;
 
-			// ãƒãƒƒã‚¯ãƒãƒƒã‚¯
+			// ƒmƒbƒNƒoƒbƒN
 			p1->position.x += p2->dir.x * p2->power;
 			//p1->position.y += p2->power / 3;
 			p1->position.z += p2->dir.z * p2->power;
 
-			// ãƒ€ãƒ¡ãƒ¼ã‚¸ï¼ˆæ”»æ’ƒè€…ã® power ã‚’ä½¿ç”¨ï¼‰
+			// ƒ_ƒ[ƒWiUŒ‚Ò‚Ì power ‚ğg—pj
 			p1->hp -= p2->power;
 
-			//// ãƒ’ãƒƒãƒˆã§ã‚¹ã‚­ãƒ«ã‚’æ¶ˆã™ï¼ˆ1å›ãƒ’ãƒƒãƒˆï¼‰
+			//// ƒqƒbƒg‚ÅƒXƒLƒ‹‚ğÁ‚·i1‰ñƒqƒbƒgj
 			//object[1].isAttacking = false;
 			//object[1].attackTimer = 0.0f;
 
-			//// æ­»äº¡åˆ¤å®š -> ãƒªã‚¹ãƒãƒ¼ãƒ³
+			//// €–S”»’è -> ƒŠƒXƒ|[ƒ“
 			//if (p1->hp < 0.0f)
 			//{
 			//	p1->hp = 0.0f;
@@ -1105,15 +1105,15 @@ void SkillPlayerCollisions()
 			//	Polygon3D_Respawn();
 			//}
 
-			// AABB ã‚’æ›´æ–°
+			// AABB ‚ğXV
 			CalculateAABB(p1->boundingBox, p1->position, p1->scaling);
 			CalculateAABB(skill2->boundingBox, skill2->position, skill2->scaling);
 		}
 	}
 
 	// ------------------------
-	// object[1] ã¨ Skill1 ã®å½“ãŸã‚Šåˆ¤å®š
-	// ï¼ˆSkill1 ã¯ object[0] ã®ã‚¹ã‚­ãƒ«ï¼‰
+	// object[1] ‚Æ Skill1 ‚Ì“–‚½‚è”»’è
+	// iSkill1 ‚Í object[0] ‚ÌƒXƒLƒ‹j
 	// ------------------------
 	if (object[0].isAttacking)
 	{
@@ -1122,19 +1122,19 @@ void SkillPlayerCollisions()
 		{
 			hal::dout << "Skill1 hit object[1] overlap=" << col.overlap << std::endl;
 
-			// ãƒãƒƒã‚¯ãƒãƒƒã‚¯
+			// ƒmƒbƒNƒoƒbƒN
 			p2->position.x += p1->dir.x * p1->power;
 			//p2->position.y += p1->power;
 			p2->position.z += p1->dir.z * p1->power;
 
-			// ãƒ€ãƒ¡ãƒ¼ã‚¸ï¼ˆæ”»æ’ƒè€…ã® power ã‚’ä½¿ç”¨ï¼‰
+			// ƒ_ƒ[ƒWiUŒ‚Ò‚Ì power ‚ğg—pj
 			p2->hp -= p1->power;
 
-			//// ãƒ’ãƒƒãƒˆã§ã‚¹ã‚­ãƒ«ã‚’æ¶ˆã™
+			//// ƒqƒbƒg‚ÅƒXƒLƒ‹‚ğÁ‚·
 			//object[0].isAttacking = false;
 			//object[0].attackTimer = 0.0f;
 
-			//// æ­»äº¡åˆ¤å®š -> ãƒªã‚¹ãƒãƒ¼ãƒ³
+			//// €–S”»’è -> ƒŠƒXƒ|[ƒ“
 			//if (p2->hp < 0.0f)
 			//{
 			//	p2->hp = 0.0f;
@@ -1142,7 +1142,7 @@ void SkillPlayerCollisions()
 			//	Polygon3D_Respawn();
 			//}
 
-			// AABB ã‚’æ›´æ–°
+			// AABB ‚ğXV
 			CalculateAABB(p2->boundingBox, p2->position, p2->scaling);
 			CalculateAABB(skill1->boundingBox, skill1->position, skill1->scaling);
 		}
@@ -1155,7 +1155,7 @@ static void CheckRespawnPlayer(int idx)
 
 	bool needRespawn = false;
 
-	// HP <= 0 ã¾ãŸã¯è½ä¸‹åˆ¤å®šã§ãƒªã‚¹ãƒãƒ¼ãƒ³
+	// HP <= 0 ‚Ü‚½‚Í—‰º”»’è‚ÅƒŠƒXƒ|[ƒ“
 	if (object[idx].hp <= 0.0f)
 	{
 		object[idx].hp = 0.0f;
@@ -1169,31 +1169,31 @@ static void CheckRespawnPlayer(int idx)
 
 	if(needRespawn)	
 	{
-		// æ®‹æ©Ÿã‚’1æ¸›ã‚‰ã™ï¼ˆ1å›ã ã‘ï¼‰
+		// c‹@‚ğ1Œ¸‚ç‚·i1‰ñ‚¾‚¯j
 		object[idx].residue -= 1;
 
-		// å€‹åˆ¥ãƒªã‚¹ãƒãƒ¼ãƒ³å‡¦ç†
+		// ŒÂ•ÊƒŠƒXƒ|[ƒ“ˆ—
 		Polygon3D_Respawn(idx);
 	}
 }
 
 //==================================
-// æ®‹åŸºæç”»
+// cŠî•`‰æ
 //==================================
 void Polygon3D_DrawResidue(int i)
 {
 	Shader_Begin();
 	Shader_BeginUI();
 
-	// HPãƒãƒ¼ä½ç½®å–å¾—ãƒ»ã‚²ãƒ¼ã‚¸åº§æ¨™è¨­å®š
+	// HPƒo[ˆÊ’uæ“¾EƒQ[ƒWÀ•Wİ’è
 	float bx =HPBar[i].pos.x + 20.0f;
 	float by =HPBar[i].pos.y - 10.0f;
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®ã‚¹ãƒˆãƒƒã‚¯æç”»
+	// ƒvƒŒƒCƒ„[‚²‚Æ‚ÌƒXƒgƒbƒN•`‰æ
 	for (int j = 0; j < object[i].residue; j++)
 	{
-		// ã‚¹ãƒˆãƒƒã‚¯æç”»å¤‰æ•°
-		XMFLOAT2 pos = { bx + j * 30.0f, by }; // æ¨ªä¸¦ã³
+		// ƒXƒgƒbƒN•`‰æ•Ï”
+		XMFLOAT2 pos = { bx + j * 30.0f, by }; // ‰¡•À‚Ñ
 		XMFLOAT2 size = { 300.0f, 100.0f };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 2]);
