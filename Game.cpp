@@ -211,8 +211,8 @@ void Game_Draw()
 	Shader_SetLight(Light.Light);	//ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
 
+	Polygon3D_DrawHP();
 	//BallDraw();
-	Polygon3D_Draw(s_IsKonamiCodeEntered);
 	//P_Draw();
 	//Block_Draw();
 	//Player_Draw();
