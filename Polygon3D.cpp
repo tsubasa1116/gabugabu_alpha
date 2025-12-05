@@ -621,7 +621,7 @@ void Polygon3D_Update()
 			object[i].scaling.x = 0.5f;
 			object[i].scaling.y = 0.5f;
 			object[i].scaling.z = 0.5f;
-			object[i].speed = 0.05f;
+			object[i].speed = 0.06f;
 			object[i].power = 0.8f;
 			break;
 
@@ -629,7 +629,7 @@ void Polygon3D_Update()
 			object[i].scaling.x = 1.0f;
 			object[i].scaling.y = 1.0f;
 			object[i].scaling.z = 1.0f;
-			object[i].speed = 0.03f;
+			object[i].speed = 0.05f;
 			object[i].power = 1.0f;
 			break;
 
@@ -637,7 +637,7 @@ void Polygon3D_Update()
 			object[i].scaling.x = 1.5f;
 			object[i].scaling.y = 1.5f;
 			object[i].scaling.z = 1.5f;
-			object[i].speed = 0.02f;
+			object[i].speed = 0.04f;
 			object[i].power = 1.5f;
 			break;
 
