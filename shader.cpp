@@ -31,6 +31,8 @@ static ID3D11Buffer* g_pGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pOutGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pColorBuffer = nullptr;
 
+static ID3D11PixelShader* g_pDebugColorShader = nullptr; // コライダー可視化
+
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
@@ -207,8 +209,8 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	}
 
 	//----------------------------------------------------------
-   // ピクセルシェーダー読み込み
-   //----------------------------------------------------------
+	// ピクセルシェーダー読み込み
+	//----------------------------------------------------------
 	std::ifstream ifs_ps_g("shader_gauge.cso", std::ios::binary);
 	if (!ifs_ps_g) return false;
 
@@ -223,8 +225,8 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 
 	//----------------------------------------------------------
-   // ピクセルシェーダー読み込み
-   //----------------------------------------------------------
+	// ピクセルシェーダー読み込み
+	//----------------------------------------------------------
 	std::ifstream ifs_ps_og("shader_outgauge.cso", std::ios::binary);
 	if (!ifs_ps_og) return false;
 
@@ -236,6 +238,26 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	ifs_ps_og.read((char*)psBin_og.data(), psSize_og);
 
 	g_pDevice->CreatePixelShader(psBin_og.data(), psSize_og, nullptr, &g_pOutGaugeShader);
+
+	//----------------------------------------------------------
+	// デバッグ用カラーピクセルシェーダー読み込み
+	//----------------------------------------------------------
+	std::ifstream ifs_ps_dbg("shader_pixel_debug_color.cso", std::ios::binary);
+	if (!ifs_ps_dbg) {
+		hal::dout << "Shader_Initialize() : デバッグ用シェーダーの読み込みに失敗しました\n\nshader_pixel_debug_color.cso" << std::endl;
+		return false;
+	}
+
+	ifs_ps_dbg.seekg(0, std::ios::end);
+	size_t psSize_dbg = (size_t)ifs_ps_dbg.tellg();
+	ifs_ps_dbg.seekg(0, std::ios::beg);
+
+	std::vector<unsigned char> psBin_dbg(psSize_dbg);
+	ifs_ps_dbg.read((char*)psBin_dbg.data(), psSize_dbg);
+
+	g_pDevice->CreatePixelShader(psBin_dbg.data(), psSize_dbg, nullptr, &g_pDebugColorShader);
+
+
 
 
 	return true;
@@ -437,5 +459,30 @@ void Shader_SetColor(const XMFLOAT4& color)
 	g_pContext->Unmap(g_pColorBuffer, 0);
 
 	// register(b1)に送る
+	g_pContext->PSSetConstantBuffers(1, 1, &g_pColorBuffer);
+}
+
+//======================================================
+//	デバッグ用カラーシェーダー設定
+//======================================================
+void Shader_BeginDebugColor()
+{
+	// 頂点シェーダーとデバッグ用ピクセルシェーダーを描画パイプラインに設定
+	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(g_pDebugColorShader, nullptr, 0); // ★デバッグ専用シェーダーをセット！
+
+	// 頂点レイアウトを描画パイプラインに設定
+	g_pContext->IASetInputLayout(g_pInputLayout);
+
+	// 定数バッファを描画パイプラインに設定
+	// WVP行列 (b0)
+	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
+	// World行列 (b1)
+	g_pContext->VSSetConstantBuffers(1, 1, &g_pWorldConstantBuffer);
+	// Light (b2)
+	g_pContext->VSSetConstantBuffers(2, 1, &g_pLightConstantBuffer);
+
+	// カラーバッファ (b1)
+	// ※デバッグシェーダーが register(b1) の COLORBUFFER を参照する場合に必要
 	g_pContext->PSSetConstantBuffers(1, 1, &g_pColorBuffer);
 }

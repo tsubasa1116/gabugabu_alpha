@@ -1,15 +1,15 @@
 //======================================================
-//	title.cpp[]
+//	sound.cpp[]
 // 
 //	制作者：田中佑奈			日付：2024//
 //======================================================
 
-//Title.cpp
+//Sound.cpp
 #include	"Manager.h"
 #include	"sprite.h"
 #include	"keyboard.h"
 
-#include	"Title.h"
+#include	"Sound.h"
 
 #include "fade.h"
 #include "shader.h"
@@ -19,7 +19,7 @@ static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 
-void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void Sound_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -27,7 +27,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//テクスチャ読み込みなど
 	TexMetadata		metadata;
 	ScratchImage	image;
-	LoadFromWICFile(L"asset\\texture\\title.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\sound.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 	assert(g_Texture);//読み込み失敗時にダイアログを表示
 
@@ -36,18 +36,18 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	SetFade(60.0f, color, FADE_IN, SCENE_START);
 
 }
-void Title_Finalize()
+void Sound_Finalize()
 {
 	//テクスチャの解放など
 	SAFE_RELEASE(g_Texture);
 
 }
-void Title_Update()
+void Sound_Update()
 {
 	//キー入力チェック
 	//スタートボタンが押されたらシーンを切り替え
 	//フェード処理中はキーを受け付けない
-	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
+	if (Keyboard_IsKeyDownTrigger(KK_SPACE) && (GetFadeState() == FADE_NONE))
 	{
 		//フェードアウトさせてシーンを切り替える
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
@@ -55,11 +55,10 @@ void Title_Update()
 	}
 
 }
-void Title_Draw()
+void Sound_Draw()
 {
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
-	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
 	// 画面サイズ取得
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
@@ -89,5 +88,6 @@ void Title_Draw()
 	DrawSprite(pos, size, col);//1枚絵を表示
 
 }
+
 
 

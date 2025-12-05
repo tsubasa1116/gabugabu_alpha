@@ -122,7 +122,7 @@ void Score_Draw(void)
 		Shader_SetMatrix(mat);
 
 		//ブレンド無し
-		SetBlendState(BLENDSTATE_ALFA);
+		SetBlendState(BLENDSTATE_ALPHA);
 
 		//スプライト描画
 		DrawSprite(size, color, PatNo[i], 10, 1);

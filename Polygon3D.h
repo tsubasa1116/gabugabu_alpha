@@ -27,7 +27,8 @@ struct PLAYEROBJECT
 	float power;			// パワー
 	float speed;			// スピード
 	XMFLOAT3 dir;			// 向き
-	int residue;			// 残機
+	int stock;			// 残機
+	bool active;            // 生存フラグ
 	bool isAttacking;		// 攻撃中かどうか
 	float attackTimer;		// 攻撃タイマー
 	float attackDuration;	// 攻撃持続時間
@@ -39,6 +40,10 @@ struct PLAYEROBJECT
 	int breakCount_Concrete;	// 破壊した数 コンクリート
 	int breakCount_Electricity;	// 破壊した数 電気
 
+
+	float gl, pl, co, el;
+	float gaugeOuter;
+
 	Form form;	// 変身形態
 
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル
@@ -49,13 +54,14 @@ struct PLAYEROBJECT
 void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Polygon3D_Finalize();
 void Polygon3D_Update();
-void Polygon3D_Draw();
+void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 
 void SkillPlayerCollisions();
 void Polygon3D_Attack();
 void Polygon3D_Respawn(int index);
 void CheckRespawnPlayer(int index);
 
+void Polygon3D_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int index);
 
 

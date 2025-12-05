@@ -14,6 +14,7 @@ using namespace DirectX;
 #include "Polygon3D.h"
 #include "keyboard.h"
 
+
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
@@ -364,7 +365,7 @@ void Player1_Skill_Update()
 		if (collision.isColliding)
 		{
 			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
-			if (fieldObjects[i].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
+			if (fieldObjects[i].no == FIELD_Glass && Keyboard_IsKeyDown(KK_SPACE))
 			{
 				fieldObjects[i].isActive = false;
 				Player1Object->form = (Form)((int)Player1Object->form + 1);
@@ -457,7 +458,7 @@ void Player2_Skill_Update()
 		if (collision.isColliding)
 		{
 			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
-			if (fieldObjects[i].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_ENTER))
+			if (fieldObjects[i].no == FIELD_Glass && Keyboard_IsKeyDown(KK_ENTER))
 			{
 				fieldObjects[i].isActive = false;
 				Player2Object->form = (Form)((int)Player2Object->form + 1);

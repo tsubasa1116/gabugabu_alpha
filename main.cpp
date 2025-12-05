@@ -24,13 +24,10 @@
 #include "Manager.h"
 #include "Audio.h"	//<<<<<<<<<<<<<追加
 
-// =====================================================
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-// =====================================================
 
-///////////////////////////////////////////
 #define		SCREEN_WIDTH	(1280)
 #define		SCREEN_HEIGHT	(720)
 
@@ -199,13 +196,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 									" FPS : %d", g_CountFPS);
 				SetWindowText(hWnd, g_DebugStr);
 #endif
-                // ======= ImGui初期化 =======				
-				//更新処理
-				
-
 				// ======= ImGui初期化 =======
 				BeginImGuiFrame();
-                Manager_Update();
+				Manager_Update();
 				// ======= ImGui描画テスト =======
 				ImGui::Begin("Debug Window");
 

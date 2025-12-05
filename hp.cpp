@@ -6,7 +6,7 @@ static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 //プレイヤー関連変数
-static	ID3D11ShaderResourceView* g_Texture;
+static	ID3D11ShaderResourceView* g_Texture[3];
 
 // HPバーのスムーズ減少速度
 #define HPBAR_SPEED 3.0f
@@ -30,10 +30,19 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HP* bar,
 
 	TexMetadata		metadata;
 	ScratchImage	image;
+	
+	LoadFromWICFile(L"asset\\texture\\uiGaugeGreen_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
+	assert(g_Texture[0]);//読み込み失敗時にダイアログを表示
 
-	LoadFromWICFile(L"asset\\texture\\poly.jpg", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-	assert(g_Texture);//読み込み失敗時にダイアログを表示
+
+	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
+	assert(g_Texture[1]);//読み込み失敗時にダイアログを表示
+
+	LoadFromWICFile(L"asset\\texture\\uiGaugeBase_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
+	assert(g_Texture[2]);//読み込み失敗時にダイアログを表示
 }
 
 
@@ -70,35 +79,74 @@ void UpdateHP(HP* bar)
 // -------------------------------------------------------------
 // 描画
 // -------------------------------------------------------------
+// 旧バージョnnン：ポリゴン版HPバー
+//void DrawHP(const HP* bar)
+//{
+//	if (!bar->use) return;
+//
+//	Shader_BeginUI();
+//
+//	Shader_SetColor(color::white);
+//
+//	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
+//
+//	const float border = 3.0f; // 外枠の太さ
+//
+//	XMFLOAT2 borderPos = bar->pos;
+//	XMFLOAT2 borderSize = { bar->size.x + border * 2, bar->size.y + border * 2 };
+//
+//	DrawSprite(borderPos, borderSize, color::black);
+//    
+//	// 残量（current分だけ横幅を縮める）
+//	XMFLOAT2 fillPos = {
+//	 bar->pos.x - (bar->size.x / 2.0f) + (bar->current / 2.0f),
+//	 bar->pos.y
+//	};
+//    DrawSprite(bar->pos, bar->size, bar->backColor);
+//	
+//	// 背景（固定幅）
+//	XMFLOAT2 fillSize = { bar->current, bar->size.y };
+//	DrawSprite(fillPos, fillSize, bar->fillColor);
+//
+//}
+
 void DrawHP(const HP* bar)
 {
 	if (!bar->use) return;
 
 	Shader_BeginUI();
-
 	Shader_SetColor(color::white);
 
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
+	// HP割合
+	float ratio = bar->current / bar->size.x;
+	ratio = max(0.0f, min(1.0f, ratio));
 
-	const float border = 3.0f; // 外枠の太さ
-
-	XMFLOAT2 borderPos = bar->pos;
-	XMFLOAT2 borderSize = { bar->size.x + border * 2, bar->size.y + border * 2 };
-
-	DrawSprite(borderPos, borderSize, color::black);
-    
-	// 残量（current分だけ横幅を縮める）
-	XMFLOAT2 fillPos = {
-	 bar->pos.x - (bar->size.x / 2.0f) + (bar->current / 2.0f),
-	 bar->pos.y
-	};
-    DrawSprite(bar->pos, bar->size, bar->backColor);
 	
-	// 背景（固定幅）
-	XMFLOAT2 fillSize = { bar->current, bar->size.y };
-	DrawSprite(fillPos, fillSize, bar->fillColor);
 
+	// 画像バー本体（横に削る）
+	XMFLOAT2 uvMin = { 0.0f, 0.0f };
+	XMFLOAT2 uvMax = { ratio, 1.0f };
+    
+	XMFLOAT2 backSize = { bar->size.x, bar->size.y };
+	XMFLOAT2 backPos = { bar->pos.x - (bar->size.x / 2.0f) + backSize.x / 2.0f, bar->pos.y
+	};
+	
+	XMFLOAT2 fillSize = { bar->size.x * ratio, bar->size.y };
+	XMFLOAT2 fillPos = { bar->pos.x - (bar->size.x / 2.0f) + fillSize.x / 2.0f, bar->pos.y
+	};
+
+	
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture[2]);
+	DrawSprite(backPos, backSize, bar->backColor);
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
+	DrawSpriteUV(fillPos, fillSize, bar->fillColor, uvMin, uvMax);
+
+
+	SetBlendState(BLENDSTATE_ALPHA);
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
+	DrawSprite({ 74, 647 }, {110, 110}, XMFLOAT4(1, 1, 1, 0.6));
 }
+
 
 
 // -------------------------------------------------------------
