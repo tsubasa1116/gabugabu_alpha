@@ -26,8 +26,6 @@
 #include "Ball.h"
 #include "skill.h"
 
-#include "skill.h"
-
 
 
 #include	"direct3d.h"//<<<<<<<<<<<<<<<<<<<
