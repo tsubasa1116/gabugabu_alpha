@@ -19,6 +19,7 @@
 #include	"Audio.h"
 #include    "gauge.h"
 
+#include	"Polygon.h"
 #include	"Polygon3D.h"
 #include	"Camera.h"
 
