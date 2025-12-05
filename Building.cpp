@@ -76,7 +76,8 @@ void Building_DrawAll(bool s_IsKonamiCodeEntered)
 	for (int i = 0; i < BuildingCount; ++i)
 	{
 		if (Buildings[i] != nullptr) {
-			Buildings[i]->Draw(s_IsKonamiCodeEntered);
+			// アクティブなら描画
+			if(Buildings[i]->isActive)	Buildings[i]->Draw(s_IsKonamiCodeEntered);
 		}
 	}
 }
