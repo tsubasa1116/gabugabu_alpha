@@ -43,7 +43,7 @@ void		FinalizeSprite()
 //=====================================
 //スプライト描画
 //=====================================
-void		DrawSprite(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col)
+void DrawSprite(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col)
 {
 
 	g_pDevice = Direct3D_GetDevice();

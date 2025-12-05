@@ -294,7 +294,7 @@ void PStock_Draw(int i)
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
 
-		SetBlendState(BLENDSTATE_ALFA);
+		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);
 	}
 }

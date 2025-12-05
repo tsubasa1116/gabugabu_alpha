@@ -17,6 +17,8 @@
 #include "Result.h"
 #include "fade.h"
 
+#include "shader.h"
+
 
 //グローバル変数
 static	SCENE	g_Scene = SCENE_NONE;	//現在のシーン番号

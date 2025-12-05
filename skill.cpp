@@ -10,6 +10,7 @@ using namespace DirectX;
 #include "Camera.h"
 #include "collider.h"
 #include "field.h"
+#include "building.h"
 #include "debug_ostream.h"
 #include "Polygon3D.h"
 #include "keyboard.h"
@@ -348,16 +349,15 @@ void Player1_Skill_Update()
 	// AABBの更新
 	CalculateAABB(Skill[0].boundingBox, Skill[0].position, XMFLOAT3(1.0f, 1.0f, 1.0f));
 
-	// フィールドオブジェクトのリストを取得
-	MAPDATA* fieldObjects = GetFieldObjects();
-	int fieldCount = GetFieldObjectCount();
+	int buildingCount = GetBuildingCount();			// 数を取得
+	Building** buildingObjects = GetBuildings();	// リストを取得
 
 	// 全てのフィールドオブジェクトと衝突判定を行う
-	for (int i = 0; i < fieldCount; ++i)
+	for (int i = 0; i < buildingCount; ++i)
 	{
 		// i番目のフィールドオブジェクトのAABBを取得
 		// field.cppのInitializeで計算済みのため、そのまま参照
-		AABB pStaticObjectAABB = fieldObjects[i].boundingBox;
+		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
 
 		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
 		MTV collision = CalculateAABBMTV(Skill[0].boundingBox, pStaticObjectAABB);
@@ -365,9 +365,9 @@ void Player1_Skill_Update()
 		if (collision.isColliding)
 		{
 			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
-			if (fieldObjects[i].no == FIELD_Glass && Keyboard_IsKeyDown(KK_SPACE))
+			if (/*buildingObjects[i]->Type == BuildingType::Glass && */Keyboard_IsKeyDown(KK_SPACE))
 			{
-				fieldObjects[i].isActive = false;
+				buildingObjects[i]->isActive = false;
 				Player1Object->form = (Form)((int)Player1Object->form + 1);
 				// 必要ならここで効果音やエフェクトを再生
 				// スキルはヒット時に消す（任意）
@@ -441,16 +441,15 @@ void Player2_Skill_Update()
 	// AABBの更新
 	CalculateAABB(Skill[1].boundingBox, Skill[1].position, XMFLOAT3(1.0f, 1.0f, 1.0f));
 
-	// フィールドオブジェクトのリストを取得
-	MAPDATA* fieldObjects = GetFieldObjects();
-	int fieldCount = GetFieldObjectCount();
+	int buildingCount = GetBuildingCount();			// 数を取得
+	Building** buildingObjects = GetBuildings();	// リストを取得
 
 	// 全てのフィールドオブジェクトと衝突判定を行う
-	for (int i = 0; i < fieldCount; ++i)
+	for (int i = 0; i < buildingCount; ++i)
 	{
 		// i番目のフィールドオブジェクトのAABBを取得
 		// field.cppのInitializeで計算済みのため、そのまま参照
-		AABB pStaticObjectAABB = fieldObjects[i].boundingBox;
+		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
 
 		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
 		MTV collision = CalculateAABBMTV(Skill[1].boundingBox, pStaticObjectAABB);
@@ -458,9 +457,9 @@ void Player2_Skill_Update()
 		if (collision.isColliding)
 		{
 			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
-			if (fieldObjects[i].no == FIELD_Glass && Keyboard_IsKeyDown(KK_ENTER))
+			if (/*buildingObjects[i]->Type == BuildingType::Glass && */Keyboard_IsKeyDown(KK_ENTER))
 			{
-				fieldObjects[i].isActive = false;
+				buildingObjects[i]->isActive = false;
 				Player2Object->form = (Form)((int)Player2Object->form + 1);
 				// 必要ならここで効果音やエフェクトを再生
 				// スキルはヒット時に消す（任意）

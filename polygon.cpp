@@ -141,7 +141,7 @@ void Polygon_Draw(void)
 
 	Shader_SetMatrix(mat);
 
-	SetBlendState(BLENDSTATE_ALFA);//ブレンド無し
+	SetBlendState(BLENDSTATE_ALPHA);//ブレンド無し
 
 	//スプライト描画テスト
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Textureを使うように設定する

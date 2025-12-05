@@ -283,7 +283,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].maxHp = 100.0f;
 	object[0].hp = object[0].maxHp;
-	object[0].residue = 3;
+	object[0].stock = 3;
 	object[0].active = true;
 	object[0].isAttacking = false;
 	object[0].attackTimer = 0.0f;
@@ -305,7 +305,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].maxHp = 100.0f;
 	object[1].hp = object[1].maxHp;
-	object[1].residue = 3;
+	object[1].stock = 3;
 	object[1].active = true;
 	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
@@ -415,9 +415,7 @@ void Polygon3D_Finalize()
 // ======================================================
 void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 {
-	//for (int i = 0; i < PLAYER_MAX; i++)
-	//{
-		// 進みたい方向（3平方）
+	// 進みたい方向（3平方）
 	float length = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
 
 	if (length > 0.0f)
@@ -447,7 +445,6 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 		object.position.x += sinf(rad) * object.speed;
 		object.position.z += cosf(rad) * object.speed;
 	}
-	//	}
 }
 
 //======================================================
@@ -455,6 +452,7 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 //======================================================
 void Polygon3D_Update()
 {
+
 	// プレイヤー1 スキル発動
 	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
 	{
@@ -480,8 +478,7 @@ void Polygon3D_Update()
 
 	ImGui::Begin("Player Debug");
 	// HPバー
-	ImGui::SliderFloat("HP", &object[0].hp, 0.0f, object[0
-	].maxHp);
+	ImGui::SliderFloat("HP", &object[0].hp, 0.0f, object[0].maxHp);
 
 	ImGui::End();
 
@@ -523,8 +520,8 @@ void Polygon3D_Update()
 		posBuff = object[i].position;
 
 		// 地面の高さ（最低ライン）
-		float groundHeight = -10.0f;	// 奈落の底
-		bool isGrounded = false;		// 地面に足がついているかフラグ
+		//float groundHeight = -10.0f;	// 奈落の底
+		//bool isGrounded = false;		// 地面に足がついているかフラグ
 
 
 		// 2. マップデータ（地面）との当たり判定
@@ -538,7 +535,6 @@ void Polygon3D_Update()
 			{
 				continue;
 			}
-
 
 			// --- 六角柱コライダーの準備 ---
 			HexCollider hex;
@@ -569,7 +565,7 @@ void Polygon3D_Update()
 					//CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
 
 					// 着地フラグをセット
-					isGrounded = true;
+					//isGrounded = true;
 
 					top_y = tileTopY;
 
@@ -579,19 +575,39 @@ void Polygon3D_Update()
 
 		}
 
+		// -------------------------------------------------------------------------------------
+		// 建物との当たり判定
+		// -------------------------------------------------------------------------------------
+		int buildingCount = GetBuildingCount();			// 数を取得
+		Building** buildingObjects = GetBuildings();	// リストを取得
 
-		// 地面になかった場合の処理（落下など）が必要ならここに書く
-		if (!isGrounded)
+		for (int j = 0; j < buildingCount; ++j)
 		{
-			// ここでは特に何もしない（ループ冒頭で y -= 0.1f しているので落ち続ける）
-			// 落下死のリセット処理などを書いても良い
-			if (object[i].position.y < -5.0f) {
-				object[i].position = XMFLOAT3(0, 2, 0); // リスポーン
+			// アクティブでないなら無視
+			if (!buildingObjects[j]->isActive)	continue;
+
+			// y座標の調整
+			// Building::Draw() で position.y + 1.0f しているので、判定用の座標も合わせる
+			XMFLOAT3 colliderPos = buildingObjects[j]->position;
+			colliderPos.y += 1.0f;
+
+			// コライダーの作成と更新（補正した座標 colliderPos を使う）
+			CalculateAABB(buildingObjects[j]->boundingBox, colliderPos, buildingObjects[j]->scaling);
+
+			// プレイヤー と 建物の当たり判定
+			MTV collision = CalculateAABBMTV(object[i].boundingBox, buildingObjects[j]->boundingBox);
+
+			if (collision.isColliding)
+			{
+				// 衝突していたら、MTVの分だけ位置を戻す
+				object[i].position.x += collision.translation.x;
+				object[i].position.y += collision.translation.y;
+				object[i].position.z += collision.translation.z;
+
+				// 押し戻し後の新しいAABBを再計算
+				CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
 			}
 		}
-
-
-		// ▲▲▲▲▲ 修正ここまで ▲▲▲▲▲
 
 		// -------------------------------------------------------------
 		// 変身
@@ -640,6 +656,7 @@ void Polygon3D_Update()
 		}
 		///////////////////////////////////////////////////////////////////////////////////////////////
 
+		/*
 		// -------------------------------------------------------------
 		// 当たり判定
 		// -------------------------------------------------------------
@@ -714,7 +731,7 @@ void Polygon3D_Update()
 		//}
 
 		// Polygon3D_Update() 関数の中のフィールドとの衝突判定ループの直後に追加
-
+		*/
 		// -------------------------------------------------------------
 		// プレイヤーオブジェクト同士の当たり判定
 		// -------------------------------------------------------------
@@ -796,10 +813,10 @@ void Polygon3D_Update()
 
 		if (object[i].hp <= 0 && object[i].active)
 		{
-			object[i].residue--;
+			object[i].stock--;
 
 			// 残基があれば復活
-			if (object[i].residue > 0)
+			if (object[i].stock > 0)
 			{
 				object[i].hp = object[i].maxHp;
 
@@ -820,43 +837,16 @@ void Polygon3D_Update()
 
 			
 
-			// -------------------------------------------------------------
-			// 当たり判定 Player1とSkill2
-			// -------------------------------------------------------------
-			//// AABBの更新
+	// -------------------------------------------------------------
+	// 当たり判定 Player1とSkill2
+	// -------------------------------------------------------------
+	//// AABBの更新
 
 	for (int idx = 0; idx < PLAYER_MAX; ++idx)
 	{
 		CheckRespawnPlayer(idx);
 	}
 
-	//// HPが0以下
-	//if (object[0].hp < 0.0f)
-	//{
-	//	object[0].hp = 0.0f;
-	//	object[0].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
-	//// 落下した場合
-	//if (object[0].position.y < -10.0f)
-	//{
-	//	object[0].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
-
-	//// HPが0以下
-	//if (object[1].hp < 0.0f)
-	//{
-	//	object[1].hp = 0.0f;
-	//	object[1].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
-	//// 落下した場合
-	//if (object[1].position.y < -10.0f)
-	//{
-	//	object[1].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
 
 }		
 
@@ -867,11 +857,6 @@ void Polygon3D_Update()
 //======================================================
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 {
-	// スキル使用時のみスキルを表示
-	if (object[0].isAttacking == true)
-	{
-		Player1_Skill_Draw();
-	}
 	static bool input1 = false;
 	// デバッグモード中のみキー入力を受け付ける
 	if (s_IsKonamiCodeEntered)
@@ -881,6 +866,15 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			input1 = !input1;	// フラグ反転
 		}
 	}
+	
+	//Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+	// スキル使用時のみスキルを表示
+	if (object[0].isAttacking == true)
+	{
+		Player1_Skill_Draw();
+	}
+
+
 	//// スキル使用時のみスキルを表示
 	//if (object[0].isAttaking == true)
 	//{
@@ -892,6 +886,27 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		Player2_Skill_Draw();
 	}
 
+	Shader_Begin(); 
+
+	// 個別UIステータス描画
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		// HPバー描画
+		DrawHP(&HPBar[i]);
+		XMFLOAT2 hp = HPBar[i].pos;
+
+		// ゲージ描画用設定
+		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
+			      object[i].gaugeOuter, { hp.x - 130.0f , hp.y });
+
+		// ゲージ描画
+		Gauge_Draw(i);
+
+		// シェーダーリセット
+		Shader_Begin();
+		
+		Polygon3D_DrawStock(i);
+	}
 
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
@@ -925,8 +940,8 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		XMMATRIX View = GetViewMatrix();// ビュー行列作成
 		XMMATRIX WVP = WorldMatrix * View * Projection;// 最終的な変換行列を作成　乗算の順番に注意！！
 
-		Shader_SetMatrix(WVP);// 変換行列を頂点シェーダーへセット
-		Shader_Begin();// シェーダーを描画パイプラインへ設定
+		Shader_SetMatrix(WVP);// 螟画鋤陦悟�繧帝らせ繧ｷ繧ｧ繝ｼ繝繝ｼ縺ｸ繧ｻ繝�ヨ
+		Shader_Begin();// 繧ｷ繧ｧ繝ｼ繝繝ｼ繧呈緒逕ｻ繝代う繝励Λ繧､繝ｳ縺ｸ險ｭ螳
 		SetBlendState(BLENDSTATE_NONE);
 
 		// 頂点データを頂点バッファへコピーする
@@ -934,9 +949,9 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex* vertex = (Vertex*)msr.pData;
 
-		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	// 頂点データをコピーする
-		g_pContext->Unmap(g_VertexBuffer, 0);							// コピー完了
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			// テクスチャをセット
+		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	// 鬆らせ繝��繧ｿ繧偵さ繝斐�縺吶ｋ
+		g_pContext->Unmap(g_VertexBuffer, 0);							// 繧ｳ繝斐�螳御ｺ
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			// 繝�け繧ｹ繝√Ε繧偵そ繝�ヨ
 		Shader_SetColor({1,1,1,1});
 
 		// 頂点バッファをセット
@@ -1000,23 +1015,23 @@ void Polygon3D_DrawHP()
 {
 	Shader_Begin();
 
-	// 個別UIステータス描画
+	// 蛟句挨UI繧ｹ繝��繧ｿ繧ｹ謠冗判
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		SetBlendState(BLENDSTATE_ALFA);
 
-		// HPバー描画
+		// HP繝舌�謠冗判
 		DrawHP(&HPBar[i]);
 		XMFLOAT2 hp = HPBar[i].pos;
 
-		// ゲージ描画用設定
+		// 繧ｲ繝ｼ繧ｸ謠冗判逕ｨ險ｭ螳
 		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
 			object[i].gaugeOuter, { hp.x - 130.0f , hp.y });
 
-		// ゲージ描画
+		// 繧ｲ繝ｼ繧ｸ謠冗判
 		Gauge_Draw(i);
 
-		// シェーダーリセット
+		// 繧ｷ繧ｧ繝ｼ繝繝ｼ繝ｪ繧ｻ繝�ヨ
 		Shader_Begin();
 
 		Polygon3D_DrawResidue(i);
@@ -1179,7 +1194,7 @@ static void CheckRespawnPlayer(int idx)
 	if(needRespawn)	
 	{
 		// 残機を1減らす（1回だけ）
-		object[idx].residue -= 1;
+		object[idx].stock -= 1;
 
 		// 個別リスポーン処理
 		Polygon3D_Respawn(idx);
@@ -1187,9 +1202,9 @@ static void CheckRespawnPlayer(int idx)
 }
 
 //==================================
-// 残基描画
+// 残機描画
 //==================================
-void Polygon3D_DrawResidue(int i)
+void Polygon3D_DrawStock(int i)
 {
 	Shader_Begin();
 	Shader_BeginUI();
@@ -1199,7 +1214,7 @@ void Polygon3D_DrawResidue(int i)
 	float by =HPBar[i].pos.y - 10.0f;
 
 	// プレイヤーごとのストック描画
-	for (int j = 0; j < object[i].residue; j++)
+	for (int j = 0; j < object[i].stock; j++)
 	{
 		// ストック描画変数
 		XMFLOAT2 pos = { bx + j * 30.0f, by }; // 横並び
@@ -1207,7 +1222,7 @@ void Polygon3D_DrawResidue(int i)
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 2]);
 
-		SetBlendState(BLENDSTATE_ALFA);
+		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);
 	}
 	

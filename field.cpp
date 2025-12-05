@@ -132,7 +132,7 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Glass },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -142,7 +142,7 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Glass },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -333,6 +333,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	}
 	//シェーダーを描画パイプラインへ設定
 	Shader_Begin();
+	Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
 
 	//プロジェクション行列作成
 	XMMATRIX	Projection = GetProjectionMatrix();

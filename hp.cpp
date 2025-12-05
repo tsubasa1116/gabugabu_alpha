@@ -142,7 +142,7 @@ void DrawHP(const HP* bar)
 	DrawSpriteUV(fillPos, fillSize, bar->fillColor, uvMin, uvMax);
 
 
-	SetBlendState(BLENDSTATE_ALFA);
+	SetBlendState(BLENDSTATE_ALPHA);
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
 	DrawSprite({ 74, 647 }, {110, 110}, XMFLOAT4(1, 1, 1, 0.6));
 }

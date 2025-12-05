@@ -26,7 +26,7 @@
 #include "Ball.h"
 #include "skill.h"
 
-#include "skill.h"
+#include "fade.h"
 
 
 
@@ -182,7 +182,13 @@ void Game_Update()
 	Polygon3D_Update();
 	Gauge_Update();
 
-
+	//ゲームシーンへ遷移
+	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
+	{
+		//フェードアウトさせてシーンを切り替える
+		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
+	}
 }
 
 //======================================================

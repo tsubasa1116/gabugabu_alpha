@@ -48,7 +48,7 @@ void	SetDepthTest(bool flg);	//深度テスト切り替え
 enum	BLENDSTATE
 {
 	BLENDSTATE_NONE = 0,	//ブレンドしない
-	BLENDSTATE_ALFA,		//普通のαブレンド
+	BLENDSTATE_ALPHA,		//普通のαブレンド
 	BLENDSTATE_ADD,			//加算合成 
 	BLENDSTATE_SUB,			//減算合成
 
