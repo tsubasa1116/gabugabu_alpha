@@ -63,18 +63,18 @@ static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"Asset\\Texture\\TileA3.png"
 };
 
-static Building* g_Buildings[100];
-static int g_BuildingCount = 0; // 現在の建物数
+static Building* Buildings[100];
+static int BuildingCount = 0; // 現在の建物数
 
 //==============================================
 // 全ての建物を描画
 //==============================================
 void Building_DrawAll(bool s_IsKonamiCodeEntered)
 {
-	for (int i = 0; i < g_BuildingCount; ++i)
+	for (int i = 0; i < BuildingCount; ++i)
 	{
-		if (g_Buildings[i] != nullptr) {
-			g_Buildings[i]->Draw();
+		if (Buildings[i] != nullptr) {
+			Buildings[i]->Draw();
 		}
 	}
 }
@@ -83,8 +83,10 @@ void Building_DrawAll(bool s_IsKonamiCodeEntered)
 //	コンストラクタ
 //======================================================
 Building::Building(BuildingType type, XMFLOAT3 pos)
-	: m_Type(type), m_Pos(pos), m_Phase(BuildingPhase::New), m_Model(nullptr)
+	: Type(type), position(pos), Phase(BuildingPhase::New), m_Model(nullptr)
 {
+	scaling = {1.0f,1.0f,1.0f};
+	rotation = {0.0f,0.0f,0.0f};
 	// 生成時に現在のTypeとPhase(New)に合わせてモデルをロード
 	LoadModelForPhase();
 }
@@ -108,6 +110,10 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	// 既存の建物をクリア
 	Building_Finalize();
+
+
+
+
 
 	// Fieldの情報を取得
 	MAPDATA* fieldMap = GetFieldObjects();
@@ -140,11 +146,12 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		// ----------------------------------------------------
 		if (type != BuildingType::None)
 		{
-			if (g_BuildingCount >= 100) break; // 上限チェック
+			if (BuildingCount >= 100) break; // 上限チェック
 
 			// 生成（座標はMapのものを使う）
-			g_Buildings[g_BuildingCount] = new Building(type, fieldMap[i].pos);
-			g_BuildingCount++;
+
+			Buildings[BuildingCount] = new Building(type, fieldMap[i].pos);
+			BuildingCount++;
 		}
 	}
 }
@@ -155,15 +162,15 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void Building_Finalize(void)
 {
 	// 生成した建物をすべて削除
-	for (int i = 0; i < g_BuildingCount; ++i)
+	for (int i = 0; i < BuildingCount; ++i)
 	{
-		if (g_Buildings[i])
+		if (Buildings[i])
 		{
-			delete g_Buildings[i];
-			g_Buildings[i] = nullptr;
+			delete Buildings[i];
+			Buildings[i] = nullptr;
 		}
 	}
-	g_BuildingCount = 0;
+	BuildingCount = 0;
 }
 
 static const char* g_ModelName[] = {
@@ -192,29 +199,29 @@ void Building::LoadModelForPhase()
 	const char* path = nullptr;
 
 	// 種類とフェーズで使用するFBXを決定
-	switch (m_Type)
+	switch (Type)
 	{
 	case BuildingType::Glass:
-		if		(m_Phase == BuildingPhase::New)		path = g_ModelName[3];
-		else if (m_Phase == BuildingPhase::Damaged)	path = g_ModelName[3];
+		if		(Phase == BuildingPhase::New)		path = g_ModelName[3];
+		else if (Phase == BuildingPhase::Damaged)	path = g_ModelName[3];
 		else										path = g_ModelName[3];
 		break;
 
 	case BuildingType::Concrete:
-		if		(m_Phase == BuildingPhase::New)		path = g_ModelName[1];
-		else if (m_Phase == BuildingPhase::Damaged)	path = g_ModelName[1];
+		if		(Phase == BuildingPhase::New)		path = g_ModelName[1];
+		else if (Phase == BuildingPhase::Damaged)	path = g_ModelName[1];
 		else										path = g_ModelName[1];
 		break;
 
 	case BuildingType::Plant:
-		if		(m_Phase == BuildingPhase::New)		path = g_ModelName[4];
-		else if (m_Phase == BuildingPhase::Damaged)	path = g_ModelName[4];
+		if		(Phase == BuildingPhase::New)		path = g_ModelName[4];
+		else if (Phase == BuildingPhase::Damaged)	path = g_ModelName[4];
 		else										path = g_ModelName[4];
 		break;
 
 	case BuildingType::Electric:
-		if		(m_Phase == BuildingPhase::New)		path = g_ModelName[2];
-		else if (m_Phase == BuildingPhase::Damaged)	path = g_ModelName[2];
+		if		(Phase == BuildingPhase::New)		path = g_ModelName[2];
+		else if (Phase == BuildingPhase::Damaged)	path = g_ModelName[2];
 		else										path = g_ModelName[2];
 		break;
 
@@ -239,9 +246,9 @@ void Building::LoadModelForPhase()
 //==============================================
 void Building::SetPhase(BuildingPhase phase)
 {
-	if (m_Phase != phase) // 変更がある場合のみ
+	if (Phase != phase) // 変更がある場合のみ
 	{
-		m_Phase = phase;
+		Phase = phase;
 		LoadModelForPhase(); // モデルをリロードして見た目を変える
 	}
 }
@@ -274,16 +281,16 @@ void Building::Draw()
 
 
 	// スケーリング・回転・平行移動
-	XMMATRIX ScalingMatrix = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+	XMMATRIX ScalingMatrix = XMMatrixScaling(scaling.x, scaling.y, scaling.z);
 
 
 	// 要修正　///////////////////////////////////////////////////////////////////////////////////////
 	// 自分の座標へ移動（取りあえずy座標にoffsetを足す）
-	XMMATRIX TranslationMatrix = XMMatrixTranslation(m_Pos.x, m_Pos.y + 1.0f, m_Pos.z);
+	XMMATRIX TranslationMatrix = XMMatrixTranslation(position.x, position.y + 1.0f, position.z);
 	////////////////////////////////////////////////////////////////////////////////////////////
 
 	// モデルが寝ている場合は起こす（-90度回転など）
-	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(-90.0f), 0.0f, 0.0f);
+	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(rotation.x + XMConvertToRadians(-90.0f), rotation.y, rotation.z);
 
 	//ワールド行列の作成
 	XMMATRIX	World = ScalingMatrix * RotationMatrix * TranslationMatrix;
@@ -296,4 +303,20 @@ void Building::Draw()
 
 	// 描画実行
 	ModelDraw(m_Model);
+}
+
+//======================================================
+//	ゲッター
+//======================================================
+
+// 建物の総数を返す
+int GetBuildingCount()
+{
+	return BuildingCount;
+}
+
+// 建物配列の先頭ポインタを返す
+Building** GetBuildings()
+{
+	return Buildings;
 }

@@ -578,22 +578,89 @@ void Polygon3D_Update()
 		// -------------------------------------------------------------------------------------
 		// 建物との当たり判定
 		// -------------------------------------------------------------------------------------
-		int buildingCoutnt = GetBuildingCount();
+		int buildingCount = GetBuildingCount();		// 数を取得
+		Building** buildingObjects = GetBuildings();	// リストを取得
+		for (int j = 0; j < buildingCount; ++j)
+		{
+			if (!buildingObjects[j]->isActive)	continue;
 
+			// コライダーの作成と更新
+			CalculateAABB(buildingObjects[j]->boundingBox, buildingObjects[j]->position, buildingObjects[j]->scaling);
 
+			for (int k = 0; k < PLAYER_MAX; k++)
+			{
+				// プレイヤー（0~3）と　建物の当たり判定
+				MTV collision_player = CalculateAABBMTV(object[k].boundingBox, object[1].boundingBox);
+			}
 
+			if (collision_player.isColliding)
+			{
+				//hal::dout << " プレイヤー衝突！ 互いに吹き飛ばし実行" << std::endl;
+				// 吹き飛ばしの強さ（X-Z方向）
+				float knockbackPowerXZ = 0.5f; // 強さを調整
+				// 吹き飛ばしの強さ（Y方向）
+				float knockbackPowerY = 0.3f; // 高さを調整
 
+				// プレイヤー0 の向き（ラジアン）を計算
+				float rad_0 = XMConvertToRadians(object[0].rotation.y);
+				// プレイヤー0 の向きベクトル（X-Z平面）
+				object[0].dir.x = sinf(rad_0);
+				object[0].dir.z = cosf(rad_0);
 
-		//// 地面になかった場合の処理（落下など）が必要ならここに書く
-		//if (!isGrounded)
-		//{
-		//	// ここでは特に何もしない（ループ冒頭で y -= 0.1f しているので落ち続ける）
-		//	// 落下死のリセット処理などを書いても良い
-		//	if (object[i].position.y < -5.0f) {
-		//		object[i].position = XMFLOAT3(0, 2, 0); // リスポーン
-		//	}
-		//}
+				// プレイヤー1 の向き（ラジアン）を計算
+				float rad_1 = XMConvertToRadians(object[1].rotation.y);
+				// プレイヤー1 の向きベクトル（X-Z平面）
+				object[1].dir.x = sinf(rad_1);
+				object[1].dir.z = cosf(rad_1);
 
+				//if (Keyboard_IsKeyDown(KK_SPACE))
+				//{
+				//	// プレイヤー1 を、プレイヤー0の向いている方向に吹き飛ばす
+				//	object[1].position.x += dir0_x * object[0].power;
+				//	object[1].position.z += dir0_z * object[0].power;
+				//	object[1].position.y += object[0].power; // Y方向にも飛ばす
+				//}
+
+				//if (Keyboard_IsKeyDown(KK_ENTER))
+				//{
+				//	// プレイヤー0 を、プレイヤー1の向いている方向に吹き飛ばす
+				//	object[0].position.x += dir1_x * object[1].power;
+				//	object[0].position.z += dir1_z * object[1].power;
+				//	object[0].position.y += object[1].power; // Y方向にも飛ばす
+				//}
+				// 衝突していた場合、MTVの半分ずつをそれぞれのオブジェクトに適用して押し戻す
+
+				// 押し戻し量 (MTV) を半分にする
+				XMFLOAT3 half_translation =
+				{
+					collision_player.translation.x * 0.5f,
+					collision_player.translation.y * 0.5f,
+					collision_player.translation.z * 0.5f
+				};
+
+				// プレイヤー0 (object[0]) を **MTVの半分だけ** 押す
+				// MTVの方向 (collision_player.translation) は「AをBから押し出す方向」だから、そのまま使う
+				object[0].position.x += half_translation.x;
+				object[0].position.y += half_translation.y;
+				object[0].position.z += half_translation.z;
+				//object[0].hp -= object[1].power;
+
+				// プレイヤー1 (object[1]) を **MTVの逆方向の半分だけ** 押す
+				// 逆方向にするために、X, Y, Z の符号を反転させる
+				object[1].position.x -= half_translation.x;
+				object[1].position.y -= half_translation.y;
+				object[1].position.z -= half_translation.z;
+				//object[1].hp -= object[0].power;
+
+				// 押し戻し後の新しいAABBを再計算 (次フレームや他の衝突判定に備える)
+				CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
+				CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
+
+				// 吹き飛ばし後の新しいAABBを再計算 (他の衝突判定に備える)
+				CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
+				CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
+			}
+		}
 
 		// ▲▲▲▲▲ 修正ここまで ▲▲▲▲▲
 
@@ -835,33 +902,6 @@ void Polygon3D_Update()
 		CheckRespawnPlayer(idx);
 	}
 
-	//// HPが0以下
-	//if (object[0].hp < 0.0f)
-	//{
-	//	object[0].hp = 0.0f;
-	//	object[0].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
-	//// 落下した場合
-	//if (object[0].position.y < -10.0f)
-	//{
-	//	object[0].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
-
-	//// HPが0以下
-	//if (object[1].hp < 0.0f)
-	//{
-	//	object[1].hp = 0.0f;
-	//	object[1].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
-	//// 落下した場合
-	//if (object[1].position.y < -10.0f)
-	//{
-	//	object[1].residue -= 1;
-	//	Polygon3D_Respawn();
-	//}
 
 }		
 
