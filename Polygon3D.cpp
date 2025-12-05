@@ -940,8 +940,8 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		XMMATRIX View = GetViewMatrix();// ビュー行列作成
 		XMMATRIX WVP = WorldMatrix * View * Projection;// 最終的な変換行列を作成　乗算の順番に注意！！
 
-		Shader_SetMatrix(WVP);// 螟画鋤陦悟�繧帝らせ繧ｷ繧ｧ繝ｼ繝繝ｼ縺ｸ繧ｻ繝�ヨ
-		Shader_Begin();// 繧ｷ繧ｧ繝ｼ繝繝ｼ繧呈緒逕ｻ繝代う繝励Λ繧､繝ｳ縺ｸ險ｭ螳
+		Shader_SetMatrix(WVP);
+		Shader_Begin();
 		SetBlendState(BLENDSTATE_NONE);
 
 		// 頂点データを頂点バッファへコピーする
@@ -949,9 +949,9 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex* vertex = (Vertex*)msr.pData;
 
-		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	// 鬆らせ繝��繧ｿ繧偵さ繝斐�縺吶ｋ
-		g_pContext->Unmap(g_VertexBuffer, 0);							// 繧ｳ繝斐�螳御ｺ
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			// 繝�け繧ｹ繝√Ε繧偵そ繝�ヨ
+		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	
+		g_pContext->Unmap(g_VertexBuffer, 0);							
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			
 		Shader_SetColor({1,1,1,1});
 
 		// 頂点バッファをセット
@@ -1011,6 +1011,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 //
 //}
 
+
 void Polygon3D_DrawHP()
 {
 	Shader_Begin();
@@ -1018,23 +1019,24 @@ void Polygon3D_DrawHP()
 	// 蛟句挨UI繧ｹ繝��繧ｿ繧ｹ謠冗判
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		SetBlendState(BLENDSTATE_ALFA);
+		SetBlendState(BLENDSTATE_ALPHA);
 
-		// HP繝舌�謠冗判
+
 		DrawHP(&HPBar[i]);
 		XMFLOAT2 hp = HPBar[i].pos;
 
-		// 繧ｲ繝ｼ繧ｸ謠冗判逕ｨ險ｭ螳
+
 		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
 			object[i].gaugeOuter, { hp.x - 130.0f , hp.y });
 
-		// 繧ｲ繝ｼ繧ｸ謠冗判
+
 		Gauge_Draw(i);
 
-		// 繧ｷ繧ｧ繝ｼ繝繝ｼ繝ｪ繧ｻ繝�ヨ
+
 		Shader_Begin();
 
-		Polygon3D_DrawResidue(i);
+		Polygon3D_DrawStock(i);
+
 	}
 }
 
