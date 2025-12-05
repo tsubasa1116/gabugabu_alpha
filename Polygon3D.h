@@ -27,8 +27,8 @@ struct PLAYEROBJECT
 	float power;			// パワー
 	float speed;			// スピード
 	XMFLOAT3 dir;			// 向き
-	int stock;			// 残機
-	bool active;            // 生存フラグ
+	int stock;				// 残機
+	bool active;			// 生存フラグ
 	bool isAttacking;		// 攻撃中かどうか
 	float attackTimer;		// 攻撃タイマー
 	float attackDuration;	// 攻撃持続時間
