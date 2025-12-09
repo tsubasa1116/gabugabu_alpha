@@ -1,4 +1,4 @@
-//======================================================
+// =====================================================
 //	polygon3D.cpp[]
 // 
 //	制作者：平岡颯馬			日付：2025/12/04
@@ -42,7 +42,7 @@ using namespace DirectX;
 #define HPBER_SIZE_Y 150.0f
 
 //======================================================
-//	構造謡宣言
+//	構造体宣言
 //======================================================
 // オブジェクト
 PLAYEROBJECT object[PLAYER_MAX];
@@ -326,7 +326,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	//頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
-	ZeroMemory(&bd, sizeof(bd));//０でクリア
+	ZeroMemory(&bd, sizeof(bd));//0でクリア
 	bd.Usage = D3D11_USAGE_DYNAMIC;
 	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;//格納できる頂点数*頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -433,7 +433,7 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 
 		// 目標角度を求める
 		float targetAngle = atan2f(moveDir.x, moveDir.z);	// ベクトルの角度
-		targetAngle = XMConvertToDegrees(targetAngle);		// ラジアン → 度
+		targetAngle = XMConvertToDegrees(targetAngle);		// ラジアン -> 度
 
 		// 差分を調整（180度超えないように）
 		float diff = targetAngle - object.moveAngle;	// 角度差
@@ -507,7 +507,7 @@ void Polygon3D_Update()
 	{
 		static XMFLOAT3 posBuff = object[i].position;	// デバッグ表示座標
 
-		// Y軸の移動量 (重力 + ジャンプ)
+		// y軸の移動量 (重力 + ジャンプ)
 		// 重力加速度のない簡易的な重力
 		object[i].position.y += -0.1f;
 
@@ -530,7 +530,7 @@ void Polygon3D_Update()
 		//bool isGrounded = false;		// 地面に足がついているかフラグ
 
 
-		// 2. マップデータ（地面）との当たり判定
+		// マップデータ（地面）との当たり判定
 		int fieldCount = GetFieldObjectCount();
 		MAPDATA* fieldObjects = GetFieldObjects();
 
@@ -559,7 +559,7 @@ void Polygon3D_Update()
 				{
 					//float overlap = tileTopY - object[i].boundingBox.Min.y;
 
-					// 中心から底面までの差は0.5のはずなのになぜか0.3くらいになる!!!!!!!!!!
+					// 中心から底面までの差は0.5のはずなのになぜか0.3くらいになる
 					//float def = (object[i].position.y - object[i].boundingBox.Min.y);
 					float def = 0.5f;	// とりあえずの0.5f
 					float overlap = tileTopY + def * object[i].scaling.y;
@@ -655,89 +655,13 @@ void Polygon3D_Update()
 		SKILL_OBJECT* skillForPlayer = (i == 0) ? skill1 : ((i == 1) ? skill2 : nullptr);
 		if (skillForPlayer != nullptr)
 		{
-			// 同期方法：プレイヤーと同じスケールにする（必要なら係数を掛けて調整）
+			// 同期方法：プレイヤーと同じスケールにする（必要なら係数をかけて調整）
 			skillForPlayer->scaling.x = object[i].scaling.x / 2;
 			skillForPlayer->scaling.y = object[i].scaling.y / 2;
 			skillForPlayer->scaling.z = object[i].scaling.z / 2;
 		}
 		///////////////////////////////////////////////////////////////////////////////////////////////
 
-		/*
-		// -------------------------------------------------------------
-		// 当たり判定
-		// -------------------------------------------------------------
-		// AABBの更新
-
-		//int fieldCount = GetFieldObjectCount();
-		// 全てのフィールドオブジェクトと衝突判定を行う
-		//for (int j = 0; j < fieldCount; ++j)
-		//{
-
-		//	// フィールドオブジェクトのリストを取得
-		//	MAPDATA* fieldObjects = GetFieldObjects();
-
-		//	// i番目のフィールドオブジェクトのAABBを取得
-		//	AABB pStaticObjectAABB = fieldObjects[j].boundingBox;
-
-		//	CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-		//	// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
-		//	MTV collision = CalculateAABBMTV(object[i].boundingBox, pStaticObjectAABB);	// 押し戻す量
-
-		//	// 非アクティブなオブジェクトは処理をスキップ
-		//	if (!fieldObjects[j].isActive)
-		//	{
-		//		continue; // 次のオブジェクトへ
-		//	}
-		//	////if(CheckAABBCollision(object[0].boundingBox, fieldObjects->boundingBox)&& fieldObjects->no==FIELD_BUILDING)
-		//	//if (CheckAABBCollision(object[i].boundingBox, fieldObjects[j].boundingBox) && fieldObjects[j].no == FIELD_BUILDING && Keyboard_IsKeyDown(KK_SPACE))
-		//	//{
-		//	//	// 建物に衝突していて、かつスペースキーが押されていたら
-		//	//	fieldObjects[j].isActive = false;
-		//	//	object[i].form = (Form)((int)object[i].form + 1); // 進化
-		//	//}
-		//	if (CheckAABBCollision(object[0].boundingBox, object[1].boundingBox) && Keyboard_IsKeyDown(KK_SPACE))
-		//	{
-		//		// スキル使用時
-		//		object[i].form = (Form)((int)object[i].form - 1); // 進化
-		//	}
-
-		//	if (collision.isColliding)
-		//	{
-		//		//////////////////////////////////////////////
-		//		// ↓↓↓ 無理やり押し戻しているから要修正
-		//		//////////////////////////////////////////////
-		//		if (fieldObjects[j].no == FIELD::FIELD_BOX)
-		//		{
-		//			// 衝突していたら、MTVの分だけ位置を戻す
-		//			//object[0].position.x += collision.translation.x;
-		//			object[i].position.y += collision.translation.y;
-		//			//object[0].position.z += collision.translation.z;
-
-		//			// 押し戻し後の新しいAABBを再計算
-		//			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
-		//			CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-		//		}
-		//		//else if (fieldObjects[j].no == FIELD::FIELD_BUILDING)
-		//		//{
-		//		//	object[i].position.x += collision.translation.x;
-		//		//	object[i].position.y += collision.translation.y;
-		//		//	object[i].position.z += collision.translation.z;
-
-		//		//	CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-		//		//}
-
-		//		// デバッグ出力
-		//		hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " <<
-		//			(collision.translation.x != 0 ? "X軸" :
-		//				(collision.translation.y != 0 ? "Y軸" :
-		//					"Z軸")) << std::endl;
-
-		//		// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
-		//	}
-		//}
-
-		// Polygon3D_Update() 関数の中のフィールドとの衝突判定ループの直後に追加
-		*/
 		// -------------------------------------------------------------
 		// プレイヤーオブジェクト同士の当たり判定
 		// -------------------------------------------------------------
@@ -752,20 +676,20 @@ void Polygon3D_Update()
 		if (collision_player.isColliding)
 		{
 			//hal::dout << " プレイヤー衝突！ 互いに吹き飛ばし実行" << std::endl;
-			// 吹き飛ばしの強さ（X-Z方向）
+			// 吹き飛ばしの強さ（XZ方向）
 			float knockbackPowerXZ = 0.5f; // 強さを調整
 			// 吹き飛ばしの強さ（Y方向）
 			float knockbackPowerY = 0.3f; // 高さを調整
 
 			// プレイヤー0 の向き（ラジアン）を計算
 			float rad_0 = XMConvertToRadians(object[0].rotation.y);
-			// プレイヤー0 の向きベクトル（X-Z平面）
+			// プレイヤー0 の向きベクトル（XZ平面）
 			object[0].dir.x = sinf(rad_0);
 			object[0].dir.z = cosf(rad_0);
 
 			// プレイヤー1 の向き（ラジアン）を計算
 			float rad_1 = XMConvertToRadians(object[1].rotation.y);
-			// プレイヤー1 の向きベクトル（X-Z平面）
+			// プレイヤー1 の向きベクトル（XZ平面）
 			object[1].dir.x = sinf(rad_1);
 			object[1].dir.z = cosf(rad_1);
 
@@ -794,14 +718,14 @@ void Polygon3D_Update()
 				collision_player.translation.z * 0.5f
 			};
 
-			// プレイヤー0 (object[0]) を **MTVの半分だけ** 押す
+			// プレイヤー0 (object[0]) を MTVの半分だけ 押す
 			// MTVの方向 (collision_player.translation) は「AをBから押し出す方向」だから、そのまま使う
 			object[0].position.x += half_translation.x;
 			object[0].position.y += half_translation.y;
 			object[0].position.z += half_translation.z;
 			//object[0].hp -= object[1].power;
 
-			// プレイヤー1 (object[1]) を **MTVの逆方向の半分だけ** 押す
+			// プレイヤー1 (object[1]) を MTVの逆方向の半分だけ 押す
 			// 逆方向にするために、X, Y, Z の符号を反転させる
 			object[1].position.x -= half_translation.x;
 			object[1].position.y -= half_translation.y;
@@ -936,17 +860,19 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		XMMATRIX View = GetViewMatrix();// ビュー行列作成
 		XMMATRIX WVP = WorldMatrix * View * Projection;// 最終的な変換行列を作成　乗算の順番に注意！！
 
-		Shader_SetMatrix(WVP);// 変換行列を頂点シェーダーへセット
-		Shader_Begin();// シェーダーを描画パイプラインへ設定
+		Shader_SetMatrix(WVP);
+		Shader_Begin();
+		SetBlendState(BLENDSTATE_NONE);
 
 		// 頂点データを頂点バッファへコピーする
 		D3D11_MAPPED_SUBRESOURCE msr;
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex* vertex = (Vertex*)msr.pData;
 
-		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	// 頂点データをコピーする
-		g_pContext->Unmap(g_VertexBuffer, 0);							// コピー完了
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			// テクスチャをセット
+		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	
+		g_pContext->Unmap(g_VertexBuffer, 0);							
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			
+		Shader_SetColor({1,1,1,1});
 
 		// 頂点バッファをセット
 		UINT stride = sizeof(Vertex);	// 頂点1個のデータサイズ
@@ -985,6 +911,54 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			}
 		}
 		//s_IsKonamiCodeEntered = false;
+	}
+}
+
+//======================================================
+//	攻撃関数
+//======================================================
+//void Polygon3D_Attack()
+//{
+//	// Player1がPlayer2を攻撃する
+//	if (Keyboard_IsKeyDown(KK_SPACE))
+//	{
+//
+//	}
+//
+//	// Player2がPlayer1を攻撃する
+//	if (Keyboard_IsKeyDown(KK_ENTER))
+//	{
+//
+//	}
+//
+//}
+
+
+void Polygon3D_DrawHP()
+{
+	Shader_Begin();
+
+	// 蛟句挨UI繧ｹ繝??繧ｿ繧ｹ謠冗判
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		SetBlendState(BLENDSTATE_ALPHA);
+
+
+		DrawHP(&HPBar[i]);
+		XMFLOAT2 hp = HPBar[i].pos;
+
+
+		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
+			object[i].gaugeOuter, { hp.x - 130.0f , hp.y });
+
+
+		Gauge_Draw(i);
+
+
+		Shader_Begin();
+
+		Polygon3D_DrawStock(i);
+
 	}
 }
 
@@ -1161,6 +1135,7 @@ void Polygon3D_DrawStock(int i)
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);
 	}
+	
 }
 
 
