@@ -852,11 +852,7 @@ void Polygon3D_Update()
 	{
 		CheckRespawnPlayer(idx);
 	}
-
-
 }		
-
-
 
 //======================================================
 //	描画関数
@@ -879,12 +875,6 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	{
 		Player1_Skill_Draw();
 	}
-
-
-	//// スキル使用時のみスキルを表示
-	//if (object[0].isAttaking == true)
-	//{
-	//}
 
 	// スキル使用時のみスキルを表示
 	if (object[1].isAttacking == true)
