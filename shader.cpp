@@ -26,9 +26,11 @@ static ID3D11Buffer* g_pWorldConstantBuffer = nullptr;//定数バッファ1個
 
 static ID3D11PixelShader* g_pGaugeShader = nullptr;
 static ID3D11PixelShader* g_pOutGaugeShader = nullptr;
+static ID3D11PixelShader* g_pHpberShader = nullptr;
 
 static ID3D11Buffer* g_pGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pOutGaugeBuffer = nullptr;
+static ID3D11Buffer* g_pHpberBuffer = nullptr;
 static ID3D11Buffer* g_pColorBuffer = nullptr;
 
 static ID3D11PixelShader* g_pDebugColorShader = nullptr; // コライダー可視化
@@ -257,6 +259,21 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	g_pDevice->CreatePixelShader(psBin_dbg.data(), psSize_dbg, nullptr, &g_pDebugColorShader);
 
+	//----------------------------------------------------------
+	// ピクセルシェーダー読み込み
+	//----------------------------------------------------------
+	std::ifstream ifs_ps_hpber("ps_hpber.cso", std::ios::binary);
+	if (!ifs_ps_hpber) return false;
+
+	ifs_ps_hpber.seekg(0, std::ios::end);
+	size_t psSize_hpber = (size_t)ifs_ps_hpber.tellg();
+	ifs_ps_hpber.seekg(0, std::ios::beg);
+
+	std::vector<unsigned char> psBin_hpber(psSize_hpber);
+	ifs_ps_hpber.read((char*)psBin_hpber.data(), psSize_hpber);
+
+	g_pDevice->CreatePixelShader(psBin_hpber.data(), psSize_hpber, nullptr, &g_pOutGaugeShader);
+
 
 
 
@@ -375,6 +392,18 @@ void Shader_BeginOutGauge()
 {
 	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
 	g_pContext->PSSetShader(g_pOutGaugeShader, nullptr, 0);
+
+	g_pContext->IASetInputLayout(g_pInputLayout);
+	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
+}
+
+//======================================================
+//	HPバー用シェーダー設定
+//======================================================
+void Shader_BeginHpber()
+{
+	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(g_pHpberShader, nullptr, 0);
 
 	g_pContext->IASetInputLayout(g_pInputLayout);
 	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);

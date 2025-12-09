@@ -104,7 +104,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext); // プレイヤーの初期化
 	//Player_Initialize(pDevice, pContext); // ポリゴンの初期化
 	//Block_Initialize(pDevice, pContext);//ブロックの初期化
-	//Effect_Initialize(pDevice, pContext);//エフェクト初期化
+	Effect_Initialize(pDevice, pContext);//エフェクト初期化
 	//Score_Initialize(pDevice, pContext);//スコア初期化
 	Skill_Initialize(pDevice, pContext);
 
@@ -145,7 +145,7 @@ void Game_Finalize()
 	//P_Finalize();
 	//Block_Finalize();
 	//Player_Finalize();	// ポリゴンの終了処理
-	//Effect_Finalize();
+	Effect_Finalize();
 	//Score_Finalize();
 	Polygon3D_Finalize();
 	Camera_Finalize();
@@ -177,7 +177,7 @@ void Game_Update()
 	//P_Update();
 	//Player_Update();
 	//Block_Update();
-	//Effect_Update();
+	Effect_Update();
 	//Score_Update();
 	Polygon3D_Update();
 	Gauge_Update();
@@ -216,7 +216,7 @@ void Game_Draw()
 	//P_Draw();
 	//Block_Draw();
 	//Player_Draw();
-	//Effect_Draw();
+	Effect_Draw();
 	//Score_Draw();
 
 

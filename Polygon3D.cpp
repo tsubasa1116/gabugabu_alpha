@@ -81,16 +81,6 @@ static	Vertex vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点3 LEFT-BOTTOM
-	//	XMFLOAT3(-0.5f, -0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点4 RIGHT-TOP
-	//	XMFLOAT3(0.5f, 0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
 	{//頂点5 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -113,16 +103,6 @@ static	Vertex vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点9 LEFT-BOTTOM
-	//	XMFLOAT3(0.5f, -0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点10 RIGHT-TOP
-	//	XMFLOAT3(0.5f, 0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
 	{//頂点11 RIGHT-BOTTM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -145,16 +125,6 @@ static	Vertex vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点15 LEFT-BOTTOM
-	//	XMFLOAT3(0.5f, -0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点16 RIGHT-TOP
-	//	XMFLOAT3(-0.5f, 0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
 	{//頂点17 RIGHT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -177,16 +147,6 @@ static	Vertex vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点21 LEFT-BOTTOM
-	//	XMFLOAT3(-0.5f, -0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点22 RIGHT-TOP
-	//	XMFLOAT3(-0.5f, 0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
 	{//頂点23 RIGHT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -209,16 +169,6 @@ static	Vertex vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点27 LEFT-BOTTOM
-	//	XMFLOAT3(-0.5f, 0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点28 RIGHT-TOP
-	//	XMFLOAT3(0.5f, 0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
 	{//頂点29 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -241,16 +191,6 @@ static	Vertex vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点33 LEFT-BOTTOM
-	//	XMFLOAT3(-0.5f, -0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点34 RIGHT-TOP
-	//	XMFLOAT3(0.5f, -0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
 	{//頂点35 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
