@@ -25,6 +25,7 @@
 #include	"Camera.h"
 
 #include "Ball.h"
+#include "attack.h"
 #include "skill.h"
 
 #include "fade.h"
@@ -107,7 +108,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//Block_Initialize(pDevice, pContext);//ブロックの初期化
 	//Effect_Initialize(pDevice, pContext);//エフェクト初期化
 	//Score_Initialize(pDevice, pContext);//スコア初期化
-	Skill_Initialize(pDevice, pContext);
+	Attack_Initialize(pDevice, pContext);
 
 	Polygon3D_Initialize(pDevice, pContext);//３Dテスト初期化
 
@@ -150,7 +151,7 @@ void Game_Finalize()
 	//Score_Finalize();
 	Polygon3D_Finalize();
 	Camera_Finalize();
-	Skill_Finalize();
+	Attack_Finalize();
 
 	UnloadAudio(g_BgmID);//サウンドの解放
 }

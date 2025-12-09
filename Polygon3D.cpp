@@ -25,7 +25,7 @@ using namespace DirectX;
 
 #include <iostream>
 #include "debug_ostream.h"
-#include "skill.h" 
+#include "attack.h" 
 ///////////////////////////////////////
 
 #include "imgui.h"
@@ -290,7 +290,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].active = true;
 	object[0].isAttacking = false;
 	object[0].attackTimer = 0.0f;
-	object[0].attackDuration = 5.0f;
+	object[0].attackDuration = 2.0f;
 	object[0].breakCount_Glass = 0;
 	object[0].breakCount_Plant = 0;
 	object[0].breakCount_Concrete = 0;
@@ -313,7 +313,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].active = true;
 	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
-	object[1].attackDuration = 5.0f;
+	object[1].attackDuration = 2.0f;
 	object[1].breakCount_Glass = 0;
 	object[1].breakCount_Plant = 0;
 	object[1].breakCount_Concrete = 0;
@@ -344,7 +344,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);
 
-	LoadFromWICFile(L"Asset\\Texture\\texture.jpg", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\characterMini01_v1.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
 	assert(g_Texture[1]);
 
@@ -459,28 +459,25 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 //======================================================
 void Polygon3D_Update()
 {
-	// プレイヤー1 スキル発動
-	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
+	// 各プレイヤーに対応する発動キー
+	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER };
+
+	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		object[0].isAttacking = true;
-	}
-	if (object[0].isAttacking == true)
-	{
-		Player1_Skill_Update();
+		// 発動トリガー入力をチェックしてフラグを立てる
+		if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
+		{
+			object[p].isAttacking = true;
+		}
+
+		if (object[p].isAttacking)
+		{
+			Attack_Update(p);
+		}
 	}
 
-	// プレイヤー2 スキル発動
-	if (Keyboard_IsKeyDownTrigger(KK_ENTER))
-	{
-		object[1].isAttacking = true;
-	}
-	if (object[1].isAttacking == true)
-	{
-		Player2_Skill_Update();
-	}
-
-	// スキルとプレイヤーの当たり判定（object[0] <-> Skill2、object[1] <-> Skill1）
-	SkillPlayerCollisions();
+	// スキルとプレイヤーの当たり判定（object[0] <-> Attack2、object[1] <-> Attack1）
+	AttackPlayerCollisions();
 
 	ImGui::Begin("Player Debug");
 	// HPバー
@@ -629,17 +626,17 @@ void Polygon3D_Update()
 			break;
 
 		case FirstEvolution: // 1進化
-			object[i].scaling.x = 1.0f;
-			object[i].scaling.y = 1.0f;
-			object[i].scaling.z = 1.0f;
+			object[i].scaling.x = 0.8f;
+			object[i].scaling.y = 0.8f;
+			object[i].scaling.z = 0.8f;
 			object[i].speed = 0.05f;
 			object[i].power = 1.0f;
 			break;
 
 		case SecondEvolution: // 2進化
-			object[i].scaling.x = 1.5f;
-			object[i].scaling.y = 1.5f;
-			object[i].scaling.z = 1.5f;
+			object[i].scaling.x = 1.2f;
+			object[i].scaling.y = 1.2f;
+			object[i].scaling.z = 1.2f;
 			object[i].speed = 0.04f;
 			object[i].power = 1.5f;
 			break;
@@ -648,17 +645,17 @@ void Polygon3D_Update()
 			break;
 		}
 
-		SKILL_OBJECT* skill1 = GetSkill(1);
-		SKILL_OBJECT* skill2 = GetSkill(2);
+		ATTACK_OBJECT* attack1 = GetAttack(1);
+		ATTACK_OBJECT* attack2 = GetAttack(2);
 
-		// プレイヤー i に対応するスキル（i==0 -> skill1, i==1 -> skill2）をプレイヤーのフォームに合わせてスケーリング同期
-		SKILL_OBJECT* skillForPlayer = (i == 0) ? skill1 : ((i == 1) ? skill2 : nullptr);
-		if (skillForPlayer != nullptr)
+		// プレイヤー i に対応するスキル（i==0 -> attack1, i==1 -> attack2）をプレイヤーのフォームに合わせてスケーリング同期
+		ATTACK_OBJECT* attackForPlayer = (i == 0) ? attack1 : ((i == 1) ? attack2 : nullptr);
+		if (attackForPlayer != nullptr)
 		{
 			// 同期方法：プレイヤーと同じスケールにする（必要なら係数をかけて調整）
-			skillForPlayer->scaling.x = object[i].scaling.x / 2;
-			skillForPlayer->scaling.y = object[i].scaling.y / 2;
-			skillForPlayer->scaling.z = object[i].scaling.z / 2;
+			attackForPlayer->scaling.x = object[i].scaling.x / 2;
+			attackForPlayer->scaling.y = object[i].scaling.y / 2;
+			attackForPlayer->scaling.z = object[i].scaling.z / 2;
 		}
 		///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -768,7 +765,7 @@ void Polygon3D_Update()
 			
 
 	// -------------------------------------------------------------
-	// 当たり判定 Player1とSkill2
+	// 当たり判定 Player1とAttack2
 	// -------------------------------------------------------------
 	//// AABBの更新
 
@@ -794,16 +791,14 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	}
 	
 	//Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-	// スキル使用時のみスキルを表示
-	if (object[0].isAttacking == true)
+	 
+	// スキル描画
+	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		Player1_Skill_Draw();
-	}
-
-	// スキル使用時のみスキルを表示
-	if (object[1].isAttacking == true)
-	{
-		Player2_Skill_Draw();
+		if (object[p].isAttacking)
+		{
+			Attack_Draw(p);
+		}
 	}
 
 	Shader_Begin(); 
@@ -914,31 +909,11 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	}
 }
 
-//======================================================
-//	攻撃関数
-//======================================================
-//void Polygon3D_Attack()
-//{
-//	// Player1がPlayer2を攻撃する
-//	if (Keyboard_IsKeyDown(KK_SPACE))
-//	{
-//
-//	}
-//
-//	// Player2がPlayer1を攻撃する
-//	if (Keyboard_IsKeyDown(KK_ENTER))
-//	{
-//
-//	}
-//
-//}
-
-
 void Polygon3D_DrawHP()
 {
 	Shader_Begin();
 
-	// 蛟句挨UI繧ｹ繝??繧ｿ繧ｹ謠冗判
+	// 個別UIステータス描画
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -1010,30 +985,30 @@ void Polygon3D_Respawn(int idx)
 	}
 }
 
-void SkillPlayerCollisions()
+void AttackPlayerCollisions()
 {
-	// Skill / Player オブジェクト取得
-	SKILL_OBJECT* skill1 = GetSkill(1);
-	SKILL_OBJECT* skill2 = GetSkill(2);
+	// Attack / Player オブジェクト取得
+	ATTACK_OBJECT* attack1 = GetAttack(1);
+	ATTACK_OBJECT* attack2 = GetAttack(2);
 	PLAYEROBJECT* p1 = &object[0];
 	PLAYEROBJECT* p2 = &object[1];
 
 	// AABB を最新化
 	CalculateAABB(p1->boundingBox, p1->position, p1->scaling);
 	CalculateAABB(p2->boundingBox, p2->position, p2->scaling);
-	CalculateAABB(skill1->boundingBox, skill1->position, skill1->scaling);
-	CalculateAABB(skill2->boundingBox, skill2->position, skill2->scaling);
+	CalculateAABB(attack1->boundingBox, attack1->position, attack1->scaling);
+	CalculateAABB(attack2->boundingBox, attack2->position, attack2->scaling);
 
 	// ------------------------
-	// object[0] と Skill2 の当たり判定
-	// （Skill2 は object[1] のスキル）
+	// object[0] と Attack2 の当たり判定
+	// （Attack2 は object[1] のスキル）
 	// ------------------------
 	if (object[1].isAttacking)
 	{
-		MTV col = CalculateAABBMTV(p1->boundingBox, skill2->boundingBox);
+		MTV col = CalculateAABBMTV(p1->boundingBox, attack2->boundingBox);
 		if (col.isColliding)
 		{
-			hal::dout << "Skill2 hit object[0] overlap=" << col.overlap << std::endl;
+			hal::dout << "Attack2 hit object[0] overlap=" << col.overlap << std::endl;
 
 			// ノックバック
 			p1->position.x += p2->dir.x * p2->power;
@@ -1049,20 +1024,20 @@ void SkillPlayerCollisions()
 
 			// AABB を更新
 			CalculateAABB(p1->boundingBox, p1->position, p1->scaling);
-			CalculateAABB(skill2->boundingBox, skill2->position, skill2->scaling);
+			CalculateAABB(attack2->boundingBox, attack2->position, attack2->scaling);
 		}
 	}
 
 	// ------------------------
-	// object[1] と Skill1 の当たり判定
-	// （Skill1 は object[0] のスキル）
+	// object[1] と Attack1 の当たり判定
+	// （Attack1 は object[0] のスキル）
 	// ------------------------
 	if (object[0].isAttacking)
 	{
-		MTV col = CalculateAABBMTV(p2->boundingBox, skill1->boundingBox);
+		MTV col = CalculateAABBMTV(p2->boundingBox, attack1->boundingBox);
 		if (col.isColliding)
 		{
-			hal::dout << "Skill1 hit object[1] overlap=" << col.overlap << std::endl;
+			hal::dout << "Attack1 hit object[1] overlap=" << col.overlap << std::endl;
 
 			// ノックバック
 			p2->position.x += p1->dir.x * p1->power;
@@ -1078,7 +1053,7 @@ void SkillPlayerCollisions()
 
 			// AABB を更新
 			CalculateAABB(p2->boundingBox, p2->position, p2->scaling);
-			CalculateAABB(skill1->boundingBox, skill1->position, skill1->scaling);
+			CalculateAABB(attack1->boundingBox, attack1->position, attack1->scaling);
 		}
 	}
 }

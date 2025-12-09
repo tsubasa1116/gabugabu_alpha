@@ -57,8 +57,7 @@ void Polygon3D_Update();
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 void Polygon3D_DrawHP();
 
-void SkillPlayerCollisions();
-void Polygon3D_Attack();
+void AttackPlayerCollisions();
 void Polygon3D_Respawn(int index);
 void CheckRespawnPlayer(int index);
 
