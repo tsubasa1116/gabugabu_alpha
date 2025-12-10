@@ -40,7 +40,6 @@ struct PLAYEROBJECT
 	int breakCount_Concrete;	// 破壊した数 コンクリート
 	int breakCount_Electricity;	// 破壊した数 電気
 
-
 	float gl, pl, co, el;
 	float gaugeOuter;
 
