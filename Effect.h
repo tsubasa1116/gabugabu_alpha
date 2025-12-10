@@ -22,6 +22,5 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Effect_Finalize();
 void Effect_Update();
 void Effect_Draw();
-
-void CreateEffect(XMFLOAT2 Position);	//エフェクト作成
+void Effect_Set(ID3D11ShaderResourceView* tex, XMFLOAT2 pos, XMFLOAT2 size);
 

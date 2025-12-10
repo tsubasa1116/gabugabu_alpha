@@ -210,13 +210,15 @@ void Game_Draw()
 	Light.SetEnable(FALSE);			//ライティングOFF
 	Shader_SetLight(Light.Light);	//ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
-
+    
+	Polygon3D_DrawEffect();
+	Effect_Draw();
 	Polygon3D_DrawHP();
+	
 	//BallDraw();
 	//P_Draw();
 	//Block_Draw();
 	//Player_Draw();
-	Effect_Draw();
 	//Score_Draw();
 
 

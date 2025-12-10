@@ -6,7 +6,7 @@ static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 //プレイヤー関連変数
-static	ID3D11ShaderResourceView* g_Texture[3];
+static	ID3D11ShaderResourceView* g_Texture[6];
 
 // HPバーのスムーズ減少速度
 #define HPBAR_SPEED 3.0f
@@ -31,18 +31,29 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HP* bar,
 	TexMetadata		metadata;
 	ScratchImage	image;
 	
-	LoadFromWICFile(L"asset\\texture\\uiGaugeGreen_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiHpGauge_v2.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);//読み込み失敗時にダイアログを表示
-
 
 	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
 	assert(g_Texture[1]);//読み込み失敗時にダイアログを表示
 
-	LoadFromWICFile(L"asset\\texture\\uiGaugeBase_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v2.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
 	assert(g_Texture[2]);//読み込み失敗時にダイアログを表示
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v2.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
+	assert(g_Texture[3]);//読み込み失敗時にダイアログを表示
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v2.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
+	assert(g_Texture[4]);//読み込み失敗時にダイアログを表示
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v2.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
+	assert(g_Texture[5]);//読み込み失敗時にダイアログを表示
 }
 
 
@@ -110,7 +121,7 @@ void UpdateHP(HP* bar)
 //
 //}
 
-void DrawHP(const HP* bar)
+void DrawHP(const HP* bar, int texNum)
 {
 	if (!bar->use) return;
 
@@ -132,19 +143,20 @@ void DrawHP(const HP* bar)
 	};
 	
 	XMFLOAT2 fillSize = { bar->size.x * ratio, bar->size.y };
-	XMFLOAT2 fillPos = { bar->pos.x - (bar->size.x / 2.0f) + fillSize.x / 2.0f, bar->pos.y
+	XMFLOAT2 fillPos = { bar->pos.x - (bar->size.x / 2.0f) + (fillSize.x / 2.0f), bar->pos.y
 	};
 
+	// サイズ・位置調整（ごり押し）
+	XMFLOAT2 fillSizeOK = { fillSize .x / 1.88f, fillSize .y / 2.0f};
+	XMFLOAT2 fillPosOK = {bar->pos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 97.0f, bar->pos.y + 33.0f};
 	
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture[2]);
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNum]);
 	DrawSprite(backPos, backSize, bar->backColor);
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
-	DrawSpriteUV(fillPos, fillSize, bar->fillColor, uvMin, uvMax);
+	DrawSpriteUV(fillPosOK, fillSizeOK, bar->fillColor, uvMin, uvMax);
 
-
-	SetBlendState(BLENDSTATE_ALPHA);
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
-	DrawSprite({ 74, 647 }, {110, 110}, XMFLOAT4(1, 1, 1, 0.6));
+	/*g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
+	DrawSprite({ 74, 647 }, {110, 110}, XMFLOAT4(1, 1, 1, 0.6));*/
 }
 
 

@@ -21,6 +21,9 @@ static ID3D11ShaderResourceView* g_Texture;
 static int g_EffectFrame = 0;
 static int g_EffectTimer = 0;
 
+static XMFLOAT2 g_EffectPos   = { 0.0f, 0.0f };
+static XMFLOAT2 g_EffectSize  = { 0.0f, 0.0f };
+
 
 //メイン処理関数
 void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -29,11 +32,11 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pContext = pContext;
 
 	// テクスチャ読み込み
-	TexMetadata metadata;
+	/*TexMetadata metadata;
 	ScratchImage image;
 	LoadFromWICFile(L"Asset\\Texture\\uiLightLoopBigConcrete_v1.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-	assert(g_Texture);
+	assert(g_Texture);*/
 }
 
 void Effect_Finalize()
@@ -67,6 +70,7 @@ void Effect_Draw()
 {
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
+	Shader_BeginUI();
 
 	int fx = g_EffectFrame % EFFECT_SPLIT_X;
 	int fy = g_EffectFrame / EFFECT_SPLIT_X;
@@ -79,8 +83,12 @@ void Effect_Draw()
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
 	SetBlendState(BLENDSTATE_ALPHA);
-	DrawSpriteUV({ 640.0f, 360.0f }, { 250.0f, 250.0f }, color::white, uvMin, uvMax);
+	DrawSpriteUV(g_EffectPos, g_EffectSize, color::white, uvMin, uvMax);
 }
 
-
-
+void Effect_Set(ID3D11ShaderResourceView* tex, XMFLOAT2 pos, XMFLOAT2 size)
+{
+	g_Texture = tex;
+	g_EffectPos = pos;
+	g_EffectSize = size;
+}

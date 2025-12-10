@@ -56,6 +56,8 @@ void Polygon3D_Finalize();
 void Polygon3D_Update();
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 void Polygon3D_DrawHP();
+void Polygon3D_DrawEffect();
+
 
 void SkillPlayerCollisions();
 void Polygon3D_Attack();
