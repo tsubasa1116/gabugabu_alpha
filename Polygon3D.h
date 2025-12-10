@@ -35,6 +35,7 @@ struct PLAYEROBJECT
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 
+	int evolutionGauge;			// 進化ゲージ
 	int breakCount_Glass;		// 破壊した数 ガラス
 	int breakCount_Plant;		// 破壊した数 植物
 	int breakCount_Concrete;	// 破壊した数 コンクリート

@@ -426,6 +426,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].isAttacking = false;
 	object[0].attackTimer = 0.0f;
 	object[0].attackDuration = 2.0f;
+	object[0].evolutionGauge = 0;
 	object[0].breakCount_Glass = 0;
 	object[0].breakCount_Plant = 0;
 	object[0].breakCount_Concrete = 0;
@@ -448,6 +449,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].active = true;
 	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
+	object[1].evolutionGauge = 0;
 	object[1].attackDuration = 2.0f;
 	object[1].breakCount_Glass = 0;
 	object[1].breakCount_Plant = 0;
@@ -1091,6 +1093,7 @@ void Polygon3D_Respawn(int idx)
 		object[0].maxHp = object[0].hp;
 		object[0].isAttacking = false;
 		object[0].attackTimer = 0.0f;
+		object[0].evolutionGauge = 0;
 		object[0].breakCount_Glass = 0;
 		object[0].breakCount_Plant = 0;
 		object[0].breakCount_Concrete = 0;
@@ -1112,6 +1115,7 @@ void Polygon3D_Respawn(int idx)
 		object[1].maxHp = object[1].hp;
 		object[1].isAttacking = false;
 		object[1].attackTimer = 0.0f;
+		object[1].evolutionGauge = 0;
 		object[1].breakCount_Glass = 0;
 		object[1].breakCount_Plant = 0;
 		object[1].breakCount_Concrete = 0;

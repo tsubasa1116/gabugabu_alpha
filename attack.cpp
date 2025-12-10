@@ -376,8 +376,9 @@ void Attack_Update(int playerIndex)
 					{
 					case BuildingType::Glass:
 					{
-						buildingObjects[i]->isActive = false;
-						playerObject->breakCount_Glass += 1;
+						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
+						playerObject->breakCount_Glass += 1;	// ガラスを壊した数をプラス
+						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
 
 						// 効果音やエフェクトを再生
 
@@ -399,8 +400,9 @@ void Attack_Update(int playerIndex)
 
 					case BuildingType::Concrete:
 					{
-						buildingObjects[i]->isActive = false;
-						playerObject->breakCount_Concrete += 1;
+						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
+						playerObject->breakCount_Concrete += 1;	// コンクリートを壊した数をプラス
+						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
 
 						// 効果音やエフェクトを再生
 
@@ -422,8 +424,9 @@ void Attack_Update(int playerIndex)
 
 					case BuildingType::Plant:
 					{
-						buildingObjects[i]->isActive = false;
-						playerObject->breakCount_Plant += 1;
+						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
+						playerObject->breakCount_Plant += 1;	// 植物を壊した数をプラス
+						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
 
 						// 効果音やエフェクトを再生
 
@@ -445,8 +448,9 @@ void Attack_Update(int playerIndex)
 
 					case BuildingType::Electric:
 					{
-						buildingObjects[i]->isActive = false;
-						playerObject->breakCount_Electric += 1;
+						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
+						playerObject->breakCount_Electric += 1;	// 電気を壊した数をプラス
+						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
 
 						// 効果音やエフェクトを再生
 
