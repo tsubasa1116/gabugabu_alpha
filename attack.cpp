@@ -221,12 +221,10 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Attack[0].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	Attack[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	Attack[0].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
-	Attack[0].velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 	Attack[1].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	Attack[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	Attack[1].scaling = XMFLOAT3(0.3f, 0.3f, 0.3f);
-	Attack[1].velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
@@ -328,12 +326,6 @@ void Attack_Update(int playerIndex)
 			cosf(rad)   // Z方向
 		};
 
-		// がぶがぶの速度を設定（前方向に飛ばす）
-		//float speed = 0.15f;
-		//Attack[0].Velocity.x = dir.x * speed;
-		//Attack[0].Velocity.y = dir.y * speed;
-		//Attack[0].Velocity.z = dir.z * speed;
-
 		// プレイヤーの前方にがぶがぶを配置
 		sk.position.x = dir.x * playerObject->scaling.x + playerObject->position.x;
 		sk.position.y = playerObject->position.y;
@@ -369,23 +361,7 @@ void Attack_Update(int playerIndex)
 		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
 		MTV collision = CalculateAABBMTV(sk.boundingBox, pStaticObjectAABB);
 
-		Keyboard_Keys_tag confirmKey;
-
-		switch (playerIndex)
-		{
-		case 0:
-			confirmKey = KK_SPACE;    // Player1
-			break;
-		case 1:
-			confirmKey = KK_ENTER;    // Player2
-			break;
-			//case 2:
-			//	confirmKey = KK_;    // Player3
-			//	break;
-			//case 3:
-			//	confirmKey = KK_;     // Player4
-			//	break;
-		}
+		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER/*, KK_, KK_ */};
 
 		if (collision.isColliding)
 		{
@@ -394,7 +370,7 @@ void Attack_Update(int playerIndex)
 				BuildingType type = buildingObjects[i]->Type;
 
 				// 各建物タイプごとの処理（Glass を参考に拡張）
-				if (Keyboard_IsKeyDown(confirmKey))
+				if (Keyboard_IsKeyDown(confirmKey[playerIndex]))
 				{
 					switch (type)
 					{

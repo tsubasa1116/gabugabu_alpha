@@ -8,7 +8,7 @@ struct ATTACK_OBJECT
 	XMFLOAT3 position;
 	XMFLOAT3 rotation;
 	XMFLOAT3 scaling;
-	XMFLOAT3 velocity;
+	//XMFLOAT3 velocity;
 	//bool Use;
 
 	AABB boundingBox;

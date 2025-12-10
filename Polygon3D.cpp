@@ -845,23 +845,6 @@ void Polygon3D_Update()
 			object[1].dir.x = sinf(rad_1);
 			object[1].dir.z = cosf(rad_1);
 
-			//if (Keyboard_IsKeyDown(KK_SPACE))
-			//{
-			//	// プレイヤー1 を、プレイヤー0の向いている方向に吹き飛ばす
-			//	object[1].position.x += dir0_x * object[0].power;
-			//	object[1].position.z += dir0_z * object[0].power;
-			//	object[1].position.y += object[0].power; // Y方向にも飛ばす
-			//}
-
-			//if (Keyboard_IsKeyDown(KK_ENTER))
-			//{
-			//	// プレイヤー0 を、プレイヤー1の向いている方向に吹き飛ばす
-			//	object[0].position.x += dir1_x * object[1].power;
-			//	object[0].position.z += dir1_z * object[1].power;
-			//	object[0].position.y += object[1].power; // Y方向にも飛ばす
-			//}
-			// 衝突していた場合、MTVの半分ずつをそれぞれのオブジェクトに適用して押し戻す
-
 			// 押し戻し量 (MTV) を半分にする
 			XMFLOAT3 half_translation =
 			{
