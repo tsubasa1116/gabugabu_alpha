@@ -65,6 +65,200 @@ static ID3D11ShaderResourceView* g_Texture[5];
 
 static ID3D11Buffer* g_IndexBuffer_Face = NULL; // -X 面のみ用インデックスバッファ
 
+//static	Vertex vdata[NUM_VERTEX] =
+//{
+//	//-Z面
+//	{//頂点0 LEFT-TOP
+//		XMFLOAT3(-5.0f, 5.0f, -5.0f),		//座標
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//カラー
+//		XMFLOAT2(0.0f,0.0f)					//テクスチャ座標
+//	},
+//	{//頂点1 RIGHT-TOP
+//		XMFLOAT3(5.0f, 5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,0.0f)
+//	},
+//	{//頂点2 LEFT-BOTTOM
+//		XMFLOAT3(-5.0f, -5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,10.0f)
+//	},
+//	//{//頂点3 LEFT-BOTTOM
+//	//	XMFLOAT3(-0.5f, -0.5f, -0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(0.0f,10.0f)
+//	//},
+//	//{//頂点4 RIGHT-TOP
+//	//	XMFLOAT3(0.5f, 0.5f, -0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(10.0f,0.0f)
+//	//},
+//	{//頂点5 RIGHT-BOTTOM
+//		XMFLOAT3(5.0f, -5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,10.0f)
+//	},
+//
+//	//+X面
+//	{//頂点6 LEFT-TOP
+//		XMFLOAT3(5.0f, 5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,0.0f)
+//	},
+//	{//頂点7 RIGHT-TOP
+//		XMFLOAT3(5.0f, 5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,0.0f)
+//	},
+//	{//頂点8 LEFT-BOTTOM
+//		XMFLOAT3(5.0f, -5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,10.0f)
+//	},
+//	//{//頂点9 LEFT-BOTTOM
+//	//	XMFLOAT3(0.5f, -0.5f, -0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(0.0f,10.0f)
+//	//},
+//	//{//頂点10 RIGHT-TOP
+//	//	XMFLOAT3(0.5f, 0.5f, 0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(10.0f,0.0f)
+//	//},
+//	{//頂点11 RIGHT-BOTTM
+//		XMFLOAT3(5.0f, -5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,10.0f)
+//	},
+//
+//	//+Z面
+//	{//頂点12 LEFT-TOP
+//		XMFLOAT3(5.0f, 5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,0.0f)
+//	},
+//	{//頂点13 RIGHT-TOP
+//		XMFLOAT3(-5.0f, 5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,0.0f)
+//	},
+//	{//頂点14 LEFT-BOTTOM
+//		XMFLOAT3(5.0f, -5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,10.0f)
+//	},
+//	//{//頂点15 LEFT-BOTTOM
+//	//	XMFLOAT3(0.5f, -0.5f, 0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(0.0f,1.0f)
+//	//},
+//	//{//頂点16 RIGHT-TOP
+//	//	XMFLOAT3(-0.5f, 0.5f, 0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(1.0f,0.0f)
+//	//},
+//	{//頂点17 RIGHT-BOTTOM
+//		XMFLOAT3(-5.0f, -5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,10.0f)
+//	},
+//
+//	//-X面
+//	{//頂点18 LEFT-TOP
+//		XMFLOAT3(-5.0f, 5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,0.0f)
+//	},
+//	{//頂点19 RIGHT-TOP
+//		XMFLOAT3(-5.0f, 5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,0.0f)
+//	},
+//	{//頂点20 LEFT-BOTTOM
+//		XMFLOAT3(-5.0f, -5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,10.0f)
+//	},
+//	//{//頂点21 LEFT-BOTTOM
+//	//	XMFLOAT3(-0.5f, -0.5f, 0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(0.0f,1.0f)
+//	//},
+//	//{//頂点22 RIGHT-TOP
+//	//	XMFLOAT3(-0.5f, 0.5f, -0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(1.0f,0.0f)
+//	//},
+//	{//頂点23 RIGHT-BOTTOM
+//		XMFLOAT3(-5.0f, -5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,10.0f)
+//	},
+//
+//	//+Y面
+//	{//頂点24 LEFT-TOP
+//		XMFLOAT3(-5.0f, 5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,0.0f)
+//	},
+//	{//頂点25 RIGHT-TOP
+//		XMFLOAT3(5.0f, 5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,0.0f)
+//	},
+//	{//頂点26 LEFT-BOTTOM
+//		XMFLOAT3(-5.0f, 5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,10.0f)
+//	},
+//	//{//頂点27 LEFT-BOTTOM
+//	//	XMFLOAT3(-0.5f, 0.5f, -0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(0.0f,1.0f)
+//	//},
+//	//{//頂点28 RIGHT-TOP
+//	//	XMFLOAT3(0.5f, 0.5f, 0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(1.0f,0.0f)
+//	//},
+//	{//頂点29 RIGHT-BOTTOM
+//		XMFLOAT3(5.0f, 5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,10.0f)
+//	},
+//
+//	//-Y面
+//	{//頂点30 LEFT-TOP
+//		XMFLOAT3(-5.0f, -5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,0.0f)
+//	},
+//	{//頂点31 RIGHT-TOP
+//		XMFLOAT3(5.0f, -5.0f, -5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,0.0f)
+//	},
+//	{//頂点32 LEFT-BOTTOM
+//		XMFLOAT3(-5.0f, -5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,10.0f)
+//	},
+//	//{//頂点33 LEFT-BOTTOM
+//	//	XMFLOAT3(-0.5f, -0.5f, 0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(0.0f,1.0f)
+//	//},
+//	//{//頂点34 RIGHT-TOP
+//	//	XMFLOAT3(0.5f, -0.5f, -0.5f),
+//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//	//	XMFLOAT2(1.0f,0.0f)
+//	//},
+//	{//頂点35 RIGHT-BOTTOM
+//		XMFLOAT3(5.0f, -5.0f, 5.0f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(10.0f,10.0f)
+//	},
+//};
 static	Vertex vdata[NUM_VERTEX] =
 {
 	//-Z面
@@ -83,191 +277,132 @@ static	Vertex vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点3 LEFT-BOTTOM
-	//	XMFLOAT3(-0.5f, -0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点4 RIGHT-TOP
-	//	XMFLOAT3(0.5f, 0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
-	{//頂点5 RIGHT-BOTTOM
+	{//頂点3 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
 	//+X面
-	{//頂点6 LEFT-TOP
+	{//頂点4 LEFT-TOP
 		XMFLOAT3(0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{//頂点7 RIGHT-TOP
+	{//頂点5 RIGHT-TOP
 		XMFLOAT3(0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//頂点8 LEFT-BOTTOM
+	{//頂点6 LEFT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点9 LEFT-BOTTOM
-	//	XMFLOAT3(0.5f, -0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点10 RIGHT-TOP
-	//	XMFLOAT3(0.5f, 0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
-	{//頂点11 RIGHT-BOTTM
+	{//頂点7 RIGHT-BOTTM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
 	//+Z面
-	{//頂点12 LEFT-TOP
+	{//頂点8 LEFT-TOP
 		XMFLOAT3(0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{//頂点13 RIGHT-TOP
+	{//頂点9 RIGHT-TOP
 		XMFLOAT3(-0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//頂点14 LEFT-BOTTOM
+	{//頂点10 LEFT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点15 LEFT-BOTTOM
-	//	XMFLOAT3(0.5f, -0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点16 RIGHT-TOP
-	//	XMFLOAT3(-0.5f, 0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
-	{//頂点17 RIGHT-BOTTOM
+	{//頂点11 RIGHT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
 	//-X面
-	{//頂点18 LEFT-TOP
+	{//頂点12 LEFT-TOP
 		XMFLOAT3(-0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{//頂点19 RIGHT-TOP
+	{//頂点13 RIGHT-TOP
 		XMFLOAT3(-0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//頂点20 LEFT-BOTTOM
+	{//頂点14 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点21 LEFT-BOTTOM
-	//	XMFLOAT3(-0.5f, -0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点22 RIGHT-TOP
-	//	XMFLOAT3(-0.5f, 0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
-	{//頂点23 RIGHT-BOTTOM
+	{//頂点15 RIGHT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
 	//+Y面
-	{//頂点24 LEFT-TOP
+	{//頂点16 LEFT-TOP
 		XMFLOAT3(-0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{//頂点25 RIGHT-TOP
+	{//頂点17 RIGHT-TOP
 		XMFLOAT3(0.5f, 0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//頂点26 LEFT-BOTTOM
+	{//頂点18 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点27 LEFT-BOTTOM
-	//	XMFLOAT3(-0.5f, 0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点28 RIGHT-TOP
-	//	XMFLOAT3(0.5f, 0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
-	{//頂点29 RIGHT-BOTTOM
+	{//頂点19 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, 0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
 	//-Y面
-	{//頂点30 LEFT-TOP
+	{//頂点20 LEFT-TOP
 		XMFLOAT3(-0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{//頂点31 RIGHT-TOP
+	{//頂点21 RIGHT-TOP
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{//頂点32 LEFT-BOTTOM
+	{//頂点22 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	//{//頂点33 LEFT-BOTTOM
-	//	XMFLOAT3(-0.5f, -0.5f, 0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(0.0f,1.0f)
-	//},
-	//{//頂点34 RIGHT-TOP
-	//	XMFLOAT3(0.5f, -0.5f, -0.5f),
-	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	//	XMFLOAT2(1.0f,0.0f)
-	//},
-	{//頂点35 RIGHT-BOTTOM
+	{//頂点23 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 };
 
-//インデックス配列
-static UINT idxdata[6 * 6] = {
-	0,1,2,2,1,3,		// -Z面
-	4,5,6,6,5,7,		// +X面
-	8,9,10,10,9,11,		// +Z面
-	12,13,14,14,13,15,	// -X面
-	16,17,18,18,17,19,	// +Y面
-	20,21,22,22,21,23,	// -Y面
+// インデックス配列
+static UINT idxdata[6 * 6]
+{
+	 0,  1,  2,  2,  1,  3, // -Z面
+	 4,  5,  6,  6,  5,  7, // +X面
+	 8,  9, 10, 10,  9, 11, // +Z面
+	12, 13, 14, 14, 13, 15, // -X面
+	16, 17, 18, 18, 17, 19, // +Y面
+	20, 21, 22, 22, 21, 23, // -Y面
 };
 
 static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
@@ -294,7 +429,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].breakCount_Glass = 0;
 	object[0].breakCount_Plant = 0;
 	object[0].breakCount_Concrete = 0;
-	object[0].breakCount_Electricity = 0;
+	object[0].breakCount_Electric = 0;
 	object[0].gl = 1.0f;
 	object[0].pl = 1.0f;
 	object[0].co = 1.0f;
@@ -317,7 +452,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].breakCount_Glass = 0;
 	object[1].breakCount_Plant = 0;
 	object[1].breakCount_Concrete = 0;
-	object[1].breakCount_Electricity = 0;
+	object[1].breakCount_Electric = 0;
 	object[1].gl = 1.0f;
 	object[1].pl = 1.0f;
 	object[1].co = 1.0f;
@@ -340,7 +475,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	TexMetadata metadata;
 	ScratchImage image;
 
-	LoadFromWICFile(L"Asset\\Texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\Brick.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);
 
@@ -476,12 +611,32 @@ void Polygon3D_Update()
 		}
 	}
 
-	// スキルとプレイヤーの当たり判定（object[0] <-> Attack2、object[1] <-> Attack1）
+	// がぶがぶとプレイヤーの当たり判定（object[0] <-> Attack2、object[1] <-> Attack1）
 	AttackPlayerCollisions();
 
+	// デバッグ用 ImGui ウィンドウ
 	ImGui::Begin("Player Debug");
-	// HPバー
-	ImGui::SliderFloat("HP", &object[0].hp, 0.0f, object[0].maxHp);
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		// プレイヤーごとに ID を分ける（同一ラベル衝突回避）
+		ImGui::PushID(p);
+
+		ImGui::Text("Player %d", p + 1);
+		ImGui::Indent();
+
+		// HP 表示
+		ImGui::SliderFloat("HP:", &object[p].hp, 0.0f, object[p].maxHp);
+
+		// breakCount を列挙して表示
+		ImGui::BulletText("Glass breaks     : %d", object[p].breakCount_Glass);
+		ImGui::BulletText("Plant breaks     : %d", object[p].breakCount_Plant);
+		ImGui::BulletText("Concrete breaks  : %d", object[p].breakCount_Concrete);
+		ImGui::BulletText("Electric breaks  : %d", object[p].breakCount_Electric);
+
+		ImGui::Unindent();
+		ImGui::Separator();
+		ImGui::PopID();
+	}
 
 	ImGui::End();
 
@@ -956,7 +1111,7 @@ void Polygon3D_Respawn(int idx)
 		object[0].breakCount_Glass = 0;
 		object[0].breakCount_Plant = 0;
 		object[0].breakCount_Concrete = 0;
-		object[0].breakCount_Electricity = 0;
+		object[0].breakCount_Electric = 0;
 		object[0].form = Normal;
 		object[0].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].is_knocked_back = false;
@@ -977,7 +1132,7 @@ void Polygon3D_Respawn(int idx)
 		object[1].breakCount_Glass = 0;
 		object[1].breakCount_Plant = 0;
 		object[1].breakCount_Concrete = 0;
-		object[1].breakCount_Electricity = 0;
+		object[1].breakCount_Electric = 0;
 		object[1].form = Normal;
 		object[1].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].is_knocked_back = false;
