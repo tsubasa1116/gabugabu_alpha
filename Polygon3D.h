@@ -38,7 +38,7 @@ struct PLAYEROBJECT
 	int breakCount_Glass;		// ”j‰ó‚µ‚½” ƒKƒ‰ƒX
 	int breakCount_Plant;		// ”j‰ó‚µ‚½” A•¨
 	int breakCount_Concrete;	// ”j‰ó‚µ‚½” ƒRƒ“ƒNƒŠ[ƒg
-	int breakCount_Electricity;	// ”j‰ó‚µ‚½” “d‹C
+	int breakCount_Electric;	// ”j‰ó‚µ‚½” “d‹C
 
 	float gl, pl, co, el;
 	float gaugeOuter;

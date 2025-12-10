@@ -369,23 +369,134 @@ void Attack_Update(int playerIndex)
 		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
 		MTV collision = CalculateAABBMTV(sk.boundingBox, pStaticObjectAABB);
 
+		Keyboard_Keys_tag confirmKey;
+
+		switch (playerIndex)
+		{
+		case 0:
+			confirmKey = KK_SPACE;    // Player1
+			break;
+		case 1:
+			confirmKey = KK_ENTER;    // Player2
+			break;
+			//case 2:
+			//	confirmKey = KK_;    // Player3
+			//	break;
+			//case 3:
+			//	confirmKey = KK_;     // Player4
+			//	break;
+		}
+
 		if (collision.isColliding)
 		{
-			// プレイヤーごとに使うキーを決定（Player1 -> SPACE, Player2 -> ENTER）
-			Keyboard_Keys_tag confirmKey = (playerIndex == 0) ? KK_SPACE : KK_ENTER;
-
-			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
-			if (/*buildingObjects[i]->Type == BuildingType::Glass && */Keyboard_IsKeyDown(confirmKey))
+			// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
 			{
-				buildingObjects[i]->isActive = false;
-				playerObject->form = (Form)((int)playerObject->form + 1);
-				// 必要ならここで効果音やエフェクトを再生
-				// スキルはヒット時に消す（任意）
-				playerObject->isAttacking = false;
-				playerObject->attackTimer = 0.0f;
-				// 更新済みAABB
-				CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-				continue;
+				BuildingType type = buildingObjects[i]->Type;
+
+				// 各建物タイプごとの処理（Glass を参考に拡張）
+				if (Keyboard_IsKeyDown(confirmKey))
+				{
+					switch (type)
+					{
+					case BuildingType::Glass:
+					{
+						buildingObjects[i]->isActive = false;
+						playerObject->breakCount_Glass += 1;
+
+						// 効果音やエフェクトを再生
+
+						// ヒットでスキルを終了
+						playerObject->isAttacking = false;
+						playerObject->attackTimer = 0.0f;
+
+						// 更新済みAABB
+						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+
+						// 変身
+						if (playerObject->breakCount_Glass >= 3)
+						{
+							playerObject->form = (Form)((int)playerObject->form + 1);
+							playerObject->breakCount_Glass = 0;
+						}
+						break;
+					}
+
+					case BuildingType::Concrete:
+					{
+						buildingObjects[i]->isActive = false;
+						playerObject->breakCount_Concrete += 1;
+
+						// 効果音やエフェクトを再生
+
+						// ヒットでスキルを終了
+						playerObject->isAttacking = false;
+						playerObject->attackTimer = 0.0f;
+
+						// 更新済みAABB
+						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+
+						// 変身
+						if (playerObject->breakCount_Concrete >= 3)
+						{
+							playerObject->form = (Form)((int)playerObject->form + 1);
+							playerObject->breakCount_Concrete = 0;
+						}
+						break;
+					}
+
+					case BuildingType::Plant:
+					{
+						buildingObjects[i]->isActive = false;
+						playerObject->breakCount_Plant += 1;
+
+						// 効果音やエフェクトを再生
+
+						// ヒットでスキルを終了
+						playerObject->isAttacking = false;
+						playerObject->attackTimer = 0.0f;
+
+						// 更新済みAABB
+						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+
+						// 変身
+						if (playerObject->breakCount_Plant >= 3)
+						{
+							playerObject->form = (Form)((int)playerObject->form + 1);
+							playerObject->breakCount_Plant = 0;
+						}
+						break;
+					}
+
+					case BuildingType::Electric:
+					{
+						buildingObjects[i]->isActive = false;
+						playerObject->breakCount_Electric += 1;
+
+						// 効果音やエフェクトを再生
+
+						// ヒットでスキルを終了
+						playerObject->isAttacking = false;
+						playerObject->attackTimer = 0.0f;
+
+						// 更新済みAABB
+						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+
+						// 変身
+						if (playerObject->breakCount_Electric >= 3)
+						{
+							playerObject->form = (Form)((int)playerObject->form + 1);
+							playerObject->breakCount_Electric = 0;
+						}
+						break;
+					}
+
+					default:
+						break;
+					}
+
+					// 建物種別処理を行ったら次の建物へ
+					continue;
+				}
 			}
 
 			// 衝突していたら、MTVの分だけ位置を戻す

@@ -205,14 +205,14 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				BeginImGuiFrame();
 				Manager_Update();
 				// ======= ImGui描画テスト =======
-				ImGui::Begin("Debug Window");
+				//ImGui::Begin("Debug Window");
 
-				// ゲッターとかから情報を取ってきて表示していく
-				ImGui::Text("Hello, Dear ImGui!");
+				//// ゲッターとかから情報を取ってきて表示していく
+				//ImGui::Text("Hello, Dear ImGui!");
 
 
 
-				ImGui::End();
+				//ImGui::End();
 				// ------------------------------
 
 				//描画処理

@@ -429,7 +429,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].breakCount_Glass = 0;
 	object[0].breakCount_Plant = 0;
 	object[0].breakCount_Concrete = 0;
-	object[0].breakCount_Electricity = 0;
+	object[0].breakCount_Electric = 0;
 	object[0].gl = 1.0f;
 	object[0].pl = 1.0f;
 	object[0].co = 1.0f;
@@ -452,7 +452,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].breakCount_Glass = 0;
 	object[1].breakCount_Plant = 0;
 	object[1].breakCount_Concrete = 0;
-	object[1].breakCount_Electricity = 0;
+	object[1].breakCount_Electric = 0;
 	object[1].gl = 1.0f;
 	object[1].pl = 1.0f;
 	object[1].co = 1.0f;
@@ -611,12 +611,32 @@ void Polygon3D_Update()
 		}
 	}
 
-	// スキルとプレイヤーの当たり判定（object[0] <-> Attack2、object[1] <-> Attack1）
+	// がぶがぶとプレイヤーの当たり判定（object[0] <-> Attack2、object[1] <-> Attack1）
 	AttackPlayerCollisions();
 
+	// デバッグ用 ImGui ウィンドウ
 	ImGui::Begin("Player Debug");
-	// HPバー
-	ImGui::SliderFloat("HP", &object[0].hp, 0.0f, object[0].maxHp);
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		// プレイヤーごとに ID を分ける（同一ラベル衝突回避）
+		ImGui::PushID(p);
+
+		ImGui::Text("Player %d", p + 1);
+		ImGui::Indent();
+
+		// HP 表示
+		ImGui::SliderFloat("HP:", &object[p].hp, 0.0f, object[p].maxHp);
+
+		// breakCount を列挙して表示
+		ImGui::BulletText("Glass breaks     : %d", object[p].breakCount_Glass);
+		ImGui::BulletText("Plant breaks     : %d", object[p].breakCount_Plant);
+		ImGui::BulletText("Concrete breaks  : %d", object[p].breakCount_Concrete);
+		ImGui::BulletText("Electric breaks  : %d", object[p].breakCount_Electric);
+
+		ImGui::Unindent();
+		ImGui::Separator();
+		ImGui::PopID();
+	}
 
 	ImGui::End();
 
@@ -1091,7 +1111,7 @@ void Polygon3D_Respawn(int idx)
 		object[0].breakCount_Glass = 0;
 		object[0].breakCount_Plant = 0;
 		object[0].breakCount_Concrete = 0;
-		object[0].breakCount_Electricity = 0;
+		object[0].breakCount_Electric = 0;
 		object[0].form = Normal;
 		object[0].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].is_knocked_back = false;
@@ -1112,7 +1132,7 @@ void Polygon3D_Respawn(int idx)
 		object[1].breakCount_Glass = 0;
 		object[1].breakCount_Plant = 0;
 		object[1].breakCount_Concrete = 0;
-		object[1].breakCount_Electricity = 0;
+		object[1].breakCount_Electric = 0;
 		object[1].form = Normal;
 		object[1].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].is_knocked_back = false;
