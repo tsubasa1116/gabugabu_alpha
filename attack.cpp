@@ -10,7 +10,7 @@ using namespace DirectX;
 #include "Camera.h"
 #include "collider.h"
 #include "field.h"
-#include "building.h"
+#include "Building.h"
 #include "debug_ostream.h"
 #include "Polygon3D.h"
 #include "keyboard.h"
@@ -379,6 +379,7 @@ void Attack_Update(int playerIndex)
 						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
 						playerObject->breakCount_Glass += 1;	// ガラスを壊した数をプラス
 						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
+						playerObject->lastBrokenType = BuildingType::Glass;    // 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -388,13 +389,6 @@ void Attack_Update(int playerIndex)
 
 						// 更新済みAABB
 						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-
-						// 変身
-						if (playerObject->breakCount_Glass >= 3)
-						{
-							playerObject->form = (Form)((int)playerObject->form + 1);
-							playerObject->breakCount_Glass = 0;
-						}
 						break;
 					}
 
@@ -403,6 +397,7 @@ void Attack_Update(int playerIndex)
 						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
 						playerObject->breakCount_Concrete += 1;	// コンクリートを壊した数をプラス
 						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
+						playerObject->lastBrokenType = BuildingType::Concrete;    // 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -412,13 +407,6 @@ void Attack_Update(int playerIndex)
 
 						// 更新済みAABB
 						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-
-						// 変身
-						if (playerObject->breakCount_Concrete >= 3)
-						{
-							playerObject->form = (Form)((int)playerObject->form + 1);
-							playerObject->breakCount_Concrete = 0;
-						}
 						break;
 					}
 
@@ -427,6 +415,7 @@ void Attack_Update(int playerIndex)
 						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
 						playerObject->breakCount_Plant += 1;	// 植物を壊した数をプラス
 						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
+						playerObject->lastBrokenType = BuildingType::Plant;    // 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -436,13 +425,6 @@ void Attack_Update(int playerIndex)
 
 						// 更新済みAABB
 						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-
-						// 変身
-						if (playerObject->breakCount_Plant >= 3)
-						{
-							playerObject->form = (Form)((int)playerObject->form + 1);
-							playerObject->breakCount_Plant = 0;
-						}
 						break;
 					}
 
@@ -451,6 +433,7 @@ void Attack_Update(int playerIndex)
 						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
 						playerObject->breakCount_Electric += 1;	// 電気を壊した数をプラス
 						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
+						playerObject->lastBrokenType = BuildingType::Electric;    // 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -460,13 +443,6 @@ void Attack_Update(int playerIndex)
 
 						// 更新済みAABB
 						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-
-						// 変身
-						if (playerObject->breakCount_Electric >= 3)
-						{
-							playerObject->form = (Form)((int)playerObject->form + 1);
-							playerObject->breakCount_Electric = 0;
-						}
 						break;
 					}
 
@@ -474,8 +450,157 @@ void Attack_Update(int playerIndex)
 						break;
 					}
 
-					// 建物種別処理を行ったら次の建物へ
-					continue;
+					// 進化ゲージが一定値を超えたら変身
+					if (playerObject->evolutionGauge >= 10)
+					{
+						playerObject->form = (Form)((int)playerObject->form + 1);
+
+						// 2進化まで
+						if (playerObject->form > Form::SecondEvolution)
+						{
+							playerObject->form = Form::SecondEvolution;
+						}
+
+						const int counts[4] =
+						{
+							playerObject->breakCount_Glass,
+							playerObject->breakCount_Concrete,
+							playerObject->breakCount_Plant,
+							playerObject->breakCount_Electric
+						};
+
+						// --- 最大値をまず決める ---
+						int maxCount = counts[0];
+						for (int k = 1; k < 4; k++)
+						{
+							if (counts[k] > maxCount)
+							{
+								maxCount = counts[k];
+							}
+						}
+
+						// --- 最大値と同じものを候補として集める ---
+						bool candidates[4] = { false, false, false, false };
+						for (int k = 0; k < 4; k++)
+						{
+							if (counts[k] == maxCount)
+								candidates[k] = true;
+						}
+
+						// --- 最終選択（同点が2つ以上ある時だけ lastBrokenType を使う） ---
+						int chosenIndex = -1;
+
+						// 同点種類数を数える
+						int tieCount = 0;
+						for (int k = 0; k < 4; k++)
+							if (candidates[k]) tieCount++;
+
+						if (tieCount >= 2)
+						{
+							// lastBrokenType が候補に入っている場合のみ優先する
+							switch (playerObject->lastBrokenType)
+							{
+							case BuildingType::Glass:
+								if (candidates[0]) chosenIndex = 0;
+								break;
+							case BuildingType::Concrete:
+								if (candidates[1]) chosenIndex = 1;
+								break;
+							case BuildingType::Plant:
+								if (candidates[2]) chosenIndex = 2;
+								break;
+							case BuildingType::Electric:
+								if (candidates[3]) chosenIndex = 3;
+								break;
+							default:
+								break;
+							}
+						}
+
+						// 候補に lastBrokenType がなかった場合 or tieCount == 1 の場合
+						if (chosenIndex == -1)
+						{
+							// 最初の候補を使う
+							for (int k = 0; k < 4; k++)
+							{
+								if (candidates[k])
+								{
+									chosenIndex = k;
+									break;
+								}
+							}
+						}
+
+						// --- 最終タイプ決定 ---
+						switch (chosenIndex)
+						{
+						case 0: playerObject->type = PlayerType::Glass;    break;
+						case 1: playerObject->type = PlayerType::Concrete; break;
+						case 2: playerObject->type = PlayerType::Plant;    break;
+						case 3: playerObject->type = PlayerType::Electric; break;
+						}
+
+						// ゲージとカウントリセット
+						playerObject->evolutionGauge = 0;
+						playerObject->breakCount_Glass = 0;
+						playerObject->breakCount_Concrete = 0;
+						playerObject->breakCount_Plant = 0;
+						playerObject->breakCount_Electric = 0;
+
+						continue;
+					}
+				
+
+					switch (playerObject->form)
+					{
+					case Form::Normal:	// 通常
+						break;
+
+					case Form::FirstEvolution:		// 1進化
+						switch (playerObject->type)
+						{
+						case PlayerType::Glass:		// 1進化：ガラス
+
+							break;
+						case PlayerType::Concrete:	// 1進化：コンクリ
+
+							break;
+						case PlayerType::Plant:		// 1進化：植物
+
+							break;
+						case PlayerType::Electric:	// 1進化：電気
+
+							break;
+
+						default:
+							break;
+						}
+						break;
+
+					case Form::SecondEvolution:		// 2進化
+						switch (playerObject->type)
+						{
+						case PlayerType::Glass:		// 2進化：ガラス
+
+							break;
+						case PlayerType::Concrete:	// 2進化：コンクリ
+
+							break;
+						case PlayerType::Plant:		// 2進化：植物
+
+							break;
+						case PlayerType::Electric:	// 2進化：電気
+
+							break;
+
+						default:
+							break;
+						}
+						break;
+
+					default:
+						break;
+					}
 				}
 			}
 

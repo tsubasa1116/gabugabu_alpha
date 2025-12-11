@@ -38,8 +38,8 @@ using namespace DirectX;
 //======================================================
 #define	NUM_VERTEX	(36)
 #define	PLAYER_MAX	(2)
-#define HPBER_SIZE_X 200.0f
-#define HPBER_SIZE_Y 150.0f
+#define HPBER_SIZE_X (200.0f)
+#define HPBER_SIZE_Y (150.0f)
 
 //======================================================
 //	構造体宣言
@@ -416,8 +416,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[0].form = Normal;
-	object[0].speed = 0.0f;
+	object[0].speed = 0.00f;
 	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].maxHp = 100.0f;
 	object[0].hp = object[0].maxHp;
@@ -426,11 +425,14 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].isAttacking = false;
 	object[0].attackTimer = 0.0f;
 	object[0].attackDuration = 2.0f;
+	object[0].form = Form::Normal;
+	object[0].type = PlayerType::None;
 	object[0].evolutionGauge = 0;
 	object[0].breakCount_Glass = 0;
-	object[0].breakCount_Plant = 0;
 	object[0].breakCount_Concrete = 0;
+	object[0].breakCount_Plant = 0;
 	object[0].breakCount_Electric = 0;
+	object[0].lastBrokenType = BuildingType::None;
 	object[0].gl = 1.0f;
 	object[0].pl = 1.0f;
 	object[0].co = 1.0f;
@@ -440,8 +442,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[1].form = Normal;
-	object[1].speed = 0.0f;
+	object[1].speed = 0.00f;
 	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].maxHp = 100.0f;
 	object[1].hp = object[1].maxHp;
@@ -449,12 +450,15 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].active = true;
 	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
-	object[1].evolutionGauge = 0;
 	object[1].attackDuration = 2.0f;
+	object[1].form = Form::Normal;
+	object[1].type = PlayerType::None;
+	object[1].evolutionGauge = 0;
 	object[1].breakCount_Glass = 0;
-	object[1].breakCount_Plant = 0;
 	object[1].breakCount_Concrete = 0;
+	object[1].breakCount_Plant = 0;
 	object[1].breakCount_Electric = 0;
+	object[1].lastBrokenType = BuildingType::None;
 	object[1].gl = 1.0f;
 	object[1].pl = 1.0f;
 	object[1].co = 1.0f;
@@ -629,11 +633,15 @@ void Polygon3D_Update()
 		// HP 表示
 		ImGui::SliderFloat("HP:", &object[p].hp, 0.0f, object[p].maxHp);
 
-		// breakCount を列挙して表示
+		// evolutionGauge breakCount を列挙して表示
+		ImGui::BulletText("form             : %d", object[p].form);
+		ImGui::BulletText("type             : %d", object[p].type);
+		ImGui::BulletText("EvolutionGauge   : %d", object[p].evolutionGauge);
 		ImGui::BulletText("Glass breaks     : %d", object[p].breakCount_Glass);
-		ImGui::BulletText("Plant breaks     : %d", object[p].breakCount_Plant);
 		ImGui::BulletText("Concrete breaks  : %d", object[p].breakCount_Concrete);
+		ImGui::BulletText("Plant breaks     : %d", object[p].breakCount_Plant);
 		ImGui::BulletText("Electric breaks  : %d", object[p].breakCount_Electric);
+		ImGui::BulletText("lastBrokenType   : %d", object[p].lastBrokenType);
 
 		ImGui::Unindent();
 		ImGui::Separator();
@@ -774,7 +782,7 @@ void Polygon3D_Update()
 		// -------------------------------------------------------------
 		switch (object[i].form)
 		{
-		case Normal: // 通常
+		case Form::Normal: // 通常
 			object[i].scaling.x = 0.5f;
 			object[i].scaling.y = 0.5f;
 			object[i].scaling.z = 0.5f;
@@ -782,7 +790,7 @@ void Polygon3D_Update()
 			object[i].power = 0.8f;
 			break;
 
-		case FirstEvolution: // 1進化
+		case Form::FirstEvolution: // 1進化
 			object[i].scaling.x = 0.8f;
 			object[i].scaling.y = 0.8f;
 			object[i].scaling.z = 0.8f;
@@ -790,7 +798,7 @@ void Polygon3D_Update()
 			object[i].power = 1.0f;
 			break;
 
-		case SecondEvolution: // 2進化
+		case Form::SecondEvolution: // 2進化
 			object[i].scaling.x = 1.2f;
 			object[i].scaling.y = 1.2f;
 			object[i].scaling.z = 1.2f;
@@ -860,14 +868,12 @@ void Polygon3D_Update()
 			object[0].position.x += half_translation.x;
 			object[0].position.y += half_translation.y;
 			object[0].position.z += half_translation.z;
-			//object[0].hp -= object[1].power;
 
 			// プレイヤー1 (object[1]) を MTVの逆方向の半分だけ 押す
 			// 逆方向にするために、X, Y, Z の符号を反転させる
 			object[1].position.x -= half_translation.x;
 			object[1].position.y -= half_translation.y;
 			object[1].position.z -= half_translation.z;
-			//object[1].hp -= object[0].power;
 
 			// 押し戻し後の新しいAABBを再計算 (次フレームや他の衝突判定に備える)
 			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
@@ -882,7 +888,7 @@ void Polygon3D_Update()
 		{
 			object[i].stock--;
 
-			// 残基があれば復活
+			// 残機があれば復活
 			if (object[i].stock > 0)
 			{
 				object[i].hp = object[i].maxHp;
@@ -892,7 +898,7 @@ void Polygon3D_Update()
 			}
 			else
 			{
-				// 残基無しで死亡
+				// 残機無しで死亡
 				object[i].active = false;
 			}
 		}
@@ -1083,44 +1089,66 @@ void Polygon3D_Respawn(int idx)
 
 	if (idx == 0)
 	{
-		object[0].position = XMFLOAT3(-2.0f, 2.0f, 0.0f);
+		object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 		object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[0].form = Normal;
 		object[0].speed = 0.0f;
 		object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[0].hp = 100.0f;
-		object[0].maxHp = object[0].hp;
+		object[0].maxHp = 100.0f;
+		object[0].hp = object[0].maxHp;
+		object[0].stock = 3;
+		object[0].active = true;
 		object[0].isAttacking = false;
 		object[0].attackTimer = 0.0f;
+		object[0].attackDuration = 2.0f;
+
+		object[0].form = Form::Normal;
+		object[0].type = PlayerType::None;
 		object[0].evolutionGauge = 0;
 		object[0].breakCount_Glass = 0;
-		object[0].breakCount_Plant = 0;
 		object[0].breakCount_Concrete = 0;
+		object[0].breakCount_Plant = 0;
 		object[0].breakCount_Electric = 0;
-		object[0].form = Normal;
+		object[0].lastBrokenType = BuildingType::None;
+		object[0].gl = 1.0f;
+		object[0].pl = 1.0f;
+		object[0].co = 1.0f;
+		object[0].el = 1.0f;
+		object[0].gaugeOuter = 1.0f;
+
 		object[0].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].is_knocked_back = false;
 		object[0].knockback_duration = 0.0f;
 	}
 	else if (idx == 1)
 	{
-		object[1].position = XMFLOAT3(2.0f, 4.0f, 3.0f);
+		object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 		object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[1].form = Normal;
 		object[1].speed = 0.0f;
 		object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[1].hp = 100.0f;
-		object[1].maxHp = object[1].hp;
+		object[1].maxHp = 100.0f;
+		object[1].hp = object[1].maxHp;
+		object[1].stock = 3;
+		object[1].active = true;
 		object[1].isAttacking = false;
 		object[1].attackTimer = 0.0f;
+		object[1].attackDuration = 2.0f;
+		
+		object[1].form = Form::Normal;
+		object[1].type = PlayerType::None;
 		object[1].evolutionGauge = 0;
 		object[1].breakCount_Glass = 0;
-		object[1].breakCount_Plant = 0;
 		object[1].breakCount_Concrete = 0;
+		object[1].breakCount_Plant = 0;
 		object[1].breakCount_Electric = 0;
-		object[1].form = Normal;
+		object[1].lastBrokenType = BuildingType::None;
+		object[1].gl = 1.0f;
+		object[1].pl = 1.0f;
+		object[1].co = 1.0f;
+		object[1].el = 1.0f;
+		object[1].gaugeOuter = 1.0f;
+
 		object[1].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].is_knocked_back = false;
 		object[1].knockback_duration = 0.0f;
@@ -1254,10 +1282,6 @@ void Polygon3D_DrawStock(int i)
 	}
 	
 }
-
-
-
-
 
 PLAYEROBJECT* GetPlayer(int index)
 {

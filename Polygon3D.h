@@ -4,15 +4,25 @@
 
 #include "d3d11.h"
 #include "collider.h" // AABB を使うためにインクルード
+#include "Building.h" 
 
 // マクロ定義
 #define	PLAYER_MAX	(2)
 
-enum Form
+enum class Form
 {
 	Normal = 0,			// 通常
 	FirstEvolution,		// 1進化
 	SecondEvolution		// 2進化
+};
+
+enum class PlayerType {
+	None,		// 未設定
+	Glass,		// ガラス
+	Concrete,	// コンクリ
+	Plant,		// 植物
+	Electric,	// 電気
+	Max
 };
 
 // プレイヤーオブジェクト専用の構造体
@@ -35,16 +45,18 @@ struct PLAYEROBJECT
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 
-	int evolutionGauge;			// 進化ゲージ
-	int breakCount_Glass;		// 破壊した数 ガラス
-	int breakCount_Plant;		// 破壊した数 植物
-	int breakCount_Concrete;	// 破壊した数 コンクリート
-	int breakCount_Electric;	// 破壊した数 電気
+	Form form;						// 変身形態
+	PlayerType type;				// プレイヤーの属性タイプ
+	int evolutionGauge;				// 進化ゲージ
+	int breakCount_Glass;			// 破壊した数 ガラス
+	int breakCount_Concrete;		// 破壊した数 コンクリート
+	int breakCount_Plant;			// 破壊した数 植物
+	int breakCount_Electric;		// 破壊した数 電気
+	BuildingType lastBrokenType;	// 最後に破壊した建物の種類
 
 	float gl, pl, co, el;
 	float gaugeOuter;
 
-	Form form;	// 変身形態
 
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル
 	bool is_knocked_back = false;						// 吹き飛ばし中かどうか
