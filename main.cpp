@@ -20,6 +20,7 @@
 #include "block.h"
 #include "Effect.h"
 #include "score.h"
+#include "Polygon3D.h"
 
 #include "Manager.h"
 #include "Audio.h"	//<<<<<<<<<<<<<追加
@@ -28,6 +29,10 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 
+#include <dinput.h>
+#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "dxguid.lib")
+
 #define		SCREEN_WIDTH	(1280)
 #define		SCREEN_HEIGHT	(720)
 
@@ -35,6 +40,11 @@
 //==================================
 //グローバル変数
 //==================================
+LPDIRECTINPUT8 g_pDI = nullptr;
+LPDIRECTINPUTDEVICE8 g_pGamepad[4] = { nullptr };
+int g_GamepadCount = 0;  // 接続されたプロコンの数
+
+
 #ifdef _DEBUG	//デバッグビルドの時だけ変数が作られる
 int		g_CountFPS;			//FPSカウンター
 char	g_DebugStr[2048];	//FPS表示文字列
@@ -56,6 +66,26 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 //ウィンドウプロシージャ
 //コールバック関数＝＞他人が呼び出してくれる関数
 LRESULT	CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+BOOL CALLBACK EnumGamepadCallback(const DIDEVICEINSTANCE* inst, VOID* ctx)
+{
+	// プロコンだけ拾う（名称一致）
+	//if (strstr(inst->tszProductName, "Pro Controller"))
+	
+		if (g_GamepadCount < 4)
+		{
+			HRESULT hr = g_pDI->CreateDevice(inst->guidInstance, &g_pGamepad[g_GamepadCount], NULL);
+			
+			if (SUCCEEDED(hr))
+			{
+				g_GamepadCount++;
+			}
+		}
+
+	
+	return DIENUM_CONTINUE;
+}
+
 
 void InitImGui(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* context)
 {
@@ -83,6 +113,7 @@ void ShutdownImGui()
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 }
+
 
 
 int APIENTRY WinMain(HINSTANCE hInstance,
@@ -151,12 +182,37 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	InitImGui(hWnd, Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 
+	////////////////////////////////////////////////////////////////
+	// DirectInput 初期化
+	////////////////////////////////////////////////////////////////
+	HRESULT hrDI = DirectInput8Create(
+		hInstance,
+		DIRECTINPUT_VERSION,
+		IID_IDirectInput8,
+		(void**)&g_pDI,
+		NULL
+	);
 
+	// プロコンを列挙
+	g_pDI->EnumDevices(
+		DI8DEVCLASS_GAMECTRL,
+		EnumGamepadCallback,
+		NULL,
+		DIEDFL_ATTACHEDONLY
+	);
+
+	// 見つかったプロコンに対して Device 準備
+	for (int i = 0; i < g_GamepadCount; i++)
+	{
+		if (!g_pGamepad[i]) continue;
+
+		g_pGamepad[i]->SetDataFormat(&c_dfDIJoystick2);
+		g_pGamepad[i]->SetCooperativeLevel(hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+		g_pGamepad[i]->Acquire();
+	}
+	/////////////////////////////////////////////////////////////////
 
 	Manager_Initialize();
-
-
-	/////////////////////////////////
 
 	//メッセージループ
 	MSG	msg;
@@ -201,14 +257,61 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				Manager_Update();
 				// ======= ImGui描画テスト =======
 				ImGui::Begin("Debug Window");
-
 				// ゲッターとかから情報を取ってきて表示していく
 				ImGui::Text("Hello, Dear ImGui!");
-
-
+				ImGui::Text("Pro Controller Count : %d", g_GamepadCount);
 
 				ImGui::End();
-				// ------------------------------
+
+				//======================
+				// DirectInput入力取得
+				//======================
+                 DIJOYSTATE2 js[4];
+                 
+                 for (int i = 0; i < g_GamepadCount; i++)
+                 {
+                 	if (!g_pGamepad[i]) continue;
+                 
+                 	HRESULT hr = g_pGamepad[i]->GetDeviceState(sizeof(DIJOYSTATE2), &js[i]);
+                 	if (FAILED(hr))
+                 	{
+                 		g_pGamepad[i]->Acquire();
+                 		continue;
+                 	}
+                 
+                 	// ======== テスト出力 ========
+                 	// 左スティック
+                 	int lx = js[i].lX;
+                 	int ly = js[i].lY;
+                 
+                 	// ボタン（例：Aボタン → js[i].rgbButtons[0] & 0x80）
+                 	bool A = (js[i].rgbButtons[0] & 0x80) != 0;
+                 
+                 	// D-Pad
+                 	int pov = js[i].rgdwPOV[0];  // -1 or 0〜35999
+                 
+					ImGui::Begin("Debug CTLR");
+
+					DIJOYSTATE2 js;
+
+					if (g_pGamepad[0])
+					{
+						if (SUCCEEDED(g_pGamepad[0]->GetDeviceState(sizeof(DIJOYSTATE2), &js)))
+						{
+							ImGui::Text("LStick X : %d", js.lX);
+							ImGui::Text("LStick Y : %d", js.lY);
+							ImGui::Text("B Button : %d", (js.rgbButtons[0] & 0x80) != 0);
+							ImGui::Text("A Button : %d", (js.rgbButtons[1] & 0x80) != 0);
+							ImGui::Text("Y Button : %d", (js.rgbButtons[2] & 0x80) != 0);
+							ImGui::Text("X Button : %d", (js.rgbButtons[3] & 0x80) != 0);
+							ImGui::Text("Cross Button : %d", js.rgdwPOV[0]);
+						}
+					}
+
+					ImGui::End();
+                 }
+
+
 
 				//描画処理
 				Direct3D_Clear();// バックバッファをクリア
@@ -232,7 +335,24 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	Shader_Finalize(); // シェーダの終了処理
 	FinalizeSprite();	//スプライトの終了処理
-	/////////////////////////////////////////
+
+	// DirectInput終了処理
+    for (int i = 0; i < g_GamepadCount; i++)
+    {
+		if (g_pGamepad[i])
+		{
+			g_pGamepad[i]->Unacquire();
+			g_pGamepad[i]->Release();
+			g_pGamepad[i] = nullptr;
+		}
+    }
+    if (g_pDI)
+    {
+		g_pDI->Release();
+		g_pDI = nullptr;
+    }
+
+
 	ShutdownImGui();
 	Direct3D_Finalize();
 

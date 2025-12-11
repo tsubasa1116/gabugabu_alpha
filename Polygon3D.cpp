@@ -1152,6 +1152,7 @@ void Polygon3D_DrawStock(int i)
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 2]);
 
+		
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);
 	}

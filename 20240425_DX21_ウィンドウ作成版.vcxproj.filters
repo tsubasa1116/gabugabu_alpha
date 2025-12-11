@@ -265,19 +265,19 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shader_pixel_2d.hlsl">
+    <FxCompile Include="ps_main.hlsl">
       <Filter>シェーダーファイル</Filter>
     </FxCompile>
-    <FxCompile Include="shader_vertex_2d.hlsl">
+    <FxCompile Include="vs_main.hlsl">
       <Filter>シェーダーファイル</Filter>
     </FxCompile>
-    <FxCompile Include="shader_gauge.hlsl">
+    <FxCompile Include="ps_gauge.hlsl">
       <Filter>シェーダーファイル</Filter>
     </FxCompile>
-    <FxCompile Include="shader_outgauge.hlsl">
+    <FxCompile Include="ps_outgauge.hlsl">
       <Filter>シェーダーファイル</Filter>
     </FxCompile>
-    <FxCompile Include="shader_pixel_debug_color.hlsl" />
+    <FxCompile Include="ps_debug_color.hlsl" />
     <FxCompile Include="ps_hpber.hlsl">
       <Filter>シェーダーファイル</Filter>
     </FxCompile>
