@@ -1072,7 +1072,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		vm.r[3].m128_f32[2] = object[i].position.z;
 		vm.r[3].m128_f32[3] = 1.0f;
 
-		XMMATRIX WVP = vm * View * Projection;// 最終的な変換行列を作成　乗算の順番に注意！！
+		XMMATRIX WVP = ScalingMatrix * vm * View * Projection;// 最終的な変換行列を作成　乗算の順番に注意！！
 
 		Shader_SetMatrix(WVP);
 		Shader_Begin();
