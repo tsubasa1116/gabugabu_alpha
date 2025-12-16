@@ -17,6 +17,9 @@
 //UpdateTexture() でフェーズ変更時に仮テクスチャ文字列を自動更新
 //GetTexture() で現在のフェーズのテクスチャ名を取得可能
 
+
+//nya
+
 //Building.cpp
 //#include "field.h"
 #include "Camera.h"
