@@ -376,10 +376,10 @@ void Attack_Update(int playerIndex)
 					{
 					case BuildingType::Glass:
 					{
-						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
-						playerObject->breakCount_Glass += 1;	// ガラスを壊した数をプラス
-						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
-						playerObject->lastBrokenType = BuildingType::Glass;    // 最後に破壊した建物タイプを保存
+						buildingObjects[i]->isActive = false;			// 建物を非アクティブ化
+						playerObject->breakCount_Glass += 1;			// ガラスを壊した数をプラス
+						playerObject->evolutionGauge += 1;				// 進化ゲージをプラス
+						playerObject->brokenHistory.push_back(type);	// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -394,10 +394,10 @@ void Attack_Update(int playerIndex)
 
 					case BuildingType::Concrete:
 					{
-						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
-						playerObject->breakCount_Concrete += 1;	// コンクリートを壊した数をプラス
-						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
-						playerObject->lastBrokenType = BuildingType::Concrete;    // 最後に破壊した建物タイプを保存
+						buildingObjects[i]->isActive = false;			// 建物を非アクティブ化
+						playerObject->breakCount_Concrete += 1;			// コンクリートを壊した数をプラス
+						playerObject->evolutionGauge += 1;				// 進化ゲージをプラス
+						playerObject->brokenHistory.push_back(type);	// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -412,10 +412,10 @@ void Attack_Update(int playerIndex)
 
 					case BuildingType::Plant:
 					{
-						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
-						playerObject->breakCount_Plant += 1;	// 植物を壊した数をプラス
-						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
-						playerObject->lastBrokenType = BuildingType::Plant;    // 最後に破壊した建物タイプを保存
+						buildingObjects[i]->isActive = false;			// 建物を非アクティブ化
+						playerObject->breakCount_Plant += 1;			// 植物を壊した数をプラス
+						playerObject->evolutionGauge += 1;				// 進化ゲージをプラス
+						playerObject->brokenHistory.push_back(type);	// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -430,10 +430,10 @@ void Attack_Update(int playerIndex)
 
 					case BuildingType::Electric:
 					{
-						buildingObjects[i]->isActive = false;	// 建物を非アクティブ化
-						playerObject->breakCount_Electric += 1;	// 電気を壊した数をプラス
-						playerObject->evolutionGauge += 1;		// 進化ゲージをプラス
-						playerObject->lastBrokenType = BuildingType::Electric;    // 最後に破壊した建物タイプを保存
+						buildingObjects[i]->isActive = false;			// 建物を非アクティブ化
+						playerObject->breakCount_Electric += 1;			// 電気を壊した数をプラス
+						playerObject->evolutionGauge += 1;				// 進化ゲージをプラス
+						playerObject->brokenHistory.push_back(type);	// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -450,97 +450,93 @@ void Attack_Update(int playerIndex)
 						break;
 					}
 
-					// 進化ゲージが一定値を超えたら変身
-					if (playerObject->evolutionGauge >= 10)
+					// --- 進化処理 ---
+					if (playerObject->evolutionGauge >= EVOLUTIONGAUGE_MAX)
 					{
-						playerObject->form = (Form)((int)playerObject->form + 1);
+						// 現在のフォーム（進化前の状態）を保存
+						Form currentForm = playerObject->form;
 
-						// 2進化まで
-						if (playerObject->form > Form::SecondEvolution)
+						// 1. 進化段階を1つ進める (毎回実行)
+						playerObject->form = static_cast<Form>(static_cast<int>(playerObject->form) + 1);
+
+						// 2. 2進化までしか進化しないように制限 (毎回実行)
+						if (playerObject->form >= Form::SecondEvolution)
 						{
 							playerObject->form = Form::SecondEvolution;
 						}
 
-						const int counts[4] =
+						// 3. タイプ決定ロジック
+						//    Typeの決定は、Normal(0) から FirstEvolution(1) に進化する場合のみ実行
+						if (currentForm == Form::Normal)
 						{
-							playerObject->breakCount_Glass,
-							playerObject->breakCount_Concrete,
-							playerObject->breakCount_Plant,
-							playerObject->breakCount_Electric
-						};
-
-						// --- 最大値をまず決める ---
-						int maxCount = counts[0];
-						for (int k = 1; k < 4; k++)
-						{
-							if (counts[k] > maxCount)
+							// 4種類の破壊した建物数を配列に格納
+							const int counts[4] =
 							{
-								maxCount = counts[k];
-							}
-						}
+								playerObject->breakCount_Glass,    // idx 0
+								playerObject->breakCount_Concrete, // idx 1
+								playerObject->breakCount_Plant,    // idx 2
+								playerObject->breakCount_Electric  // idx 3
+							};
 
-						// --- 最大値と同じものを候補として集める ---
-						bool candidates[4] = { false, false, false, false };
-						for (int k = 0; k < 4; k++)
-						{
-							if (counts[k] == maxCount)
-								candidates[k] = true;
-						}
-
-						// --- 最終選択（同点が2つ以上ある時だけ lastBrokenType を使う） ---
-						int chosenIndex = -1;
-
-						// 同点種類数を数える
-						int tieCount = 0;
-						for (int k = 0; k < 4; k++)
-							if (candidates[k]) tieCount++;
-
-						if (tieCount >= 2)
-						{
-							// lastBrokenType が候補に入っている場合のみ優先する
-							switch (playerObject->lastBrokenType)
+							// 対応するタイプ定義
+							const BuildingType types[4] =
 							{
-							case BuildingType::Glass:
-								if (candidates[0]) chosenIndex = 0;
-								break;
-							case BuildingType::Concrete:
-								if (candidates[1]) chosenIndex = 1;
-								break;
-							case BuildingType::Plant:
-								if (candidates[2]) chosenIndex = 2;
-								break;
-							case BuildingType::Electric:
-								if (candidates[3]) chosenIndex = 3;
-								break;
-							default:
-								break;
-							}
-						}
+								BuildingType::Glass,
+								BuildingType::Concrete,
+								BuildingType::Plant,
+								BuildingType::Electric
+							};
 
-						// 候補に lastBrokenType がなかった場合 or tieCount == 1 の場合
-						if (chosenIndex == -1)
-						{
-							// 最初の候補を使う
-							for (int k = 0; k < 4; k++)
+							// --- Step 1: 最大カウント数(maxCount)を求める ---
+							int maxCount = 0;
+							for (int i = 0; i < 4; i++)
 							{
-								if (candidates[k])
+								if (counts[i] > maxCount)
 								{
-									chosenIndex = k;
-									break;
+									maxCount = counts[i];
 								}
 							}
+
+							// --- Step 2: 履歴を「最新」から「過去」へ遡って勝者を決める ---
+							int maxIdx = 0; // デフォルト（例: Glass）
+
+							// vectorを後ろから回す
+							for (int i = playerObject->brokenHistory.size() - 1; i >= 0; i--)
+							{
+								BuildingType historyType = playerObject->brokenHistory[i];
+								int typeIdx = -1;
+
+								// タイプをインデックス番号に変換
+								for (int j = 0; j < 4; j++)
+								{
+									if (historyType == types[j])
+									{
+										typeIdx = j;
+										break;
+									}
+								}
+
+								// 重要ロジック：「今見ている履歴のタイプ」が「最大カウント数を持つグループ」の一員か？
+								if (typeIdx != -1 && counts[typeIdx] == maxCount)
+								{
+									maxIdx = typeIdx;
+									break; // 見つかった時点で確定！
+								}
+							}
+
+							// --- Step 3: 最終タイプ反映 ---
+							switch (maxIdx)
+							{
+							case 0: playerObject->type = PlayerType::Glass;    break;
+							case 1: playerObject->type = PlayerType::Concrete; break;
+							case 2: playerObject->type = PlayerType::Plant;    break;
+							case 3: playerObject->type = PlayerType::Electric; break;
+							}
 						}
 
-						// --- 最終タイプ決定 ---
-						switch (chosenIndex)
-						{
-						case 0: playerObject->type = PlayerType::Glass;    break;
-						case 1: playerObject->type = PlayerType::Concrete; break;
-						case 2: playerObject->type = PlayerType::Plant;    break;
-						case 3: playerObject->type = PlayerType::Electric; break;
-						}
-
-						// ゲージとカウントリセット
+						// 4. リセット処理 (毎回実行)
+						//    タイプ決定の if ブロックの外に出すことで、どのフォーム段階からの進化でもリセットされる
+						playerObject->brokenHistory.clear(); // 履歴もクリアする
 						playerObject->evolutionGauge = 0;
 						playerObject->breakCount_Glass = 0;
 						playerObject->breakCount_Concrete = 0;
@@ -549,7 +545,6 @@ void Attack_Update(int playerIndex)
 
 						continue;
 					}
-				
 
 					switch (playerObject->form)
 					{
