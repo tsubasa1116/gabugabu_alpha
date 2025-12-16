@@ -1,7 +1,7 @@
 // =====================================================
 //	polygon3D.cpp[]
 // 
-//	制作者：平岡颯馬			日付：2025/12/04
+//	制作者：平岡颯馬			日付：2025/12/16
 //======================================================
 
 #include "d3d11.h"
@@ -36,10 +36,10 @@ using namespace DirectX;
 //======================================================
 //	マクロ定義
 //======================================================
-#define	NUM_VERTEX	(36)
+#define	NUM_VERTEX	(6)
 #define	PLAYER_MAX	(2)
-#define HPBER_SIZE_X 200.0f
-#define HPBER_SIZE_Y 150.0f
+#define HPBER_SIZE_X (200.0f)
+#define HPBER_SIZE_Y (150.0f)
 
 //======================================================
 //	構造体宣言
@@ -259,151 +259,181 @@ static ID3D11Buffer* g_IndexBuffer_Face = NULL; // -X 面のみ用インデックスバッフ
 //		XMFLOAT2(10.0f,10.0f)
 //	},
 //};
+//static	Vertex vdata[NUM_VERTEX] =
+//{
+//	//-Z面
+//	{//頂点0 LEFT-TOP
+//		XMFLOAT3(-0.5f, 0.5f, -0.5f),		//座標
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//カラー
+//		XMFLOAT2(0.0f,0.0f)					//テクスチャ座標
+//	},
+//	{//頂点1 RIGHT-TOP
+//		XMFLOAT3(0.5f, 0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,0.0f)
+//	},
+//	{//頂点2 LEFT-BOTTOM
+//		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,1.0f)
+//	},
+//	{//頂点3 RIGHT-BOTTOM
+//		XMFLOAT3(0.5f, -0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,1.0f)
+//	},
+//
+//	//+X面
+//	{//頂点4 LEFT-TOP
+//		XMFLOAT3(0.5f, 0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,0.0f)
+//	},
+//	{//頂点5 RIGHT-TOP
+//		XMFLOAT3(0.5f, 0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,0.0f)
+//	},
+//	{//頂点6 LEFT-BOTTOM
+//		XMFLOAT3(0.5f, -0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,1.0f)
+//	},
+//	{//頂点7 RIGHT-BOTTM
+//		XMFLOAT3(0.5f, -0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,1.0f)
+//	},
+//
+//	//+Z面
+//	{//頂点8 LEFT-TOP
+//		XMFLOAT3(0.5f, 0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,0.0f)
+//	},
+//	{//頂点9 RIGHT-TOP
+//		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,0.0f)
+//	},
+//	{//頂点10 LEFT-BOTTOM
+//		XMFLOAT3(0.5f, -0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,1.0f)
+//	},
+//	{//頂点11 RIGHT-BOTTOM
+//		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,1.0f)
+//	},
+//
+//	//-X面
+//	{//頂点12 LEFT-TOP
+//		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,0.0f)
+//	},
+//	{//頂点13 RIGHT-TOP
+//		XMFLOAT3(-0.5f, 0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,0.0f)
+//	},
+//	{//頂点14 LEFT-BOTTOM
+//		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,1.0f)
+//	},
+//	{//頂点15 RIGHT-BOTTOM
+//		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,1.0f)
+//	},
+//
+//	//+Y面
+//	{//頂点16 LEFT-TOP
+//		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,0.0f)
+//	},
+//	{//頂点17 RIGHT-TOP
+//		XMFLOAT3(0.5f, 0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,0.0f)
+//	},
+//	{//頂点18 LEFT-BOTTOM
+//		XMFLOAT3(-0.5f, 0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,1.0f)
+//	},
+//	{//頂点19 RIGHT-BOTTOM
+//		XMFLOAT3(0.5f, 0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,1.0f)
+//	},
+//
+//	//-Y面
+//	{//頂点20 LEFT-TOP
+//		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,0.0f)
+//	},
+//	{//頂点21 RIGHT-TOP
+//		XMFLOAT3(0.5f, -0.5f, -0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,0.0f)
+//	},
+//	{//頂点22 LEFT-BOTTOM
+//		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(0.0f,1.0f)
+//	},
+//	{//頂点23 RIGHT-BOTTOM
+//		XMFLOAT3(0.5f, -0.5f, 0.5f),
+//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+//		XMFLOAT2(1.0f,1.0f)
+//	},
+//};
+
 static	Vertex vdata[NUM_VERTEX] =
 {
 	//-Z面
 	{//頂点0 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),		//座標
+		XMFLOAT3(-0.5f, 0.5f, 0.0f),		//座標
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//カラー
 		XMFLOAT2(0.0f,0.0f)					//テクスチャ座標
 	},
 	{//頂点1 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.5f, 0.5f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
 	{//頂点2 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(-0.5f, -0.5f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
 	{//頂点3 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, -0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,1.0f)
-	},
-
-	//+X面
-	{//頂点4 LEFT-TOP
-		XMFLOAT3(0.5f, 0.5f, -0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,0.0f)
-	},
-	{//頂点5 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,0.0f)
-	},
-	{//頂点6 LEFT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, -0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,1.0f)
-	},
-	{//頂点7 RIGHT-BOTTM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,1.0f)
-	},
-
-	//+Z面
-	{//頂点8 LEFT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,0.0f)
-	},
-	{//頂点9 RIGHT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,0.0f)
-	},
-	{//頂点10 LEFT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,1.0f)
-	},
-	{//頂点11 RIGHT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,1.0f)
-	},
-
-	//-X面
-	{//頂点12 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,0.0f)
-	},
-	{//頂点13 RIGHT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,0.0f)
-	},
-	{//頂点14 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,1.0f)
-	},
-	{//頂点15 RIGHT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,1.0f)
-	},
-
-	//+Y面
-	{//頂点16 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,0.0f)
-	},
-	{//頂点17 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,0.0f)
-	},
-	{//頂点18 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,1.0f)
-	},
-	{//頂点19 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, 0.5f, -0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,1.0f)
-	},
-
-	//-Y面
-	{//頂点20 LEFT-TOP
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,0.0f)
-	},
-	{//頂点21 RIGHT-TOP
-		XMFLOAT3(0.5f, -0.5f, -0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,0.0f)
-	},
-	{//頂点22 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,1.0f)
-	},
-	{//頂点23 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.5f, -0.5f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 };
 
 // インデックス配列
-static UINT idxdata[6 * 6]
+static UINT idxdata[6]
 {
-	 0,  1,  2,  2,  1,  3, // -Z面
-	 4,  5,  6,  6,  5,  7, // +X面
-	 8,  9, 10, 10,  9, 11, // +Z面
-	12, 13, 14, 14, 13, 15, // -X面
-	16, 17, 18, 18, 17, 19, // +Y面
-	20, 21, 22, 22, 21, 23, // -Y面
+	 0, 1, 2, 2, 1, 3, // -Z面
 };
+
+//static UINT idxdata[1 * 6]
+//{
+//	 0,  1,  2,  2,  1,  3, // -Z面
+//	// 4,  5,  6,  6,  5,  7, // +X面
+//	// 8,  9, 10, 10,  9, 11, // +Z面
+//	//12, 13, 14, 14, 13, 15, // -X面
+//	//16, 17, 18, 18, 17, 19, // +Y面
+//	//20, 21, 22, 22, 21, 23, // -Y面
+//};
 
 static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
 
@@ -416,8 +446,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[0].form = Normal;
-	object[0].speed = 0.0f;
+	object[0].speed = 0.00f;
 	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].maxHp = 100.0f;
 	object[0].hp = object[0].maxHp;
@@ -426,9 +455,12 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].isAttacking = false;
 	object[0].attackTimer = 0.0f;
 	object[0].attackDuration = 2.0f;
+	object[0].form = Form::Normal;
+	object[0].type = PlayerType::None;
+	object[0].evolutionGauge = 0;
 	object[0].breakCount_Glass = 0;
-	object[0].breakCount_Plant = 0;
 	object[0].breakCount_Concrete = 0;
+	object[0].breakCount_Plant = 0;
 	object[0].breakCount_Electric = 0;
 	object[0].gl = 1.0f;
 	object[0].pl = 1.0f;
@@ -439,8 +471,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[1].form = Normal;
-	object[1].speed = 0.0f;
+	object[1].speed = 0.00f;
 	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].maxHp = 100.0f;
 	object[1].hp = object[1].maxHp;
@@ -449,9 +480,12 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
 	object[1].attackDuration = 2.0f;
+	object[1].form = Form::Normal;
+	object[1].type = PlayerType::None;
+	object[1].evolutionGauge = 0;
 	object[1].breakCount_Glass = 0;
-	object[1].breakCount_Plant = 0;
 	object[1].breakCount_Concrete = 0;
+	object[1].breakCount_Plant = 0;
 	object[1].breakCount_Electric = 0;
 	object[1].gl = 1.0f;
 	object[1].pl = 1.0f;
@@ -475,7 +509,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	TexMetadata metadata;
 	ScratchImage image;
 
-	LoadFromWICFile(L"Asset\\Texture\\Brick.jpg", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);
 
@@ -627,11 +661,47 @@ void Polygon3D_Update()
 		// HP 表示
 		ImGui::SliderFloat("HP:", &object[p].hp, 0.0f, object[p].maxHp);
 
-		// breakCount を列挙して表示
+		// evolutionGauge breakCount を列挙して表示
+		ImGui::BulletText("form             : %d", object[p].form);
+		ImGui::BulletText("type             : %d", object[p].type);
+		ImGui::BulletText("EvolutionGauge   : %d", object[p].evolutionGauge);
 		ImGui::BulletText("Glass breaks     : %d", object[p].breakCount_Glass);
-		ImGui::BulletText("Plant breaks     : %d", object[p].breakCount_Plant);
 		ImGui::BulletText("Concrete breaks  : %d", object[p].breakCount_Concrete);
+		ImGui::BulletText("Plant breaks     : %d", object[p].breakCount_Plant);
 		ImGui::BulletText("Electric breaks  : %d", object[p].breakCount_Electric);
+
+		// 履歴リストのサイズを表示
+		size_t historySize = object[p].brokenHistory.size();
+		ImGui::BulletText("brokenHistory Size : %zu", historySize);
+
+		// --- ★ ここから追加・修正 ---
+
+		if (historySize > 0)
+		{
+			ImGui::Indent(); // 履歴をさらに一段インデント
+			ImGui::Text("History (Latest -> Oldest):");
+
+			// 履歴を最新（末尾）から古い方へループして表示
+			// 履歴が多いとウィンドウが長くなるため、最新の数個だけ表示する、などの工夫も可能
+			for (int i = (int)historySize - 1; i >= 0; --i)
+			{
+				// BuildingType は enum型（整数値）なので、そのまま %d で表示可能
+				// または、ImGui::Textで整形して表示する
+
+				// 例1: 履歴のインデックスと値を直接表示
+				// ImGui::BulletText("[%d]: %d", i, (int)object[p].brokenHistory[i]);
+
+				// 例2: 履歴の値を横に並べて表示 (スペース区切り)
+				ImGui::SameLine(); // 同じ行に表示
+				// 履歴の値（整数）を文字列に変換してから表示（見やすさのため）
+				ImGui::Text("%d", (int)object[p].brokenHistory[i]);
+			}
+
+			// 履歴が横に並びすぎないよう改行
+			ImGui::NewLine();
+			ImGui::Unindent();
+		}
+		// --- ★ ここまで追加・修正 ---
 
 		ImGui::Unindent();
 		ImGui::Separator();
@@ -639,7 +709,7 @@ void Polygon3D_Update()
 	}
 
 	ImGui::End();
-
+	
 	object[0].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	object[1].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 
@@ -772,7 +842,7 @@ void Polygon3D_Update()
 		// -------------------------------------------------------------
 		switch (object[i].form)
 		{
-		case Normal: // 通常
+		case Form::Normal: // 通常
 			object[i].scaling.x = 0.5f;
 			object[i].scaling.y = 0.5f;
 			object[i].scaling.z = 0.5f;
@@ -780,7 +850,7 @@ void Polygon3D_Update()
 			object[i].power = 0.8f;
 			break;
 
-		case FirstEvolution: // 1進化
+		case Form::FirstEvolution: // 1進化
 			object[i].scaling.x = 0.8f;
 			object[i].scaling.y = 0.8f;
 			object[i].scaling.z = 0.8f;
@@ -788,7 +858,7 @@ void Polygon3D_Update()
 			object[i].power = 1.0f;
 			break;
 
-		case SecondEvolution: // 2進化
+		case Form::SecondEvolution: // 2進化
 			object[i].scaling.x = 1.2f;
 			object[i].scaling.y = 1.2f;
 			object[i].scaling.z = 1.2f;
@@ -845,23 +915,6 @@ void Polygon3D_Update()
 			object[1].dir.x = sinf(rad_1);
 			object[1].dir.z = cosf(rad_1);
 
-			//if (Keyboard_IsKeyDown(KK_SPACE))
-			//{
-			//	// プレイヤー1 を、プレイヤー0の向いている方向に吹き飛ばす
-			//	object[1].position.x += dir0_x * object[0].power;
-			//	object[1].position.z += dir0_z * object[0].power;
-			//	object[1].position.y += object[0].power; // Y方向にも飛ばす
-			//}
-
-			//if (Keyboard_IsKeyDown(KK_ENTER))
-			//{
-			//	// プレイヤー0 を、プレイヤー1の向いている方向に吹き飛ばす
-			//	object[0].position.x += dir1_x * object[1].power;
-			//	object[0].position.z += dir1_z * object[1].power;
-			//	object[0].position.y += object[1].power; // Y方向にも飛ばす
-			//}
-			// 衝突していた場合、MTVの半分ずつをそれぞれのオブジェクトに適用して押し戻す
-
 			// 押し戻し量 (MTV) を半分にする
 			XMFLOAT3 half_translation =
 			{
@@ -875,14 +928,12 @@ void Polygon3D_Update()
 			object[0].position.x += half_translation.x;
 			object[0].position.y += half_translation.y;
 			object[0].position.z += half_translation.z;
-			//object[0].hp -= object[1].power;
 
 			// プレイヤー1 (object[1]) を MTVの逆方向の半分だけ 押す
 			// 逆方向にするために、X, Y, Z の符号を反転させる
 			object[1].position.x -= half_translation.x;
 			object[1].position.y -= half_translation.y;
 			object[1].position.z -= half_translation.z;
-			//object[1].hp -= object[0].power;
 
 			// 押し戻し後の新しいAABBを再計算 (次フレームや他の衝突判定に備える)
 			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
@@ -897,7 +948,7 @@ void Polygon3D_Update()
 		{
 			object[i].stock--;
 
-			// 残基があれば復活
+			// 残機があれば復活
 			if (object[i].stock > 0)
 			{
 				object[i].hp = object[i].maxHp;
@@ -907,7 +958,7 @@ void Polygon3D_Update()
 			}
 			else
 			{
-				// 残基無しで死亡
+				// 残機無しで死亡
 				object[i].active = false;
 			}
 		}
@@ -915,9 +966,7 @@ void Polygon3D_Update()
 		SetHPValue(&HPBar[i], (int)object[i].hp, (int)object[i].maxHp);
 		UpdateHP(&HPBar[i]);
 
-	}
-
-			
+	}		
 
 	// -------------------------------------------------------------
 	// 当たり判定 Player1とAttack2
@@ -998,17 +1047,32 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		);
 		// 回転行列の作成
 		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
-			XMConvertToRadians(object[i].rotation.x),
-			XMConvertToRadians(object[i].rotation.y),
-			XMConvertToRadians(object[i].rotation.z)
+			XMConvertToRadians(0.0f),
+			XMConvertToRadians(0.0f),
+			XMConvertToRadians(0.0f)
+			//XMConvertToRadians(object[i].rotation.x),
+			//XMConvertToRadians(object[i].rotation.y),
+			//XMConvertToRadians(object[i].rotation.z)
 		);
 
 		// 乗算の順番に注意！！
-		XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
+		//XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
 
 		XMMATRIX Projection = GetProjectionMatrix();// プロジェクション行列作成
 		XMMATRIX View = GetViewMatrix();// ビュー行列作成
-		XMMATRIX WVP = WorldMatrix * View * Projection;// 最終的な変換行列を作成　乗算の順番に注意！！
+		
+		XMMATRIX vm = GetViewMatrix();	// カメラの行列
+		vm.r[3].m128_f32[0] = 0.0f;			// カメラの位置をリセット
+		vm.r[3].m128_f32[1] = 0.0f;
+		vm.r[3].m128_f32[2] = 0.0f;
+		vm.r[3].m128_f32[3] = 1.0f;
+		vm = XMMatrixTranspose(vm);			// 転地する(逆行列)
+		vm.r[3].m128_f32[0] = object[i].position.x;	0.0f;	// ビルボードの位置をセット
+		vm.r[3].m128_f32[1] = object[i].position.y;
+		vm.r[3].m128_f32[2] = object[i].position.z;
+		vm.r[3].m128_f32[3] = 1.0f;
+
+		XMMATRIX WVP = vm * View * Projection;// 最終的な変換行列を作成　乗算の順番に注意！！
 
 		Shader_SetMatrix(WVP);
 		Shader_Begin();
@@ -1019,25 +1083,23 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex* vertex = (Vertex*)msr.pData;
 
-		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);	
-		g_pContext->Unmap(g_VertexBuffer, 0);							
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);			
-		Shader_SetColor({1,1,1,1});
+		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex) * NUM_VERTEX);
+		g_pContext->Unmap(g_VertexBuffer, 0);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
+		Shader_SetColor({ 1,1,1,1 });
 
 		// 頂点バッファをセット
 		UINT stride = sizeof(Vertex);	// 頂点1個のデータサイズ
 		UINT offset = 0;
 
 		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-		//g_pContext->IASetIndexBuffer(g_IndexBuffer_Face, DXGI_FORMAT_R32_UINT, 0);	// 2D表示 インデックスバッファを単一面用に差し替え
 		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);		// インデックスバッファをセット 四角形
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	// 描画するポリゴンの種類をセット　3頂点でポリゴンを1枚として表示
 		if (!s_IsKonamiCodeEntered || input1)
 		{
-			g_pContext->DrawIndexed(6 * 6, 0, 0);	// 四角形
-			//g_pContext->DrawIndexed(6, 0, 0);		// -X面のみを描画（6 インデックス）
+			//g_pContext->DrawIndexed(6 * 6, 0, 0);	// 四角形
+			g_pContext->DrawIndexed(6, 0, 0);		// -X面のみを描画（6 インデックス）
 		}
-
 		// 描画リクエスト
 		//g_pContext->Draw(NUM_VERTEX, 0);
 	}
@@ -1098,42 +1160,64 @@ void Polygon3D_Respawn(int idx)
 
 	if (idx == 0)
 	{
-		object[0].position = XMFLOAT3(-2.0f, 2.0f, 0.0f);
+		object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 		object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[0].form = Normal;
 		object[0].speed = 0.0f;
 		object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[0].hp = 100.0f;
-		object[0].maxHp = object[0].hp;
+		object[0].maxHp = 100.0f;
+		object[0].hp = object[0].maxHp;
+		object[0].active = true;
 		object[0].isAttacking = false;
 		object[0].attackTimer = 0.0f;
+		object[0].attackDuration = 2.0f;
+
+		object[0].form = Form::Normal;
+		object[0].type = PlayerType::None;
+		object[0].evolutionGauge = 0;
 		object[0].breakCount_Glass = 0;
-		object[0].breakCount_Plant = 0;
 		object[0].breakCount_Concrete = 0;
+		object[0].breakCount_Plant = 0;
 		object[0].breakCount_Electric = 0;
-		object[0].form = Normal;
+		object[0].brokenHistory.clear();
+		object[0].gl = 1.0f;
+		object[0].pl = 1.0f;
+		object[0].co = 1.0f;
+		object[0].el = 1.0f;
+		object[0].gaugeOuter = 1.0f;
+
 		object[0].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].is_knocked_back = false;
 		object[0].knockback_duration = 0.0f;
 	}
 	else if (idx == 1)
 	{
-		object[1].position = XMFLOAT3(2.0f, 4.0f, 3.0f);
+		object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 		object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[1].form = Normal;
 		object[1].speed = 0.0f;
 		object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[1].hp = 100.0f;
-		object[1].maxHp = object[1].hp;
+		object[1].maxHp = 100.0f;
+		object[1].hp = object[1].maxHp;
+		object[1].active = true;
 		object[1].isAttacking = false;
 		object[1].attackTimer = 0.0f;
+		object[1].attackDuration = 2.0f;
+		
+		object[1].form = Form::Normal;
+		object[1].type = PlayerType::None;
+		object[1].evolutionGauge = 0;
 		object[1].breakCount_Glass = 0;
-		object[1].breakCount_Plant = 0;
 		object[1].breakCount_Concrete = 0;
+		object[1].breakCount_Plant = 0;
 		object[1].breakCount_Electric = 0;
-		object[1].form = Normal;
+		object[1].brokenHistory.clear();
+		object[1].gl = 1.0f;
+		object[1].pl = 1.0f;
+		object[1].co = 1.0f;
+		object[1].el = 1.0f;
+		object[1].gaugeOuter = 1.0f;
+
 		object[1].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].is_knocked_back = false;
 		object[1].knockback_duration = 0.0f;
@@ -1267,10 +1351,6 @@ void Polygon3D_DrawStock(int i)
 	}
 	
 }
-
-
-
-
 
 PLAYEROBJECT* GetPlayer(int index)
 {

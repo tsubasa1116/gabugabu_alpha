@@ -7,6 +7,7 @@
 #include "p.h"
 #include "keyboard.h"
 #include "polygon.h"
+#include "polygon3d.h"
 #include "shader.h"
 #include "color.h"
 #include "sprite.h"
@@ -14,9 +15,8 @@
 #include "imgui.h"
 #include "gauge.h"
 
-#define PLAYER_MAX 4
-#define HPBER_SIZE_X 180.0f
-#define HPBER_SIZE_Y 25.0f
+#define HPBER_SIZE_X (180.0f)
+#define HPBER_SIZE_Y (25.0f)
 
 static HP g_HPBar[PLAYER_MAX];
 
