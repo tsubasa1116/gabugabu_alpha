@@ -7,7 +7,8 @@ cbuffer cbChecker : register(b5)
     float4 colorB;    // 背景色2
     float2 tileCount; // マス数
     float intensity;  // 重ねる強さ 0.乗せない, 1.完全に上書き
-    float3 pad;
+    float2 scroll;
+    float2 pad;
 };
 
 struct PS_INPUT
@@ -23,7 +24,8 @@ float4 main(PS_INPUT i) : SV_TARGET
     float4 base = g_Texture.Sample(g_Sampler, i.uv) * i.color;
     
     // 市松模様の計算
-    float2 scaled = i.uv * tileCount;
+    float2 scrollUV = i.uv + scroll;
+    float2 scaled = scrollUV * tileCount;
     int2 cell = (int2) floor(scaled);
     int checker = (cell.x + cell.y) & 1;
     

@@ -9,6 +9,7 @@
 #include	"sprite.h"
 #include	"Game.h"
 #include	"keyboard.h"
+#include	"makeText.h"
 
 #include	"player.h"
 #include    "p.h"
@@ -98,6 +99,9 @@ void CheckKonamiCode(int currentKeyCode)
 //======================================================
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
+	Initialize_MakeText();
+	CreateRenderTarget_MakeText();
+
 	Field_Initialize(pDevice, pContext); // フィールドの初期化
 	//BallInitialize(pDevice, pContext); // ボールの初期化
 
@@ -214,6 +218,13 @@ void Game_Draw()
 	Polygon3D_DrawEffect();
 	Effect_Draw();
 	Polygon3D_DrawHP();
+	DrawTextEx(
+		L"こんにちは世界",        // 表示する文字
+		600, 400,                // 位置
+		60.0f,                   // サイズ
+		L"玉ねぎ楷書激無料版v7改", // フォント
+		TextColor::Yellow        // 色
+	);
 	
 	//BallDraw();
 	//P_Draw();

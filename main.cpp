@@ -24,6 +24,7 @@
 
 #include "Manager.h"
 #include "Audio.h"	//<<<<<<<<<<<<<追加
+#include "input.h"
 
 #include "imgui.h"
 #include "imgui_impl_win32.h"
@@ -114,6 +115,41 @@ void ShutdownImGui()
 	ImGui::DestroyContext();
 }
 
+void SetAxisRange(LPDIRECTINPUTDEVICE8 device)
+{
+	DIPROPRANGE range;
+	range.diph.dwSize = sizeof(DIPROPRANGE);
+	range.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+	range.diph.dwHow = DIPH_BYOFFSET;
+
+	// X軸
+	range.diph.dwObj = DIJOFS_X;
+	range.lMin = -32767;
+	range.lMax = 32767;
+	device->SetProperty(DIPROP_RANGE, &range.diph);
+
+	// Y軸
+	range.diph.dwObj = DIJOFS_Y;
+	device->SetProperty(DIPROP_RANGE, &range.diph);
+}
+
+float NormalizeStickWithDeadZone(LONG value)
+{
+	constexpr float DEAD_ZONE = 4000.0f;
+	constexpr float MAX_VALUE = 32767.0f;
+
+	// デッドゾーン
+	if (value > -DEAD_ZONE && value < DEAD_ZONE)
+		return 0.0f;
+
+	// 正規化
+	float v = static_cast<float>(value);
+
+	if (v > 0.0f)
+		return (v - DEAD_ZONE) / (MAX_VALUE - DEAD_ZONE);
+	else
+		return (v + DEAD_ZONE) / (MAX_VALUE - DEAD_ZONE);
+}
 
 
 int APIENTRY WinMain(HINSTANCE hInstance,
@@ -208,6 +244,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 		g_pGamepad[i]->SetDataFormat(&c_dfDIJoystick2);
 		g_pGamepad[i]->SetCooperativeLevel(hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+		SetAxisRange(g_pGamepad[i]);
 		g_pGamepad[i]->Acquire();
 	}
 	/////////////////////////////////////////////////////////////////
@@ -266,40 +303,45 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				//======================
 				// DirectInput入力取得
 				//======================
-                 DIJOYSTATE2 js[4];
-                 
-                 for (int i = 0; i < g_GamepadCount; i++)
-                 {
-                 	if (!g_pGamepad[i]) continue;
-                 
-                 	HRESULT hr = g_pGamepad[i]->GetDeviceState(sizeof(DIJOYSTATE2), &js[i]);
-                 	if (FAILED(hr))
-                 	{
-                 		g_pGamepad[i]->Acquire();
-                 		continue;
-                 	}
-                 
-                 	// ======== テスト出力 ========
-                 	// 左スティック
-                 	int lx = js[i].lX;
-                 	int ly = js[i].lY;
-                 
-                 	// ボタン（例：Aボタン → js[i].rgbButtons[0] & 0x80）
-                 	bool A = (js[i].rgbButtons[0] & 0x80) != 0;
-                 
-                 	// D-Pad
-                 	int pov = js[i].rgdwPOV[0];  // -1 or 0〜35999
-                 
-					ImGui::Begin("Debug CTLR");
-
+				for (int p = 0; p < g_GamepadCount; p++)
+				{
 					DIJOYSTATE2 js;
-
-					if (g_pGamepad[0])
+					if (FAILED(g_pGamepad[p]->GetDeviceState(sizeof(js), &js)))
 					{
-						if (SUCCEEDED(g_pGamepad[0]->GetDeviceState(sizeof(DIJOYSTATE2), &js)))
+						g_pGamepad[p]->Acquire();
+						continue;
+					}
+
+					g_Input[p].LStickX = NormalizeStickWithDeadZone(js.lX);;
+					g_Input[p].LStickY = NormalizeStickWithDeadZone(js.lY);;
+
+					// ==== ボタン ====
+					g_Input[p].B = (js.rgbButtons[0] & 0x80);
+					g_Input[p].A = (js.rgbButtons[1] & 0x80);
+					g_Input[p].Y = (js.rgbButtons[2] & 0x80);
+					g_Input[p].X = (js.rgbButtons[3] & 0x80);
+					g_Input[p].L = (js.rgbButtons[4] & 0x80);
+					g_Input[p].R = (js.rgbButtons[5] & 0x80);
+					g_Input[p].ZL = (js.rgbButtons[6] & 0x80);
+					g_Input[p].ZR = (js.rgbButtons[7] & 0x80);
+					g_Input[p].Minus = (js.rgbButtons[8] & 0x80);
+					g_Input[p].Plus = (js.rgbButtons[9] & 0x80);
+					g_Input[p].LStickPush = (js.rgbButtons[10] & 0x80);
+					g_Input[p].RStickPush = (js.rgbButtons[11] & 0x80);
+
+					// ==== POV（十字キー） ====
+					int pov = js.rgdwPOV[0];
+					g_Input[p].Up = (pov == 0);
+					g_Input[p].Right = (pov == 9000);
+					g_Input[p].Down = (pov == 18000);
+					g_Input[p].Left = (pov == 27000);
+
+					if (g_pGamepad[p])
+					{
+						if (SUCCEEDED(g_pGamepad[p]->GetDeviceState(sizeof(DIJOYSTATE2), &js)))
 						{
-							ImGui::Text("LStick X : %d", js.lX);
-							ImGui::Text("LStick Y : %d", js.lY);
+							ImGui::Text("LStick X : %.3f", g_Input[p].LStickX);
+							ImGui::Text("LStick Y : %.3f", g_Input[p].LStickY);
 							ImGui::Text("B Button : %d", (js.rgbButtons[0] & 0x80) != 0);
 							ImGui::Text("A Button : %d", (js.rgbButtons[1] & 0x80) != 0);
 							ImGui::Text("Y Button : %d", (js.rgbButtons[2] & 0x80) != 0);
@@ -307,11 +349,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 							ImGui::Text("Cross Button : %d", js.rgdwPOV[0]);
 						}
 					}
-
-					ImGui::End();
-                 }
-
-
+				}
 
 				//描画処理
 				Direct3D_Clear();// バックバッファをクリア
@@ -329,10 +367,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	} while (msg.message != WM_QUIT);
 	
 	Manager_Finalize();
-
-
 	UninitAudio();		//サウンドの終了
-
 	Shader_Finalize(); // シェーダの終了処理
 	FinalizeSprite();	//スプライトの終了処理
 
@@ -352,15 +387,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		g_pDI = nullptr;
     }
 
-
 	ShutdownImGui();
 	Direct3D_Finalize();
 
-
 	//終了する
 	return (int)msg.wParam;
-
 }
+
 
 //=========================================
 //ウィンドウプロシージャ

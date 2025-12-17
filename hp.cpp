@@ -154,7 +154,7 @@ void DrawHP(const HP* bar, int texNum)
 	DrawSprite(backPos, backSize, bar->backColor);
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	Shader_BeginHpber();
-	Shader_SetHpber(color::green, color::black, { 10.0f, 15.0f }, 0.3f);
+	Shader_SetHpber(color::green, color::black, { 10.0f, 15.0f }, 0.3f, 20.0f);
 	DrawSpriteUV(fillPosOK, fillSizeOK, bar->fillColor, uvMin, uvMax);
 	Shader_Begin();
 

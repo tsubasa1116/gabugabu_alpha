@@ -18,6 +18,7 @@ using namespace DirectX;
 
 #include "polygon3D.h"
 #include "Camera.h"
+#include "input.h"
 
 ///////////////////////////////////////
 #include "field.h"
@@ -405,6 +406,10 @@ void Polygon3D_Update()
 	{
 		object[0].isAttacking = true;
 	}
+	if (g_Input[0].A)
+	{
+		object[0].isAttacking = true;
+	}
 	if (object[0].isAttacking == true)
 	{
 		Player1_Skill_Update();
@@ -431,6 +436,11 @@ void Polygon3D_Update()
 
 	object[0].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	object[1].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
+
+	if (g_Input[0].LStickX > 0.0f)	object[0].moveDir.x += 1.0f;
+	if (g_Input[0].LStickX < 0.0f)	object[0].moveDir.x -= 1.0f;
+	if (g_Input[0].LStickY > 0.0f)	object[0].moveDir.z -= 1.0f;
+	if (g_Input[0].LStickY < 0.0f)	object[0].moveDir.z += 1.0f;
 
 	if (Keyboard_IsKeyDown(KK_W))	object[0].moveDir.z += 1.0f;
 	if (Keyboard_IsKeyDown(KK_S))	object[0].moveDir.z -= 1.0f;

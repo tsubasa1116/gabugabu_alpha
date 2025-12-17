@@ -12,6 +12,7 @@ using namespace DirectX;
 #include "direct3d.h"
 #include "debug_ostream.h"
 #include <fstream>
+#include "imgui.h"
 
 //======================================================
 //	グローバル変数
@@ -70,7 +71,8 @@ struct HPBERBUFFER
 	XMFLOAT4 colorB;
 	XMFLOAT2 tileCount;
 	float intensity;
-	float pad;
+	XMFLOAT2 scroll;
+	float pad[3];
 };
 
 //======================================================
@@ -476,7 +478,7 @@ void Shader_SetOutGauge(float value, XMFLOAT4 color)
 //======================================================
 //	色設定
 //======================================================
-void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, XMFLOAT2 cnt, float ints)
+void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, XMFLOAT2 cnt, float ints, float speed)
 {
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	g_pContext->Map(g_pHpberBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
@@ -486,7 +488,12 @@ void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, XMFLOAT2 cnt, float ints)
 	ob.colorB = colB;
 	ob.tileCount = cnt;
 	ob.intensity = ints;
-	ob.pad = 0.0f;
+	
+	static float scrollSpeed = 0.0f;
+	scrollSpeed += speed * 0.1f;
+	ob.scroll = {scrollSpeed, 0.0f};
+
+	ob.pad[0] = ob.pad[1] = ob.pad[2] = 0.0f;
 
 	memcpy(mapped.pData, &ob, sizeof(ob));
 	g_pContext->Unmap(g_pHpberBuffer, 0);
