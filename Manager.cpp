@@ -38,7 +38,7 @@ void	Manager_Initialize()
 	//本来の形
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 #ifdef _DEBUG
-	SetScene(SCENE_TITLE);	//debug用に最初からゲームシーンへ
+	SetScene(SCENE_GAME);	//debug用に最初からゲームシーンへ
 #else
 	SetScene(SCENE_TITLE);	//最初に動かすシーンに切り替える
 #endif

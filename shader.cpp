@@ -67,12 +67,9 @@ struct COLORBUFFER
 
 struct HPBERBUFFER
 {
+	XMFLOAT4 palam;
 	XMFLOAT4 colorA;
 	XMFLOAT4 colorB;
-	XMFLOAT2 tileCount;
-	float intensity;
-	XMFLOAT2 scroll;
-	float pad[3];
 };
 
 //======================================================
@@ -478,23 +475,19 @@ void Shader_SetOutGauge(float value, XMFLOAT4 color)
 //======================================================
 //	FÝ’è
 //======================================================
-void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, XMFLOAT2 cnt, float ints, float speed)
+void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed)
 {
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	g_pContext->Map(g_pHpberBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	
+	static float g_Time = 0.0f;
+	g_Time += 0.02f;
 
 	HPBERBUFFER ob{};
+	ob.palam = {g_Time, al, speed, 0};
 	ob.colorA = colA;
 	ob.colorB = colB;
-	ob.tileCount = cnt;
-	ob.intensity = ints;
 	
-	static float scrollSpeed = 0.0f;
-	scrollSpeed += speed * 0.1f;
-	ob.scroll = {scrollSpeed, 0.0f};
-
-	ob.pad[0] = ob.pad[1] = ob.pad[2] = 0.0f;
-
 	memcpy(mapped.pData, &ob, sizeof(ob));
 	g_pContext->Unmap(g_pHpberBuffer, 0);
 
