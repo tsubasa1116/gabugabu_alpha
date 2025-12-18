@@ -28,6 +28,11 @@ struct Vertex
 {
 	XMFLOAT3 position;	//頂点座標
 	XMFLOAT4 color;		//頂点カラー（R,G,B,A）
-	XMFLOAT2 texCoord;	//テクスチャ座標
+	XMFLOAT2 tex;	//テクスチャ座標
 };
 
+// シェーダーに渡す定数バッファ
+struct ConstantBuffer
+{
+	XMMATRIX WVP; // World-View-Projection 行列
+};

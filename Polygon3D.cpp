@@ -17,6 +17,7 @@ using namespace DirectX;
 
 #include "polygon3D.h"
 #include "Camera.h"
+#include "skill.h"
 
 ///////////////////////////////////////
 #include "field.h"
@@ -446,18 +447,24 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[0].speed = 0.00f;
 	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].maxHp = 100.0f;
 	object[0].hp = object[0].maxHp;
+	object[0].speed = 0.0f;
+	object[0].defense = 1.0f;
 	object[0].stock = 3;
 	object[0].active = true;
 	object[0].isAttacking = false;
 	object[0].attackTimer = 0.0f;
-	object[0].attackDuration = 2.0f;
+	object[0].useSkill = false;
+	object[0].skillTimer = 0.0f;
+	object[0].stunGauge = 0.0f;
+	object[0].isStunning = false;
+	object[0].stunTimer = 0.0f;
 	object[0].form = Form::Normal;
 	object[0].type = PlayerType::None;
 	object[0].evolutionGauge = 0;
+	object[0].evolutionGaugeRate = 1;
 	object[0].breakCount_Glass = 0;
 	object[0].breakCount_Concrete = 0;
 	object[0].breakCount_Plant = 0;
@@ -471,18 +478,24 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[1].speed = 0.00f;
-	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].maxHp = 100.0f;
 	object[1].hp = object[1].maxHp;
+	object[1].speed = 0.0f;
+	object[1].defense = 1.0f;
+	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].stock = 3;
 	object[1].active = true;
 	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
-	object[1].attackDuration = 2.0f;
+	object[1].useSkill = false;
+	object[1].skillTimer = 0.0f;
+	object[1].stunGauge = 0.0f;
+	object[1].isStunning = false;
+	object[1].stunTimer = 0.0f;
 	object[1].form = Form::Normal;
 	object[1].type = PlayerType::None;
 	object[1].evolutionGauge = 0;
+	object[1].evolutionGaugeRate = 1;
 	object[1].breakCount_Glass = 0;
 	object[1].breakCount_Concrete = 0;
 	object[1].breakCount_Plant = 0;
@@ -509,11 +522,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	TexMetadata metadata;
 	ScratchImage image;
 
-	LoadFromWICFile(L"Asset\\Texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);
 
-	LoadFromWICFile(L"Asset\\Texture\\characterMini01_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\characterMini01_v1.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
 	assert(g_Texture[1]);
 
@@ -633,15 +646,77 @@ void Polygon3D_Update()
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		// 発動トリガー入力をチェックしてフラグを立てる
-		if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
+		// スタンゲージが最大になったらスタンフラグを立てる
+		if (object[p].stunGauge >= STUNGAUGE_MAX)
 		{
-			object[p].isAttacking = true;
+			object[p].isStunning = true;
+			object[p].stunGauge = STUNGAUGE_MAX;
 		}
 
-		if (object[p].isAttacking)
+		// スタン中の処理
+		if (object[p].isStunning)
 		{
-			Attack_Update(p);
+			// スタンタイマーを進める
+			object[p].stunTimer += 1.0f / 60.0f;
+
+			//// スタン処理
+			//Stun(p);
+
+			// スタン時間経過でスタン解除
+			if (object[p].stunTimer >= STUN_DURATION)
+			{
+				object[p].isStunning = false;	// スタン解除
+				object[p].stunTimer = 0.0f;		// スタンタイマーリセット
+				object[p].stunGauge = 0.0f;		// スタンゲージリセット
+			}
+
+			// スタン中は移動ベクトルを完全にゼロにする（念のため）
+			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
+		}
+		else
+		{
+			// スタンしていない間はスタンゲージを減少させる
+			object[p].stunGauge -= 0.1f / 60.0f;
+
+			// スタンゲージが0未満にならないようにクランプ
+			if(object[p].stunGauge < 0.0f)
+			{
+				object[p].stunGauge = 0.0f;
+			}
+
+			// 発動トリガー入力をチェックして攻撃フラグを立てる
+			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
+			{
+				object[p].isAttacking = true;
+			}
+
+			// 攻撃中なら攻撃更新処理を呼び出す
+			if (object[p].isAttacking)
+			{
+				Attack_Update(p);
+			}
+
+			// 現在のプレイヤー p の移動ベクトルだけをリセット
+			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
+
+			// プレイヤーの番号に応じて入力キーを分ける
+			if (p == 0) // プレイヤー1 (WASD)
+			{
+				if (Keyboard_IsKeyDown(KK_W)) object[p].moveDir.z += 1.0f;
+				if (Keyboard_IsKeyDown(KK_S)) object[p].moveDir.z -= 1.0f;
+				if (Keyboard_IsKeyDown(KK_A)) object[p].moveDir.x -= 1.0f;
+				if (Keyboard_IsKeyDown(KK_D)) object[p].moveDir.x += 1.0f;
+			}
+			else if (p == 1) // プレイヤー2 (矢印キー)
+			{
+				if (Keyboard_IsKeyDown(KK_UP))    object[p].moveDir.z += 1.0f;
+				if (Keyboard_IsKeyDown(KK_DOWN))  object[p].moveDir.z -= 1.0f;
+				if (Keyboard_IsKeyDown(KK_LEFT))  object[p].moveDir.x -= 1.0f;
+				if (Keyboard_IsKeyDown(KK_RIGHT)) object[p].moveDir.x += 1.0f;
+			}
+
+			// 現在のプレイヤー p だけを動かす
+			Move(object[p], object[p].moveDir);
 		}
 	}
 
@@ -658,17 +733,16 @@ void Polygon3D_Update()
 		ImGui::Text("Player %d", p + 1);
 		ImGui::Indent();
 
-		// HP 表示
-		ImGui::SliderFloat("HP:", &object[p].hp, 0.0f, object[p].maxHp);
-
 		// evolutionGauge breakCount を列挙して表示
-		ImGui::BulletText("form             : %d", object[p].form);
-		ImGui::BulletText("type             : %d", object[p].type);
-		ImGui::BulletText("EvolutionGauge   : %d", object[p].evolutionGauge);
-		ImGui::BulletText("Glass breaks     : %d", object[p].breakCount_Glass);
-		ImGui::BulletText("Concrete breaks  : %d", object[p].breakCount_Concrete);
-		ImGui::BulletText("Plant breaks     : %d", object[p].breakCount_Plant);
-		ImGui::BulletText("Electric breaks  : %d", object[p].breakCount_Electric);
+		ImGui::SliderFloat("stunGauge", &object[p].stunGauge, 0.0f, 10.0f, "%.1f");
+		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
+		ImGui::BulletText("form              : %d", object[p].form);
+		ImGui::BulletText("type              : %d", object[p].type);
+		ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
+		ImGui::BulletText("1 Glass breaks    : %d", object[p].breakCount_Glass);
+		ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
+		ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
+		ImGui::BulletText("4 Electric breaks : %d", object[p].breakCount_Electric);
 
 		// 履歴リストのサイズを表示
 		size_t historySize = object[p].brokenHistory.size();
@@ -710,21 +784,22 @@ void Polygon3D_Update()
 
 	ImGui::End();
 	
-	object[0].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
-	object[1].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
+	//object[0].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
+	//object[1].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 
-	if (Keyboard_IsKeyDown(KK_W))	object[0].moveDir.z += 1.0f;
-	if (Keyboard_IsKeyDown(KK_S))	object[0].moveDir.z -= 1.0f;
-	if (Keyboard_IsKeyDown(KK_A))	object[0].moveDir.x -= 1.0f;
-	if (Keyboard_IsKeyDown(KK_D))	object[0].moveDir.x += 1.0f;
+	//if (Keyboard_IsKeyDown(KK_W))	object[0].moveDir.z += 1.0f;
+	//if (Keyboard_IsKeyDown(KK_S))	object[0].moveDir.z -= 1.0f;
+	//if (Keyboard_IsKeyDown(KK_A))	object[0].moveDir.x -= 1.0f;
+	//if (Keyboard_IsKeyDown(KK_D))	object[0].moveDir.x += 1.0f;
 
-	if (Keyboard_IsKeyDown(KK_UP))		object[1].moveDir.z += 1.0f;
-	if (Keyboard_IsKeyDown(KK_DOWN))	object[1].moveDir.z -= 1.0f;
-	if (Keyboard_IsKeyDown(KK_LEFT))	object[1].moveDir.x -= 1.0f;
-	if (Keyboard_IsKeyDown(KK_RIGHT))	object[1].moveDir.x += 1.0f;
+	//if (Keyboard_IsKeyDown(KK_UP))		object[1].moveDir.z += 1.0f;
+	//if (Keyboard_IsKeyDown(KK_DOWN))	object[1].moveDir.z -= 1.0f;
+	//if (Keyboard_IsKeyDown(KK_LEFT))	object[1].moveDir.x -= 1.0f;
+	//if (Keyboard_IsKeyDown(KK_RIGHT))	object[1].moveDir.x += 1.0f;
 
-	Move(object[0], object[0].moveDir);
-	Move(object[1], object[1].moveDir);
+	//Move(object[0], object[0].moveDir);
+	//Move(object[1], object[1].moveDir);
+
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		static XMFLOAT3 posBuff = object[i].position;	// デバッグ表示座標
@@ -870,6 +945,91 @@ void Polygon3D_Update()
 			break;
 		}
 
+		// プレイヤー毎のスキル発動キー格納
+		const Keyboard_Keys_tag skillKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER };
+
+		// 形態とタイプごとのスキル処理
+		switch (object[i].form)
+		{
+		case Form::Normal:	// 通常
+			break;
+
+		case Form::FirstEvolution:		// 1進化
+			switch (object[i].type)
+			{
+			case PlayerType::Glass:		// 1進化：ガラス
+				// 発動トリガー入力をチェックしてスキルフラグを立てる
+				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+				// スキル使用中ならスキル更新処理を呼び出す
+				if (object[i].useSkill)	Skill_Glass_Update(i);
+				break;
+
+			case PlayerType::Concrete:	// 1進化：コンクリ
+				// 発動トリガー入力をチェックしてスキルフラグを立てる
+				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+				// スキル使用中ならスキル更新処理を呼び出す
+				if (object[i].useSkill)	Skill_Concrete_Update(i);
+				break;
+
+			case PlayerType::Plant:		// 1進化：植物
+				// 発動トリガー入力をチェックしてスキルフラグを立てる
+				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+				// スキル使用中ならスキル更新処理を呼び出す
+				if (object[i].useSkill)	Skill_Plant_Update(i);
+				break;
+
+			case PlayerType::Electric:	// 1進化：電気
+				// 発動トリガー入力をチェックしてスキルフラグを立てる
+				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+				// スキル使用中ならスキル更新処理を呼び出す
+				if (object[i].useSkill)	Skill_Electric_Update(i);
+				break;
+
+			default:
+				break;
+			}
+			break;
+
+		case Form::SecondEvolution:		// 2進化
+			switch (object[i].type)
+			{
+			case PlayerType::Glass:		// 2進化：ガラス
+				// 発動トリガー入力をチェックしてスキルフラグを立てる
+				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+				// スキル使用中ならスキル更新処理を呼び出す
+				if (object[i].useSkill)	Skill_Glass_Update(i);
+				break;
+
+			case PlayerType::Concrete:	// 2進化：コンクリ
+				// 発動トリガー入力をチェックしてスキルフラグを立てる
+				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+				// スキル使用中ならスキル更新処理を呼び出す
+				if (object[i].useSkill)	Skill_Concrete_Update(i);
+				break;
+
+			case PlayerType::Plant:		// 2進化：植物
+				// 発動トリガー入力をチェックしてスキルフラグを立てる
+				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+				// スキル使用中ならスキル更新処理を呼び出す
+				if (object[i].useSkill)	Skill_Plant_Update(i);
+				break;
+
+			case PlayerType::Electric:	// 2進化：電気
+				// 発動トリガー入力をチェックしてスキルフラグを立てる
+				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+				// スキル使用中ならスキル更新処理を呼び出す
+				if (object[i].useSkill)	Skill_Electric_Update(i);
+				break;
+
+			default:
+				break;
+			}
+			break;
+
+		default:
+			break;
+		}
+
 		ATTACK_OBJECT* attack1 = GetAttack(1);
 		ATTACK_OBJECT* attack2 = GetAttack(2);
 
@@ -965,8 +1125,7 @@ void Polygon3D_Update()
 
 		SetHPValue(&HPBar[i], (int)object[i].hp, (int)object[i].maxHp);
 		UpdateHP(&HPBar[i]);
-
-	}		
+	}
 
 	// -------------------------------------------------------------
 	// 当たり判定 Player1とAttack2
@@ -996,7 +1155,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	
 	//Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 	 
-	// スキル描画
+	// 攻撃描画
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
 		if (object[p].isAttacking)
@@ -1154,27 +1313,33 @@ void Polygon3D_DrawHP()
 	}
 }
 
-void Polygon3D_Respawn(int idx)
+void Polygon3D_Respawn(int playerIndex)
 {
-	if (idx < 0 || idx >= PLAYER_MAX) return;
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	if (idx == 0)
+	if (playerIndex == 0)
 	{
 		object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 		object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[0].speed = 0.0f;
-		object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].maxHp = 100.0f;
 		object[0].hp = object[0].maxHp;
+		object[0].speed = 0.0f;
+		object[0].defense = 1.0f;
+		object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].active = true;
 		object[0].isAttacking = false;
 		object[0].attackTimer = 0.0f;
-		object[0].attackDuration = 2.0f;
+		object[0].useSkill = false;
+		object[0].skillTimer = 0.0f;
+		object[0].stunGauge = 0.0f;
+		object[0].isStunning = false;
+		object[0].stunTimer = 0.0f;
 
 		object[0].form = Form::Normal;
 		object[0].type = PlayerType::None;
 		object[0].evolutionGauge = 0;
+		object[0].evolutionGaugeRate = 1;
 		object[0].breakCount_Glass = 0;
 		object[0].breakCount_Concrete = 0;
 		object[0].breakCount_Plant = 0;
@@ -1190,23 +1355,30 @@ void Polygon3D_Respawn(int idx)
 		object[0].is_knocked_back = false;
 		object[0].knockback_duration = 0.0f;
 	}
-	else if (idx == 1)
+
+	else if (playerIndex == 1)
 	{
 		object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 		object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[1].speed = 0.0f;
-		object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].maxHp = 100.0f;
-		object[1].hp = object[1].maxHp;
+		object[1].hp = object[0].maxHp;
+		object[1].speed = 0.0f;
+		object[1].defense = 1.0f;
+		object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].active = true;
 		object[1].isAttacking = false;
 		object[1].attackTimer = 0.0f;
-		object[1].attackDuration = 2.0f;
-		
+		object[1].useSkill = false;
+		object[1].skillTimer = 0.0f;
+		object[1].stunGauge = 0.0f;
+		object[1].isStunning = false;
+		object[1].stunTimer = 0.0f;
+
 		object[1].form = Form::Normal;
 		object[1].type = PlayerType::None;
 		object[1].evolutionGauge = 0;
+		object[1].evolutionGaugeRate = 1;
 		object[1].breakCount_Glass = 0;
 		object[1].breakCount_Concrete = 0;
 		object[1].breakCount_Plant = 0;
@@ -1254,8 +1426,10 @@ void AttackPlayerCollisions()
 			//p1->position.y += p2->power / 3;
 			p1->position.z += p2->dir.z * p2->power;
 
-			// ダメージ（攻撃者の power を使用）
-			p1->hp -= p2->power;
+			// ダメージ 攻撃を受ける側の防御力でダメージを軽減
+			p1->hp -= p2->power * p1->defense;
+			// スタンゲージ増加
+			p1->stunGauge += 0.5f;
 
 			//// ヒットでスキルを消す（1回ヒット）
 			//object[1].isAttacking = false;
@@ -1283,8 +1457,10 @@ void AttackPlayerCollisions()
 			//p2->position.y += p1->power;
 			p2->position.z += p1->dir.z * p1->power;
 
-			// ダメージ（攻撃者の power を使用）
-			p2->hp -= p1->power;
+			// ダメージ 攻撃を受ける側の防御力でダメージを軽減
+			p2->hp -= p1->power * p2->defense;
+			// スタンゲージ増加
+			p2->stunGauge += 0.5f;
 
 			//// ヒットでスキルを消す
 			//object[0].isAttacking = false;
@@ -1297,20 +1473,20 @@ void AttackPlayerCollisions()
 	}
 }
 
-static void CheckRespawnPlayer(int idx)
+static void CheckRespawnPlayer(int playerIndex)
 {
-	if (idx < 0 || idx >= PLAYER_MAX) return;
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	bool needRespawn = false;
 
 	// HP <= 0 または落下判定でリスポーン
-	if (object[idx].hp <= 0.0f)
+	if (object[playerIndex].hp <= 0.0f)
 	{
-		object[idx].hp = 0.0f;
+		object[playerIndex].hp = 0.0f;
 		needRespawn = true;
 	}
 
-	if (object[idx].position.y < -10.0f)
+	if (object[playerIndex].position.y < -10.0f)
 	{
 		needRespawn = true;
 	}
@@ -1318,10 +1494,10 @@ static void CheckRespawnPlayer(int idx)
 	if(needRespawn)	
 	{
 		// 残機を1減らす（1回だけ）
-		object[idx].stock -= 1;
+		object[playerIndex].stock -= 1;
 
 		// 個別リスポーン処理
-		Polygon3D_Respawn(idx);
+		Polygon3D_Respawn(playerIndex);
 	}
 }
 
@@ -1352,14 +1528,14 @@ void Polygon3D_DrawStock(int i)
 	
 }
 
-PLAYEROBJECT* GetPlayer(int index)
+PLAYEROBJECT* GetPlayer(int playerIndex)
 {
-	if (index > PLAYER_MAX || index <= 0)
+	if (playerIndex > PLAYER_MAX || playerIndex <= 0)
 	{
 		return nullptr;
 	}
 
-	return &object[index - 1];
+	return &object[playerIndex - 1];
 }
 
 

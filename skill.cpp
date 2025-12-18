@@ -1,307 +1,469 @@
-//// skill.cpp
-//
-//#include "DirectXMath.h"
-//#include "d3d11.h"
-//using namespace DirectX;
-//
-//#include "skill.h"
-//#include "sprite.h"
-//#include "shader.h"
-//#include "Camera.h"
-//#include "collider.h"
-//#include "field.h"
-//#include "building.h"
-//#include "debug_ostream.h"
-//#include "Polygon3D.h"
-//#include "keyboard.h"
-//
-//// グローバル変数
-//static ID3D11Device* g_pDevice = NULL;
-//static ID3D11DeviceContext* g_pContext = NULL;
-//
-//// 頂点バッファ
-//static ID3D11Buffer* g_VertexBuffer;
-//
-//// インデックスバッファ
-//static ID3D11Buffer* g_IndexBuffer;
-//
-//// テクスチャ変数
-//static ID3D11ShaderResourceView* g_Skill_Texture[PLAYER_MAX];
-//
-//// オブジェクト
-//static SKILL_OBJECT Skill[PLAYER_MAX];
-//
-//// 攻撃タイマー
-//float PlayerAttackTimer[PLAYER_MAX];
-//
-//// プレイヤー 攻撃フラグ
-//bool PlayerIsAttacking[PLAYER_MAX] = { false, false/*, false, false*/ };
-//
-//// マクロ定義
-//#define NUM_VERTEX (36)
-//
-//static Vertex Skill_vdata[NUM_VERTEX] =
-//{
-//	// -Z面
-//	{
-//		// 頂点0 LEFT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点1 RIGHT-TOP
-//		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点2 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	{
-//		// 頂点3 RIGHT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	// +X面
-//	{
-//		// 頂点4 LEFT-TOP
-//		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点5 RIGHT-TOP
-//		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点6 LEFT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	{
-//		// 頂点7 RIGHT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, 0.5f),     // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	// +Z面
-//	{
-//		// 頂点8 LEFT-TOP
-//		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点9 RIGHT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点10 LEFT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	{
-//		// 頂点11 RIGHT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	// -X面
-//	{
-//		// 頂点12 LEFT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点13 RIGHT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点14 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	{
-//		// 頂点15 RIGHT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	// +Y面
-//	{
-//		// 頂点16 LEFT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点17 RIGHT-TOP
-//		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点18 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	{
-//		// 頂点19 RIGHT-BOTTOM
-//		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	// -Y面
-//	{
-//		// 頂点20 LEFT-TOP
-//		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点21 RIGHT-TOP
-//		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-//	},
-//	{
-//		// 頂点22 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
-//	},
-//
-//	{
-//		// 頂点23 RIGHT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-//		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-//	},
-//};
-//
-//// インデックス配列
-//static UINT Skill_idxdata[6 * 6]
-//{
-//	 0,  1,  2,  2,  1,  3, // -Z面
-//	 4,  5,  6,  6,  5,  7, // +X面
-//	 8,  9, 10, 10,  9, 11, // +Z面
-//	12, 13, 14, 14, 13, 15, // -X面
-//	16, 17, 18, 18, 17, 19, // +Y面
-//	20, 21, 22, 22, 21, 23, // -Y面
-//};
-//
-//void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
-//{
-//	Skill[0].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-//	Skill[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-//	Skill[0].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
-//	Skill[0].velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-//
-//	Skill[1].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-//	Skill[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-//	Skill[1].scaling = XMFLOAT3(0.3f, 0.3f, 0.3f);
-//	Skill[1].velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-//
-//	// 頂点バッファ作成
-//	D3D11_BUFFER_DESC bd;
-//	ZeroMemory(&bd, sizeof(bd));
-//	bd.Usage = D3D11_USAGE_DYNAMIC;
-//	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
-//	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-//	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-//	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
-//
-//	g_pDevice = pDevice;
-//	g_pContext = pContext;
-//
-//	// テクスチャ読み込み
-//	TexMetadata metadata1;
-//	ScratchImage image1;
-//
-//	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata1, image1);
-//	CreateShaderResourceView(pDevice, image1.GetImages(),
-//		image1.GetImageCount(), metadata1, &g_Skill_Texture[0]);
-//	assert(g_Skill_Texture[0]);
-//
-//	// テクスチャ読み込み
-//	TexMetadata metadata2;
-//	ScratchImage image2;
-//	LoadFromWICFile(L"Asset\\Texture\\SkyBlue.jpg", WIC_FLAGS_NONE, &metadata2, image2);
-//	CreateShaderResourceView(pDevice, image2.GetImages(),
-//		image2.GetImageCount(), metadata2, &g_Skill_Texture[1]);
-//	assert(g_Skill_Texture[1]);
-//
-//	// インデックスバッファ作成
-//	{
-//		D3D11_BUFFER_DESC bd;
-//		ZeroMemory(&bd, sizeof(bd));
-//		bd.Usage = D3D11_USAGE_DYNAMIC;
-//		bd.ByteWidth = sizeof(UINT) * 6 * 6; // 格納できる頂点数 * 頂点サイズ
-//
-//		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-//		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-//		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
-//
-//		// インデックスバッファへ書き込み
-//		D3D11_MAPPED_SUBRESOURCE msr;
-//		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-//		UINT* index = (UINT*)msr.pData;
-//
-//		// インデックスデータをバッファへコピー
-//		CopyMemory(&index[0], &Skill_idxdata[0], sizeof(UINT) * 6 * 6);
-//		pContext->Unmap(g_IndexBuffer, 0);
-//	}
-//}
-//
-//void Skill_Finalize()
-//{
-//	if (g_VertexBuffer != NULL)
-//	{
-//		g_VertexBuffer->Release();
-//		g_VertexBuffer = NULL;
-//	}
-//	if (g_IndexBuffer != NULL)
-//	{
-//		g_IndexBuffer->Release();
-//		g_IndexBuffer = NULL;
-//	}
-//
-//	for (int i = 0; i < PLAYER_MAX; i++)
-//	{
-//		if (g_Skill_Texture[i])
-//		{
-//			g_Skill_Texture[i]->Release();
-//			g_Skill_Texture[i] = NULL;
-//		}
-//	}
-//}
-//
+// skill.cpp
+
+#include "DirectXMath.h"
+#include "d3d11.h"
+using namespace DirectX;
+
+#include "skill.h"
+#include "sprite.h"
+#include "shader.h"
+#include "Camera.h"
+#include "collider.h"
+#include "field.h"
+#include "building.h"
+#include "debug_ostream.h"
+#include "Polygon3D.h"
+#include "keyboard.h"
+
+// グローバル変数
+static ID3D11Device* g_pDevice = NULL;
+static ID3D11DeviceContext* g_pContext = NULL;
+
+// 頂点バッファ
+static ID3D11Buffer* g_VertexBuffer;
+
+// インデックスバッファ
+static ID3D11Buffer* g_IndexBuffer;
+
+// テクスチャ変数
+static ID3D11ShaderResourceView* g_Skill_Texture[4];
+
+// オブジェクト
+static SKILL_OBJECT Skill[PLAYER_MAX];
+
+static GlassSkill g_GlassSkill[PLAYER_MAX];
+
+// マクロ定義
+#define NUM_VERTEX (36)
+
+static Vertex Skill_vdata[NUM_VERTEX] =
+{
+	// -Z面
+	{
+		// 頂点0 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点1 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点2 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点3 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	},
+
+	// +X面
+	{
+		// 頂点4 LEFT-TOP
+		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点5 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点6 LEFT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点7 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),     // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	},
+
+	// +Z面
+	{
+		// 頂点8 LEFT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点9 RIGHT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点10 LEFT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点11 RIGHT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	},
+
+	// -X面
+	{
+		// 頂点12 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点13 RIGHT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点14 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点15 RIGHT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	},
+
+	// +Y面
+	{
+		// 頂点16 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点17 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点18 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点19 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	},
+
+	// -Y面
+	{
+		// 頂点20 LEFT-TOP
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点21 RIGHT-TOP
+		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点22 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	},
+	{
+		// 頂点23 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
+		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	},
+};
+
+// インデックス配列
+static UINT Skill_idxdata[6 * 6]
+{
+	 0,  1,  2,  2,  1,  3, // -Z面
+	 4,  5,  6,  6,  5,  7, // +X面
+	 8,  9, 10, 10,  9, 11, // +Z面
+	12, 13, 14, 14, 13, 15, // -X面
+	16, 17, 18, 18, 17, 19, // +Y面
+	20, 21, 22, 22, 21, 23, // -Y面
+};
+
+void Skill_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+	// 構造体のインスタンス（グローバル変数 g_GlassSkill を想定）
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		for (int i = 0; i < 5; ++i)
+		{
+			// 各箱の初期座標を設定
+			// 例えば、プレイヤーの前にオフセットを持たせるなど
+			g_GlassSkill[p].boxes[i].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			g_GlassSkill[p].boxes[i].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			g_GlassSkill[p].boxes[i].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
+			// BoundingBoxの初期化などもここで行う
+		}
+		// その他の初期状態を設定
+		g_GlassSkill[p].isActive = false;
+	}
+
+	// テクスチャ読み込み
+	TexMetadata metadata;
+	ScratchImage image;
+
+	LoadFromWICFile(L"Asset\\Texture\\SkyBlue.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[0]);
+	assert(g_Skill_Texture[0]);
+
+}
+
+void Skill_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+	Skill[0].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	Skill[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	Skill[0].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
+
+	// テクスチャ読み込み
+	TexMetadata metadata;
+	ScratchImage image;
+
+	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[1]);
+	assert(g_Skill_Texture[1]);
+
+}
+
+void Skill_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+	// テクスチャ読み込み
+	TexMetadata metadata;
+	ScratchImage image;
+
+	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[2]);
+	assert(g_Skill_Texture[2]);
+
+}
+
+void Skill_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+	// テクスチャ読み込み
+	TexMetadata metadata;
+	ScratchImage image;
+
+	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[3]);
+	assert(g_Skill_Texture[3]);
+
+}
+
+void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+	g_pDevice = pDevice;
+	g_pContext = pContext;
+
+	// 頂点バッファ作成
+	D3D11_BUFFER_DESC bd;
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DYNAMIC;
+	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
+
+	// インデックスバッファ作成
+	{
+		D3D11_BUFFER_DESC bd;
+		ZeroMemory(&bd, sizeof(bd));
+		bd.Usage = D3D11_USAGE_DYNAMIC;
+		bd.ByteWidth = sizeof(UINT) * 6 * 6; // 格納できる頂点数 * 頂点サイズ
+
+		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
+
+		// インデックスバッファへ書き込み
+		D3D11_MAPPED_SUBRESOURCE msr;
+		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		UINT* index = (UINT*)msr.pData;
+
+		// インデックスデータをバッファへコピー
+		CopyMemory(&index[0], &Skill_idxdata[0], sizeof(UINT) * 6 * 6);
+		pContext->Unmap(g_IndexBuffer, 0);
+	}
+
+	Skill_Glass_Initialize(pDevice, pContext);
+	Skill_Concrete_Initialize(pDevice, pContext);
+	Skill_Plant_Initialize(pDevice, pContext);
+	Skill_Electric_Initialize(pDevice, pContext);
+}
+
+void Skill_Finalize()
+{
+	if (g_VertexBuffer != NULL)
+	{
+		g_VertexBuffer->Release();
+		g_VertexBuffer = NULL;
+	}
+	if (g_IndexBuffer != NULL)
+	{
+		g_IndexBuffer->Release();
+		g_IndexBuffer = NULL;
+	}
+
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		if (g_Skill_Texture[i])
+		{
+			g_Skill_Texture[i]->Release();
+			g_Skill_Texture[i] = NULL;
+		}
+	}
+}
+
+void Skill_Glass_Update(int playerIndex)
+{
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+
+	// ここで Radius の値を動的に計算する
+	float dynamicRadius = playerObject->scaling.x; // scalingは等しいのでy,zでも可
+
+	// 5つの箱に対応する相対角度 (度)
+	const float RelativeAngles[5] = { 20.0f, 130.0f, 180.0f, 220.0f, 290.0f };
+
+	// 5つの箱のプレイヤーからの高さオフセット
+	const float High[5] = { 0.0f, 0.5f, -0.1f, 0.2f, 0.3f };
+
+	// 5つの箱の回転角度 (度)
+	const float Rot[5] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+
+	// 5つの箱のスケーリング値
+	const float Scal[5] = { 0.0f, 0.15f, 0.075f, 0.2f, 0.25f };
+
+	// プレイヤーの現在の回転角度 (ラジアン)
+	float playerYaw = XMConvertToRadians(playerObject->rotation.y);
+
+	GlassSkill& glassObject = g_GlassSkill[playerIndex]; 
+
+	for (int i = 0; i < 5; ++i)
+	{
+		float relativeRad = XMConvertToRadians(RelativeAngles[i]);
+		float finalAngle = playerYaw + relativeRad;
+
+		// 座標オフセットの計算
+		float offsetX = dynamicRadius * cosf(finalAngle);
+		float offsetZ = dynamicRadius * sinf(finalAngle);
+
+		// 箱の座標を設定
+		glassObject.boxes[i].position.x = playerObject->position.x + offsetX;
+		glassObject.boxes[i].position.y = playerObject->position.y + High[i];
+		glassObject.boxes[i].position.z = playerObject->position.z + offsetZ;
+		glassObject.boxes[i].rotation = XMFLOAT3(Rot[i], Rot[i], Rot[i]);
+		glassObject.boxes[i].scaling = XMFLOAT3(Scal[i], Scal[i], Scal[i]);
+	}
+
+	// スキル効果：
+
+	// スキルタイマーを進める
+	playerObject->skillTimer += 1.0f / 60.0f;
+
+	// スキルの効果時間が経過したらスキル終了
+	if (playerObject->skillTimer >= 30)
+	{
+		playerObject->useSkill = false;
+		playerObject->skillTimer = 0.0f;
+	}
+}
+
+void Skill_Concrete_Update(int playerIndex)
+{
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	SKILL_OBJECT& sk = Skill[playerIndex];
+
+	// スキル効果： ダメージ軽減20% (デフォルトは1.0f)
+	playerObject->defense = 0.8f;
+
+	// スキルの初期位置をプレイヤーの位置に設定
+	sk.position.x = playerObject->position.x;
+	sk.position.y = playerObject->position.y;
+	sk.position.z = playerObject->position.z;
+
+	// スキルタイマーを進める
+	playerObject->skillTimer += 1.0f / 60.0f;
+
+	// スキルの効果時間が経過したらスキル終了
+	if (playerObject->skillTimer >= SKILL_CONCRETE_TIME)
+	{
+		playerObject->useSkill = false;
+		playerObject->skillTimer = 0.0f;
+	}
+}
+
+void Skill_Plant_Update(int playerIndex)
+{
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+
+	// スキル効果：進化ゲージ2倍
+	playerObject->evolutionGaugeRate *= 2;
+
+	// スキルタイマーを進める
+	playerObject->skillTimer += 1.0f / 60.0f;
+
+	// スキルの効果時間が経過したらスキル終了
+	if (playerObject->skillTimer >= SKILL_PLANT_TIME)
+	{
+		playerObject->useSkill = false;
+		playerObject->skillTimer = 0.0f;
+	}
+}
+
+void Skill_Electric_Update(int playerIndex)
+{
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+
+	// スキル効果：スピード1.5倍
+	playerObject->speed *= 1.5f;
+
+	// スキルタイマーを進める
+	playerObject->skillTimer += 1.0f / 60.0f;
+
+	// スキルの効果時間が経過したらスキル終了
+	if (playerObject->skillTimer >= SKILL_ELECTRIC_TIME)
+	{
+		playerObject->useSkill = false;
+		playerObject->skillTimer = 0.0f;
+	}
+}
+
 //void Skill_Update(int playerIndex)
 //{
 //	// 範囲チェック
@@ -404,105 +566,183 @@
 //		}
 //	}
 //}
-//
-//void Skill_Draw(int playerIndex)
-//{
-//	// 範囲チェック
-//	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
-//
-//	// 参照を取る
-//	SKILL_OBJECT& sk = Skill[playerIndex];
-//	ID3D11ShaderResourceView* tex = g_Skill_Texture[playerIndex];
-//
-//	// =====================
-//	// ワールド行列の作成
-//	// =====================
-//
-//	// スケーリング行列の作成
-//	XMMATRIX ScalingMatrix = XMMatrixScaling
-//	(
-//		sk.scaling.x,
-//		sk.scaling.y,
-//		sk.scaling.z
-//	);
-//
-//	// 回転行列の作成
-//	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
-//	(
-//		XMConvertToRadians(sk.rotation.x),
-//		XMConvertToRadians(sk.rotation.y),
-//		XMConvertToRadians(sk.rotation.z)
-//	);
-//
-//	// 平行移動行列の作成
-//	XMMATRIX TranslationMatrix = XMMatrixTranslation
-//	(
-//		sk.position.x,
-//		sk.position.y,
-//		sk.position.z
-//	);
-//
-//	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
-//
-//	// プロジェクション行列作成
-//	XMMATRIX Projection = GetProjectionMatrix();
-//
-//	// ビュー行列作成
-//	XMMATRIX View = GetViewMatrix();
-//
-//	// 最終的な変換行列を作成
-//	XMMATRIX WVP = WorldMatrix * View * Projection;
-//
-//	// 変換行列を頂点シェーダーへセット
-//	Shader_SetMatrix(WVP);
-//
-//	// シェーダーを描画パイプラインへ設定
-//	Shader_Begin();
-//
-//	// 不透明で描画するためブレンドを無効化し、描画カラーのアルファを1に固定する
-//	SetBlendState(BLENDSTATE_NONE);
-//	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-//
-//	// 頂点シェーダーを描画パイプラインへ設定
-//	D3D11_MAPPED_SUBRESOURCE msr;
-//	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-//	Vertex* vertex = (Vertex*)msr.pData;
-//
-//	// 頂点データを頂点バッファへコピーする
-//	CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex) * NUM_VERTEX);
-//
-//	// コピー完了
-//	g_pContext->Unmap(g_VertexBuffer, 0);
-//
-//	// テクスチャをセット
-//	g_pContext->PSSetShaderResources(0, 1, &tex);
-//
-//	// 頂点バッファをセット
-//	UINT stride = sizeof(Vertex);
-//	UINT offset = 0;
-//	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-//
-//	// インデックスバッファをセット
-//	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-//
-//	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
-//	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-//
-//	//// 描画リクエスト
-//	//g_pContext->Draw(NUM_VERTEX, 0);
-//
-//	g_pContext->DrawIndexed(6 * 6, 0, 0);
-//
-//	SetBlendState(BLENDSTATE_ALPHA);
-//
-//}
-//
-//SKILL_OBJECT* GetSkill(int playerIndex)
-//{
-//	if (playerIndex > PLAYER_MAX || playerIndex <= 0)
-//	{
-//		return nullptr;
-//	}
-//
-//	return &Skill[playerIndex - 1];
-//}
+
+// Glass専用描画 (5つの箱をループで描画)
+void Skill_Glass_Draw(int playerIndex)
+{
+	// Glass専用のテクスチャをセット
+	ID3D11ShaderResourceView* tex = g_Skill_Texture[0];
+	g_pContext->PSSetShaderResources(0, 1, &tex);
+
+	GlassSkill& glassObject = g_GlassSkill[playerIndex];
+
+	// GlassSkill構造体（5つの箱）を使ってループ描画
+	for (int i = 0; i < 5; ++i)
+	{
+		SKILL_OBJECT& box = glassObject.boxes[i];
+
+		// --- ワールド行列計算 ---
+		XMMATRIX WorldMatrix =
+			XMMatrixScaling(box.scaling.x, box.scaling.y, box.scaling.z) *
+			XMMatrixRotationRollPitchYaw(XMConvertToRadians(box.rotation.x), XMConvertToRadians(box.rotation.y), XMConvertToRadians(box.rotation.z)) *
+			XMMatrixTranslation(box.position.x, box.position.y, box.position.z);
+
+		// 行列セット
+		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(WVP);
+
+		// 描画実行
+		g_pContext->DrawIndexed(6 * 6, 0, 0);
+	}
+}
+
+// Concrete専用描画 (例: 1つの大きな塊を描画)
+void Skill_Concrete_Draw(int playerIndex)
+{
+	// Concrete専用のテクスチャをセット
+	ID3D11ShaderResourceView* tex = g_Skill_Texture[1];
+	g_pContext->PSSetShaderResources(0, 1, &tex);
+
+	// Concrete用の座標計算 (ここでは例として Skill[playerIndex] を使用)
+	// ※Concrete専用構造体があるならそちらを使う
+	SKILL_OBJECT& sk = Skill[playerIndex];
+
+	XMMATRIX WorldMatrix =
+		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
+		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+
+	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+	Shader_SetMatrix(WVP);
+
+	// 描画実行
+	g_pContext->DrawIndexed(6 * 6, 0, 0);
+}
+
+void Skill_Plant_Draw(int playerIndex)
+{
+	// Concrete専用のテクスチャをセット
+	ID3D11ShaderResourceView* tex = g_Skill_Texture[1];
+	g_pContext->PSSetShaderResources(0, 1, &tex);
+
+	// Concrete用の座標計算 (ここでは例として Skill[playerIndex] を使用)
+	// ※Concrete専用構造体があるならそちらを使う
+	SKILL_OBJECT& sk = Skill[playerIndex];
+
+	XMMATRIX WorldMatrix =
+		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
+		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+
+	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+	Shader_SetMatrix(WVP);
+
+	// 描画実行
+	g_pContext->DrawIndexed(6 * 6, 0, 0);
+
+}
+
+void Skill_Electric_Draw(int playerIndex)
+{
+	// Concrete専用のテクスチャをセット
+	ID3D11ShaderResourceView* tex = g_Skill_Texture[1];
+	g_pContext->PSSetShaderResources(0, 1, &tex);
+
+	// Concrete用の座標計算 (ここでは例として Skill[playerIndex] を使用)
+	// ※Concrete専用構造体があるならそちらを使う
+	SKILL_OBJECT& sk = Skill[playerIndex];
+
+	XMMATRIX WorldMatrix =
+		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
+		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+
+	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+	Shader_SetMatrix(WVP);
+
+	// 描画実行
+	g_pContext->DrawIndexed(6 * 6, 0, 0);
+
+}
+
+void Skill_Draw()
+{
+	// ==========================================
+	// 1. 共通設定 (パイプラインステートの設定)
+	//    これを親で一度だけやることで処理落ちを防ぐ
+	// ==========================================
+
+	// シェーダー開始
+	Shader_Begin();
+
+	// ブレンドステート (必要に応じて)
+	SetBlendState(BLENDSTATE_NONE); // または BLENDSTATE_ALPHA
+	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+	// 頂点バッファ・インデックスバッファのセット
+	// (全てのスキルで同じモデル/キューブを使う場合のみここでOK)
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// ★ 頂点データ書き込み (静的なキューブモデルと仮定) ★
+	// ※ プレイヤー本体の描画と同様に、ここで一度だけ頂点データをGPUに送ります
+	D3D11_MAPPED_SUBRESOURCE msr;
+	// (注意: g_VertexBuffer が D3D11_USAGE_DYNAMIC である必要があります)
+	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	Vertex* vertex = (Vertex*)msr.pData;
+	// vdata[] はキューブの頂点データを格納した配列を想定
+	CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex) * NUM_VERTEX);
+	g_pContext->Unmap(g_VertexBuffer, 0);
+
+	// ==========================================
+	// 2. プレイヤーごとの振り分け処理
+	// ==========================================
+	for (int i = 0; i < PLAYER_MAX; ++i)
+	{
+		PLAYEROBJECT* playerObject = GetPlayer(i + 1);
+
+		// そのプレイヤーがスキルを使っているかチェック (フラグ確認など)
+		if (!playerObject->useSkill) continue;
+
+		// プレイヤーのタイプに合わせて子関数を呼ぶ
+		switch (playerObject->type)
+		{
+		case PlayerType::Glass:
+			Skill_Glass_Draw(i);
+			break;
+
+		case PlayerType::Concrete:
+			Skill_Concrete_Draw(i);
+			break;
+
+		case PlayerType::Plant:
+			Skill_Plant_Draw(i);
+			break;
+
+		case PlayerType::Electric:
+			Skill_Electric_Draw(i);
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	// ==========================================
+	// 3. 後始末
+	// ==========================================
+	SetBlendState(BLENDSTATE_ALPHA);
+}
+
+SKILL_OBJECT* GetSkill(int playerIndex)
+{
+	if (playerIndex > PLAYER_MAX || playerIndex <= 0)
+	{
+		return nullptr;
+	}
+
+	return &Skill[playerIndex - 1];
+}
