@@ -44,7 +44,7 @@ bool Direct3D_Initialize(HWND hWnd)
 	// swap_chain_desc.BufferDesc.Width = 0;
 	// swap_chain_desc.BufferDesc.Height = 0;
 	// ⇒ ウィンドウサイズに合わせて自動的に設定される
-	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // Dirext2D用に変更
 	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swap_chain_desc.SampleDesc.Count = 1;
 	swap_chain_desc.SampleDesc.Quality = 0;
@@ -62,7 +62,8 @@ bool Direct3D_Initialize(HWND hWnd)
 	pAdapter->Release(); // D3D11CreateDeviceAndSwapChain()の第１引数に渡して利用し終わったら解放する
 	*/
 
-	UINT device_flags = 0;
+	// UINT device_flags = 0; // 旧バージョン
+	UINT device_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT; // Direct2D-3D連携用フラグ
 
 #if defined(DEBUG) || defined(_DEBUG)
 	//device_flags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -236,6 +237,11 @@ ID3D11Device* Direct3D_GetDevice()
 ID3D11DeviceContext* Direct3D_GetDeviceContext()
 {
 	return g_pDeviceContext;
+}
+
+IDXGISwapChain* Direct3D_GetSwapChain()
+{
+	return g_pSwapChain;
 }
 
 unsigned int Direct3D_GetBackBufferWidth()

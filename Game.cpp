@@ -9,6 +9,7 @@
 #include	"sprite.h"
 #include	"Game.h"
 #include	"keyboard.h"
+#include	"makeText.h"
 
 #include	"player.h"
 #include    "p.h"
@@ -100,13 +101,16 @@ void CheckKonamiCode(int currentKeyCode)
 //======================================================
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
+	Initialize_MakeText();
+	CreateRenderTarget_MakeText();
+
 	Field_Initialize(pDevice, pContext); // フィールドの初期化
 	//BallInitialize(pDevice, pContext); // ボールの初期化
 
 	//P_Initialize(pDevice, pContext); // プレイヤーの初期化
 	//Player_Initialize(pDevice, pContext); // ポリゴンの初期化
 	//Block_Initialize(pDevice, pContext);//ブロックの初期化
-	//Effect_Initialize(pDevice, pContext);//エフェクト初期化
+	Effect_Initialize(pDevice, pContext);//エフェクト初期化
 	//Score_Initialize(pDevice, pContext);//スコア初期化
 	Attack_Initialize(pDevice, pContext);
 	Skill_Initialize(pDevice, pContext);
@@ -148,7 +152,7 @@ void Game_Finalize()
 	//P_Finalize();
 	//Block_Finalize();
 	//Player_Finalize();	// ポリゴンの終了処理
-	//Effect_Finalize();
+	Effect_Finalize();
 	//Score_Finalize();
 	Polygon3D_Finalize();
 	Camera_Finalize();
@@ -181,7 +185,7 @@ void Game_Update()
 	//P_Update();
 	//Player_Update();
 	//Block_Update();
-	//Effect_Update();
+	Effect_Update();
 	//Score_Update();
 	Polygon3D_Update();
 	Gauge_Update();
@@ -215,13 +219,22 @@ void Game_Draw()
 	Light.SetEnable(FALSE);			//ライティングOFF
 	Shader_SetLight(Light.Light);	//ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
-
+    
+	Polygon3D_DrawEffect();
+	Effect_Draw();
 	Polygon3D_DrawHP();
+	DrawTextEx(
+		L"こんにちは世界",        // 表示する文字
+		600, 400,                // 位置
+		60.0f,                   // サイズ
+		L"玉ねぎ楷書激無料版v7改", // フォント
+		TextColor::Yellow        // 色
+	);
+	
 	//BallDraw();
 	//P_Draw();
 	//Block_Draw();
 	//Player_Draw();
-	//Effect_Draw();
 	//Score_Draw();
 
 

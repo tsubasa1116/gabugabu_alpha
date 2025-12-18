@@ -14,9 +14,11 @@ using namespace DirectX;
 #include "color.h"
 #include "hp.h"
 #include "gauge.h"
+#include "Effect.h"
 
 #include "polygon3D.h"
 #include "Camera.h"
+#include "input.h"
 #include "skill.h"
 
 ///////////////////////////////////////
@@ -39,8 +41,10 @@ using namespace DirectX;
 //======================================================
 #define	NUM_VERTEX	(6)
 #define	PLAYER_MAX	(2)
-#define HPBER_SIZE_X (200.0f)
-#define HPBER_SIZE_Y (150.0f)
+#define HPBER_SIZE_X 270.0f // HPバーのサイズ
+#define HPBER_SIZE_Y 270.0f // 〃
+#define GAUGE_POS_X 77.0f   // HPバーを基準としたゲージの位置調整
+#define GAUGE_POS_Y 36.0f   // 〃
 
 //======================================================
 //	構造体宣言
@@ -62,7 +66,7 @@ static	ID3D11Buffer* g_VertexBuffer = NULL;
 static	ID3D11Buffer* g_IndexBuffer = NULL;
 
 //テクスチャ変数
-static ID3D11ShaderResourceView* g_Texture[5];
+static ID3D11ShaderResourceView* g_Texture[6];
 
 static ID3D11Buffer* g_IndexBuffer_Face = NULL; // -X 面のみ用インデックスバッファ
 
@@ -530,13 +534,19 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
 	assert(g_Texture[1]);
 
-	LoadFromWICFile(L"asset\\texture\\uiStockRed_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\uiStockBlue_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
 	assert(g_Texture[2]);
 
-	LoadFromWICFile(L"asset\\texture\\uiStockBrue_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\uiStockGleen_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
 	assert(g_Texture[3]);
+
+	LoadFromWICFile(L"asset\\texture\\uiLightLoopBigConcrete_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
+	assert(g_Texture[4]);
+
+
 
 	//インデックスバッファ作成
 	{
@@ -560,8 +570,9 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// デバッグレンダラー初期化
 	Debug_Initialize(pDevice, pContext);
 
-	InitializeHP(pDevice, pContext, &HPBar[0], { 200.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[1], { 500.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  630.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  630.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+
 }
 
 //======================================================
@@ -683,6 +694,19 @@ void Polygon3D_Update()
 			{
 				object[p].stunGauge = 0.0f;
 			}
+	// プレイヤー1 スキル発動
+	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
+	{
+		object[0].isAttacking = true;
+	}
+	if (g_Input[0].A)
+	{
+		object[0].isAttacking = true;
+	}
+	if (object[0].isAttacking == true)
+	{
+		Player1_Skill_Update();
+	}
 
 			// 発動トリガー入力をチェックして攻撃フラグを立てる
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
@@ -702,6 +726,11 @@ void Polygon3D_Update()
 			// プレイヤーの番号に応じて入力キーを分ける
 			if (p == 0) // プレイヤー1 (WASD)
 			{
+				if (g_Input[0].LStickX > 0.0f)	object[0].moveDir.x += 1.0f;
+				if (g_Input[0].LStickX < 0.0f)	object[0].moveDir.x -= 1.0f;
+				if (g_Input[0].LStickY > 0.0f)	object[0].moveDir.z -= 1.0f;
+				if (g_Input[0].LStickY < 0.0f)	object[0].moveDir.z += 1.0f;
+
 				if (Keyboard_IsKeyDown(KK_W)) object[p].moveDir.z += 1.0f;
 				if (Keyboard_IsKeyDown(KK_S)) object[p].moveDir.z -= 1.0f;
 				if (Keyboard_IsKeyDown(KK_A)) object[p].moveDir.x -= 1.0f;
@@ -1166,26 +1195,6 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 	Shader_Begin(); 
 
-	// 個別UIステータス描画
-	for (int i = 0; i < PLAYER_MAX; i++)
-	{
-		// HPバー描画
-		DrawHP(&HPBar[i]);
-		XMFLOAT2 hp = HPBar[i].pos;
-
-		// ゲージ描画用設定
-		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
-			      object[i].gaugeOuter, { hp.x - 130.0f , hp.y });
-
-		// ゲージ描画
-		Gauge_Draw(i);
-
-		// シェーダーリセット
-		Shader_Begin();
-		
-		Polygon3D_DrawStock(i);
-	}
-
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		//===================
@@ -1283,34 +1292,35 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		}
 		//s_IsKonamiCodeEntered = false;
 	}
+
 }
 
 void Polygon3D_DrawHP()
 {
 	Shader_Begin();
-
+	
 	// 個別UIステータス描画
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		SetBlendState(BLENDSTATE_ALPHA);
 
-
-		DrawHP(&HPBar[i]);
+		DrawHP(&HPBar[i], i + 2);
 		XMFLOAT2 hp = HPBar[i].pos;
 
-
 		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
-			object[i].gaugeOuter, { hp.x - 130.0f , hp.y });
-
+			object[i].gaugeOuter, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y});
 
 		Gauge_Draw(i);
-
 
 		Shader_Begin();
 
 		Polygon3D_DrawStock(i);
-
 	}
+}
+
+void Polygon3D_DrawEffect()
+{
+	Effect_Set(g_Texture[4], { 170.0f, 600.0f }, { 400.0f, 400.0f });
 }
 
 void Polygon3D_Respawn(int playerIndex)
@@ -1510,18 +1520,19 @@ void Polygon3D_DrawStock(int i)
 	Shader_BeginUI();
 
 	// HPバー位置取得・ゲージ座標設定
-	float bx =HPBar[i].pos.x + 20.0f;
-	float by =HPBar[i].pos.y - 10.0f;
+	float bx = HPBar[i].pos.x;
+	float by = HPBar[i].pos.y - 5.0f;
 
 	// プレイヤーごとのストック描画
 	for (int j = 0; j < object[i].stock; j++)
 	{
 		// ストック描画変数
 		XMFLOAT2 pos = { bx + j * 30.0f, by }; // 横並び
-		XMFLOAT2 size = { 300.0f, 100.0f };
+		XMFLOAT2 size = { 300.0f, 300.0f };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 2]);
 
+		
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);
 	}
