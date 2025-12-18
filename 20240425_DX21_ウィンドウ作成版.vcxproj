@@ -155,6 +155,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="attack.cpp" />
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Ball.cpp" />
     <ClCompile Include="Block.cpp" />
@@ -199,6 +200,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="Title.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="attack.h" />
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Ball.h" />
     <ClInclude Include="Block.h" />

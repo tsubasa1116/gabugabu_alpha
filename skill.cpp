@@ -15,7 +15,6 @@ using namespace DirectX;
 #include "Polygon3D.h"
 #include "keyboard.h"
 
-
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
@@ -27,16 +26,12 @@ static ID3D11Buffer* g_VertexBuffer;
 static ID3D11Buffer* g_IndexBuffer;
 
 // テクスチャ変数
-static ID3D11ShaderResourceView* g_Skill_Texture[PLAYER_MAX];
+static ID3D11ShaderResourceView* g_Skill_Texture[4];
 
 // オブジェクト
 static SKILL_OBJECT Skill[PLAYER_MAX];
 
-// 攻撃タイマー
-float PlayerAttackTimer[PLAYER_MAX];
-
-// プレイヤー 攻撃フラグ
-bool PlayerIsAttacking[PLAYER_MAX] = { false, false/*, false, false*/ };
+static GlassSkill g_GlassSkill[PLAYER_MAX];
 
 // マクロ定義
 #define NUM_VERTEX (36)
@@ -62,7 +57,6 @@ static Vertex Skill_vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
 		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
 	},
-
 	{
 		// 頂点3 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
@@ -89,7 +83,6 @@ static Vertex Skill_vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
 		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
 	},
-
 	{
 		// 頂点7 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),     // 座標
@@ -116,7 +109,6 @@ static Vertex Skill_vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
 		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
 	},
-
 	{
 		// 頂点11 RIGHT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
@@ -143,7 +135,6 @@ static Vertex Skill_vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
 		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
 	},
-
 	{
 		// 頂点15 RIGHT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
@@ -170,7 +161,6 @@ static Vertex Skill_vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
 		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
 	},
-
 	{
 		// 頂点19 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
@@ -197,7 +187,6 @@ static Vertex Skill_vdata[NUM_VERTEX] =
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
 		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
 	},
-
 	{
 		// 頂点23 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
@@ -217,17 +206,78 @@ static UINT Skill_idxdata[6 * 6]
 	20, 21, 22, 22, 21, 23, // -Y面
 };
 
-void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void Skill_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+	// 構造体のインスタンス（グローバル変数 g_GlassSkill を想定）
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		for (int i = 0; i < 5; ++i)
+		{
+			// 各箱の初期座標を設定
+			// 例えば、プレイヤーの前にオフセットを持たせるなど
+			g_GlassSkill[p].boxes[i].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			g_GlassSkill[p].boxes[i].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			g_GlassSkill[p].boxes[i].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
+			// BoundingBoxの初期化などもここで行う
+		}
+		// その他の初期状態を設定
+		g_GlassSkill[p].isActive = false;
+	}
+
+	// テクスチャ読み込み
+	TexMetadata metadata;
+	ScratchImage image;
+
+	LoadFromWICFile(L"Asset\\Texture\\SkyBlue.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[0]);
+	assert(g_Skill_Texture[0]);
+
+}
+
+void Skill_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	Skill[0].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	Skill[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	Skill[0].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
-	Skill[0].velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
-	Skill[1].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Skill[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Skill[1].scaling = XMFLOAT3(0.3f, 0.3f, 0.3f);
-	Skill[1].velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	// テクスチャ読み込み
+	TexMetadata metadata;
+	ScratchImage image;
+
+	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[1]);
+	assert(g_Skill_Texture[1]);
+
+}
+
+void Skill_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+	// テクスチャ読み込み
+	TexMetadata metadata;
+	ScratchImage image;
+
+	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[2]);
+	assert(g_Skill_Texture[2]);
+
+}
+
+void Skill_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+	// テクスチャ読み込み
+	TexMetadata metadata;
+	ScratchImage image;
+
+	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[3]);
+	assert(g_Skill_Texture[3]);
+
+}
+
+void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+	g_pDevice = pDevice;
+	g_pContext = pContext;
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
@@ -237,26 +287,6 @@ void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
-
-	g_pDevice = pDevice;
-	g_pContext = pContext;
-
-	// テクスチャ読み込み
-	TexMetadata metadata1;
-	ScratchImage image1;
-
-	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata1, image1);
-	CreateShaderResourceView(pDevice, image1.GetImages(),
-		image1.GetImageCount(), metadata1, &g_Skill_Texture[0]);
-	assert(g_Skill_Texture[0]);
-
-	// テクスチャ読み込み
-	TexMetadata metadata2;
-	ScratchImage image2;
-	LoadFromWICFile(L"Asset\\Texture\\SkyBlue.jpg", WIC_FLAGS_NONE, &metadata2, image2);
-	CreateShaderResourceView(pDevice, image2.GetImages(),
-		image2.GetImageCount(), metadata2, &g_Skill_Texture[1]);
-	assert(g_Skill_Texture[1]);
 
 	// インデックスバッファ作成
 	{
@@ -278,6 +308,11 @@ void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		CopyMemory(&index[0], &Skill_idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
+
+	Skill_Glass_Initialize(pDevice, pContext);
+	Skill_Concrete_Initialize(pDevice, pContext);
+	Skill_Plant_Initialize(pDevice, pContext);
+	Skill_Electric_Initialize(pDevice, pContext);
 }
 
 void Skill_Finalize()
@@ -303,377 +338,411 @@ void Skill_Finalize()
 	}
 }
 
-void Player1_Skill_Update()
+void Skill_Glass_Update(int playerIndex)
 {
-	PLAYEROBJECT* Player1Object = GetPlayer(1);
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	if (Player1Object->isAttacking == true)
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+
+	// ここで Radius の値を動的に計算する
+	float dynamicRadius = playerObject->scaling.x; // scalingは等しいのでy,zでも可
+
+	// 5つの箱に対応する相対角度 (度)
+	const float RelativeAngles[5] = { 20.0f, 130.0f, 180.0f, 220.0f, 290.0f };
+
+	// 5つの箱のプレイヤーからの高さオフセット
+	const float High[5] = { 0.0f, 0.5f, -0.1f, 0.2f, 0.3f };
+
+	// 5つの箱の回転角度 (度)
+	const float Rot[5] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+
+	// 5つの箱のスケーリング値
+	const float Scal[5] = { 0.0f, 0.15f, 0.075f, 0.2f, 0.25f };
+
+	// プレイヤーの現在の回転角度 (ラジアン)
+	float playerYaw = XMConvertToRadians(playerObject->rotation.y);
+
+	GlassSkill& glassObject = g_GlassSkill[playerIndex]; 
+
+	for (int i = 0; i < 5; ++i)
 	{
-		Skill[0].position.x = Player1Object->position.x;
-		Skill[0].position.y = Player1Object->position.y;
-		Skill[0].position.z = Player1Object->position.z;
+		float relativeRad = XMConvertToRadians(RelativeAngles[i]);
+		float finalAngle = playerYaw + relativeRad;
 
-		float Player1_RotationY = Player1Object->rotation.y;
-		float rad = XMConvertToRadians(Player1_RotationY);
+		// 座標オフセットの計算
+		float offsetX = dynamicRadius * cosf(finalAngle);
+		float offsetZ = dynamicRadius * sinf(finalAngle);
 
-		// 進行方向を計算
-		XMFLOAT3 dir =
-		{
-			sinf(rad),  // X方向
-			0.0f,       // Y方向（水平）
-			cosf(rad)   // Z方向
-		};
-
-		// スキルの速度を設定（前方向に飛ばす）
-		//float speed = 0.15f;
-		//Skill[0].Velocity.x = dir.x * speed;
-		//Skill[0].Velocity.y = dir.y * speed;
-		//Skill[0].Velocity.z = dir.z * speed;
-
-		Skill[0].position.x = dir.x * Player1Object->scaling.x + Player1Object->position.x;
-		Skill[0].position.y = Player1Object->position.y;
-		Skill[0].position.z = dir.z * Player1Object->scaling.z + Player1Object->position.z;
-
-		Player1Object->attackTimer += 1.0f / 60.0f;
-
-		if (Player1Object->attackTimer > Player1Object->attackDuration)
-		{
-			Player1Object->isAttacking = false;
-			Player1Object->attackTimer = 0.0f;
-		}
+		// 箱の座標を設定
+		glassObject.boxes[i].position.x = playerObject->position.x + offsetX;
+		glassObject.boxes[i].position.y = playerObject->position.y + High[i];
+		glassObject.boxes[i].position.z = playerObject->position.z + offsetZ;
+		glassObject.boxes[i].rotation = XMFLOAT3(Rot[i], Rot[i], Rot[i]);
+		glassObject.boxes[i].scaling = XMFLOAT3(Scal[i], Scal[i], Scal[i]);
 	}
 
-	// -------------------------------------------------------------
-	// 当たり判定
-	// -------------------------------------------------------------
-	// AABBの更新
-	CalculateAABB(Skill[0].boundingBox, Skill[0].position, XMFLOAT3(1.0f, 1.0f, 1.0f));
+	// スキル効果：
 
-	int buildingCount = GetBuildingCount();			// 数を取得
-	Building** buildingObjects = GetBuildings();	// リストを取得
+	// スキルタイマーを進める
+	playerObject->skillTimer += 1.0f / 60.0f;
 
-	// 全てのフィールドオブジェクトと衝突判定を行う
-	for (int i = 0; i < buildingCount; ++i)
+	// スキルの効果時間が経過したらスキル終了
+	if (playerObject->skillTimer >= 30)
 	{
-		// i番目のフィールドオブジェクトのAABBを取得
-		// field.cppのInitializeで計算済みのため、そのまま参照
-		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
-
-		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
-		MTV collision = CalculateAABBMTV(Skill[0].boundingBox, pStaticObjectAABB);
-
-		if (collision.isColliding)
-		{
-			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
-			if (/*buildingObjects[i]->Type == BuildingType::Glass && */Keyboard_IsKeyDown(KK_SPACE))
-			{
-				buildingObjects[i]->isActive = false;
-				Player1Object->form = (Form)((int)Player1Object->form + 1);
-				// 必要ならここで効果音やエフェクトを再生
-				// スキルはヒット時に消す（任意）
-				Player1Object->isAttacking = false;
-				Player1Object->attackTimer = 0.0f;
-				// 更新済みAABB
-				CalculateAABB(Skill[0].boundingBox, Skill[0].position, Skill[0].scaling);
-				continue;
-			}
-
-			// 衝突していたら、MTVの分だけ位置を戻す
-			Skill[0].position.x += collision.translation.x;
-			Skill[0].position.y += collision.translation.y;
-			Skill[0].position.z += collision.translation.z;
-
-			// 押し戻し後の新しいAABBを再計算
-			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
-			CalculateAABB(Skill[0].boundingBox, Skill[0].position, Skill[0].scaling);
-
-			// デバッグ出力
-			hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
-
-			// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
-		}
+		playerObject->useSkill = false;
+		playerObject->skillTimer = 0.0f;
 	}
 }
 
-void Player2_Skill_Update()
+void Skill_Concrete_Update(int playerIndex)
 {
-	PLAYEROBJECT* Player2Object = GetPlayer(2);
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	if (Player2Object->isAttacking == true)
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	SKILL_OBJECT& sk = Skill[playerIndex];
+
+	// スキル効果： ダメージ軽減20% (デフォルトは1.0f)
+	playerObject->defense = 0.8f;
+
+	// スキルの初期位置をプレイヤーの位置に設定
+	sk.position.x = playerObject->position.x;
+	sk.position.y = playerObject->position.y;
+	sk.position.z = playerObject->position.z;
+
+	// スキルタイマーを進める
+	playerObject->skillTimer += 1.0f / 60.0f;
+
+	// スキルの効果時間が経過したらスキル終了
+	if (playerObject->skillTimer >= SKILL_CONCRETE_TIME)
 	{
-		// プレイヤーの座標からスキルを発射
-		Skill[1].position.x = Player2Object->position.x;
-		Skill[1].position.y = Player2Object->position.y;
-		Skill[1].position.z = Player2Object->position.z;
-
-		float Player2_RotationY = Player2Object->rotation.y;
-		float rad = XMConvertToRadians(Player2_RotationY);
-
-		// 進行方向を計算
-		XMFLOAT3 dir = {
-			sinf(rad),  // X方向
-			0.0f,       // Y方向（水平）
-			cosf(rad)   // Z方向
-		};
-
-		// スキルの速度を設定（前方向に飛ばす）
-		//float speed = 0.1f;
-		//Skill[1].Velocity.x = dir.x * speed;
-		//Skill[1].Velocity.y = dir.y * speed;
-		//Skill[1].Velocity.z = dir.z * speed;
-
-		Skill[1].position.x = dir.x * Player2Object->scaling.x + Player2Object->position.x;
-		Skill[1].position.y = Player2Object->position.y;
-		Skill[1].position.z = dir.z * Player2Object->scaling.z + Player2Object->position.z;
-
-		Player2Object->attackTimer += 1.0f / 60.0f;
-
-		if (Player2Object->attackTimer > Player2Object->attackDuration)
-		{
-			Player2Object->isAttacking = false;
-			Player2Object->attackTimer = 0.0f;
-		}
-	}
-
-	// -------------------------------------------------------------
-	// 当たり判定
-	// -------------------------------------------------------------
-	// AABBの更新
-	CalculateAABB(Skill[1].boundingBox, Skill[1].position, XMFLOAT3(1.0f, 1.0f, 1.0f));
-
-	int buildingCount = GetBuildingCount();			// 数を取得
-	Building** buildingObjects = GetBuildings();	// リストを取得
-
-	// 全てのフィールドオブジェクトと衝突判定を行う
-	for (int i = 0; i < buildingCount; ++i)
-	{
-		// i番目のフィールドオブジェクトのAABBを取得
-		// field.cppのInitializeで計算済みのため、そのまま参照
-		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
-
-		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
-		MTV collision = CalculateAABBMTV(Skill[1].boundingBox, pStaticObjectAABB);
-
-		if (collision.isColliding)
-		{
-			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
-			if (/*buildingObjects[i]->Type == BuildingType::Glass && */Keyboard_IsKeyDown(KK_ENTER))
-			{
-				buildingObjects[i]->isActive = false;
-				Player2Object->form = (Form)((int)Player2Object->form + 1);
-				// 必要ならここで効果音やエフェクトを再生
-				// スキルはヒット時に消す（任意）
-				Player2Object->isAttacking = false;
-				Player2Object->attackTimer = 0.0f;
-				// 更新済みAABB
-				CalculateAABB(Skill[1].boundingBox, Skill[1].position, Skill[1].scaling);
-				continue;
-			}
-
-			// 衝突していたら、MTVの分だけ位置を戻す
-			Skill[1].position.x += collision.translation.x;
-			Skill[1].position.y += collision.translation.y;
-			Skill[1].position.z += collision.translation.z;
-
-			// 押し戻し後の新しいAABBを再計算
-			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
-			CalculateAABB(Skill[1].boundingBox, Skill[1].position, Skill[1].scaling);
-
-			// デバッグ出力
-			hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
-
-			// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
-		}
+		playerObject->useSkill = false;
+		playerObject->skillTimer = 0.0f;
 	}
 }
 
-void Player1_Skill_Draw()
+void Skill_Plant_Update(int playerIndex)
 {
-	// =====================
-	// ワールド行列の作成
-	// =====================
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	// スケーリング行列の作成
-	XMMATRIX ScalingMatrix = XMMatrixScaling
-	(
-		Skill[0].scaling.x,
-		Skill[0].scaling.y,
-		Skill[0].scaling.z
-	);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
 
-	// 回転行列の作成
-	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
-	(
-		XMConvertToRadians(Skill[0].rotation.x),
-		XMConvertToRadians(Skill[0].rotation.y),
-		XMConvertToRadians(Skill[0].rotation.z)
-	);
+	// スキル効果：進化ゲージ2倍
+	playerObject->evolutionGaugeRate *= 2;
 
-	// 平行移動行列の作成
-	XMMATRIX TranslationMatrix = XMMatrixTranslation
-	(
-		Skill[0].position.x,
-		Skill[0].position.y,
-		Skill[0].position.z
-	);
+	// スキルタイマーを進める
+	playerObject->skillTimer += 1.0f / 60.0f;
 
-	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
+	// スキルの効果時間が経過したらスキル終了
+	if (playerObject->skillTimer >= SKILL_PLANT_TIME)
+	{
+		playerObject->useSkill = false;
+		playerObject->skillTimer = 0.0f;
+	}
+}
 
-	// プロジェクション行列作成
-	XMMATRIX Projection = GetProjectionMatrix();
+void Skill_Electric_Update(int playerIndex)
+{
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	// ビュー行列作成
-	XMMATRIX View = GetViewMatrix();
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
 
-	// 最終的な変換行列を作成
-	XMMATRIX WVP = WorldMatrix * View * Projection;
+	// スキル効果：スピード1.5倍
+	playerObject->speed *= 1.5f;
 
-	// 変換行列を頂点シェーダーへセット
+	// スキルタイマーを進める
+	playerObject->skillTimer += 1.0f / 60.0f;
+
+	// スキルの効果時間が経過したらスキル終了
+	if (playerObject->skillTimer >= SKILL_ELECTRIC_TIME)
+	{
+		playerObject->useSkill = false;
+		playerObject->skillTimer = 0.0f;
+	}
+}
+
+//void Skill_Update(int playerIndex)
+//{
+//	// 範囲チェック
+//	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+//
+//	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+//	SKILL_OBJECT& sk = Skill[playerIndex];
+//
+//	if (playerObject->isAttacking == true)
+//	{
+//		// スキルの初期位置をプレイヤーの位置に設定
+//		sk.position.x = playerObject->position.x;
+//		sk.position.y = playerObject->position.y;
+//		sk.position.z = playerObject->position.z;
+//
+//		float Player_RotationY = playerObject->rotation.y;
+//		float rad = XMConvertToRadians(Player_RotationY);
+//
+//		// 進行方向を計算
+//		XMFLOAT3 dir =
+//		{
+//			sinf(rad),  // X方向
+//			0.0f,       // Y方向（水平）
+//			cosf(rad)   // Z方向
+//		};
+//
+//		// スキルの速度を設定（前方向に飛ばす）
+//		//float speed = 0.15f;
+//		//Skill[0].Velocity.x = dir.x * speed;
+//		//Skill[0].Velocity.y = dir.y * speed;
+//		//Skill[0].Velocity.z = dir.z * speed;
+//
+//		// プレイヤーの前方にスキルを配置
+//		sk.position.x = dir.x * playerObject->scaling.x + playerObject->position.x;
+//		sk.position.y = playerObject->position.y;
+//		sk.position.z = dir.z * playerObject->scaling.z + playerObject->position.z;
+//
+//		// 攻撃タイマーを進める
+//		playerObject->attackTimer += 1.0f / 60.0f;
+//
+//		// プレイヤー毎の攻撃時間が経過したら攻撃終了
+//		if (playerObject->attackTimer > playerObject->attackDuration)
+//		{
+//			playerObject->isAttacking = false;
+//			playerObject->attackTimer = 0.0f;
+//		}
+//	}
+//
+//	// -------------------------------------------------------------
+//	// 当たり判定
+//	// -------------------------------------------------------------
+//	// AABBの更新
+//	CalculateAABB(sk.boundingBox, sk.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
+//
+//	int buildingCount = GetBuildingCount();			// 数を取得
+//	Building** buildingObjects = GetBuildings();	// リストを取得
+//
+//	// 全てのフィールドオブジェクトと衝突判定を行う
+//	for (int i = 0; i < buildingCount; ++i)
+//	{
+//		// i番目のフィールドオブジェクトのAABBを取得
+//		// field.cppのInitializeで計算済みのため、そのまま参照
+//		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
+//
+//		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
+//		MTV collision = CalculateAABBMTV(sk.boundingBox, pStaticObjectAABB);
+//
+//		if (collision.isColliding)
+//		{
+//			// プレイヤーごとに使うキーを決定（Player1 -> SPACE, Player2 -> ENTER）
+//			Keyboard_Keys_tag confirmKey = (playerIndex == 0) ? KK_SPACE : KK_ENTER;
+//
+//			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
+//			if (/*buildingObjects[i]->Type == BuildingType::Glass && */Keyboard_IsKeyDown(confirmKey))
+//			{
+//				buildingObjects[i]->isActive = false;
+//				playerObject->form = (Form)((int)playerObject->form + 1);
+//				// 必要ならここで効果音やエフェクトを再生
+//				// スキルはヒット時に消す（任意）
+//				playerObject->isAttacking = false;
+//				playerObject->attackTimer = 0.0f;
+//				// 更新済みAABB
+//				CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+//				continue;
+//			}
+//
+//			// 衝突していたら、MTVの分だけ位置を戻す
+//			sk.position.x += collision.translation.x;
+//			sk.position.y += collision.translation.y;
+//			sk.position.z += collision.translation.z;
+//
+//			// 押し戻し後の新しいAABBを再計算
+//			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
+//			CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+//
+//			// デバッグ出力
+//			hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
+//
+//			// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
+//		}
+//	}
+//}
+
+// Glass専用描画 (5つの箱をループで描画)
+void Skill_Glass_Draw(int playerIndex)
+{
+	// Glass専用のテクスチャをセット
+	ID3D11ShaderResourceView* tex = g_Skill_Texture[0];
+	g_pContext->PSSetShaderResources(0, 1, &tex);
+
+	GlassSkill& glassObject = g_GlassSkill[playerIndex];
+
+	// GlassSkill構造体（5つの箱）を使ってループ描画
+	for (int i = 0; i < 5; ++i)
+	{
+		SKILL_OBJECT& box = glassObject.boxes[i];
+
+		// --- ワールド行列計算 ---
+		XMMATRIX WorldMatrix =
+			XMMatrixScaling(box.scaling.x, box.scaling.y, box.scaling.z) *
+			XMMatrixRotationRollPitchYaw(XMConvertToRadians(box.rotation.x), XMConvertToRadians(box.rotation.y), XMConvertToRadians(box.rotation.z)) *
+			XMMatrixTranslation(box.position.x, box.position.y, box.position.z);
+
+		// 行列セット
+		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(WVP);
+
+		// 描画実行
+		g_pContext->DrawIndexed(6 * 6, 0, 0);
+	}
+}
+
+// Concrete専用描画 (例: 1つの大きな塊を描画)
+void Skill_Concrete_Draw(int playerIndex)
+{
+	// Concrete専用のテクスチャをセット
+	ID3D11ShaderResourceView* tex = g_Skill_Texture[1];
+	g_pContext->PSSetShaderResources(0, 1, &tex);
+
+	// Concrete用の座標計算 (ここでは例として Skill[playerIndex] を使用)
+	// ※Concrete専用構造体があるならそちらを使う
+	SKILL_OBJECT& sk = Skill[playerIndex];
+
+	XMMATRIX WorldMatrix =
+		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
+		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+
+	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(WVP);
 
-	// シェーダーを描画パイプラインへ設定
-	Shader_Begin();
-
-	// 頂点シェーダーを描画パイプラインへ設定
-	D3D11_MAPPED_SUBRESOURCE msr;
-	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	Vertex* vertex = (Vertex*)msr.pData;
-
-	// 頂点データを頂点バッファへコピーする
-	CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex) * NUM_VERTEX);
-
-	// コピー完了
-	g_pContext->Unmap(g_VertexBuffer, 0);
-
-	// テクスチャをセット
-	g_pContext->PSSetShaderResources(0, 1, &g_Skill_Texture[0]);
-
-	// 頂点バッファをセット
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-
-	// インデックスバッファをセット
-	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//// 描画リクエスト
-	//g_pContext->Draw(NUM_VERTEX, 0);
-
+	// 描画実行
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 }
 
-void Player2_Skill_Draw()
+void Skill_Plant_Draw(int playerIndex)
 {
-	// =====================
-	// ワールド行列の作成
-	// =====================
+	// Concrete専用のテクスチャをセット
+	ID3D11ShaderResourceView* tex = g_Skill_Texture[1];
+	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// スケーリング行列の作成
-	XMMATRIX ScalingMatrix = XMMatrixScaling
-	(
-		Skill[1].scaling.x,
-		Skill[1].scaling.y,
-		Skill[1].scaling.z
-	);
+	// Concrete用の座標計算 (ここでは例として Skill[playerIndex] を使用)
+	// ※Concrete専用構造体があるならそちらを使う
+	SKILL_OBJECT& sk = Skill[playerIndex];
 
-	// 回転行列の作成
-	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
-	(
-		XMConvertToRadians(Skill[1].rotation.x),
-		XMConvertToRadians(Skill[1].rotation.y),
-		XMConvertToRadians(Skill[1].rotation.z)
-	);
+	XMMATRIX WorldMatrix =
+		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
+		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
 
-	// 平行移動行列の作成
-	XMMATRIX TranslationMatrix = XMMatrixTranslation
-	(
-		Skill[1].position.x,
-		Skill[1].position.y,
-		Skill[1].position.z
-	);
-
-	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
-
-	// プロジェクション行列作成
-	XMMATRIX Projection = GetProjectionMatrix();
-
-	// ビュー行列作成
-	XMMATRIX View = GetViewMatrix();
-
-	// 最終的な変換行列を作成
-	XMMATRIX WVP = WorldMatrix * View * Projection;
-
-	// 変換行列を頂点シェーダーへセット
+	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(WVP);
 
-	// シェーダーを描画パイプラインへ設定
-	Shader_Begin();
-
-	// 頂点シェーダーを描画パイプラインへ設定
-	D3D11_MAPPED_SUBRESOURCE msr;
-	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	Vertex* vertex = (Vertex*)msr.pData;
-
-	// 頂点データを頂点バッファへコピーする
-	CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex) * NUM_VERTEX);
-
-	// コピー完了
-	g_pContext->Unmap(g_VertexBuffer, 0);
-
-	// テクスチャをセット
-	g_pContext->PSSetShaderResources(0, 1, &g_Skill_Texture[1]);
-
-	// 頂点バッファをセット
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-
-	// インデックスバッファをセット
-	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//// 描画リクエスト
-	//g_pContext->Draw(NUM_VERTEX, 0);
-
+	// 描画実行
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 }
 
-SKILL_OBJECT* GetSkill(int index)
+void Skill_Electric_Draw(int playerIndex)
 {
-	if (index > PLAYER_MAX || index <= 0)
+	// Concrete専用のテクスチャをセット
+	ID3D11ShaderResourceView* tex = g_Skill_Texture[1];
+	g_pContext->PSSetShaderResources(0, 1, &tex);
+
+	// Concrete用の座標計算 (ここでは例として Skill[playerIndex] を使用)
+	// ※Concrete専用構造体があるならそちらを使う
+	SKILL_OBJECT& sk = Skill[playerIndex];
+
+	XMMATRIX WorldMatrix =
+		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
+		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+
+	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+	Shader_SetMatrix(WVP);
+
+	// 描画実行
+	g_pContext->DrawIndexed(6 * 6, 0, 0);
+
+}
+
+void Skill_Draw()
+{
+	// ==========================================
+	// 1. 共通設定 (パイプラインステートの設定)
+	//    これを親で一度だけやることで処理落ちを防ぐ
+	// ==========================================
+
+	// シェーダー開始
+	Shader_Begin();
+
+	// ブレンドステート (必要に応じて)
+	SetBlendState(BLENDSTATE_NONE); // または BLENDSTATE_ALPHA
+	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+	// 頂点バッファ・インデックスバッファのセット
+	// (全てのスキルで同じモデル/キューブを使う場合のみここでOK)
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// ★ 頂点データ書き込み (静的なキューブモデルと仮定) ★
+	// ※ プレイヤー本体の描画と同様に、ここで一度だけ頂点データをGPUに送ります
+	D3D11_MAPPED_SUBRESOURCE msr;
+	// (注意: g_VertexBuffer が D3D11_USAGE_DYNAMIC である必要があります)
+	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	Vertex* vertex = (Vertex*)msr.pData;
+	// vdata[] はキューブの頂点データを格納した配列を想定
+	CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex) * NUM_VERTEX);
+	g_pContext->Unmap(g_VertexBuffer, 0);
+
+	// ==========================================
+	// 2. プレイヤーごとの振り分け処理
+	// ==========================================
+	for (int i = 0; i < PLAYER_MAX; ++i)
+	{
+		PLAYEROBJECT* playerObject = GetPlayer(i + 1);
+
+		// そのプレイヤーがスキルを使っているかチェック (フラグ確認など)
+		if (!playerObject->useSkill) continue;
+
+		// プレイヤーのタイプに合わせて子関数を呼ぶ
+		switch (playerObject->type)
+		{
+		case PlayerType::Glass:
+			Skill_Glass_Draw(i);
+			break;
+
+		case PlayerType::Concrete:
+			Skill_Concrete_Draw(i);
+			break;
+
+		case PlayerType::Plant:
+			Skill_Plant_Draw(i);
+			break;
+
+		case PlayerType::Electric:
+			Skill_Electric_Draw(i);
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	// ==========================================
+	// 3. 後始末
+	// ==========================================
+	SetBlendState(BLENDSTATE_ALPHA);
+}
+
+SKILL_OBJECT* GetSkill(int playerIndex)
+{
+	if (playerIndex > PLAYER_MAX || playerIndex <= 0)
 	{
 		return nullptr;
 	}
 
-	return &Skill[index - 1];
-}
-
-int GetSkill1ObjectCount()
-{
-	int count = 1;
-	//int count = 0;
-	//// map配列はFIELD_MAXを終了マーカーとしている
-	//while (map[count].no != FIELD_MAX)
-	//{
-	//	count++;
-	//}
-	return count;
-}
-
-int GetSkill2ObjectCount()
-{
-	int count = 1;
-	//int count = 0;
-	//// map配列はFIELD_MAXを終了マーカーとしている
-	//while (map[count].no != FIELD_MAX)
-	//{
-	//	count++;
-	//}
-	return count;
+	return &Skill[playerIndex - 1];
 }

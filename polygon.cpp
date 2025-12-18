@@ -12,15 +12,13 @@ using namespace DirectX;
 #include "debug_ostream.h"
 #include "sprite.h"//スプライト機能を追加
 
-#include	"keyboard.h"//<<<<<<<<<<<<<<<<<<<追加
-
+#include "keyboard.h"//<<<<<<<<<<<<<<<<<<<追加
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//テクスチャ１枚を表すオブジェクト
 
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
-
 
 void Polygon_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
@@ -37,8 +35,8 @@ void Polygon_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//テクスチャ画像読み込み
 	TexMetadata		metadata;
 	ScratchImage	image;
-	//LoadFromWICFile(L"asset\\texture\\shadow.png", WIC_FLAGS_NONE, &metadata, image);
-	LoadFromWICFile(L"asset\\texture\\runningman003.png", WIC_FLAGS_NONE, &metadata, image);
+//	LoadFromWICFile(L"asset\\texture\\shadow.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 	assert(g_Texture);//読み込み失敗時にダイアログを表示
 
@@ -47,18 +45,16 @@ void Polygon_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void Polygon_Finalize(void)
 {
 	g_Texture->Release();
-
 }
+
 void Polygon_Draw(void)
 {
 	// 画面サイズ取得
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
-
 	XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//スプライトの色
 	XMFLOAT2 size = { 200, 300 };
-
 
 	static XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT - 150 };
 	if (Keyboard_IsKeyDown(KK_W))//Wキー
@@ -114,12 +110,8 @@ void Polygon_Draw(void)
 		if (scl < 1.0f) scl = 1.0f;
 	}
 
-
-
-
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
-
 
 	// 頂点シェーダーに変換行列を設定
 
@@ -146,15 +138,12 @@ void Polygon_Draw(void)
 	//スプライト描画テスト
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Textureを使うように設定する
 
-
-
 	static float bno = 0;	//ブロックの番号
-	DrawSprite(size, col, (int)bno, 5, 2);
+	DrawSprite(size, col, (int)bno, 4, 3);
 
-	bno += 10.0f/60.0f;	//適当に数字を増やす
+	bno += 5.0f/60.0f;	//適当に数字を増やす
 	if (bno >= 10.0f)
 	{
 		bno = 0.0f;
 	}
-
 }

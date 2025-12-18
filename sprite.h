@@ -26,8 +26,13 @@ void	DrawSprite(XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc);//行列使用
 // 頂点構造体
 struct Vertex
 {
-	XMFLOAT3 position; // 頂点座標  //XMFLOAT3へ変更
+	XMFLOAT3 position;	//頂点座標
 	XMFLOAT4 color;		//頂点カラー（R,G,B,A）
-	XMFLOAT2 texCoord;	//テクスチャ座標
+	XMFLOAT2 tex;	//テクスチャ座標
 };
 
+// シェーダーに渡す定数バッファ
+struct ConstantBuffer
+{
+	XMMATRIX WVP; // World-View-Projection 行列
+};

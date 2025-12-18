@@ -21,10 +21,12 @@
 #include	"Audio.h"
 #include    "gauge.h"
 
+#include	"Polygon.h"
 #include	"Polygon3D.h"
 #include	"Camera.h"
 
 #include "Ball.h"
+#include "attack.h"
 #include "skill.h"
 
 #include "fade.h"
@@ -110,6 +112,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//Block_Initialize(pDevice, pContext);//ブロックの初期化
 	Effect_Initialize(pDevice, pContext);//エフェクト初期化
 	//Score_Initialize(pDevice, pContext);//スコア初期化
+	Attack_Initialize(pDevice, pContext);
 	Skill_Initialize(pDevice, pContext);
 
 	Polygon3D_Initialize(pDevice, pContext);//３Dテスト初期化
@@ -153,6 +156,7 @@ void Game_Finalize()
 	//Score_Finalize();
 	Polygon3D_Finalize();
 	Camera_Finalize();
+	Attack_Finalize();
 	Skill_Finalize();
 
 	UnloadAudio(g_BgmID);//サウンドの解放
@@ -208,6 +212,7 @@ void Game_Draw()
 	Field_Draw(s_IsKonamiCodeEntered);
 	//BallDraw();
 	Polygon3D_Draw(s_IsKonamiCodeEntered);
+	Skill_Draw();
 	
 
 	//2D描画
