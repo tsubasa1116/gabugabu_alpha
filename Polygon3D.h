@@ -8,8 +8,11 @@
 #include "Building.h" 
 
 // マクロ定義
-#define	PLAYER_MAX	(2)
-#define	EVOLUTIONGAUGE_MAX	(10)
+#define	PLAYER_MAX			(2)		// プレイヤー最大数
+#define	EVOLUTIONGAUGE_MAX	(10)	// 進化ゲージ最大値
+#define	ATTACK_DURATION		(0.5f)	// 攻撃持続時間（秒）
+#define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
+#define	STUN_DURATION		(5.0f)	// スタン持続時間（秒）
 
 enum class Form
 {
@@ -38,18 +41,28 @@ struct PLAYEROBJECT
 	float maxHp;			// 最大体力
 	float power;			// パワー
 	float speed;			// スピード
+	float defense;			// 防御率
 	XMFLOAT3 dir;			// 向き
 	int stock;				// 残機
 	bool active;			// 生存フラグ
+
 	bool isAttacking;		// 攻撃中かどうか
 	float attackTimer;		// 攻撃タイマー
-	float attackDuration;	// 攻撃持続時間
+
+	bool useSkill;			// スキル使用中かどうか
+	float skillTimer;		// スキルタイマー
+
+	float stunGauge;		// スタンゲージ
+	bool isStunning;		// スタン中かどうか
+	float stunTimer;		// スタンタイマー
+
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 
 	Form form;								// 変身形態
 	PlayerType type;						// プレイヤーの属性タイプ
 	int evolutionGauge;						// 進化ゲージ
+	int evolutionGaugeRate;					// 進化ゲージ 倍率
 	int breakCount_Glass;					// 破壊した数 ガラス
 	int breakCount_Concrete;				// 破壊した数 コンクリート
 	int breakCount_Plant;					// 破壊した数 植物
@@ -72,10 +85,10 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 void Polygon3D_DrawHP();
 
 void AttackPlayerCollisions();
-void Polygon3D_Respawn(int index);
-void CheckRespawnPlayer(int index);
+void Polygon3D_Respawn(int playerIndex);
+void CheckRespawnPlayer(int playerIndex);
 
 void Polygon3D_DrawStock(int i);
-PLAYEROBJECT* GetPlayer(int index);
+PLAYEROBJECT* GetPlayer(int playerIndex);
 
 

@@ -31,12 +31,6 @@ static ID3D11ShaderResourceView* g_Attack_Texture[PLAYER_MAX];
 // オブジェクト
 static ATTACK_OBJECT Attack[PLAYER_MAX];
 
-// 攻撃タイマー
-float PlayerAttackTimer[PLAYER_MAX];
-
-// プレイヤー 攻撃フラグ
-bool PlayerIsAttacking[PLAYER_MAX] = { false, false/*, false, false*/ };
-
 // マクロ定義
 #define NUM_VERTEX (36)
 
@@ -239,20 +233,15 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pContext = pContext;
 
 	// テクスチャ読み込み
-	TexMetadata metadata1;
-	ScratchImage image1;
+	TexMetadata metadata;
+	ScratchImage image;
 
-	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata1, image1);
-	CreateShaderResourceView(pDevice, image1.GetImages(),
-		image1.GetImageCount(), metadata1, &g_Attack_Texture[0]);
+	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(),image.GetImageCount(), metadata, &g_Attack_Texture[0]);
 	assert(g_Attack_Texture[0]);
 
-	// テクスチャ読み込み
-	TexMetadata metadata2;
-	ScratchImage image2;
-	LoadFromWICFile(L"Asset\\Texture\\SkyBlue.jpg", WIC_FLAGS_NONE, &metadata2, image2);
-	CreateShaderResourceView(pDevice, image2.GetImages(),
-		image2.GetImageCount(), metadata2, &g_Attack_Texture[1]);
+	LoadFromWICFile(L"Asset\\Texture\\SkyBlue.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(),image.GetImageCount(), metadata, &g_Attack_Texture[1]);
 	assert(g_Attack_Texture[1]);
 
 	// インデックスバッファ作成
@@ -335,7 +324,7 @@ void Attack_Update(int playerIndex)
 		playerObject->attackTimer += 1.0f / 60.0f;
 
 		// プレイヤー毎の攻撃時間が経過したら攻撃終了
-		if (playerObject->attackTimer > playerObject->attackDuration)
+		if (playerObject->attackTimer > ATTACK_DURATION)
 		{
 			playerObject->isAttacking = false;
 			playerObject->attackTimer = 0.0f;
@@ -376,10 +365,10 @@ void Attack_Update(int playerIndex)
 					{
 					case BuildingType::Glass:
 					{
-						buildingObjects[i]->isActive = false;			// 建物を非アクティブ化
-						playerObject->breakCount_Glass += 1;			// ガラスを壊した数をプラス
-						playerObject->evolutionGauge += 1;				// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);	// 最後に破壊した建物タイプを保存
+						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
+						playerObject->breakCount_Glass += 1;									// ガラスを壊した数をプラス
+						playerObject->evolutionGauge += 1 * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
+						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -394,10 +383,10 @@ void Attack_Update(int playerIndex)
 
 					case BuildingType::Concrete:
 					{
-						buildingObjects[i]->isActive = false;			// 建物を非アクティブ化
-						playerObject->breakCount_Concrete += 1;			// コンクリートを壊した数をプラス
-						playerObject->evolutionGauge += 1;				// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);	// 最後に破壊した建物タイプを保存
+						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
+						playerObject->breakCount_Concrete += 1;									// コンクリートを壊した数をプラス
+						playerObject->evolutionGauge += 1 * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
+						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -412,10 +401,10 @@ void Attack_Update(int playerIndex)
 
 					case BuildingType::Plant:
 					{
-						buildingObjects[i]->isActive = false;			// 建物を非アクティブ化
-						playerObject->breakCount_Plant += 1;			// 植物を壊した数をプラス
-						playerObject->evolutionGauge += 1;				// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);	// 最後に破壊した建物タイプを保存
+						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
+						playerObject->breakCount_Plant += 1;									// 植物を壊した数をプラス
+						playerObject->evolutionGauge += 1 * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
+						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
 
@@ -545,57 +534,6 @@ void Attack_Update(int playerIndex)
 
 						continue;
 					}
-
-					switch (playerObject->form)
-					{
-					case Form::Normal:	// 通常
-						break;
-
-					case Form::FirstEvolution:		// 1進化
-						switch (playerObject->type)
-						{
-						case PlayerType::Glass:		// 1進化：ガラス
-
-							break;
-						case PlayerType::Concrete:	// 1進化：コンクリ
-
-							break;
-						case PlayerType::Plant:		// 1進化：植物
-
-							break;
-						case PlayerType::Electric:	// 1進化：電気
-
-							break;
-
-						default:
-							break;
-						}
-						break;
-
-					case Form::SecondEvolution:		// 2進化
-						switch (playerObject->type)
-						{
-						case PlayerType::Glass:		// 2進化：ガラス
-
-							break;
-						case PlayerType::Concrete:	// 2進化：コンクリ
-
-							break;
-						case PlayerType::Plant:		// 2進化：植物
-
-							break;
-						case PlayerType::Electric:	// 2進化：電気
-
-							break;
-
-						default:
-							break;
-						}
-						break;
-
-					default:
-						break;
-					}
 				}
 			}
 
@@ -705,6 +643,11 @@ void Attack_Draw(int playerIndex)
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 	SetBlendState(BLENDSTATE_ALPHA);
+
+}
+
+void Stun(int playerIndex)
+{
 
 }
 
