@@ -302,6 +302,19 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 				// ゲッターとかから情報を取ってきて表示していく
 				ImGui::Text("Hello, Dear ImGui!");
+				ImGui::End();
+
+				for (int p = 0; p < g_GamepadCount; p++)
+				{
+					DIJOYSTATE2 js;
+					if (FAILED(g_pGamepad[p]->GetDeviceState(sizeof(js), &js)))
+					{
+						g_pGamepad[p]->Acquire();
+						continue;
+					}
+
+					g_Input[p].LStickX = NormalizeStickWithDeadZone(js.lX);;
+					g_Input[p].LStickY = NormalizeStickWithDeadZone(js.lY);;
 
 					// ==== ボタン ====
 					g_Input[p].B = (js.rgbButtons[0] & 0x80);
@@ -324,24 +337,39 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 					g_Input[p].Down = (pov == 18000);
 					g_Input[p].Left = (pov == 27000);
 
-				ImGui::End();
+					if (g_pGamepad[p])
+					{
+						if (SUCCEEDED(g_pGamepad[p]->GetDeviceState(sizeof(DIJOYSTATE2), &js)))
+						{
+							ImGui::Text("LStick X : %.3f", g_Input[p].LStickX);
+							ImGui::Text("LStick Y : %.3f", g_Input[p].LStickY);
+							ImGui::Text("B Button : %d", (js.rgbButtons[0] & 0x80) != 0);
+							ImGui::Text("A Button : %d", (js.rgbButtons[1] & 0x80) != 0);
+							ImGui::Text("Y Button : %d", (js.rgbButtons[2] & 0x80) != 0);
+							ImGui::Text("X Button : %d", (js.rgbButtons[3] & 0x80) != 0);
+							ImGui::Text("Cross Button : %d", js.rgdwPOV[0]);
+						}
+					}
+
 				// ------------------------------
 
+				}
 				//描画処理
 				Direct3D_Clear();// バックバッファをクリア
 				Manager_Draw();
-
+				
 				EndImGuiFrame();	// ImGui を描画
-
+				
 				Direct3D_Present();
 				keycopy();
-
+				
 				dwFrameCount++;		//処理回数更新
 			}
-
 		}
 	} while (msg.message != WM_QUIT);
+
 	
+
 	Manager_Finalize();
 	UninitAudio();		//サウンドの終了
 	Shader_Finalize(); // シェーダの終了処理

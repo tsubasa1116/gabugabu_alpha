@@ -42,15 +42,15 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 
 struct GAUGEBUFFER
 {
-	float fire;
-	float water;
-	float wind;
-	float earth;
+	float glass;
+	float concrete;
+	float plant;
+	float electric;
 
-	XMFLOAT4 fireColor;
-	XMFLOAT4 waterColor;
-	XMFLOAT4 windColor;
-	XMFLOAT4 earthColor;
+	XMFLOAT4 glassColor;
+	XMFLOAT4 concreteColor;
+	XMFLOAT4 plantColor;
+	XMFLOAT4 electricColor;
 };
 
 struct OUTGAUGEBUFFER
@@ -146,7 +146,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	// バイナリデータを格納するためのバッファを確保
 	unsigned char* vsbinary_pointer = new unsigned char[filesize];
-	
+
 	ifs_vs.read((char*)vsbinary_pointer, filesize); // バイナリデータを読み込む
 	ifs_vs.close(); // ファイルを閉じる
 
@@ -427,23 +427,23 @@ void Shader_BeginHpber()
 //======================================================
 //	内ゲージ
 //======================================================
-void Shader_SetGaugeMulti(float fire, float water, float wind, float earth,
-	XMFLOAT4 fireColor, XMFLOAT4 waterColor,
-	XMFLOAT4 windColor, XMFLOAT4 earthColor)
+void Shader_SetGaugeMulti(float glass, float concrete, float plant, float electric,
+	XMFLOAT4 glassColor, XMFLOAT4 concreteColor,
+	XMFLOAT4 plantColor, XMFLOAT4 electricColor)
 {
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	g_pContext->Map(g_pGaugeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 
 	GAUGEBUFFER gb{};
-	gb.fire = fire;
-	gb.water = water;
-	gb.wind = wind;
-	gb.earth = earth;
+	gb.glass = glass;
+	gb.concrete = concrete;
+	gb.plant = plant;
+	gb.electric = electric;
 
-	gb.fireColor = fireColor;
-	gb.waterColor = waterColor;
-	gb.windColor = windColor;
-	gb.earthColor = earthColor;
+	gb.glassColor = glassColor;
+	gb.concreteColor = concreteColor;
+	gb.plantColor = plantColor;
+	gb.electricColor = electricColor;
 
 	memcpy(mapped.pData, &gb, sizeof(gb));
 	g_pContext->Unmap(g_pGaugeBuffer, 0);
@@ -479,15 +479,15 @@ void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed)
 {
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	g_pContext->Map(g_pHpberBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-	
+
 	static float g_Time = 0.0f;
 	g_Time += 0.02f;
 
 	HPBERBUFFER ob{};
-	ob.palam = {g_Time, al, speed, 0};
+	ob.palam = { g_Time, al, speed, 0 };
 	ob.colorA = colA;
 	ob.colorB = colB;
-	
+
 	memcpy(mapped.pData, &ob, sizeof(ob));
 	g_pContext->Unmap(g_pHpberBuffer, 0);
 

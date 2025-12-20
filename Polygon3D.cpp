@@ -703,10 +703,6 @@ void Polygon3D_Update()
 	{
 		object[0].isAttacking = true;
 	}
-	if (object[0].isAttacking == true)
-	{
-		Player1_Skill_Update();
-	}
 
 			// 発動トリガー入力をチェックして攻撃フラグを立てる
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))

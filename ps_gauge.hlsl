@@ -1,14 +1,19 @@
+Texture2D glassTex : register(t0);
+Texture2D concreteTex : register(t1);
+Texture2D plantTex : register(t2);
+Texture2D electricTex : register(t3);
+
 cbuffer cbGauge : register(b3)
 {
-     float fire;
-     float water;
-     float wind;
-     float earth;
+    float glass;
+    float concrete;
+    float plant;
+    float electric;
      
-     float4 fireColor;
-     float4 waterColor;
-     float4 windColor;
-     float4 earthColor;
+    float4 glassColor;
+    float4 concreteColor;
+    float4 plantColor;
+    float4 electricColor;
 };
 
 static const float2 center = float2(0.5, 0.5);
@@ -42,22 +47,22 @@ float4 main(PS_INPUT input) : SV_Target
     angle = frac(angle / (2 * 3.14));
 
     // 合計
-    float total = fire + water + wind + earth;
+    float total = glass + concrete + plant + electric;
     if (total <= 0)
         return float4(0, 0, 0, 1); // 全部0なら黒丸
 
     // 終端角度
-    float endFire = fire / total;
-    float endWater = endFire + water / total;
-    float endWind = endWater + wind / total;
-    float endEarth = 1.0;
+    float endGlass = glass / total;
+    float endConcrete = endGlass + concrete / total;
+    float endPlant = endConcrete + plant / total;
+    float endElectric = 1.0;
 
     // 区間判定
-    if (angle < endFire)
-        return fireColor;
-    if (angle < endWater)
-        return waterColor;
-    if (angle < endWind)
-        return windColor;
-    return earthColor;
+    if (angle < endGlass)
+        return glassColor;
+    if (angle < endConcrete)
+        return concreteColor;
+    if (angle < endPlant)
+        return plantColor;
+    return electricColor;
 }
