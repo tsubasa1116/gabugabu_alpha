@@ -31,7 +31,7 @@ static ID3D11ShaderResourceView* g_Special_Texture[4];
 // オブジェクト
 static SPECIAL_OBJECT Special[PLAYER_MAX];
 
-static GlassSpecial g_GlassSpecial[PLAYER_MAX];
+static SPECIAL_GLASS g_SpecialGlass[PLAYER_MAX];
 
 // マクロ定義
 #define NUM_VERTEX (36)
@@ -215,13 +215,13 @@ void Special_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pConte
 		{
 			// 各箱の初期座標を設定
 			// 例えば、プレイヤーの前にオフセットを持たせるなど
-			g_GlassSpecial[p].boxes[i].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_GlassSpecial[p].boxes[i].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_GlassSpecial[p].boxes[i].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
+			g_SpecialGlass[p].boxes[i].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			g_SpecialGlass[p].boxes[i].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			g_SpecialGlass[p].boxes[i].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
 			// BoundingBoxの初期化などもここで行う
 		}
 		// その他の初期状態を設定
-		g_GlassSpecial[p].isActive = false;
+		g_SpecialGlass[p].isActive = false;
 	}
 
 	// テクスチャ読み込み
@@ -363,7 +363,7 @@ void Special_Glass_Update(int playerIndex)
 	// プレイヤーの現在の回転角度 (ラジアン)
 	float playerYaw = XMConvertToRadians(playerObject->rotation.y);
 
-	GlassSpecial& glassObject = g_GlassSpecial[playerIndex]; 
+	SPECIAL_GLASS& glassObject = g_SpecialGlass[playerIndex]; 
 
 	for (int i = 0; i < 5; ++i)
 	{
@@ -382,12 +382,12 @@ void Special_Glass_Update(int playerIndex)
 		glassObject.boxes[i].scaling = XMFLOAT3(Scal[i], Scal[i], Scal[i]);
 	}
 
-	// スキル効果：
+	// スペシャル効果：
 
-	// スキルタイマーを進める
+	// スペシャルタイマーを進める
 	playerObject->specialTimer += 1.0f / 60.0f;
 
-	// スキルの効果時間が経過したらスキル終了
+	// スペシャルの効果時間が経過したらスペシャル終了
 	if (playerObject->specialTimer >= 30)
 	{
 		playerObject->useSpecial = false;
@@ -403,18 +403,17 @@ void Special_Concrete_Update(int playerIndex)
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
 	SPECIAL_OBJECT& sk = Special[playerIndex];
 
-	// スキル効果： ダメージ軽減20% (デフォルトは1.0f)
-	playerObject->defense = 0.8f;
+	// スペシャル効果：
 
-	// スキルの初期位置をプレイヤーの位置に設定
+	// スペシャルの初期位置をプレイヤーの位置に設定
 	sk.position.x = playerObject->position.x;
 	sk.position.y = playerObject->position.y;
 	sk.position.z = playerObject->position.z;
 
-	// スキルタイマーを進める
+	// スペシャルタイマーを進める
 	playerObject->specialTimer += 1.0f / 60.0f;
 
-	// スキルの効果時間が経過したらスキル終了
+	// スペシャルの効果時間が経過したらスペシャル終了
 	if (playerObject->specialTimer >= SPECIAL_CONCRETE_TIME)
 	{
 		playerObject->useSpecial = false;
@@ -429,13 +428,12 @@ void Special_Plant_Update(int playerIndex)
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
 
-	// スキル効果：進化ゲージ2倍
-	playerObject->evolutionGaugeRate *= 2;
+	// スペシャル効果：
 
-	// スキルタイマーを進める
+	// スペシャルタイマーを進める
 	playerObject->specialTimer += 1.0f / 60.0f;
 
-	// スキルの効果時間が経過したらスキル終了
+	// スペシャルの効果時間が経過したらスペシャル終了
 	if (playerObject->specialTimer >= SPECIAL_PLANT_TIME)
 	{
 		playerObject->useSpecial = false;
@@ -450,13 +448,12 @@ void Special_Electric_Update(int playerIndex)
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
 
-	// スキル効果：スピード1.5倍
-	playerObject->speed *= 1.5f;
+	// スペシャル効果：
 
-	// スキルタイマーを進める
+	// スペシャルタイマーを進める
 	playerObject->specialTimer += 1.0f / 60.0f;
 
-	// スキルの効果時間が経過したらスキル終了
+	// スペシャルの効果時間が経過したらスペシャル終了
 	if (playerObject->specialTimer >= SPECIAL_ELECTRIC_TIME)
 	{
 		playerObject->useSpecial = false;
@@ -464,108 +461,53 @@ void Special_Electric_Update(int playerIndex)
 	}
 }
 
-//void Special_Update(int playerIndex)
-//{
-//	// 範囲チェック
-//	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
-//
-//	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
-//	SPECIAL_OBJECT& sk = Special[playerIndex];
-//
-//	if (playerObject->isAttacking == true)
-//	{
-//		// スキルの初期位置をプレイヤーの位置に設定
-//		sk.position.x = playerObject->position.x;
-//		sk.position.y = playerObject->position.y;
-//		sk.position.z = playerObject->position.z;
-//
-//		float Player_RotationY = playerObject->rotation.y;
-//		float rad = XMConvertToRadians(Player_RotationY);
-//
-//		// 進行方向を計算
-//		XMFLOAT3 dir =
-//		{
-//			sinf(rad),  // X方向
-//			0.0f,       // Y方向（水平）
-//			cosf(rad)   // Z方向
-//		};
-//
-//		// スキルの速度を設定（前方向に飛ばす）
-//		//float speed = 0.15f;
-//		//Special[0].Velocity.x = dir.x * speed;
-//		//Special[0].Velocity.y = dir.y * speed;
-//		//Special[0].Velocity.z = dir.z * speed;
-//
-//		// プレイヤーの前方にスキルを配置
-//		sk.position.x = dir.x * playerObject->scaling.x + playerObject->position.x;
-//		sk.position.y = playerObject->position.y;
-//		sk.position.z = dir.z * playerObject->scaling.z + playerObject->position.z;
-//
-//		// 攻撃タイマーを進める
-//		playerObject->attackTimer += 1.0f / 60.0f;
-//
-//		// プレイヤー毎の攻撃時間が経過したら攻撃終了
-//		if (playerObject->attackTimer > playerObject->attackDuration)
-//		{
-//			playerObject->isAttacking = false;
-//			playerObject->attackTimer = 0.0f;
-//		}
-//	}
-//
-//	// -------------------------------------------------------------
-//	// 当たり判定
-//	// -------------------------------------------------------------
-//	// AABBの更新
-//	CalculateAABB(sk.boundingBox, sk.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
-//
-//	int buildingCount = GetBuildingCount();			// 数を取得
-//	Building** buildingObjects = GetBuildings();	// リストを取得
-//
-//	// 全てのフィールドオブジェクトと衝突判定を行う
-//	for (int i = 0; i < buildingCount; ++i)
-//	{
-//		// i番目のフィールドオブジェクトのAABBを取得
-//		// field.cppのInitializeで計算済みのため、そのまま参照
-//		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
-//
-//		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
-//		MTV collision = CalculateAABBMTV(sk.boundingBox, pStaticObjectAABB);
-//
-//		if (collision.isColliding)
-//		{
-//			// プレイヤーごとに使うキーを決定（Player1 -> SPACE, Player2 -> ENTER）
-//			Keyboard_Keys_tag confirmKey = (playerIndex == 0) ? KK_SPACE : KK_ENTER;
-//
-//			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
-//			if (/*buildingObjects[i]->Type == BuildingType::Glass && */Keyboard_IsKeyDown(confirmKey))
-//			{
-//				buildingObjects[i]->isActive = false;
-//				playerObject->form = (Form)((int)playerObject->form + 1);
-//				// 必要ならここで効果音やエフェクトを再生
-//				// スキルはヒット時に消す（任意）
-//				playerObject->isAttacking = false;
-//				playerObject->attackTimer = 0.0f;
-//				// 更新済みAABB
-//				CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-//				continue;
-//			}
-//
-//			// 衝突していたら、MTVの分だけ位置を戻す
-//			sk.position.x += collision.translation.x;
-//			sk.position.y += collision.translation.y;
-//			sk.position.z += collision.translation.z;
-//
-//			// 押し戻し後の新しいAABBを再計算
-//			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
-//			CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-//
-//			// デバッグ出力
-//			hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
-//
-//			// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
-//		}
-//	}
-//}
+void Special_Update(int playerIndex)
+{
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	// ==========================================
+	// プレイヤーごとの振り分け処理
+	// ==========================================
+	for (int i = 0; i < PLAYER_MAX; ++i)
+	{
+		PLAYEROBJECT* playerObject = GetPlayer(i + 1);
+
+		// そのプレイヤーがスペシャルを使っているかチェック (フラグ確認など)
+		if (!playerObject->useSpecial) continue;
+
+		// プレイヤーがスタンしていない場合のみ描画
+		if (playerObject->isStunning == false)
+		{
+			// プレイヤーのタイプに合わせて子関数を呼ぶ
+			switch (playerObject->type)
+			{
+			case PlayerType::Glass:
+				Special_Glass_Update(i);
+				break;
+
+			case PlayerType::Concrete:
+				Special_Concrete_Update(i);
+				break;
+
+			case PlayerType::Plant:
+				Special_Plant_Update(i);
+				break;
+
+			case PlayerType::Electric:
+				Special_Electric_Update(i);
+				break;
+
+			default:
+				break;
+			}
+
+			playerObject->form = Form::Normal; // 変身形態を通常に戻す
+
+			playerObject->type = PlayerType::None; // スペシャル使用後にタイプをリセット
+		}
+	}
+}
 
 // Glass専用描画 (5つの箱をループで描画)
 void Special_Glass_Draw(int playerIndex)
@@ -574,7 +516,7 @@ void Special_Glass_Draw(int playerIndex)
 	ID3D11ShaderResourceView* tex = g_Special_Texture[0];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	GlassSpecial& glassObject = g_GlassSpecial[playerIndex];
+	SPECIAL_GLASS& glassObject = g_SpecialGlass[playerIndex];
 
 	// GlassSpecial構造体（5つの箱）を使ってループ描画
 	for (int i = 0; i < 5; ++i)
@@ -680,7 +622,7 @@ void Special_Draw()
 	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
 	// 頂点バッファ・インデックスバッファのセット
-	// (全てのスキルで同じモデル/キューブを使う場合のみここでOK)
+	// (全てのスペシャルで同じモデル/キューブを使う場合のみここでOK)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
@@ -704,30 +646,34 @@ void Special_Draw()
 	{
 		PLAYEROBJECT* playerObject = GetPlayer(i + 1);
 
-		// そのプレイヤーがスキルを使っているかチェック (フラグ確認など)
+		// そのプレイヤーがスペシャルを使っているかチェック (フラグ確認など)
 		if (!playerObject->useSpecial) continue;
 
-		// プレイヤーのタイプに合わせて子関数を呼ぶ
-		switch (playerObject->type)
+		// プレイヤーがスタンしていない場合のみ描画
+		if (playerObject->isStunning == false)
 		{
-		case PlayerType::Glass:
-			Special_Glass_Draw(i);
-			break;
+			// プレイヤーのタイプに合わせて子関数を呼ぶ
+			switch (playerObject->type)
+			{
+			case PlayerType::Glass:
+				Special_Glass_Draw(i);
+				break;
 
-		case PlayerType::Concrete:
-			Special_Concrete_Draw(i);
-			break;
+			case PlayerType::Concrete:
+				Special_Concrete_Draw(i);
+				break;
 
-		case PlayerType::Plant:
-			Special_Plant_Draw(i);
-			break;
+			case PlayerType::Plant:
+				Special_Plant_Draw(i);
+				break;
 
-		case PlayerType::Electric:
-			Special_Electric_Draw(i);
-			break;
+			case PlayerType::Electric:
+				Special_Electric_Draw(i);
+				break;
 
-		default:
-			break;
+			default:
+				break;
+			}
 		}
 	}
 

@@ -20,7 +20,7 @@ struct SPECIAL_OBJECT
 };
 
 // Glass専用のスキル管理構造体（5つの箱の情報を格納する）
-struct GlassSpecial
+struct SPECIAL_GLASS
 {
     // Glassスキルが生成する5つの箱
     SPECIAL_OBJECT boxes[5];

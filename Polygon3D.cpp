@@ -18,6 +18,7 @@ using namespace DirectX;
 #include "polygon3D.h"
 #include "Camera.h"
 #include "skill.h"
+#include "special.h"
 
 ///////////////////////////////////////
 #include "field.h"
@@ -648,6 +649,8 @@ void Polygon3D_Update()
 	// 各プレイヤーに対応する発動キー
 	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER };
 
+	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_D9, KK_D0 };
+
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
 		// スタンゲージが最大になったらスタンフラグを立てる
@@ -698,6 +701,18 @@ void Polygon3D_Update()
 			if (object[p].isAttacking)
 			{
 				Attack_Update(p);
+			}
+
+			// 発動トリガー入力をチェックしてスペシャルフラグを立てる
+			if (Keyboard_IsKeyDownTrigger(specialKeys[p]))
+			{
+				object[p].useSpecial = true;
+			}
+
+			// 攻撃中なら攻撃更新処理を呼び出す
+			if (object[p].useSpecial)
+			{
+				Special_Update(p);
 			}
 
 			// 現在のプレイヤー p の移動ベクトルだけをリセット
