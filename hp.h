@@ -23,7 +23,7 @@ struct HP {
 //=============================================
 void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HP* bar, XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 backColor, XMFLOAT4 fillColor);
 void UpdateHP(HP* bar);
-void DrawHP(const HP* bar);
+void DrawHP(const HP* bar, int texNum);
 void SetHPValue(HP* bar, int currentHP, int maxHP);
 void FinalizeHP(HP* bar);
 

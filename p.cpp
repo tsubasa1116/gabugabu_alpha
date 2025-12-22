@@ -314,7 +314,7 @@ void P_Draw(void)
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		// HPƒo[•`‰æ
-		DrawHP(&g_HPBar[i]);
+		//DrawHP(&g_HPBar[i]);
 		XMFLOAT2 hp = g_HPBar[i].pos;
 
 		// ƒQ[ƒW•`‰æ—pÝ’è

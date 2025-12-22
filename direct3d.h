@@ -37,6 +37,7 @@ void Direct3D_Present(); // バックバッファの表示
 ////////////////////////////////////////////////追加
 ID3D11Device* Direct3D_GetDevice(); // デバイスの取得
 ID3D11DeviceContext* Direct3D_GetDeviceContext(); // デバイスコンテキストの取得
+IDXGISwapChain* Direct3D_GetSwapChain(); // スワップチェインの取得
 
 unsigned int Direct3D_GetBackBufferWidth(); // バックバッファの幅を取得
 unsigned int Direct3D_GetBackBufferHeight(); // バックバッファの高さを取得

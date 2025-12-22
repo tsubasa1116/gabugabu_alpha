@@ -26,11 +26,13 @@ void Shader_Begin();
 void Shader_BeginUI();
 void Shader_BeginGauge();
 void Shader_BeginOutGauge();
+void Shader_BeginHpber();
 
 void Shader_SetGaugeMulti(float fire, float water, float wind, float earth,
 	XMFLOAT4 fireColor, XMFLOAT4 waterColor,
 	XMFLOAT4 windColor, XMFLOAT4 earthColor);
 void Shader_SetOutGauge(float value, XMFLOAT4 color);
+void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed);
 void Shader_SetColor(const XMFLOAT4& color);
 
 void Shader_BeginDebugColor();
