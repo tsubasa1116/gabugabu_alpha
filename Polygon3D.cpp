@@ -701,19 +701,15 @@ void Polygon3D_Update()
 			{
 				object[p].stunGauge = 0.0f;
 			}
-	// プレイヤー1 スキル発動
-	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
-	{
-		object[0].isAttacking = true;
-	}
-	if (g_Input[0].A)
-	{
-		object[0].isAttacking = true;
-	}
-	if (object[0].isAttacking == true)
-	{
-		Player1_Skill_Update();
-	}
+			// プレイヤー1 スキル発動
+			if (Keyboard_IsKeyDownTrigger(KK_SPACE))
+			{
+				object[0].isAttacking = true;
+			}
+			if (g_Input[0].A)
+			{
+				object[0].isAttacking = true;
+			}
 
 			// 発動トリガー入力をチェックして攻撃フラグを立てる
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
