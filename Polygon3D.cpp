@@ -71,6 +71,9 @@ static ID3D11ShaderResourceView* g_Texture[6];
 
 static ID3D11Buffer* g_IndexBuffer_Face = NULL; // -X 面のみ用インデックスバッファ
 
+// エフェクト デバッグ用タイマー
+static float g_effectElapsed = 0.0f; // 秒単位での経過時間を保持
+
 //static	Vertex vdata[NUM_VERTEX] =
 //{
 //	//-Z面
@@ -405,25 +408,25 @@ static	Vertex2 vdata[NUM_VERTEX] =
 	//-Z面
 	{//頂点0 LEFT-TOP
 		XMFLOAT3(-0.5f, 0.5f, 0.0f),		//座標
-		XMFLOAT3(0.0f,0.0f, -1.0f),			//法線ベクトル
+		XMFLOAT3(0.0f, 0.0f, -1.0f),		//法線ベクトル
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//カラー
 		XMFLOAT2(0.0f,0.0f)					//テクスチャ座標
 	},
 	{//頂点1 RIGHT-TOP
 		XMFLOAT3(0.5f, 0.5f, 0.0f),
-		XMFLOAT3(0.0f,0.0f, -1.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
 	{//頂点2 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.0f),
-		XMFLOAT3(0.0f,0.0f, -1.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
 	{//頂点3 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, 0.0f),
-		XMFLOAT3(0.0f,0.0f, -1.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
@@ -555,6 +558,9 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
 	assert(g_Texture[4]);
 
+	LoadFromWICFile(L"asset\\texture\\uiLightLoopBigGlass_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
+	assert(g_Texture[5]);
 
 
 	//インデックスバッファ作成
@@ -705,20 +711,15 @@ void Polygon3D_Update()
 			{
 				object[p].stunGauge = 0.0f;
 			}
-			// プレイヤー1 スキル発動
-			if (Keyboard_IsKeyDownTrigger(KK_SPACE))
-			{
-				object[0].isAttacking = true;
-			}
-			if (g_Input[0].A)
-			{
-				object[0].isAttacking = true;
-			}
 
 			// 発動トリガー入力をチェックして攻撃フラグを立てる
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
 			{
 				object[p].isAttacking = true;
+			}
+			if (g_Input[0].A)
+			{
+				object[0].isAttacking = true;
 			}
 
 			// 攻撃中なら攻撃更新処理を呼び出す
@@ -727,13 +728,13 @@ void Polygon3D_Update()
 				Attack_Update(p);
 			}
 
-			// 発動トリガー入力をチェックしてスペシャルフラグを立てる
+			// 発動トリガー入力をチェックしてスペシャル使用フラグを立てる
 			if (Keyboard_IsKeyDownTrigger(specialKeys[p]))
 			{
 				object[p].useSpecial = true;
 			}
 
-			// 攻撃中なら攻撃更新処理を呼び出す
+			// スペシャル使用中ならスペシャル更新処理を呼び出す
 			if (object[p].useSpecial)
 			{
 				Special_Update(p);
@@ -1188,6 +1189,9 @@ void Polygon3D_Update()
 	{
 		CheckRespawnPlayer(idx);
 	}
+
+	// エフェクト用タイマー更新
+	//g_effectElapsed += (1.0f / 60.0f);
 }		
 
 //======================================================
@@ -1220,79 +1224,72 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		//===================
-		// ワールド行列の作成
-		//===================
+		// 3Dオブジェクトは深度テストを有効にして描画
+		SetDepthTest(true);
 
-		// スケーリング行列の作成
-		XMMATRIX ScalingMatrix = XMMatrixScaling(
-			object[i].scaling.x,
-			object[i].scaling.y,
-			object[i].scaling.z
-		);
-		// 平向移動行列の作成
-		XMMATRIX TranslationMatrix = XMMatrixTranslation(
-			object[i].position.x,
-			object[i].position.y,
-			object[i].position.z
-		);
-		// 回転行列の作成
-		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
-			XMConvertToRadians(0.0f),
-			XMConvertToRadians(0.0f),
-			XMConvertToRadians(0.0f)
-			//XMConvertToRadians(object[i].rotation.x),
-			//XMConvertToRadians(object[i].rotation.y),
-			//XMConvertToRadians(object[i].rotation.z)
-		);
+		// プロジェクション・ビュー行列を先に取得
+		XMMATRIX Projection = GetProjectionMatrix();
+		XMMATRIX View = GetViewMatrix();
 
-		// 乗算の順番に注意！！
-		//XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
+		auto DrawPlayerInternal = [&](int i)
+			{
+				// ワールド行列（ビルボード風の既存ロジックを踏襲）
+				XMMATRIX ScalingMatrix = XMMatrixScaling(
+					object[i].scaling.x,
+					object[i].scaling.y,
+					object[i].scaling.z
+				);
 
-		XMMATRIX Projection = GetProjectionMatrix();// プロジェクション行列作成
-		XMMATRIX View = GetViewMatrix();// ビュー行列作成
-		
-		XMMATRIX vm = GetViewMatrix();	// カメラの行列
-		vm.r[3].m128_f32[0] = 0.0f;			// カメラの位置をリセット
-		vm.r[3].m128_f32[1] = 0.0f;
-		vm.r[3].m128_f32[2] = 0.0f;
-		vm.r[3].m128_f32[3] = 1.0f;
-		vm = XMMatrixTranspose(vm);			// 転地する(逆行列)
-		vm.r[3].m128_f32[0] = object[i].position.x;	0.0f;	// ビルボードの位置をセット
-		vm.r[3].m128_f32[1] = object[i].position.y;
-		vm.r[3].m128_f32[2] = object[i].position.z;
-		vm.r[3].m128_f32[3] = 1.0f;
+				XMMATRIX vm = GetViewMatrix();	// カメラの行列
+				vm.r[3].m128_f32[0] = 0.0f;
+				vm.r[3].m128_f32[1] = 0.0f;
+				vm.r[3].m128_f32[2] = 0.0f;
+				vm.r[3].m128_f32[3] = 1.0f;
+				vm = XMMatrixTranspose(vm);
+				vm.r[3].m128_f32[0] = object[i].position.x;
+				vm.r[3].m128_f32[1] = object[i].position.y;
+				vm.r[3].m128_f32[2] = object[i].position.z;
+				vm.r[3].m128_f32[3] = 1.0f;
 
-		XMMATRIX WVP = ScalingMatrix * vm * View * Projection;// 最終的な変換行列を作成　乗算の順番に注意！！
+				XMMATRIX WVP = ScalingMatrix * vm * View * Projection;
 
-		Shader_SetMatrix(WVP);
-		Shader_Begin();
-		SetBlendState(BLENDSTATE_ALPHA);
+				Shader_SetMatrix(WVP);
+				Shader_Begin();
+				SetBlendState(BLENDSTATE_ALPHA);
 
-		// 頂点データを頂点バッファへコピーする
-		D3D11_MAPPED_SUBRESOURCE msr;
-		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-		Vertex2* vertex = (Vertex2*)msr.pData;
+				// 頂点バッファにデータコピー
+				D3D11_MAPPED_SUBRESOURCE msr;
+				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+				Vertex2* vertex = (Vertex2*)msr.pData;
+				CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+				g_pContext->Unmap(g_VertexBuffer, 0);
 
-		CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
-		g_pContext->Unmap(g_VertexBuffer, 0);
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
-		Shader_SetColor({ 1,1,1,1 });
+				// テクスチャセット
+				g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
+				Shader_SetColor({ 1,1,1,1 });
 
-		// 頂点バッファをセット
-		UINT stride = sizeof(Vertex2);	// 頂点1個のデータサイズ
-		UINT offset = 0;
+				// バッファセット＆描画
+				UINT stride = sizeof(Vertex2);
+				UINT offset = 0;
+				g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+				g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+				g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				g_pContext->DrawIndexed(6, 0, 0);
+			};
 
-		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);		// インデックスバッファをセット 四角形
-		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	// 描画するポリゴンの種類をセット　3頂点でポリゴンを1枚として表示
-		if (!s_IsKonamiCodeEntered || input1)
+		// 不透明（あるいは depth-write が必要な）オブジェクトを先に描く
+		// 今回の最小対応では object[1] を先に、透過を含む object[0] を後で描く
+		if (PLAYER_MAX > 1)
 		{
-			//g_pContext->DrawIndexed(6 * 6, 0, 0);	// 四角形
-			g_pContext->DrawIndexed(6, 0, 0);		// -X面のみを描画（6 インデックス）
+			DrawPlayerInternal(1); // 背面または不透過のプレイヤーを先に
 		}
-		// 描画リクエスト
-		//g_pContext->Draw(NUM_VERTEX, 0);
+
+		// 透過描画：深度テストは行うが深度バッファへの書き込みはしない
+		SetDepthReadOnly();
+		DrawPlayerInternal(0);
+
+		// UI描画などに戻すときは深度無効に
+		SetDepthTest(false);
 	}
 
 	if (s_IsKonamiCodeEntered)
@@ -1343,7 +1340,19 @@ void Polygon3D_DrawHP()
 
 void Polygon3D_DrawEffect()
 {
-	Effect_Set(g_Texture[4], { 170.0f, 600.0f }, { 400.0f, 400.0f });
+	Effect_Set(g_Texture[4], { 170.0f,600.0f }, { 400.0f, 400.0f });
+
+	//// g_Texture[4] を X 座標のみ 4 個並べて描画する
+	//// basePos: 左端の位置、size: 各エフェクトのサイズ
+	//// spacingX: 各インスタンスの X 間隔（表示幅 + 余白）
+	//XMFLOAT2 basePos = { 170.0f, 600.0f };
+	//XMFLOAT2 size = { 400.0f, 400.0f };
+	//int count = 4;
+	//float spacingX = 320.0f;
+
+	//ID3D11ShaderResourceView* texToUse = (g_effectElapsed >= 5.0f) ? g_Texture[5] : g_Texture[4];
+
+	//Effect_SetMultiple(texToUse, basePos, size, count, spacingX);
 }
 
 void Polygon3D_Respawn(int playerIndex)

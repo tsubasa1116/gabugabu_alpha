@@ -614,19 +614,18 @@ void Special_Draw()
 	// シェーダー開始
 	Shader_Begin();
 
-	// ブレンドステート (必要に応じて)
-	SetBlendState(BLENDSTATE_NONE); // または BLENDSTATE_ALPHA
+	// ブレンドステート
+	SetBlendState(BLENDSTATE_NONE);
 	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
 	// 頂点バッファ・インデックスバッファのセット
-	// (全てのスペシャルで同じモデル/キューブを使う場合のみここでOK)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// ★ 頂点データ書き込み (静的なキューブモデルと仮定) ★
+	// 頂点データ書き込み
 	// ※ プレイヤー本体の描画と同様に、ここで一度だけ頂点データをGPUに送ります
 	D3D11_MAPPED_SUBRESOURCE msr;
 	// (注意: g_VertexBuffer が D3D11_USAGE_DYNAMIC である必要があります)
