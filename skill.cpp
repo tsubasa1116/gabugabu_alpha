@@ -31,7 +31,7 @@ static ID3D11ShaderResourceView* g_Skill_Texture[4];
 // オブジェクト
 static SKILL_OBJECT Skill[PLAYER_MAX];
 
-static GlassSkill g_GlassSkill[PLAYER_MAX];
+static SKILL_GLASS g_SkillGlass[PLAYER_MAX];
 
 // マクロ定義
 #define NUM_VERTEX (36)
@@ -215,13 +215,13 @@ void Skill_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext
 		{
 			// 各箱の初期座標を設定
 			// 例えば、プレイヤーの前にオフセットを持たせるなど
-			g_GlassSkill[p].boxes[i].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_GlassSkill[p].boxes[i].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_GlassSkill[p].boxes[i].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
+			g_SkillGlass[p].boxes[i].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			g_SkillGlass[p].boxes[i].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			g_SkillGlass[p].boxes[i].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
 			// BoundingBoxの初期化などもここで行う
 		}
 		// その他の初期状態を設定
-		g_GlassSkill[p].isActive = false;
+		g_SkillGlass[p].isActive = false;
 	}
 
 	// テクスチャ読み込み
@@ -363,7 +363,7 @@ void Skill_Glass_Update(int playerIndex)
 	// プレイヤーの現在の回転角度 (ラジアン)
 	float playerYaw = XMConvertToRadians(playerObject->rotation.y);
 
-	GlassSkill& glassObject = g_GlassSkill[playerIndex]; 
+	SKILL_GLASS& glassObject = g_SkillGlass[playerIndex]; 
 
 	for (int i = 0; i < 5; ++i)
 	{
@@ -574,7 +574,7 @@ void Skill_Glass_Draw(int playerIndex)
 	ID3D11ShaderResourceView* tex = g_Skill_Texture[0];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	GlassSkill& glassObject = g_GlassSkill[playerIndex];
+	SKILL_GLASS& glassObject = g_SkillGlass[playerIndex];
 
 	// GlassSkill構造体（5つの箱）を使ってループ描画
 	for (int i = 0; i < 5; ++i)
