@@ -509,7 +509,7 @@ void Special_Update(int playerIndex)
 	}
 }
 
-// Glass専用描画 (5つの箱をループで描画)
+// Glass専用描画
 void Special_Glass_Draw(int playerIndex)
 {
 	// Glass専用のテクスチャをセット
@@ -538,15 +538,14 @@ void Special_Glass_Draw(int playerIndex)
 	}
 }
 
-// Concrete専用描画 (例: 1つの大きな塊を描画)
+// Concrete専用描画
 void Special_Concrete_Draw(int playerIndex)
 {
 	// Concrete専用のテクスチャをセット
 	ID3D11ShaderResourceView* tex = g_Special_Texture[1];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// Concrete用の座標計算 (ここでは例として Special[playerIndex] を使用)
-	// ※Concrete専用構造体があるならそちらを使う
+	// Concrete用の座標計算
 	SPECIAL_OBJECT& sk = Special[playerIndex];
 
 	XMMATRIX WorldMatrix =
@@ -563,12 +562,11 @@ void Special_Concrete_Draw(int playerIndex)
 
 void Special_Plant_Draw(int playerIndex)
 {
-	// Concrete専用のテクスチャをセット
+	// Plant専用のテクスチャをセット
 	ID3D11ShaderResourceView* tex = g_Special_Texture[1];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// Concrete用の座標計算 (ここでは例として Special[playerIndex] を使用)
-	// ※Concrete専用構造体があるならそちらを使う
+	// Plant用の座標計算
 	SPECIAL_OBJECT& sk = Special[playerIndex];
 
 	XMMATRIX WorldMatrix =
@@ -586,12 +584,11 @@ void Special_Plant_Draw(int playerIndex)
 
 void Special_Electric_Draw(int playerIndex)
 {
-	// Concrete専用のテクスチャをセット
+	// Electric専用のテクスチャをセット
 	ID3D11ShaderResourceView* tex = g_Special_Texture[1];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// Concrete用の座標計算 (ここでは例として Special[playerIndex] を使用)
-	// ※Concrete専用構造体があるならそちらを使う
+	// Electric用の座標計算
 	SPECIAL_OBJECT& sk = Special[playerIndex];
 
 	XMMATRIX WorldMatrix =
