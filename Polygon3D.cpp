@@ -20,6 +20,7 @@ using namespace DirectX;
 #include "Camera.h"
 #include "input.h"
 #include "skill.h"
+#include "special.h"
 
 ///////////////////////////////////////
 #include "field.h"
@@ -462,6 +463,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].attackTimer = 0.0f;
 	object[0].useSkill = false;
 	object[0].skillTimer = 0.0f;
+	object[0].useSpecial = false;
+	object[0].specialTimer = 0.0f;
 	object[0].stunGauge = 0.0f;
 	object[0].isStunning = false;
 	object[0].stunTimer = 0.0f;
@@ -493,6 +496,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].attackTimer = 0.0f;
 	object[1].useSkill = false;
 	object[1].skillTimer = 0.0f;
+	object[1].useSpecial = false;
+	object[1].specialTimer = 0.0f;
 	object[1].stunGauge = 0.0f;
 	object[1].isStunning = false;
 	object[1].stunTimer = 0.0f;
@@ -655,6 +660,8 @@ void Polygon3D_Update()
 	// 各プレイヤーに対応する発動キー
 	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER };
 
+	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_D9, KK_D0 };
+
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
 		// スタンゲージが最大になったらスタンフラグを立てる
@@ -718,6 +725,18 @@ void Polygon3D_Update()
 			if (object[p].isAttacking)
 			{
 				Attack_Update(p);
+			}
+
+			// 発動トリガー入力をチェックしてスペシャルフラグを立てる
+			if (Keyboard_IsKeyDownTrigger(specialKeys[p]))
+			{
+				object[p].useSpecial = true;
+			}
+
+			// 攻撃中なら攻撃更新処理を呼び出す
+			if (object[p].useSpecial)
+			{
+				Special_Update(p);
 			}
 
 			// 現在のプレイヤー p の移動ベクトルだけをリセット
@@ -977,86 +996,90 @@ void Polygon3D_Update()
 		// プレイヤー毎のスキル発動キー格納
 		const Keyboard_Keys_tag skillKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER };
 
-		// 形態とタイプごとのスキル処理
-		switch (object[i].form)
+		// スタン中でなければスキル処理
+		if (object[i].isStunning == false)
 		{
-		case Form::Normal:	// 通常
-			break;
-
-		case Form::FirstEvolution:		// 1進化
-			switch (object[i].type)
+			// 形態とタイプごとのスキル処理
+			switch (object[i].form)
 			{
-			case PlayerType::Glass:		// 1進化：ガラス
-				// 発動トリガー入力をチェックしてスキルフラグを立てる
-				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-				// スキル使用中ならスキル更新処理を呼び出す
-				if (object[i].useSkill)	Skill_Glass_Update(i);
+			case Form::Normal:	// 通常
 				break;
 
-			case PlayerType::Concrete:	// 1進化：コンクリ
-				// 発動トリガー入力をチェックしてスキルフラグを立てる
-				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-				// スキル使用中ならスキル更新処理を呼び出す
-				if (object[i].useSkill)	Skill_Concrete_Update(i);
+			case Form::FirstEvolution:		// 1進化
+				switch (object[i].type)
+				{
+				case PlayerType::Glass:		// 1進化：ガラス
+					// 発動トリガー入力をチェックしてスキルフラグを立てる
+					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+					// スキル使用中ならスキル更新処理を呼び出す
+					if (object[i].useSkill)	Skill_Glass_Update(i);
+					break;
+
+				case PlayerType::Concrete:	// 1進化：コンクリ
+					// 発動トリガー入力をチェックしてスキルフラグを立てる
+					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+					// スキル使用中ならスキル更新処理を呼び出す
+					if (object[i].useSkill)	Skill_Concrete_Update(i);
+					break;
+
+				case PlayerType::Plant:		// 1進化：植物
+					// 発動トリガー入力をチェックしてスキルフラグを立てる
+					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+					// スキル使用中ならスキル更新処理を呼び出す
+					if (object[i].useSkill)	Skill_Plant_Update(i);
+					break;
+
+				case PlayerType::Electric:	// 1進化：電気
+					// 発動トリガー入力をチェックしてスキルフラグを立てる
+					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+					// スキル使用中ならスキル更新処理を呼び出す
+					if (object[i].useSkill)	Skill_Electric_Update(i);
+					break;
+
+				default:
+					break;
+				}
 				break;
 
-			case PlayerType::Plant:		// 1進化：植物
-				// 発動トリガー入力をチェックしてスキルフラグを立てる
-				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-				// スキル使用中ならスキル更新処理を呼び出す
-				if (object[i].useSkill)	Skill_Plant_Update(i);
-				break;
+			case Form::SecondEvolution:		// 2進化
+				switch (object[i].type)
+				{
+				case PlayerType::Glass:		// 2進化：ガラス
+					// 発動トリガー入力をチェックしてスキルフラグを立てる
+					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+					// スキル使用中ならスキル更新処理を呼び出す
+					if (object[i].useSkill)	Skill_Glass_Update(i);
+					break;
 
-			case PlayerType::Electric:	// 1進化：電気
-				// 発動トリガー入力をチェックしてスキルフラグを立てる
-				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-				// スキル使用中ならスキル更新処理を呼び出す
-				if (object[i].useSkill)	Skill_Electric_Update(i);
+				case PlayerType::Concrete:	// 2進化：コンクリ
+					// 発動トリガー入力をチェックしてスキルフラグを立てる
+					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+					// スキル使用中ならスキル更新処理を呼び出す
+					if (object[i].useSkill)	Skill_Concrete_Update(i);
+					break;
+
+				case PlayerType::Plant:		// 2進化：植物
+					// 発動トリガー入力をチェックしてスキルフラグを立てる
+					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+					// スキル使用中ならスキル更新処理を呼び出す
+					if (object[i].useSkill)	Skill_Plant_Update(i);
+					break;
+
+				case PlayerType::Electric:	// 2進化：電気
+					// 発動トリガー入力をチェックしてスキルフラグを立てる
+					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
+					// スキル使用中ならスキル更新処理を呼び出す
+					if (object[i].useSkill)	Skill_Electric_Update(i);
+					break;
+
+				default:
+					break;
+				}
 				break;
 
 			default:
 				break;
 			}
-			break;
-
-		case Form::SecondEvolution:		// 2進化
-			switch (object[i].type)
-			{
-			case PlayerType::Glass:		// 2進化：ガラス
-				// 発動トリガー入力をチェックしてスキルフラグを立てる
-				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-				// スキル使用中ならスキル更新処理を呼び出す
-				if (object[i].useSkill)	Skill_Glass_Update(i);
-				break;
-
-			case PlayerType::Concrete:	// 2進化：コンクリ
-				// 発動トリガー入力をチェックしてスキルフラグを立てる
-				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-				// スキル使用中ならスキル更新処理を呼び出す
-				if (object[i].useSkill)	Skill_Concrete_Update(i);
-				break;
-
-			case PlayerType::Plant:		// 2進化：植物
-				// 発動トリガー入力をチェックしてスキルフラグを立てる
-				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-				// スキル使用中ならスキル更新処理を呼び出す
-				if (object[i].useSkill)	Skill_Plant_Update(i);
-				break;
-
-			case PlayerType::Electric:	// 2進化：電気
-				// 発動トリガー入力をチェックしてスキルフラグを立てる
-				if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-				// スキル使用中ならスキル更新処理を呼び出す
-				if (object[i].useSkill)	Skill_Electric_Update(i);
-				break;
-
-			default:
-				break;
-			}
-			break;
-
-		default:
-			break;
 		}
 
 		ATTACK_OBJECT* attack1 = GetAttack(1);
@@ -1342,6 +1365,8 @@ void Polygon3D_Respawn(int playerIndex)
 		object[0].attackTimer = 0.0f;
 		object[0].useSkill = false;
 		object[0].skillTimer = 0.0f;
+		object[0].useSpecial = false;
+		object[0].specialTimer = 0.0f;
 		object[0].stunGauge = 0.0f;
 		object[0].isStunning = false;
 		object[0].stunTimer = 0.0f;
@@ -1381,6 +1406,8 @@ void Polygon3D_Respawn(int playerIndex)
 		object[1].attackTimer = 0.0f;
 		object[1].useSkill = false;
 		object[1].skillTimer = 0.0f;
+		object[1].useSpecial = false;
+		object[1].specialTimer = 0.0f;
 		object[1].stunGauge = 0.0f;
 		object[1].isStunning = false;
 		object[1].stunTimer = 0.0f;

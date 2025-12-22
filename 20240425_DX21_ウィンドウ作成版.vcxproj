@@ -195,6 +195,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="skill.cpp" />
     <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="special.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="Start.cpp" />
     <ClCompile Include="Title.cpp" />
@@ -241,6 +242,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="shader.h" />
     <ClInclude Include="skill.h" />
     <ClInclude Include="Sound.h" />
+    <ClInclude Include="special.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="Start.h" />
     <ClInclude Include="Title.h" />
