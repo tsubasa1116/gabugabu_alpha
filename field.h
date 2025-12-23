@@ -16,9 +16,14 @@ using namespace DirectX;
 //=========================================
 enum FIELD
 {
-    FIELD_BOX = 0,        // 箱
-    FIELD_BUILDING,       // 建物（Building）
-    FIELD_MAX
+	FIELD_BOX = 0,			// 箱
+
+	FIELD_Glass,		// ガラス建物
+	FIELD_Concrete,		// コンクリ建物
+	FIELD_Plant,		// 植物建物
+	FIELD_Electric,		// 電気建物
+
+	FIELD_MAX
 };
 
 
@@ -28,15 +33,16 @@ enum FIELD
 class MAPDATA
 {
 public:
-    XMFLOAT3 pos;         // 座標
-    AABB boundingBox;     // 当たり判定
-    FIELD no;             // 種類（FIELD_BOX / FIELD_BUILDING）
+	XMFLOAT3 pos;			// 座標
+	AABB boundingBox;		// 当たり判定
+	FIELD no;				// 種類（FIELD_BOX / FIELD_BUILDING）
 
-    bool isActive = true;
+	bool isActive = true;
 
-    // --- ここを追加！ ---
-    BuildingType type = BuildingType::None;
-    
+	// --- ここを追加！ ---
+	//BuildingType type = BuildingType::None;
+	float radius = 1.0f;	// 六角形の半径
+	float height = 2.25f;	// 柱の高さ
 };
 
 
@@ -45,11 +51,11 @@ public:
 //=========================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Field_Finalize(void);
-void Field_Draw(void);
+void Field_Draw(bool s_IsKonamiCodeEntered);
 void Field_Update(void);
 
 MAPDATA* GetFieldObjects();
 int GetFieldObjectCount();
 
-void CreateBox();
-void	CreateBox();
+// BOX作成関数
+//void	CreateBox();

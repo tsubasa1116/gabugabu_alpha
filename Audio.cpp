@@ -12,8 +12,6 @@ using namespace DirectX;
 
 //ohayogozaimasu
 //konnichiwa
-
-
 //konbanwa
 
 

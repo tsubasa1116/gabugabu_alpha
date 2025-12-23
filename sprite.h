@@ -15,6 +15,8 @@ void		InitializeSprite();	//スプライト初期化
 void		FinalizeSprite();	//スプライト終了
 void		DrawSpriteScroll(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col,
 										XMFLOAT2 texcoord);
+void DrawSpriteUV(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col,
+	XMFLOAT2 uvMin, XMFLOAT2 uvMax);
 
 void		DrawSpriteExRotation(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc, float radian);
 

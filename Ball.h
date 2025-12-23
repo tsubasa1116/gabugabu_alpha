@@ -36,7 +36,7 @@ class BALL
 		XMFLOAT3	Velocity;	//速度
 
 		BALL_STATE	State;		//状態
-		MODEL*		Model;		//モデルデータ
+		MODEL*		Model;		//モデルデータ]
 
 };
 

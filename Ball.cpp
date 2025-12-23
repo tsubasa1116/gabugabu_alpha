@@ -9,7 +9,10 @@
 #include	"Ball.h"
 #include	"Camera.h"
 #include	"shader.h"
+#include	"color.h"
+#include    "hp.h"
 
+static HP b_HPBar;
 
 // ボールオブジェクト
 BALL	g_Ball;
@@ -41,6 +44,7 @@ void	BallFinalize()
 }
 void	BallUpdate()
 {
+
 	switch (g_Ball.State)
 	{
 	case BALL_STATE::BALL_STATE_IDLE:
@@ -79,6 +83,7 @@ void	BallUpdate()
 }
 void	BallDraw() 
 {
+
 	//ワールド行列作成
 	XMMATRIX	scale = XMMatrixScaling(
 		g_Ball.Scaling.x,
@@ -106,6 +111,7 @@ void	BallDraw()
 	//モデルの描画リクエスト
 	ModelDraw(g_Ball.Model);
 }
+
 
 XMFLOAT3 GetBallPosition()
 {

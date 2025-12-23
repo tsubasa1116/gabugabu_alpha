@@ -24,15 +24,14 @@
 #include "Manager.h"
 #include "Audio.h"	//<<<<<<<<<<<<<追加
 
-// =====================================================
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-// =====================================================
 
-///////////////////////////////////////////
 #define		SCREEN_WIDTH	(1280)
 #define		SCREEN_HEIGHT	(720)
+//#define		SCREEN_WIDTH	(1920)
+//#define		SCREEN_HEIGHT	(1080)
 
 
 //==================================
@@ -116,8 +115,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	//クライアント領域のサイズを表す矩形 (左からleft, top, right, bottom)
 	RECT window_rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
-	//ウィンドウのスタイル（ウィンドウ枠と最大化ボタンを削除）
-	DWORD window_style = WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
+	// フルHD
+	//RECT window_rect = { -960, -540, SCREEN_WIDTH, SCREEN_HEIGHT };
+	
+	//ウィンドウのスタイル
+	DWORD window_style = WS_OVERLAPPEDWINDOW;
 	//指定したクライアント領域を確保するために新たな矩形座標を計算
 	AdjustWindowRect(&window_rect, window_style, FALSE);
 	//調整された矩形の横と縦のサイズを計算
@@ -199,21 +201,18 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 									" FPS : %d", g_CountFPS);
 				SetWindowText(hWnd, g_DebugStr);
 #endif
-                // ======= ImGui初期化 =======
+				// ======= ImGui初期化 =======
 				BeginImGuiFrame();
-				
-				//更新処理
 				Manager_Update();
-
 				// ======= ImGui描画テスト =======
-				ImGui::Begin("Debug Window");
+				//ImGui::Begin("Debug Window");
 
-				// ゲッターとかから情報を取ってきて表示していく
-				ImGui::Text("Hello, Dear ImGui!");
+				//// ゲッターとかから情報を取ってきて表示していく
+				//ImGui::Text("Hello, Dear ImGui!");
 
 
 
-				ImGui::End();
+				//ImGui::End();
 				// ------------------------------
 
 				//描画処理

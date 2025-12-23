@@ -100,7 +100,7 @@ void Fade_Draw()
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
 
 	//スプライト描画
-	SetBlendState(BLENDSTATE_ALFA);//αブレンド
+	SetBlendState(BLENDSTATE_ALPHA);//αブレンド
 	XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 	XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
 	DrawSprite(pos, size, g_Fade.fadecolor);

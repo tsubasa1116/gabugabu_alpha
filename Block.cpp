@@ -168,7 +168,7 @@ void Block_Draw()
 				//シェーダーへ行列をセット
 				Shader_SetMatrix(mat);
 
-				SetBlendState(BLENDSTATE_ALFA);
+				SetBlendState(BLENDSTATE_ALPHA);
 				DrawSprite(size, col, 0, 1, 1);
 			}
 		}

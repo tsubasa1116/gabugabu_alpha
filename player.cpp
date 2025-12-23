@@ -190,7 +190,7 @@ void Player_Draw(void)
 		//テクスチャの設定
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[g_Piece.Type[i]]);
 		//ブレンド無し
-		SetBlendState(BLENDSTATE_ALFA);
+		SetBlendState(BLENDSTATE_ALPHA);
 		//スプライト描画
 		DrawSprite(size, col, 0, 1, 1);
 	}
