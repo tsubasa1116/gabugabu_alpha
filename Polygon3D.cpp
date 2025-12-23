@@ -542,7 +542,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);
 
-	LoadFromWICFile(L"asset\\texture\\characterMini01_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
 	assert(g_Texture[1]);
 
@@ -1222,75 +1222,167 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 	Shader_Begin(); 
 
-	for (int i = 0; i < PLAYER_MAX; i++)
-	{
-		// 3Dオブジェクトは深度テストを有効にして描画
-		SetDepthTest(true);
+	// ========================================================
+	// 奥のプレイヤーが手前のプレイヤーに隠れないように描画
+	// ========================================================
 
-		// プロジェクション・ビュー行列を先に取得
-		XMMATRIX Projection = GetProjectionMatrix();
-		XMMATRIX View = GetViewMatrix();
+	// プロジェクション・ビュー行列を先に取得
+	XMMATRIX Projection = GetProjectionMatrix();
+	XMMATRIX View = GetViewMatrix();
 
-		auto DrawPlayerInternal = [&](int i)
-			{
-				// ワールド行列（ビルボード風の既存ロジックを踏襲）
-				XMMATRIX ScalingMatrix = XMMatrixScaling(
-					object[i].scaling.x,
-					object[i].scaling.y,
-					object[i].scaling.z
-				);
+	// カメラ位置を算出（View の逆行列の r[3] がワールド空間のカメラ位置）
+	XMMATRIX invView = XMMatrixInverse(nullptr, View);
+	XMFLOAT3 camPos;
+	camPos.x = invView.r[3].m128_f32[0];
+	camPos.y = invView.r[3].m128_f32[1];
+	camPos.z = invView.r[3].m128_f32[2];
 
-				XMMATRIX vm = GetViewMatrix();	// カメラの行列
-				vm.r[3].m128_f32[0] = 0.0f;
-				vm.r[3].m128_f32[1] = 0.0f;
-				vm.r[3].m128_f32[2] = 0.0f;
-				vm.r[3].m128_f32[3] = 1.0f;
-				vm = XMMatrixTranspose(vm);
-				vm.r[3].m128_f32[0] = object[i].position.x;
-				vm.r[3].m128_f32[1] = object[i].position.y;
-				vm.r[3].m128_f32[2] = object[i].position.z;
-				vm.r[3].m128_f32[3] = 1.0f;
-
-				XMMATRIX WVP = ScalingMatrix * vm * View * Projection;
-
-				Shader_SetMatrix(WVP);
-				Shader_Begin();
-				SetBlendState(BLENDSTATE_ALPHA);
-
-				// 頂点バッファにデータコピー
-				D3D11_MAPPED_SUBRESOURCE msr;
-				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-				Vertex2* vertex = (Vertex2*)msr.pData;
-				CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
-				g_pContext->Unmap(g_VertexBuffer, 0);
-
-				// テクスチャセット
-				g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
-				Shader_SetColor({ 1,1,1,1 });
-
-				// バッファセット＆描画
-				UINT stride = sizeof(Vertex2);
-				UINT offset = 0;
-				g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-				g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-				g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				g_pContext->DrawIndexed(6, 0, 0);
-			};
-
-		// 不透明（あるいは depth-write が必要な）オブジェクトを先に描く
-		// 今回の最小対応では object[1] を先に、透過を含む object[0] を後で描く
-		if (PLAYER_MAX > 1)
+	// プレイヤーを描画するラムダ（Projection, View をキャプチャ）
+	auto DrawPlayerInternal = [&](int idx)
 		{
-			DrawPlayerInternal(1); // 背面または不透過のプレイヤーを先に
-		}
+			// ワールド行列（ビルボード風の既存ロジックを踏襲）
+			XMMATRIX ScalingMatrix = XMMatrixScaling(
+				object[idx].scaling.x,
+				object[idx].scaling.y,
+				object[idx].scaling.z
+			);
 
-		// 透過描画：深度テストは行うが深度バッファへの書き込みはしない
-		SetDepthReadOnly();
-		DrawPlayerInternal(0);
+			XMMATRIX vm = GetViewMatrix();	// カメラの行列
+			vm.r[3].m128_f32[0] = 0.0f;
+			vm.r[3].m128_f32[1] = 0.0f;
+			vm.r[3].m128_f32[2] = 0.0f;
+			vm.r[3].m128_f32[3] = 1.0f;
+			vm = XMMatrixTranspose(vm);
+			vm.r[3].m128_f32[0] = object[idx].position.x;
+			vm.r[3].m128_f32[1] = object[idx].position.y;
+			vm.r[3].m128_f32[2] = object[idx].position.z;
+			vm.r[3].m128_f32[3] = 1.0f;
 
-		// UI描画などに戻すときは深度無効に
-		SetDepthTest(false);
+			XMMATRIX WVP = ScalingMatrix * vm * View * Projection;
+
+			Shader_SetMatrix(WVP);
+			Shader_Begin();
+			SetBlendState(BLENDSTATE_ALPHA);
+
+			// 頂点バッファにデータコピー
+			D3D11_MAPPED_SUBRESOURCE msr;
+			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+			Vertex2* vertex = (Vertex2*)msr.pData;
+			CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+			g_pContext->Unmap(g_VertexBuffer, 0);
+
+			// テクスチャセット
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture[idx]);
+			Shader_SetColor({ 1,1,1,1 });
+
+			// バッファセット＆描画
+			UINT stride = sizeof(Vertex2);
+			UINT offset = 0;
+			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+			g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			g_pContext->DrawIndexed(6, 0, 0);
+		};
+
+	// -------------------------
+	// 透明描画のためのソート（遠い順 = back-to-front）
+	// -------------------------
+	std::vector<std::pair<float, int>> list; // (距離二乗, index)
+	list.reserve(PLAYER_MAX);
+
+	for (int i = 0; i < PLAYER_MAX; ++i)
+	{
+		float dx = object[i].position.x - camPos.x;
+		float dy = object[i].position.y - camPos.y;
+		float dz = object[i].position.z - camPos.z;
+		float dist2 = dx * dx + dy * dy + dz * dz;
+		list.emplace_back(dist2, i);
 	}
+
+	// 遠い順（大きい順）にソート
+	std::sort(list.begin(), list.end(), [](const std::pair<float, int>& a, const std::pair<float, int>& b)
+		{
+		return a.first > b.first;
+		});
+
+	// 透過レンダリング：深度テストは有効、深度書き込みは無効（SetDepthReadOnly を使用）
+	SetDepthTest(true);
+	SetDepthReadOnly(); // 深度テストはするが深度バッファへの書き込みはしない
+
+	// ソート順（遠いものから描画）
+	for (auto& p : list)
+	{
+		DrawPlayerInternal(p.second);
+	}
+
+	// 3Dオブジェクトは深度テストを有効にして描画
+	SetDepthTest(false);
+
+	//for (int i = 0; i < PLAYER_MAX; i++)
+	//{
+	//	// 3Dオブジェクトは深度テストを有効にして描画
+	//	SetDepthTest(true);
+
+	//	auto DrawPlayerInternal = [&](int i)
+	//		{
+	//			// ワールド行列（ビルボード風の既存ロジックを踏襲）
+	//			XMMATRIX ScalingMatrix = XMMatrixScaling(
+	//				object[i].scaling.x,
+	//				object[i].scaling.y,
+	//				object[i].scaling.z
+	//			);
+
+	//			XMMATRIX vm = GetViewMatrix();	// カメラの行列
+	//			vm.r[3].m128_f32[0] = 0.0f;
+	//			vm.r[3].m128_f32[1] = 0.0f;
+	//			vm.r[3].m128_f32[2] = 0.0f;
+	//			vm.r[3].m128_f32[3] = 1.0f;
+	//			vm = XMMatrixTranspose(vm);
+	//			vm.r[3].m128_f32[0] = object[i].position.x;
+	//			vm.r[3].m128_f32[1] = object[i].position.y;
+	//			vm.r[3].m128_f32[2] = object[i].position.z;
+	//			vm.r[3].m128_f32[3] = 1.0f;
+
+	//			XMMATRIX WVP = ScalingMatrix * vm * View * Projection;
+
+	//			Shader_SetMatrix(WVP);
+	//			Shader_Begin();
+	//			SetBlendState(BLENDSTATE_ALPHA);
+
+	//			// 頂点バッファにデータコピー
+	//			D3D11_MAPPED_SUBRESOURCE msr;
+	//			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	//			Vertex2* vertex = (Vertex2*)msr.pData;
+	//			CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+	//			g_pContext->Unmap(g_VertexBuffer, 0);
+
+	//			// テクスチャセット
+	//			g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
+	//			Shader_SetColor({ 1,1,1,1 });
+
+	//			// バッファセット＆描画
+	//			UINT stride = sizeof(Vertex2);
+	//			UINT offset = 0;
+	//			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	//			g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	//			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//			g_pContext->DrawIndexed(6, 0, 0);
+	//		};
+
+	//	// 不透明（あるいは depth-write が必要な）オブジェクトを先に描く
+	//	// 今回の最小対応では object[1] を先に、透過を含む object[0] を後で描く
+	//	if (PLAYER_MAX > 1)
+	//	{
+	//		DrawPlayerInternal(1); // 背面または不透過のプレイヤーを先に
+	//	}
+
+	//	// 透過描画：深度テストは行うが深度バッファへの書き込みはしない
+	//	SetDepthReadOnly();
+	//	DrawPlayerInternal(0);
+
+	//	// UI描画などに戻すときは深度無効に
+	//	SetDepthTest(false);
+	//}
 
 	if (s_IsKonamiCodeEntered)
 	{
@@ -1312,7 +1404,6 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		}
 		//s_IsKonamiCodeEntered = false;
 	}
-
 }
 
 void Polygon3D_DrawHP()

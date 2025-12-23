@@ -21,7 +21,8 @@ enum class Form
 	SecondEvolution		// 2進化
 };
 
-enum class PlayerType {
+enum class PlayerType
+{
 	None,		// 未設定
 	Glass,		// ガラス
 	Concrete,	// コンクリ
