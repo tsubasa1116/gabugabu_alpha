@@ -543,11 +543,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
 	assert(g_Texture[1]);
 
-	LoadFromWICFile(L"asset\\texture\\uiStockBlue_v2.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\uiStockBlue_v4.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
 	assert(g_Texture[2]);
 
-	LoadFromWICFile(L"asset\\texture\\uiStockGleen_v2.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\uiStockGreen_v4.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
 	assert(g_Texture[3]);
 
@@ -579,8 +579,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// デバッグレンダラー初期化
 	Debug_Initialize(pDevice, pContext);
 
-	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  630.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  630.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 
 }
 
@@ -714,11 +714,6 @@ void Polygon3D_Update()
 			{
 				object[0].isAttacking = true;
 			}
-	if (object[0].isAttacking == true)
-	{
-		Player1_Skill_Update();
-	}
-
 			// 発動トリガー入力をチェックして攻撃フラグを立てる
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
 			{
