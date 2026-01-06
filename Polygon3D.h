@@ -52,6 +52,9 @@ struct PLAYEROBJECT
 	bool useSkill;			// スキル使用中かどうか
 	float skillTimer;		// スキルタイマー
 
+	bool useSpecial;		// スペシャル使用中かどうか
+	float specialTimer;		// スペシャルタイマー
+
 	float stunGauge;		// スタンゲージ
 	bool isStunning;		// スタン中かどうか
 	float stunTimer;		// スタンタイマー

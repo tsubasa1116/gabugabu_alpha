@@ -291,7 +291,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				//ウィンドウキャプションへ現在のFPSを表示
 				wsprintf(g_DebugStr, "DX21 プロジェクト ");
 				wsprintf(&g_DebugStr[strlen(g_DebugStr)],
-									" FPS : %d", g_CountFPS);
+					" FPS : %d", g_CountFPS);
 				SetWindowText(hWnd, g_DebugStr);
 #endif
 				// ======= ImGui初期化 =======
@@ -303,7 +303,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				// ゲッターとかから情報を取ってきて表示していく
 				ImGui::Text("Hello, Dear ImGui!");
 				ImGui::End();
-
 				for (int p = 0; p < g_GamepadCount; p++)
 				{
 					DIJOYSTATE2 js;
@@ -315,7 +314,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 					g_Input[p].LStickX = NormalizeStickWithDeadZone(js.lX);;
 					g_Input[p].LStickY = NormalizeStickWithDeadZone(js.lY);;
-
 					// ==== ボタン ====
 					g_Input[p].B = (js.rgbButtons[0] & 0x80);
 					g_Input[p].A = (js.rgbButtons[1] & 0x80);
@@ -352,6 +350,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 					}
 
 				// ------------------------------
+
 
 				}
 				//描画処理
