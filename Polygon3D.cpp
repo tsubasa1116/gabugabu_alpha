@@ -769,6 +769,30 @@ void Polygon3D_Update()
 		ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
 		ImGui::BulletText("4 Electric breaks : %d", object[p].breakCount_Electric);
 
+		if (ImGui::Button("hp -1"))
+		{
+			object[p].hp -= 0.1f;
+		}
+
+		if (ImGui::Button("gl +1"))
+		{
+			object[p].gl += 0.1f;
+		}
+		else if (ImGui::Button("pl +1"))
+		{
+			object[p].pl += 0.1f;
+		}
+		else if (ImGui::Button("co +1"))
+		{
+			object[p].co += 0.1f;
+		}
+		else if (ImGui::Button("el +1"))
+		{
+			object[p].el += 0.1f;
+		}
+
+		ImGui::SliderFloat("Outer", &object[p].gaugeOuter, 0.0f, 1.0f);
+
 		// 履歴リストのサイズを表示
 		size_t historySize = object[p].brokenHistory.size();
 		ImGui::BulletText("brokenHistory Size : %zu", historySize);

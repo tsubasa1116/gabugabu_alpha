@@ -36,6 +36,10 @@ static ID3D11Buffer* g_pColorBuffer = nullptr;
 
 static ID3D11PixelShader* g_pDebugColorShader = nullptr; // コライダー可視化
 
+static ID3D11ShaderResourceView* g_GaugeTex[4] = {};
+static ID3D11SamplerState* g_GaugeSampler = nullptr;
+
+
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
@@ -47,10 +51,6 @@ struct GAUGEBUFFER
 	float plant;
 	float electric;
 
-	XMFLOAT4 glassColor;
-	XMFLOAT4 concreteColor;
-	XMFLOAT4 plantColor;
-	XMFLOAT4 electricColor;
 };
 
 struct OUTGAUGEBUFFER
@@ -289,6 +289,41 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice->CreatePixelShader(psBin_hpber.data(), psSize_hpber, nullptr, &g_pHpberShader);
 
 
+	//======================================================
+	//	ゲージ用テクスチャ読み込み
+	//======================================================
+	const wchar_t* files[4] =
+	{
+		L"asset/texture/uiMaterialGlass_v3.png",
+		L"asset/texture/uiMaterialConcrete_v3.png",
+		L"asset/texture/uiMaterialTree_v3.png",
+		L"asset/texture/uiMaterialElectricity_v3.png"
+	};
+
+	for (int i = 0; i < 4; i++)
+	{
+		TexMetadata metadata;
+		ScratchImage image;
+
+		LoadFromWICFile(files[i], WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_GaugeTex[i]);
+		assert(g_GaugeTex[i]);
+	}
+
+
+	//======================================================
+	//	ゲージ用サンプラーステート作成
+	//======================================================
+	D3D11_SAMPLER_DESC desc{};
+	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	desc.MinLOD = 0;
+	desc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	pDevice->CreateSamplerState(&desc, &g_GaugeSampler);
 
 
 	return true;
@@ -308,6 +343,21 @@ void Shader_Finalize()
 	SAFE_RELEASE(g_pWorldConstantBuffer);
 	SAFE_RELEASE(g_pLightConstantBuffer);
 
+}
+
+
+
+//======================================================
+//	ゲージ用テクスチャセット関数
+//======================================================
+void Shader_SetGaugeTextures()
+{
+	// t0-t3
+	g_pContext->PSSetShaderResources(0, 4, g_GaugeTex);  // glass, concrete, plant, electric の順
+	
+
+	// s0
+	g_pContext->PSSetSamplers(0, 1, &g_GaugeSampler);
 }
 
 
@@ -427,9 +477,7 @@ void Shader_BeginHpber()
 //======================================================
 //	内ゲージ
 //======================================================
-void Shader_SetGaugeMulti(float glass, float concrete, float plant, float electric,
-	XMFLOAT4 glassColor, XMFLOAT4 concreteColor,
-	XMFLOAT4 plantColor, XMFLOAT4 electricColor)
+void Shader_SetGaugeMulti(float glass, float concrete, float plant, float electric)
 {
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	g_pContext->Map(g_pGaugeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
@@ -439,11 +487,6 @@ void Shader_SetGaugeMulti(float glass, float concrete, float plant, float electr
 	gb.concrete = concrete;
 	gb.plant = plant;
 	gb.electric = electric;
-
-	gb.glassColor = glassColor;
-	gb.concreteColor = concreteColor;
-	gb.plantColor = plantColor;
-	gb.electricColor = electricColor;
 
 	memcpy(mapped.pData, &gb, sizeof(gb));
 	g_pContext->Unmap(g_pGaugeBuffer, 0);

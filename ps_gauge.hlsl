@@ -3,17 +3,14 @@ Texture2D concreteTex : register(t1);
 Texture2D plantTex : register(t2);
 Texture2D electricTex : register(t3);
 
+SamplerState g_Sampler : register(s0);
+
 cbuffer cbGauge : register(b3)
 {
     float glass;
     float concrete;
     float plant;
     float electric;
-     
-    float4 glassColor;
-    float4 concreteColor;
-    float4 plantColor;
-    float4 electricColor;
 };
 
 static const float2 center = float2(0.5, 0.5);
@@ -59,10 +56,10 @@ float4 main(PS_INPUT input) : SV_Target
 
     // ‹æŠÔ”»’è
     if (angle < endGlass)
-        return glassColor;
+        return glassTex.Sample(g_Sampler, uv);
     if (angle < endConcrete)
-        return concreteColor;
+        return concreteTex.Sample(g_Sampler, uv);
     if (angle < endPlant)
-        return plantColor;
-    return electricColor;
+        return plantTex.Sample(g_Sampler, uv);
+    return electricTex.Sample(g_Sampler, uv);
 }

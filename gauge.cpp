@@ -103,8 +103,9 @@ void Gauge_Draw(int i)
 	DrawSprite(g.pos, { 85,85 }, color::white);
 
 	Shader_BeginGauge();
-	Shader_SetGaugeMulti(g.fire, g.water, g.wind, g.earth,
-		                 color::sky, color::green, color::gray, color::yellow);
+	Shader_SetGaugeMulti(g.fire, g.water, g.wind, g.earth);
+	Shader_SetGaugeTextures();
+	SetBlendState(BLENDSTATE_ALPHA);
 
 	DrawSprite(g.pos, { 75,75 }, color::white);
 
