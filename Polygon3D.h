@@ -10,9 +10,23 @@
 // マクロ定義
 #define	PLAYER_MAX			(2)		// プレイヤー最大数
 #define	EVOLUTIONGAUGE_MAX	(10)	// 進化ゲージ最大値
-#define	ATTACK_DURATION		(0.5f)	// 攻撃持続時間（秒）
+#define	ATTACKING_TIME		(0.5f)	// 攻撃持続時間（秒）
+#define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間（秒）
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
-#define	STUN_DURATION		(5.0f)	// スタン持続時間（秒）
+#define	STUN_TIME			(5.0f)	// スタン持続時間（秒）
+
+enum class PlayerDir
+{
+	Up_Right = 0,
+	Up_Left,
+	Down_Right,
+	Down_Left,
+	Up,
+	Down,
+	Right,
+	Left,
+	Max
+};
 
 enum class Form
 {
@@ -56,12 +70,17 @@ struct PLAYEROBJECT
 	bool useSpecial;		// スペシャル使用中かどうか
 	float specialTimer;		// スペシャルタイマー
 
+	bool isInvincible;		// 無敵中かどうか
+	float invincibleTimer;	// 無敵タイマー
+
 	float stunGauge;		// スタンゲージ
 	bool isStunning;		// スタン中かどうか
 	float stunTimer;		// スタンタイマー
 
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
+	PlayerDir standbyDir;			// 待機時の向き
+	bool isMoving = false;						// 移動中かどうか
 
 	Form form;								// 変身形態
 	PlayerType type;						// プレイヤーの属性タイプ

@@ -7444,7 +7444,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
             window->NameBufLen = (int)buf_len;
         }
 
-        // UPDATE CONTENTS SIZE, UPDATE HIDDEN STATUS
+        // UPDATE CONTENTS POSITION, UPDATE HIDDEN STATUS
 
         // Update contents size from last frame for auto-fitting (or use explicit size)
         CalcWindowContentSizes(window, &window->ContentSize, &window->ContentSizeIdeal);
@@ -7481,7 +7481,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         SetWindowViewport(window, viewport);
         SetCurrentWindow(window);
 
-        // LOCK BORDER SIZE AND PADDING FOR THE FRAME (so that altering them doesn't cause inconsistencies)
+        // LOCK BORDER POSITION AND PADDING FOR THE FRAME (so that altering them doesn't cause inconsistencies)
 
         if (flags & ImGuiWindowFlags_ChildWindow)
             window->WindowBorderSize = style.ChildBorderSize;
@@ -7531,7 +7531,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         }
         window->WantCollapseToggle = false;
 
-        // SIZE
+        // POSITION
 
         // Outer Decoration Sizes
         // (we need to clear ScrollbarSize immediately as CalcWindowAutoFitSize() needs it and can be called from other locations).

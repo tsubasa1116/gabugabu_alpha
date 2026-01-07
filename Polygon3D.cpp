@@ -4,9 +4,11 @@
 //	制作者：平岡颯馬			日付：2025/12/16
 //======================================================
 
-#include "d3d11.h"
+#include <d3d11.h>
+#include <iostream>
 #include "DirectXMath.h"
 using namespace DirectX;
+
 #include "direct3d.h"
 #include "shader.h"
 #include "keyboard.h"
@@ -15,33 +17,25 @@ using namespace DirectX;
 #include "hp.h"
 #include "gauge.h"
 #include "Effect.h"
-
 #include "polygon3D.h"
 #include "Camera.h"
 #include "input.h"
 #include "skill.h"
 #include "special.h"
-
-///////////////////////////////////////
 #include "field.h"
 #include "collider.h"
 #include "debug_render.h"
-
-#include <iostream>
 #include "debug_ostream.h"
 #include "attack.h" 
-///////////////////////////////////////
 
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 
-
 //======================================================
 //	マクロ定義
 //======================================================
 #define	NUM_VERTEX		(6)
-#define	PLAYER_MAX		(2)
 #define HPBER_SIZE_X	(270.0f)	// HPバーのサイズ
 #define HPBER_SIZE_Y	(270.0f)	// 〃
 #define GAUGE_POS_X		(77.0f)		// HPバーを基準としたゲージの位置調整
@@ -56,218 +50,29 @@ PLAYEROBJECT object[PLAYER_MAX];
 //======================================================
 //	グローバル変数
 //======================================================
-static	ID3D11Device* g_pDevice = NULL;
-static	ID3D11DeviceContext* g_pContext = NULL;
+static ID3D11Device* g_pDevice = NULL;
+static ID3D11DeviceContext* g_pContext = NULL;
 static HP HPBar[PLAYER_MAX];
 
-//頂点バッファ
-static	ID3D11Buffer* g_VertexBuffer = NULL;
+// 頂点バッファ
+static ID3D11Buffer* g_VertexBuffer = NULL;
 
-//インデックスバッファ
-static	ID3D11Buffer* g_IndexBuffer = NULL;
+// インデックスバッファ
+static ID3D11Buffer* g_IndexBuffer = NULL;
 
-//テクスチャ変数
+// テクスチャ変数
 static ID3D11ShaderResourceView* g_Texture[6];
-
-static ID3D11Buffer* g_IndexBuffer_Face = NULL; // -X 面のみ用インデックスバッファ
 
 // エフェクト デバッグ用タイマー
 static float g_effectElapsed = 0.0f; // 秒単位での経過時間を保持
 
-//static	Vertex vdata[NUM_VERTEX] =
-//{
-//	//-Z面
-//	{//頂点0 LEFT-TOP
-//		XMFLOAT3(-5.0f, 5.0f, -5.0f),		//座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//カラー
-//		XMFLOAT2(0.0f,0.0f)					//テクスチャ座標
-//	},
-//	{//頂点1 RIGHT-TOP
-//		XMFLOAT3(5.0f, 5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,0.0f)
-//	},
-//	{//頂点2 LEFT-BOTTOM
-//		XMFLOAT3(-5.0f, -5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,10.0f)
-//	},
-//	//{//頂点3 LEFT-BOTTOM
-//	//	XMFLOAT3(-0.5f, -0.5f, -0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(0.0f,10.0f)
-//	//},
-//	//{//頂点4 RIGHT-TOP
-//	//	XMFLOAT3(0.5f, 0.5f, -0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(10.0f,0.0f)
-//	//},
-//	{//頂点5 RIGHT-BOTTOM
-//		XMFLOAT3(5.0f, -5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,10.0f)
-//	},
-//
-//	//+X面
-//	{//頂点6 LEFT-TOP
-//		XMFLOAT3(5.0f, 5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点7 RIGHT-TOP
-//		XMFLOAT3(5.0f, 5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,0.0f)
-//	},
-//	{//頂点8 LEFT-BOTTOM
-//		XMFLOAT3(5.0f, -5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,10.0f)
-//	},
-//	//{//頂点9 LEFT-BOTTOM
-//	//	XMFLOAT3(0.5f, -0.5f, -0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(0.0f,10.0f)
-//	//},
-//	//{//頂点10 RIGHT-TOP
-//	//	XMFLOAT3(0.5f, 0.5f, 0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(10.0f,0.0f)
-//	//},
-//	{//頂点11 RIGHT-BOTTM
-//		XMFLOAT3(5.0f, -5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,10.0f)
-//	},
-//
-//	//+Z面
-//	{//頂点12 LEFT-TOP
-//		XMFLOAT3(5.0f, 5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点13 RIGHT-TOP
-//		XMFLOAT3(-5.0f, 5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,0.0f)
-//	},
-//	{//頂点14 LEFT-BOTTOM
-//		XMFLOAT3(5.0f, -5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,10.0f)
-//	},
-//	//{//頂点15 LEFT-BOTTOM
-//	//	XMFLOAT3(0.5f, -0.5f, 0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(0.0f,1.0f)
-//	//},
-//	//{//頂点16 RIGHT-TOP
-//	//	XMFLOAT3(-0.5f, 0.5f, 0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(1.0f,0.0f)
-//	//},
-//	{//頂点17 RIGHT-BOTTOM
-//		XMFLOAT3(-5.0f, -5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,10.0f)
-//	},
-//
-//	//-X面
-//	{//頂点18 LEFT-TOP
-//		XMFLOAT3(-5.0f, 5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点19 RIGHT-TOP
-//		XMFLOAT3(-5.0f, 5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,0.0f)
-//	},
-//	{//頂点20 LEFT-BOTTOM
-//		XMFLOAT3(-5.0f, -5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,10.0f)
-//	},
-//	//{//頂点21 LEFT-BOTTOM
-//	//	XMFLOAT3(-0.5f, -0.5f, 0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(0.0f,1.0f)
-//	//},
-//	//{//頂点22 RIGHT-TOP
-//	//	XMFLOAT3(-0.5f, 0.5f, -0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(1.0f,0.0f)
-//	//},
-//	{//頂点23 RIGHT-BOTTOM
-//		XMFLOAT3(-5.0f, -5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,10.0f)
-//	},
-//
-//	//+Y面
-//	{//頂点24 LEFT-TOP
-//		XMFLOAT3(-5.0f, 5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点25 RIGHT-TOP
-//		XMFLOAT3(5.0f, 5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,0.0f)
-//	},
-//	{//頂点26 LEFT-BOTTOM
-//		XMFLOAT3(-5.0f, 5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,10.0f)
-//	},
-//	//{//頂点27 LEFT-BOTTOM
-//	//	XMFLOAT3(-0.5f, 0.5f, -0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(0.0f,1.0f)
-//	//},
-//	//{//頂点28 RIGHT-TOP
-//	//	XMFLOAT3(0.5f, 0.5f, 0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(1.0f,0.0f)
-//	//},
-//	{//頂点29 RIGHT-BOTTOM
-//		XMFLOAT3(5.0f, 5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,10.0f)
-//	},
-//
-//	//-Y面
-//	{//頂点30 LEFT-TOP
-//		XMFLOAT3(-5.0f, -5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点31 RIGHT-TOP
-//		XMFLOAT3(5.0f, -5.0f, -5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,0.0f)
-//	},
-//	{//頂点32 LEFT-BOTTOM
-//		XMFLOAT3(-5.0f, -5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,10.0f)
-//	},
-//	//{//頂点33 LEFT-BOTTOM
-//	//	XMFLOAT3(-0.5f, -0.5f, 0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(0.0f,1.0f)
-//	//},
-//	//{//頂点34 RIGHT-TOP
-//	//	XMFLOAT3(0.5f, -0.5f, -0.5f),
-//	//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//	//	XMFLOAT2(1.0f,0.0f)
-//	//},
-//	{//頂点35 RIGHT-BOTTOM
-//		XMFLOAT3(5.0f, -5.0f, 5.0f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(10.0f,10.0f)
-//	},
-//};
+// プレイヤー アニメーション用変数
+static int   g_animFrame[PLAYER_MAX];
+static float g_animTimer[PLAYER_MAX];
+static const float ANIM_FRAME_TIME = 0.15f; // 1フレームあたりの秒数
+static const int   SHEET_COLS = 16;
+static const int   SHEET_ROWS = 16;
+
 //static	Vertex vdata[NUM_VERTEX] =
 //{
 //	//-Z面
@@ -403,32 +208,35 @@ static float g_effectElapsed = 0.0f; // 秒単位での経過時間を保持
 //	},
 //};
 
-static	Vertex2 vdata[NUM_VERTEX] =
+#define POSITION	(0.5f)	// デフォルト (0.5f)
+#define TEXCOORD	(1.0f)	// デフォルト (1.0f)
+
+// 頂点配列
+static Vertex2 vdata[NUM_VERTEX] =
 {
-	//-Z面
-	{//頂点0 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.0f),		//座標
-		XMFLOAT3(0.0f, 0.0f, -1.0f),		//法線ベクトル
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//カラー
-		XMFLOAT2(0.0f,0.0f)					//テクスチャ座標
+	{// 頂点0 LEFT-TOP
+		XMFLOAT3(-POSITION, POSITION, 0.0f),	// 座標
+		XMFLOAT3(0.0f, 0.0f, -1.0f),			// 法線ベクトル
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),		// カラー
+		XMFLOAT2(0.0f, 0.0f)					// テクスチャ座標
 	},
-	{//頂点1 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.0f),
+	{// 頂点1 RIGHT-TOP
+		XMFLOAT3(POSITION, POSITION, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,0.0f)
+		XMFLOAT2(TEXCOORD, 0.0f)
 	},
-	{//頂点2 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.0f),
+	{// 頂点2 LEFT-BOTTOM
+		XMFLOAT3(-POSITION, -POSITION, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(0.0f,1.0f)
+		XMFLOAT2(0.0f, TEXCOORD)
 	},
-	{//頂点3 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.0f),
+	{// 頂点3 RIGHT-BOTTOM
+		XMFLOAT3(POSITION, -POSITION, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT2(1.0f,1.0f)
+		XMFLOAT2(TEXCOORD, TEXCOORD)
 	},
 };
 
@@ -441,11 +249,11 @@ static UINT idxdata[6]
 //static UINT idxdata[6 * 6]
 //{
 //	 0,  1,  2,  2,  1,  3, // -Z面
-//	// 4,  5,  6,  6,  5,  7, // +X面
-//	// 8,  9, 10, 10,  9, 11, // +Z面
-//	//12, 13, 14, 14, 13, 15, // -X面
-//	//16, 17, 18, 18, 17, 19, // +Y面
-//	//20, 21, 22, 22, 21, 23, // -Y面
+//	 4,  5,  6,  6,  5,  7, // +X面
+//	 8,  9, 10, 10,  9, 11, // +Z面
+//	12, 13, 14, 14, 13, 15, // -X面
+//	16, 17, 18, 18, 17, 19, // +Y面
+//	20, 21, 22, 22, 21, 23, // -Y面
 //};
 
 static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
@@ -472,9 +280,13 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].skillTimer = 0.0f;
 	object[0].useSpecial = false;
 	object[0].specialTimer = 0.0f;
+	object[0].isInvincible = false;
+	object[0].invincibleTimer = 0.0f;
 	object[0].stunGauge = 0.0f;
 	object[0].isStunning = false;
 	object[0].stunTimer = 0.0f;
+	object[0].standbyDir = PlayerDir::Down; // 正面
+	object[0].isMoving = false;
 	object[0].form = Form::Normal;
 	object[0].type = PlayerType::None;
 	object[0].evolutionGauge = 0;
@@ -505,9 +317,13 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].skillTimer = 0.0f;
 	object[1].useSpecial = false;
 	object[1].specialTimer = 0.0f;
+	object[1].isInvincible = false;
+	object[1].invincibleTimer = 0.0f;
 	object[1].stunGauge = 0.0f;
 	object[1].isStunning = false;
 	object[1].stunTimer = 0.0f;
+	object[1].standbyDir = PlayerDir::Down; // 正面
+	object[1].isMoving = false;
 	object[1].form = Form::Normal;
 	object[1].type = PlayerType::None;
 	object[1].evolutionGauge = 0;
@@ -538,7 +354,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	TexMetadata metadata;
 	ScratchImage image;
 
-	LoadFromWICFile(L"asset\\texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"asset\\texture\\characterMini_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);
 
@@ -561,7 +377,6 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"asset\\texture\\uiLightLoopBigGlass_v1.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
 	assert(g_Texture[5]);
-
 
 	//インデックスバッファ作成
 	{
@@ -588,6 +403,12 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  630.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  630.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 
+	// アニメーションの初期化
+	for (int i = 0; i < PLAYER_MAX; ++i)
+	{
+		g_animFrame[i] = 0;
+		g_animTimer[i] = 0.0f;
+	}
 }
 
 //======================================================
@@ -612,12 +433,6 @@ void Polygon3D_Finalize()
 	{
 		g_Texture[i]->Release();
 		g_Texture[i] = NULL;
-	}
-
-	if (g_IndexBuffer_Face != NULL)
-	{
-		g_IndexBuffer_Face->Release();
-		g_IndexBuffer_Face = NULL;
 	}
 
 	Debug_Finalize();
@@ -663,7 +478,7 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 }
 
 //======================================================
-//	更新関数
+// 更新関数
 //======================================================
 void Polygon3D_Update()
 {
@@ -672,9 +487,11 @@ void Polygon3D_Update()
 
 	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_D9, KK_D0 };
 
+	const float deltaTime = 1.0f / 60.0f; // デルタタイム
+
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		// スタンゲージが最大になったらスタンフラグを立てる
+		// スタンゲージが最大でスタンフラグを立てる
 		if (object[p].stunGauge >= STUNGAUGE_MAX)
 		{
 			object[p].isStunning = true;
@@ -687,27 +504,24 @@ void Polygon3D_Update()
 			// スタンタイマーを進める
 			object[p].stunTimer += 1.0f / 60.0f;
 
-			//// スタン処理
-			//Stun(p);
-
 			// スタン時間経過でスタン解除
-			if (object[p].stunTimer >= STUN_DURATION)
+			if (object[p].stunTimer >= STUN_TIME)
 			{
 				object[p].isStunning = false;	// スタン解除
 				object[p].stunTimer = 0.0f;		// スタンタイマーリセット
 				object[p].stunGauge = 0.0f;		// スタンゲージリセット
 			}
 
-			// スタン中は移動ベクトルを完全にゼロにする（念のため）
+			// スタン中は移動ベクトルを完全にゼロにする
 			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
 		}
-		else
+		else // スタンしていない場合の処理
 		{
 			// スタンしていない間はスタンゲージを減少させる
 			object[p].stunGauge -= 0.1f / 60.0f;
 
 			// スタンゲージが0未満にならないようにクランプ
-			if(object[p].stunGauge < 0.0f)
+			if (object[p].stunGauge < 0.0f)
 			{
 				object[p].stunGauge = 0.0f;
 			}
@@ -716,16 +530,22 @@ void Polygon3D_Update()
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
 			{
 				object[p].isAttacking = true;
+
+				// 第2・第3形態の場合、スキル使用フラグも立てる
+				if (object[p].type != PlayerType::None)
+				{
+					object[p].useSkill = true;
+				}
 			}
 			if (g_Input[0].A)
 			{
 				object[0].isAttacking = true;
-			}
 
-			// 攻撃中なら攻撃更新処理を呼び出す
-			if (object[p].isAttacking)
-			{
-				Attack_Update(p);
+				// 第2・第3形態の場合、スキル使用フラグも立てる
+				if (object[0].type != PlayerType::None)
+				{
+					object[0].useSkill = true;
+				}
 			}
 
 			// 発動トリガー入力をチェックしてスペシャル使用フラグを立てる
@@ -734,6 +554,16 @@ void Polygon3D_Update()
 				object[p].useSpecial = true;
 			}
 
+			// 攻撃中なら攻撃更新処理を呼び出す
+			if (object[p].isAttacking)
+			{
+				Attack_Update(p);
+			}
+			// スキル中ならスキル更新処理を呼び出す
+			if (object[p].useSkill)
+			{
+				Skill_Update(p);
+			}
 			// スペシャル使用中ならスペシャル更新処理を呼び出す
 			if (object[p].useSpecial)
 			{
@@ -746,26 +576,81 @@ void Polygon3D_Update()
 			// プレイヤーの番号に応じて入力キーを分ける
 			if (p == 0) // プレイヤー1 (WASD)
 			{
-				if (g_Input[0].LStickX > 0.0f)	object[0].moveDir.x += 1.0f;
-				if (g_Input[0].LStickX < 0.0f)	object[0].moveDir.x -= 1.0f;
-				if (g_Input[0].LStickY > 0.0f)	object[0].moveDir.z -= 1.0f;
-				if (g_Input[0].LStickY < 0.0f)	object[0].moveDir.z += 1.0f;
+				if (g_Input[0].LStickX > 0.0f)	{object[0].moveDir.x += 1.0f; object[0].isMoving = true;}
+				if (g_Input[0].LStickX < 0.0f)	{object[0].moveDir.x -= 1.0f; object[0].isMoving = true;}
+				if (g_Input[0].LStickY > 0.0f)	{object[0].moveDir.z -= 1.0f; object[0].isMoving = true;}
+				if (g_Input[0].LStickY < 0.0f)	{object[0].moveDir.z += 1.0f; object[0].isMoving = true;}
 
-				if (Keyboard_IsKeyDown(KK_W)) object[p].moveDir.z += 1.0f;
-				if (Keyboard_IsKeyDown(KK_S)) object[p].moveDir.z -= 1.0f;
-				if (Keyboard_IsKeyDown(KK_A)) object[p].moveDir.x -= 1.0f;
-				if (Keyboard_IsKeyDown(KK_D)) object[p].moveDir.x += 1.0f;
+				if (Keyboard_IsKeyDown(KK_W))	{object[0].moveDir.z += 1.0f; object[0].isMoving = true;}
+				if (Keyboard_IsKeyDown(KK_S))	{object[0].moveDir.z -= 1.0f; object[0].isMoving = true;}
+				if (Keyboard_IsKeyDown(KK_A))	{object[0].moveDir.x -= 1.0f; object[0].isMoving = true;}
+				if (Keyboard_IsKeyDown(KK_D))	{object[0].moveDir.x += 1.0f; object[0].isMoving = true;}
+				if (object[0].moveDir.x == 0.0f && object[0].moveDir.z == 0.0f)	object[0].isMoving = false;
 			}
 			else if (p == 1) // プレイヤー2 (矢印キー)
 			{
-				if (Keyboard_IsKeyDown(KK_UP))    object[p].moveDir.z += 1.0f;
-				if (Keyboard_IsKeyDown(KK_DOWN))  object[p].moveDir.z -= 1.0f;
-				if (Keyboard_IsKeyDown(KK_LEFT))  object[p].moveDir.x -= 1.0f;
-				if (Keyboard_IsKeyDown(KK_RIGHT)) object[p].moveDir.x += 1.0f;
+				if (Keyboard_IsKeyDown(KK_UP))		{object[1].moveDir.z += 1.0f; object[1].isMoving = true;}
+				if (Keyboard_IsKeyDown(KK_DOWN))	{object[1].moveDir.z -= 1.0f; object[1].isMoving = true;}
+				if (Keyboard_IsKeyDown(KK_LEFT))	{object[1].moveDir.x -= 1.0f; object[1].isMoving = true;}
+				if (Keyboard_IsKeyDown(KK_RIGHT))	{object[1].moveDir.x += 1.0f; object[1].isMoving = true;}
+				if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
 			}
 
 			// 現在のプレイヤー p だけを動かす
 			Move(object[p], object[p].moveDir);
+		}
+
+		// 進化時の無敵タイマー更新
+		if (object[p].isInvincible)
+		{
+			object[p].invincibleTimer += 1.0f / 60.0f;
+			if (object[p].invincibleTimer >= INVINCIBLE_TIME)
+			{
+				object[p].isInvincible = false;
+				object[p].invincibleTimer = 0.0f;
+			}
+		}
+
+		// プレイヤー アニメーション更新
+		g_animTimer[p] += deltaTime;
+		if (g_animTimer[p] >= ANIM_FRAME_TIME)
+		{
+			int advance = (int)(g_animTimer[p] / ANIM_FRAME_TIME);
+			g_animTimer[p] -= advance * ANIM_FRAME_TIME;
+
+			// 汎用ループ関数（start から count フレームを循環）
+			auto loopRange = [&](int start, int count)
+				{
+					int relative = (g_animFrame[p] - start + advance) % count;
+					if (relative < 0) relative += count;
+					g_animFrame[p] = start + relative;
+				};
+
+			// 移動 8コマ
+			if (object[p].isMoving)
+			{
+					 if (object[p].moveDir.x > 0.0f && object[p].moveDir.z > 0.0f) { loopRange(136, 8); object[p].standbyDir = PlayerDir::Up_Right; }	// 右上 136～143
+				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z > 0.0f) { loopRange(84, 8);	object[p].standbyDir = PlayerDir::Up_Left; }	// 左上  84～91
+				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z < 0.0f) { loopRange(188, 8); object[p].standbyDir = PlayerDir::Down_Right; }	// 右下 188～195
+				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z < 0.0f) { loopRange(32, 8); object[p].standbyDir = PlayerDir::Down_Left; }	// 左下  32～39
+				else if (object[p].moveDir.z > 0.0f) { loopRange(110, 8); object[p].standbyDir = PlayerDir::Up; }		// 上 110～117
+				else if (object[p].moveDir.z < 0.0f) { loopRange(6, 8); object[p].standbyDir = PlayerDir::Down; }		// 下   6～13
+				else if (object[p].moveDir.x > 0.0f) { loopRange(162, 8); object[p].standbyDir = PlayerDir::Right; }	// 右 162～169
+				else if (object[p].moveDir.x < 0.0f) { loopRange(58, 8); object[p].standbyDir = PlayerDir::Left; }		// 左  58～63
+			}
+
+			// 待機 6コマ
+			if (object[p].isMoving == false)
+			{
+					 if (object[p].standbyDir == PlayerDir::Up_Right)	loopRange(130, 6);	// 右上 130～135
+				else if (object[p].standbyDir == PlayerDir::Up_Left)	loopRange(78, 6);	// 左上  78～83 
+				else if (object[p].standbyDir == PlayerDir::Down_Right)	loopRange(182, 6);	// 右下 182～187		
+				else if (object[p].standbyDir == PlayerDir::Down_Left)	loopRange(26, 6);	// 左下  26～31
+				else if (object[p].standbyDir == PlayerDir::Up)			loopRange(104, 6);	//  上  104～109
+				else if (object[p].standbyDir == PlayerDir::Down)		loopRange(0, 6);	//  下    0～5
+				else if (object[p].standbyDir == PlayerDir::Right)		loopRange(156, 6);	//  右  156～161
+				else if (object[p].standbyDir == PlayerDir::Left)		loopRange(52, 6);	//  左   52～57
+			}
 		}
 	}
 
@@ -784,7 +669,10 @@ void Polygon3D_Update()
 
 		// evolutionGauge breakCount を列挙して表示
 		ImGui::SliderFloat("stunGauge", &object[p].stunGauge, 0.0f, 10.0f, "%.1f");
+		ImGui::SliderFloat("invincibleTimer", &object[p].invincibleTimer, 0.0f, 3.0f, "%.1f");
+		ImGui::BulletText("active            : %d", object[p].active);
 		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
+		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
 		ImGui::BulletText("form              : %d", object[p].form);
 		ImGui::BulletText("type              : %d", object[p].type);
 		ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
@@ -797,15 +685,12 @@ void Polygon3D_Update()
 		size_t historySize = object[p].brokenHistory.size();
 		ImGui::BulletText("brokenHistory Size : %zu", historySize);
 
-		// --- ★ ここから追加・修正 ---
-
 		if (historySize > 0)
 		{
 			ImGui::Indent(); // 履歴をさらに一段インデント
 			ImGui::Text("History (Latest -> Oldest):");
 
 			// 履歴を最新（末尾）から古い方へループして表示
-			// 履歴が多いとウィンドウが長くなるため、最新の数個だけ表示する、などの工夫も可能
 			for (int i = (int)historySize - 1; i >= 0; --i)
 			{
 				// BuildingType は enum型（整数値）なので、そのまま %d で表示可能
@@ -814,9 +699,9 @@ void Polygon3D_Update()
 				// 例1: 履歴のインデックスと値を直接表示
 				// ImGui::BulletText("[%d]: %d", i, (int)object[p].brokenHistory[i]);
 
-				// 例2: 履歴の値を横に並べて表示 (スペース区切り)
+				// 例2: 履歴の値を横に並べて表示
 				ImGui::SameLine(); // 同じ行に表示
-				// 履歴の値（整数）を文字列に変換してから表示（見やすさのため）
+				// 履歴の値（整数）を文字列に変換してから表示
 				ImGui::Text("%d", (int)object[p].brokenHistory[i]);
 			}
 
@@ -824,7 +709,6 @@ void Polygon3D_Update()
 			ImGui::NewLine();
 			ImGui::Unindent();
 		}
-		// --- ★ ここまで追加・修正 ---
 
 		ImGui::Unindent();
 		ImGui::Separator();
@@ -833,25 +717,17 @@ void Polygon3D_Update()
 
 	ImGui::End();
 	
-	//object[0].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
-	//object[1].moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
-
-	//if (Keyboard_IsKeyDown(KK_W))	object[0].moveDir.z += 1.0f;
-	//if (Keyboard_IsKeyDown(KK_S))	object[0].moveDir.z -= 1.0f;
-	//if (Keyboard_IsKeyDown(KK_A))	object[0].moveDir.x -= 1.0f;
-	//if (Keyboard_IsKeyDown(KK_D))	object[0].moveDir.x += 1.0f;
-
-	//if (Keyboard_IsKeyDown(KK_UP))		object[1].moveDir.z += 1.0f;
-	//if (Keyboard_IsKeyDown(KK_DOWN))	object[1].moveDir.z -= 1.0f;
-	//if (Keyboard_IsKeyDown(KK_LEFT))	object[1].moveDir.x -= 1.0f;
-	//if (Keyboard_IsKeyDown(KK_RIGHT))	object[1].moveDir.x += 1.0f;
-
-	//Move(object[0], object[0].moveDir);
-	//Move(object[1], object[1].moveDir);
-
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		static XMFLOAT3 posBuff = object[i].position;	// デバッグ表示座標
+
+		// 描画で使っているスプライト倍率と同じ値を物理にも使う
+		const float renderScale = 2.0f; // Draw 側の spriteScale に合わせる
+		// AABB と着地処理で使うスケーリング（描画スケールを反映）
+		XMFLOAT3 physicsScaling = XMFLOAT3(object[i].scaling.x * renderScale, object[i].scaling.y * renderScale, object[i].scaling.z * renderScale);
+
+		// AABB を現在の位置・スケール（表示スケールを反映したもの）で更新しておく
+		CalculateAABB(object[i].boundingBox, object[i].position, physicsScaling);
 
 		// y軸の移動量 (重力 + ジャンプ)
 		// 重力加速度のない簡易的な重力
@@ -903,28 +779,26 @@ void Polygon3D_Update()
 				// プレイヤーの底面がタイルの上面以下か
 				if (object[i].boundingBox.Min.y <= tileTopY)
 				{
-					//float overlap = tileTopY - object[i].boundingBox.Min.y;
+					// 頂点定義が -0.5..+0.5 を基準にしているので baseHalfHeight = 0.5
+					const float baseHalfHeight = POSITION; // POSITION はファイル上で 0.5f
+					// 描画スケールを反映した半高で着地位置を計算
+					float halfHeight = baseHalfHeight * object[i].scaling.y * renderScale;
 
-					// 中心から底面までの差は0.5のはずなのになぜか0.3くらいになる
-					//float def = (object[i].position.y - object[i].boundingBox.Min.y);
-					float def = 0.5f;	// とりあえずの0.5f
-					float overlap = tileTopY + def * object[i].scaling.y;
-					// 0.5 + (0.5) = 1.0
+					// 着地させる（めり込みが起きないよう最低値として補正）
+					float targetY = tileTopY + halfHeight;
+					if (object[i].position.y < targetY)
+					{
+						object[i].position.y = targetY;
+					}
 
-					// オブジェクトの中心座標を重なり量だけ持ち上げる（押し戻し）
-					object[i].position.y = overlap;
-
-					//CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-
-					// 着地フラグをセット
-					//isGrounded = true;
+					// AABB を再計算して整合性を保つ（描画スケールを考慮）
+					CalculateAABB(object[i].boundingBox, object[i].position, physicsScaling);
 
 					top_y = tileTopY;
 
 					break;
 				}
 			}
-
 		}
 
 		// -------------------------------------------------------------------------------------
@@ -956,8 +830,8 @@ void Polygon3D_Update()
 				object[i].position.y += collision.translation.y;
 				object[i].position.z += collision.translation.z;
 
-				// 押し戻し後の新しいAABBを再計算
-				CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
+				// 押し戻し後の新しいAABBを再計算（描画スケールを反映）
+				CalculateAABB(object[i].boundingBox, object[i].position, physicsScaling);
 			}
 		}
 
@@ -994,95 +868,6 @@ void Polygon3D_Update()
 			break;
 		}
 
-		// プレイヤー毎のスキル発動キー格納
-		const Keyboard_Keys_tag skillKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER };
-
-		// スタン中でなければスキル処理
-		if (object[i].isStunning == false)
-		{
-			// 形態とタイプごとのスキル処理
-			switch (object[i].form)
-			{
-			case Form::Normal:	// 通常
-				break;
-
-			case Form::FirstEvolution:		// 1進化
-				switch (object[i].type)
-				{
-				case PlayerType::Glass:		// 1進化：ガラス
-					// 発動トリガー入力をチェックしてスキルフラグを立てる
-					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-					// スキル使用中ならスキル更新処理を呼び出す
-					if (object[i].useSkill)	Skill_Glass_Update(i);
-					break;
-
-				case PlayerType::Concrete:	// 1進化：コンクリ
-					// 発動トリガー入力をチェックしてスキルフラグを立てる
-					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-					// スキル使用中ならスキル更新処理を呼び出す
-					if (object[i].useSkill)	Skill_Concrete_Update(i);
-					break;
-
-				case PlayerType::Plant:		// 1進化：植物
-					// 発動トリガー入力をチェックしてスキルフラグを立てる
-					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-					// スキル使用中ならスキル更新処理を呼び出す
-					if (object[i].useSkill)	Skill_Plant_Update(i);
-					break;
-
-				case PlayerType::Electric:	// 1進化：電気
-					// 発動トリガー入力をチェックしてスキルフラグを立てる
-					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-					// スキル使用中ならスキル更新処理を呼び出す
-					if (object[i].useSkill)	Skill_Electric_Update(i);
-					break;
-
-				default:
-					break;
-				}
-				break;
-
-			case Form::SecondEvolution:		// 2進化
-				switch (object[i].type)
-				{
-				case PlayerType::Glass:		// 2進化：ガラス
-					// 発動トリガー入力をチェックしてスキルフラグを立てる
-					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-					// スキル使用中ならスキル更新処理を呼び出す
-					if (object[i].useSkill)	Skill_Glass_Update(i);
-					break;
-
-				case PlayerType::Concrete:	// 2進化：コンクリ
-					// 発動トリガー入力をチェックしてスキルフラグを立てる
-					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-					// スキル使用中ならスキル更新処理を呼び出す
-					if (object[i].useSkill)	Skill_Concrete_Update(i);
-					break;
-
-				case PlayerType::Plant:		// 2進化：植物
-					// 発動トリガー入力をチェックしてスキルフラグを立てる
-					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-					// スキル使用中ならスキル更新処理を呼び出す
-					if (object[i].useSkill)	Skill_Plant_Update(i);
-					break;
-
-				case PlayerType::Electric:	// 2進化：電気
-					// 発動トリガー入力をチェックしてスキルフラグを立てる
-					if (Keyboard_IsKeyDownTrigger(skillKeys[i]) && object[i].type != PlayerType::None) object[i].useSkill = true;
-					// スキル使用中ならスキル更新処理を呼び出す
-					if (object[i].useSkill)	Skill_Electric_Update(i);
-					break;
-
-				default:
-					break;
-				}
-				break;
-
-			default:
-				break;
-			}
-		}
-
 		ATTACK_OBJECT* attack1 = GetAttack(1);
 		ATTACK_OBJECT* attack2 = GetAttack(2);
 
@@ -1090,7 +875,7 @@ void Polygon3D_Update()
 		ATTACK_OBJECT* attackForPlayer = (i == 0) ? attack1 : ((i == 1) ? attack2 : nullptr);
 		if (attackForPlayer != nullptr)
 		{
-			// 同期方法：プレイヤーと同じスケールにする（必要なら係数をかけて調整）
+			// プレイヤーと同じスケールにする（攻撃オブジェクトは半分）
 			attackForPlayer->scaling.x = object[i].scaling.x / 2;
 			attackForPlayer->scaling.y = object[i].scaling.y / 2;
 			attackForPlayer->scaling.z = object[i].scaling.z / 2;
@@ -1101,9 +886,13 @@ void Polygon3D_Update()
 		// プレイヤーオブジェクト同士の当たり判定
 		// -------------------------------------------------------------
 
-		// プレイヤー0 と プレイヤー1 のAABBを更新
-		CalculateAABB(object[i].boundingBox, object[i].position, object[i].scaling);
-		CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
+		// 他プレイヤーの physicsScaling を作る（両者とも表示スケールを反映して AABB を扱う）
+		int otherIndex = (i == 0) ? 1 : 0;
+		XMFLOAT3 physicsScalingOther = XMFLOAT3(object[otherIndex].scaling.x * renderScale, object[otherIndex].scaling.y * renderScale, object[otherIndex].scaling.z * renderScale);
+
+		// プレイヤー0 と プレイヤー1 のAABBを更新（表示スケール反映）
+		CalculateAABB(object[i].boundingBox, object[i].position, physicsScaling);
+		CalculateAABB(object[1].boundingBox, object[1].position, physicsScalingOther);
 
 		// プレイヤー0 (A) と プレイヤー1 (B) の衝突をチェック
 		MTV collision_player = CalculateAABBMTV(object[0].boundingBox, object[1].boundingBox);
@@ -1149,12 +938,12 @@ void Polygon3D_Update()
 			object[1].position.z -= half_translation.z;
 
 			// 押し戻し後の新しいAABBを再計算 (次フレームや他の衝突判定に備える)
-			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
-			CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
+			CalculateAABB(object[0].boundingBox, object[0].position, physicsScaling);
+			CalculateAABB(object[1].boundingBox, object[1].position, physicsScalingOther);
 
 			// 吹き飛ばし後の新しいAABBを再計算 (他の衝突判定に備える)
-			CalculateAABB(object[0].boundingBox, object[0].position, object[0].scaling);
-			CalculateAABB(object[1].boundingBox, object[1].position, object[1].scaling);
+			CalculateAABB(object[0].boundingBox, object[0].position, physicsScaling);
+			CalculateAABB(object[1].boundingBox, object[1].position, physicsScalingOther);
 		}
 
 		if (object[i].hp <= 0 && object[i].active)
@@ -1164,8 +953,6 @@ void Polygon3D_Update()
 			// 残機があれば復活
 			if (object[i].stock > 0)
 			{
-				object[i].hp = object[i].maxHp;
-
 				// リスポーン
 				Polygon3D_Respawn(i);
 			}
@@ -1192,7 +979,7 @@ void Polygon3D_Update()
 
 	// エフェクト用タイマー更新
 	//g_effectElapsed += (1.0f / 60.0f);
-}		
+}
 
 //======================================================
 //	描画関数
@@ -1227,11 +1014,11 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	// ========================================================
 
 	// プロジェクション・ビュー行列を先に取得
-	XMMATRIX Projection = GetProjectionMatrix();
-	XMMATRIX View = GetViewMatrix();
+	XMMATRIX projection = GetProjectionMatrix();
+	XMMATRIX view = GetViewMatrix();
 
 	// カメラ位置を算出（View の逆行列の r[3] がワールド空間のカメラ位置）
-	XMMATRIX invView = XMMatrixInverse(nullptr, View);
+	XMMATRIX invView = XMMatrixInverse(nullptr, view);
 	XMFLOAT3 camPos;
 	camPos.x = invView.r[3].m128_f32[0];
 	camPos.y = invView.r[3].m128_f32[1];
@@ -1240,11 +1027,13 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	// プレイヤーを描画するラムダ（Projection, View をキャプチャ）
 	auto DrawPlayerInternal = [&](int idx)
 		{
+			const float spriteScale = 2.0f; // 表示倍率
+
 			// ワールド行列（ビルボード風の既存ロジックを踏襲）
 			XMMATRIX ScalingMatrix = XMMatrixScaling(
-				object[idx].scaling.x,
-				object[idx].scaling.y,
-				object[idx].scaling.z
+				object[idx].scaling.x * spriteScale,
+				object[idx].scaling.y * spriteScale,
+				object[idx].scaling.z * spriteScale
 			);
 
 			XMMATRIX vm = GetViewMatrix();	// カメラの行列
@@ -1258,24 +1047,45 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			vm.r[3].m128_f32[2] = object[idx].position.z;
 			vm.r[3].m128_f32[3] = 1.0f;
 
-			XMMATRIX WVP = ScalingMatrix * vm * View * Projection;
+			XMMATRIX WVP = ScalingMatrix * vm * view * projection;
 
 			Shader_SetMatrix(WVP);
 			Shader_Begin();
 			SetBlendState(BLENDSTATE_ALPHA);
 
-			// 頂点バッファにデータコピー
+			// 頂点バッファにデータコピー（フレームに応じてUVを書き換える）
 			D3D11_MAPPED_SUBRESOURCE msr;
+
+			// コピー元のvdata をローカル配列にコピーして UV を調整
+			Vertex2 localV[NUM_VERTEX];
+			CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+
+			// 現在のフレームから UV を計算
+			int frame = g_animFrame[idx];
+			int col = frame % SHEET_COLS;
+			int row = frame / SHEET_COLS;
+			float u0 = (float)col / (float)SHEET_COLS;
+			float v0 = (float)row / (float)SHEET_ROWS;
+			float u1 = u0 + 1.0f / (float)SHEET_COLS;
+			float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+			// 頂点のテクスチャ座標を上書き
+			localV[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+			localV[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+			localV[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+			localV[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
+
+			// バッファへ書き込み
 			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 			Vertex2* vertex = (Vertex2*)msr.pData;
-			CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+			CopyMemory(vertex, &localV[0], sizeof(Vertex2) * NUM_VERTEX);
 			g_pContext->Unmap(g_VertexBuffer, 0);
 
-			// テクスチャセット
-			g_pContext->PSSetShaderResources(0, 1, &g_Texture[idx]);
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 			Shader_SetColor({ 1,1,1,1 });
 
-			// バッファセット＆描画
+
+			// バッファセット & 描画
 			UINT stride = sizeof(Vertex2);
 			UINT offset = 0;
 			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
@@ -1285,7 +1095,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		};
 
 	// -------------------------
-	// 透明描画のためのソート（遠い順 = back-to-front）
+	// 透明描画のためのソート（遠い順）
 	// -------------------------
 	std::vector<std::pair<float, int>> list; // (距離二乗, index)
 	list.reserve(PLAYER_MAX);
@@ -1317,72 +1127,6 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 	// 3Dオブジェクトは深度テストを有効にして描画
 	SetDepthTest(false);
-
-	//for (int i = 0; i < PLAYER_MAX; i++)
-	//{
-	//	// 3Dオブジェクトは深度テストを有効にして描画
-	//	SetDepthTest(true);
-
-	//	auto DrawPlayerInternal = [&](int i)
-	//		{
-	//			// ワールド行列（ビルボード風の既存ロジックを踏襲）
-	//			XMMATRIX ScalingMatrix = XMMatrixScaling(
-	//				object[i].scaling.x,
-	//				object[i].scaling.y,
-	//				object[i].scaling.z
-	//			);
-
-	//			XMMATRIX vm = GetViewMatrix();	// カメラの行列
-	//			vm.r[3].m128_f32[0] = 0.0f;
-	//			vm.r[3].m128_f32[1] = 0.0f;
-	//			vm.r[3].m128_f32[2] = 0.0f;
-	//			vm.r[3].m128_f32[3] = 1.0f;
-	//			vm = XMMatrixTranspose(vm);
-	//			vm.r[3].m128_f32[0] = object[i].position.x;
-	//			vm.r[3].m128_f32[1] = object[i].position.y;
-	//			vm.r[3].m128_f32[2] = object[i].position.z;
-	//			vm.r[3].m128_f32[3] = 1.0f;
-
-	//			XMMATRIX WVP = ScalingMatrix * vm * View * Projection;
-
-	//			Shader_SetMatrix(WVP);
-	//			Shader_Begin();
-	//			SetBlendState(BLENDSTATE_ALPHA);
-
-	//			// 頂点バッファにデータコピー
-	//			D3D11_MAPPED_SUBRESOURCE msr;
-	//			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	//			Vertex2* vertex = (Vertex2*)msr.pData;
-	//			CopyMemory(&vertex[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
-	//			g_pContext->Unmap(g_VertexBuffer, 0);
-
-	//			// テクスチャセット
-	//			g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
-	//			Shader_SetColor({ 1,1,1,1 });
-
-	//			// バッファセット＆描画
-	//			UINT stride = sizeof(Vertex2);
-	//			UINT offset = 0;
-	//			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-	//			g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	//			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	//			g_pContext->DrawIndexed(6, 0, 0);
-	//		};
-
-	//	// 不透明（あるいは depth-write が必要な）オブジェクトを先に描く
-	//	// 今回の最小対応では object[1] を先に、透過を含む object[0] を後で描く
-	//	if (PLAYER_MAX > 1)
-	//	{
-	//		DrawPlayerInternal(1); // 背面または不透過のプレイヤーを先に
-	//	}
-
-	//	// 透過描画：深度テストは行うが深度バッファへの書き込みはしない
-	//	SetDepthReadOnly();
-	//	DrawPlayerInternal(0);
-
-	//	// UI描画などに戻すときは深度無効に
-	//	SetDepthTest(false);
-	//}
 
 	if (s_IsKonamiCodeEntered)
 	{
@@ -1450,7 +1194,8 @@ void Polygon3D_Respawn(int playerIndex)
 {
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	if (playerIndex == 0)
+	// 残機が1つ以上ある場合
+	if (object[0].active == true && playerIndex == 0)
 	{
 		object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 		object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -1467,10 +1212,14 @@ void Polygon3D_Respawn(int playerIndex)
 		object[0].skillTimer = 0.0f;
 		object[0].useSpecial = false;
 		object[0].specialTimer = 0.0f;
+		object[0].isInvincible = false;
+		object[0].invincibleTimer = 0.0f;
 		object[0].stunGauge = 0.0f;
 		object[0].isStunning = false;
 		object[0].stunTimer = 0.0f;
 
+		object[0].standbyDir = PlayerDir::Down; // 正面
+		object[0].isMoving = false;
 		object[0].form = Form::Normal;
 		object[0].type = PlayerType::None;
 		object[0].evolutionGauge = 0;
@@ -1491,7 +1240,8 @@ void Polygon3D_Respawn(int playerIndex)
 		object[0].knockback_duration = 0.0f;
 	}
 
-	else if (playerIndex == 1)
+	// 残機が1つ以上ある場合
+	else if (object[1].active == true && playerIndex == 1)
 	{
 		object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 		object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -1508,10 +1258,14 @@ void Polygon3D_Respawn(int playerIndex)
 		object[1].skillTimer = 0.0f;
 		object[1].useSpecial = false;
 		object[1].specialTimer = 0.0f;
+		object[1].isInvincible = false;
+		object[1].invincibleTimer = 0.0f;
 		object[1].stunGauge = 0.0f;
 		object[1].isStunning = false;
 		object[1].stunTimer = 0.0f;
 
+		object[1].standbyDir = PlayerDir::Down; // 正面
+		object[1].isMoving = false;
 		object[1].form = Form::Normal;
 		object[1].type = PlayerType::None;
 		object[1].evolutionGauge = 0;
@@ -1554,7 +1308,9 @@ void AttackPlayerCollisions()
 	if (object[1].isAttacking)
 	{
 		MTV col = CalculateAABBMTV(p1->boundingBox, attack2->boundingBox);
-		if (col.isColliding)
+
+		// 当たっている かつ object[0]が無敵でない
+		if (col.isColliding && !object[0].isInvincible)
 		{
 			hal::dout << "Attack2 hit object[0] overlap=" << col.overlap << std::endl;
 
@@ -1585,7 +1341,9 @@ void AttackPlayerCollisions()
 	if (object[0].isAttacking)
 	{
 		MTV col = CalculateAABBMTV(p2->boundingBox, attack1->boundingBox);
-		if (col.isColliding)
+		
+		// 当たっている かつ object[1]が無敵でない
+		if (col.isColliding && !object[1].isInvincible)
 		{
 			hal::dout << "Attack1 hit object[1] overlap=" << col.overlap << std::endl;
 
@@ -1630,7 +1388,7 @@ static void CheckRespawnPlayer(int playerIndex)
 
 	if(needRespawn)	
 	{
-		// 残機を1減らす（1回だけ）
+		// 残機を1減らす
 		object[playerIndex].stock -= 1;
 
 		// 個別リスポーン処理
@@ -1654,16 +1412,14 @@ void Polygon3D_DrawStock(int i)
 	for (int j = 0; j < object[i].stock; j++)
 	{
 		// ストック描画変数
-		XMFLOAT2 pos = { bx + j * 30.0f, by }; // 横並び
+		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
 		XMFLOAT2 size = { 300.0f, 300.0f };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 2]);
-
-		
+	
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);
 	}
-	
 }
 
 PLAYEROBJECT* GetPlayer(int playerIndex)
@@ -1675,6 +1431,3 @@ PLAYEROBJECT* GetPlayer(int playerIndex)
 
 	return &object[playerIndex - 1];
 }
-
-
-

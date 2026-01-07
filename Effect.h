@@ -13,7 +13,7 @@ class EFFECT
 {
 	public:
 		bool		Enable;
-		XMFLOAT3	Position;
+		XMFLOAT3	position;
 		int			FrameCount;	//アニメーションカウンター
 
 };

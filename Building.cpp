@@ -285,11 +285,11 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 	Shader_Begin();
 
 	//プロジェクション行列作成
-	XMMATRIX	Projection = GetProjectionMatrix();
+	XMMATRIX	projection = GetProjectionMatrix();
 	//ビュー行列作成
-	XMMATRIX	View = GetViewMatrix();
+	XMMATRIX	view = GetViewMatrix();
 	//先にVP変換行列を作っておく
-	XMMATRIX VP = View * Projection;
+	XMMATRIX VP = view * projection;
 
 
 	// スケーリング・回転・平行移動

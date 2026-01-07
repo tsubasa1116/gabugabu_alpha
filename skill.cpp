@@ -208,13 +208,12 @@ static UINT Skill_idxdata[6 * 6]
 
 void Skill_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// 構造体のインスタンス（グローバル変数 g_GlassSkill を想定）
+	// 構造体のインスタンス
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
 		for (int i = 0; i < 5; ++i)
 		{
 			// 各箱の初期座標を設定
-			// 例えば、プレイヤーの前にオフセットを持たせるなど
 			g_SkillGlass[p].boxes[i].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 			g_SkillGlass[p].boxes[i].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 			g_SkillGlass[p].boxes[i].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
@@ -363,7 +362,7 @@ void Skill_Glass_Update(int playerIndex)
 	// プレイヤーの現在の回転角度 (ラジアン)
 	float playerYaw = XMConvertToRadians(playerObject->rotation.y);
 
-	SKILL_GLASS& glassObject = g_SkillGlass[playerIndex]; 
+	SKILL_GLASS& skillGlass = g_SkillGlass[playerIndex]; 
 
 	for (int i = 0; i < 5; ++i)
 	{
@@ -375,11 +374,11 @@ void Skill_Glass_Update(int playerIndex)
 		float offsetZ = dynamicRadius * sinf(finalAngle);
 
 		// 箱の座標を設定
-		glassObject.boxes[i].position.x = playerObject->position.x + offsetX;
-		glassObject.boxes[i].position.y = playerObject->position.y + High[i];
-		glassObject.boxes[i].position.z = playerObject->position.z + offsetZ;
-		glassObject.boxes[i].rotation = XMFLOAT3(Rot[i], Rot[i], Rot[i]);
-		glassObject.boxes[i].scaling = XMFLOAT3(Scal[i], Scal[i], Scal[i]);
+		skillGlass.boxes[i].position.x = playerObject->position.x + offsetX;
+		skillGlass.boxes[i].position.y = playerObject->position.y + High[i];
+		skillGlass.boxes[i].position.z = playerObject->position.z + offsetZ;
+		skillGlass.boxes[i].rotation = XMFLOAT3(Rot[i], Rot[i], Rot[i]);
+		skillGlass.boxes[i].scaling = XMFLOAT3(Scal[i], Scal[i], Scal[i]);
 	}
 
 	// スキル効果：
@@ -401,15 +400,15 @@ void Skill_Concrete_Update(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
-	SKILL_OBJECT& sk = Skill[playerIndex];
+	SKILL_OBJECT& skillConcrete = Skill[playerIndex];
 
 	// スキル効果： ダメージ軽減20% (デフォルトは1.0f)
 	playerObject->defense = 0.8f;
 
 	// スキルの初期位置をプレイヤーの位置に設定
-	sk.position.x = playerObject->position.x;
-	sk.position.y = playerObject->position.y;
-	sk.position.z = playerObject->position.z;
+	skillConcrete.position.x = playerObject->position.x;
+	skillConcrete.position.y = playerObject->position.y;
+	skillConcrete.position.z = playerObject->position.z;
 
 	// スキルタイマーを進める
 	playerObject->skillTimer += 1.0f / 60.0f;
@@ -464,108 +463,31 @@ void Skill_Electric_Update(int playerIndex)
 	}
 }
 
-//void Skill_Update(int playerIndex)
-//{
-//	// 範囲チェック
-//	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
-//
-//	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
-//	SKILL_OBJECT& sk = Skill[playerIndex];
-//
-//	if (playerObject->isAttacking == true)
-//	{
-//		// スキルの初期位置をプレイヤーの位置に設定
-//		sk.position.x = playerObject->position.x;
-//		sk.position.y = playerObject->position.y;
-//		sk.position.z = playerObject->position.z;
-//
-//		float Player_RotationY = playerObject->rotation.y;
-//		float rad = XMConvertToRadians(Player_RotationY);
-//
-//		// 進行方向を計算
-//		XMFLOAT3 dir =
-//		{
-//			sinf(rad),  // X方向
-//			0.0f,       // Y方向（水平）
-//			cosf(rad)   // Z方向
-//		};
-//
-//		// スキルの速度を設定（前方向に飛ばす）
-//		//float speed = 0.15f;
-//		//Skill[0].Velocity.x = dir.x * speed;
-//		//Skill[0].Velocity.y = dir.y * speed;
-//		//Skill[0].Velocity.z = dir.z * speed;
-//
-//		// プレイヤーの前方にスキルを配置
-//		sk.position.x = dir.x * playerObject->scaling.x + playerObject->position.x;
-//		sk.position.y = playerObject->position.y;
-//		sk.position.z = dir.z * playerObject->scaling.z + playerObject->position.z;
-//
-//		// 攻撃タイマーを進める
-//		playerObject->attackTimer += 1.0f / 60.0f;
-//
-//		// プレイヤー毎の攻撃時間が経過したら攻撃終了
-//		if (playerObject->attackTimer > playerObject->attackDuration)
-//		{
-//			playerObject->isAttacking = false;
-//			playerObject->attackTimer = 0.0f;
-//		}
-//	}
-//
-//	// -------------------------------------------------------------
-//	// 当たり判定
-//	// -------------------------------------------------------------
-//	// AABBの更新
-//	CalculateAABB(sk.boundingBox, sk.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
-//
-//	int buildingCount = GetBuildingCount();			// 数を取得
-//	Building** buildingObjects = GetBuildings();	// リストを取得
-//
-//	// 全てのフィールドオブジェクトと衝突判定を行う
-//	for (int i = 0; i < buildingCount; ++i)
-//	{
-//		// i番目のフィールドオブジェクトのAABBを取得
-//		// field.cppのInitializeで計算済みのため、そのまま参照
-//		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
-//
-//		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
-//		MTV collision = CalculateAABBMTV(sk.boundingBox, pStaticObjectAABB);
-//
-//		if (collision.isColliding)
-//		{
-//			// プレイヤーごとに使うキーを決定（Player1 -> SPACE, Player2 -> ENTER）
-//			Keyboard_Keys_tag confirmKey = (playerIndex == 0) ? KK_SPACE : KK_ENTER;
-//
-//			// 建物（FIELD_BUILDING）に衝突していて、かつスペースキーが押されていたら
-//			if (/*buildingObjects[i]->Type == BuildingType::Glass && */Keyboard_IsKeyDown(confirmKey))
-//			{
-//				buildingObjects[i]->isActive = false;
-//				playerObject->form = (Form)((int)playerObject->form + 1);
-//				// 必要ならここで効果音やエフェクトを再生
-//				// スキルはヒット時に消す（任意）
-//				playerObject->isAttacking = false;
-//				playerObject->attackTimer = 0.0f;
-//				// 更新済みAABB
-//				CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-//				continue;
-//			}
-//
-//			// 衝突していたら、MTVの分だけ位置を戻す
-//			sk.position.x += collision.translation.x;
-//			sk.position.y += collision.translation.y;
-//			sk.position.z += collision.translation.z;
-//
-//			// 押し戻し後の新しいAABBを再計算
-//			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
-//			CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-//
-//			// デバッグ出力
-//			hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
-//
-//			// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
-//		}
-//	}
-//}
+void Skill_Update(int playerIndex)
+{
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+
+	// スキル使用中かつスタン中でない場合に更新処理を行う
+	if (playerObject->useSkill && !playerObject->isStunning)
+	{
+		switch (playerObject->type)
+		{
+		case PlayerType::Glass:		Skill_Glass_Update(playerIndex);
+			break;
+		case PlayerType::Concrete:	Skill_Concrete_Update(playerIndex);
+			break;
+		case PlayerType::Plant:		Skill_Plant_Update(playerIndex);
+			break;
+		case PlayerType::Electric:	Skill_Electric_Update(playerIndex);
+			break;
+		default:
+			break;
+		}
+	}
+}
 
 // Glass専用描画 (5つの箱をループで描画)
 void Skill_Glass_Draw(int playerIndex)
@@ -574,12 +496,12 @@ void Skill_Glass_Draw(int playerIndex)
 	ID3D11ShaderResourceView* tex = g_Skill_Texture[0];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	SKILL_GLASS& glassObject = g_SkillGlass[playerIndex];
+	SKILL_GLASS& skillGlass = g_SkillGlass[playerIndex];
 
 	// GlassSkill構造体（5つの箱）を使ってループ描画
 	for (int i = 0; i < 5; ++i)
 	{
-		SKILL_OBJECT& box = glassObject.boxes[i];
+		SKILL_OBJECT& box = skillGlass.boxes[i];
 
 		// --- ワールド行列計算 ---
 		XMMATRIX WorldMatrix =
@@ -596,21 +518,20 @@ void Skill_Glass_Draw(int playerIndex)
 	}
 }
 
-// Concrete専用描画 (例: 1つの大きな塊を描画)
+// Concrete専用描画
 void Skill_Concrete_Draw(int playerIndex)
 {
 	// Concrete専用のテクスチャをセット
 	ID3D11ShaderResourceView* tex = g_Skill_Texture[1];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// Concrete用の座標計算 (ここでは例として Skill[playerIndex] を使用)
-	// ※Concrete専用構造体があるならそちらを使う
-	SKILL_OBJECT& sk = Skill[playerIndex];
+	// Concrete用の座標計算
+	SKILL_OBJECT& skillConcrete = Skill[playerIndex];
 
 	XMMATRIX WorldMatrix =
-		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
-		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
-		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+		XMMatrixScaling(skillConcrete.scaling.x, skillConcrete.scaling.y, skillConcrete.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(skillConcrete.rotation.x), XMConvertToRadians(skillConcrete.rotation.y), XMConvertToRadians(skillConcrete.rotation.z)) *
+		XMMatrixTranslation(skillConcrete.position.x, skillConcrete.position.y, skillConcrete.position.z);
 
 	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(WVP);
@@ -619,43 +540,42 @@ void Skill_Concrete_Draw(int playerIndex)
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 }
 
+// Plant専用描画
 void Skill_Plant_Draw(int playerIndex)
 {
-	// Concrete専用のテクスチャをセット
+	// Plant専用のテクスチャをセット
 	ID3D11ShaderResourceView* tex = g_Skill_Texture[1];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// Concrete用の座標計算 (ここでは例として Skill[playerIndex] を使用)
-	// ※Concrete専用構造体があるならそちらを使う
-	SKILL_OBJECT& sk = Skill[playerIndex];
+	// Plant用の座標計算
+	SKILL_OBJECT& skillPlant = Skill[playerIndex];
 
 	XMMATRIX WorldMatrix =
-		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
-		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
-		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+		XMMatrixScaling(skillPlant.scaling.x, skillPlant.scaling.y, skillPlant.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(skillPlant.rotation.x), XMConvertToRadians(skillPlant.rotation.y), XMConvertToRadians(skillPlant.rotation.z)) *
+		XMMatrixTranslation(skillPlant.position.x, skillPlant.position.y, skillPlant.position.z);
 
 	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(WVP);
 
 	// 描画実行
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
-
 }
 
+// Electirc専用描画
 void Skill_Electric_Draw(int playerIndex)
 {
-	// Concrete専用のテクスチャをセット
+	// Electirc専用のテクスチャをセット
 	ID3D11ShaderResourceView* tex = g_Skill_Texture[1];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// Concrete用の座標計算 (ここでは例として Skill[playerIndex] を使用)
-	// ※Concrete専用構造体があるならそちらを使う
-	SKILL_OBJECT& sk = Skill[playerIndex];
+	// Electirc用の座標計算
+	SKILL_OBJECT& skillElectric = Skill[playerIndex];
 
 	XMMATRIX WorldMatrix =
-		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
-		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
-		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+		XMMatrixScaling(skillElectric.scaling.x, skillElectric.scaling.y, skillElectric.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(skillElectric.rotation.x), XMConvertToRadians(skillElectric.rotation.y), XMConvertToRadians(skillElectric.rotation.z)) *
+		XMMatrixTranslation(skillElectric.position.x, skillElectric.position.y, skillElectric.position.z);
 
 	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(WVP);
@@ -667,44 +587,38 @@ void Skill_Electric_Draw(int playerIndex)
 
 void Skill_Draw()
 {
-	// ==========================================
 	// 1. 共通設定 (パイプラインステートの設定)
 	//    これを親で一度だけやることで処理落ちを防ぐ
-	// ==========================================
 
 	// シェーダー開始
 	Shader_Begin();
 
-	// ブレンドステート (必要に応じて)
+	// ブレンドステート
 	SetBlendState(BLENDSTATE_NONE); // または BLENDSTATE_ALPHA
 	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
 	// 頂点バッファ・インデックスバッファのセット
-	// (全てのスキルで同じモデル/キューブを使う場合のみここでOK)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// ★ 頂点データ書き込み (静的なキューブモデルと仮定) ★
-	// ※ プレイヤー本体の描画と同様に、ここで一度だけ頂点データをGPUに送ります
+	// 頂点データ書き込み
+	// プレイヤー本体の描画と同様に、ここで一度だけ頂点データをGPUに送る
 	D3D11_MAPPED_SUBRESOURCE msr;
-	// (注意: g_VertexBuffer が D3D11_USAGE_DYNAMIC である必要があります)
 	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 	Vertex* vertex = (Vertex*)msr.pData;
 	// vdata[] はキューブの頂点データを格納した配列を想定
 	CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex) * NUM_VERTEX);
 	g_pContext->Unmap(g_VertexBuffer, 0);
 
-	// ==========================================
 	// 2. プレイヤーごとの振り分け処理
-	// ==========================================
 	for (int i = 0; i < PLAYER_MAX; ++i)
 	{
 		PLAYEROBJECT* playerObject = GetPlayer(i + 1);
 
-		// そのプレイヤーがスキルを使っているかチェック (フラグ確認など)
+		// そのプレイヤーがスキルを使っているかチェック
 		if (!playerObject->useSkill) continue;
 
 		// プレイヤーがスタンしていない場合のみ描画
@@ -713,31 +627,21 @@ void Skill_Draw()
 			// プレイヤーのタイプに合わせて子関数を呼ぶ
 			switch (playerObject->type)
 			{
-			case PlayerType::Glass:
-				Skill_Glass_Draw(i);
+			case PlayerType::Glass:		Skill_Glass_Draw(i);
 				break;
-
-			case PlayerType::Concrete:
-				Skill_Concrete_Draw(i);
+			case PlayerType::Concrete:	Skill_Concrete_Draw(i);
 				break;
-
-			case PlayerType::Plant:
-				Skill_Plant_Draw(i);
+			case PlayerType::Plant:		Skill_Plant_Draw(i);
 				break;
-
-			case PlayerType::Electric:
-				Skill_Electric_Draw(i);
+			case PlayerType::Electric:	Skill_Electric_Draw(i);
 				break;
-
 			default:
 				break;
 			}
 		}
 	}
 
-	// ==========================================
 	// 3. 後始末
-	// ==========================================
 	SetBlendState(BLENDSTATE_ALPHA);
 }
 

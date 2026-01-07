@@ -19,8 +19,4 @@ void Attack_Finalize();
 void Attack_Update(int playerIndex);
 void Attack_Draw(int playerIndex);
 
-void Stun(int playerIndex);
-
-//PlayerType ToPlayerType(BuildingType bt);
-
 ATTACK_OBJECT* GetAttack(int playerIndex);

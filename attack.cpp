@@ -295,14 +295,14 @@ void Attack_Update(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
-	ATTACK_OBJECT& sk = Attack[playerIndex];
+	ATTACK_OBJECT& atttackObject = Attack[playerIndex];
 
 	if (playerObject->isAttacking == true)
 	{
 		// がぶがぶの初期位置をプレイヤーの位置に設定
-		sk.position.x = playerObject->position.x;
-		sk.position.y = playerObject->position.y;
-		sk.position.z = playerObject->position.z;
+		atttackObject.position.x = playerObject->position.x;
+		atttackObject.position.y = playerObject->position.y;
+		atttackObject.position.z = playerObject->position.z;
 
 		float Player_RotationY = playerObject->rotation.y;
 		float rad = XMConvertToRadians(Player_RotationY);
@@ -316,15 +316,15 @@ void Attack_Update(int playerIndex)
 		};
 
 		// プレイヤーの前方にがぶがぶを配置
-		sk.position.x = dir.x * playerObject->scaling.x + playerObject->position.x;
-		sk.position.y = playerObject->position.y;
-		sk.position.z = dir.z * playerObject->scaling.z + playerObject->position.z;
+		atttackObject.position.x = dir.x * playerObject->scaling.x + playerObject->position.x;
+		atttackObject.position.y = playerObject->position.y;
+		atttackObject.position.z = dir.z * playerObject->scaling.z + playerObject->position.z;
 
 		// 攻撃タイマーを進める
 		playerObject->attackTimer += 1.0f / 60.0f;
 
 		// プレイヤー毎の攻撃時間が経過したら攻撃終了
-		if (playerObject->attackTimer > ATTACK_DURATION)
+		if (playerObject->attackTimer >= ATTACKING_TIME)
 		{
 			playerObject->isAttacking = false;
 			playerObject->attackTimer = 0.0f;
@@ -335,7 +335,7 @@ void Attack_Update(int playerIndex)
 	// 当たり判定
 	// -------------------------------------------------------------
 	// AABBの更新
-	CalculateAABB(sk.boundingBox, sk.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
+	CalculateAABB(atttackObject.boundingBox, atttackObject.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
 
 	int buildingCount = GetBuildingCount();			// 数を取得
 	Building** buildingObjects = GetBuildings();	// リストを取得
@@ -348,7 +348,7 @@ void Attack_Update(int playerIndex)
 		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
 
 		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
-		MTV collision = CalculateAABBMTV(sk.boundingBox, pStaticObjectAABB);
+		MTV collision = CalculateAABBMTV(atttackObject.boundingBox, pStaticObjectAABB);
 
 		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER/*, KK_, KK_ */};
 
@@ -358,7 +358,7 @@ void Attack_Update(int playerIndex)
 			{
 				BuildingType type = buildingObjects[i]->Type;
 
-				// 各建物タイプごとの処理（Glass を参考に拡張）
+				// 各建物タイプごとの処理
 				if (Keyboard_IsKeyDown(confirmKey[playerIndex]))
 				{
 					switch (type)
@@ -377,7 +377,7 @@ void Attack_Update(int playerIndex)
 						playerObject->attackTimer = 0.0f;
 
 						// 更新済みAABB
-						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 						break;
 					}
 
@@ -395,7 +395,7 @@ void Attack_Update(int playerIndex)
 						playerObject->attackTimer = 0.0f;
 
 						// 更新済みAABB
-						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 						break;
 					}
 
@@ -413,7 +413,7 @@ void Attack_Update(int playerIndex)
 						playerObject->attackTimer = 0.0f;
 
 						// 更新済みAABB
-						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 						break;
 					}
 
@@ -431,7 +431,7 @@ void Attack_Update(int playerIndex)
 						playerObject->attackTimer = 0.0f;
 
 						// 更新済みAABB
-						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 						break;
 					}
 
@@ -442,29 +442,33 @@ void Attack_Update(int playerIndex)
 					// --- 進化処理 ---
 					if (playerObject->evolutionGauge >= EVOLUTIONGAUGE_MAX)
 					{
+						// プレイヤーを無敵にする
+						playerObject->isInvincible = true;
+						playerObject->invincibleTimer = 0.0f;
+
 						// 現在のフォーム（進化前の状態）を保存
 						Form currentForm = playerObject->form;
 
-						// 1. 進化段階を1つ進める (毎回実行)
+						// 1. 進化段階を1つ進める
 						playerObject->form = static_cast<Form>(static_cast<int>(playerObject->form) + 1);
 
-						// 2. 2進化までしか進化しないように制限 (毎回実行)
+						// 2. 2進化までしか進化しないように制限
 						if (playerObject->form >= Form::SecondEvolution)
 						{
 							playerObject->form = Form::SecondEvolution;
 						}
 
 						// 3. タイプ決定ロジック
-						//    Typeの決定は、Normal(0) から FirstEvolution(1) に進化する場合のみ実行
+						//    Typeの決定は、Normalから FirstEvolutionに進化する場合のみ実行
 						if (currentForm == Form::Normal)
 						{
 							// 4種類の破壊した建物数を配列に格納
 							const int counts[4] =
 							{
-								playerObject->breakCount_Glass,    // idx 0
-								playerObject->breakCount_Concrete, // idx 1
-								playerObject->breakCount_Plant,    // idx 2
-								playerObject->breakCount_Electric  // idx 3
+								playerObject->breakCount_Glass,		// idx 0
+								playerObject->breakCount_Concrete,	// idx 1
+								playerObject->breakCount_Plant,		// idx 2
+								playerObject->breakCount_Electric	// idx 3
 							};
 
 							// 対応するタイプ定義
@@ -487,7 +491,7 @@ void Attack_Update(int playerIndex)
 							}
 
 							// --- Step 2: 履歴を「最新」から「過去」へ遡って勝者を決める ---
-							int maxIdx = 0; // デフォルト（例: Glass）
+							int maxIdx = 0;
 
 							// vectorを後ろから回す
 							for (int i = playerObject->brokenHistory.size() - 1; i >= 0; i--)
@@ -505,7 +509,7 @@ void Attack_Update(int playerIndex)
 									}
 								}
 
-								// 重要ロジック：「今見ている履歴のタイプ」が「最大カウント数を持つグループ」の一員か？
+								// 「今見ている履歴のタイプ」が「最大カウント数を持つグループ」の一員か？
 								if (typeIdx != -1 && counts[typeIdx] == maxCount)
 								{
 									maxIdx = typeIdx;
@@ -523,9 +527,8 @@ void Attack_Update(int playerIndex)
 							}
 						}
 
-						// 4. リセット処理 (毎回実行)
-						//    タイプ決定の if ブロックの外に出すことで、どのフォーム段階からの進化でもリセットされる
-						playerObject->brokenHistory.clear(); // 履歴もクリアする
+						// 4. リセット処理
+						playerObject->brokenHistory.clear(); // 履歴をクリア
 						playerObject->evolutionGauge = 0;
 						playerObject->breakCount_Glass = 0;
 						playerObject->breakCount_Concrete = 0;
@@ -538,13 +541,13 @@ void Attack_Update(int playerIndex)
 			}
 
 			// 衝突していたら、MTVの分だけ位置を戻す
-			sk.position.x += collision.translation.x;
-			sk.position.y += collision.translation.y;
-			sk.position.z += collision.translation.z;
+			atttackObject.position.x += collision.translation.x;
+			atttackObject.position.y += collision.translation.y;
+			atttackObject.position.z += collision.translation.z;
 
 			// 押し戻し後の新しいAABBを再計算
 			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
-			CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+			CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 
 			// デバッグ出力
 			hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
@@ -594,13 +597,13 @@ void Attack_Draw(int playerIndex)
 	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
 
 	// プロジェクション行列作成
-	XMMATRIX Projection = GetProjectionMatrix();
+	XMMATRIX projection = GetProjectionMatrix();
 
 	// ビュー行列作成
-	XMMATRIX View = GetViewMatrix();
+	XMMATRIX view = GetViewMatrix();
 
 	// 最終的な変換行列を作成
-	XMMATRIX WVP = WorldMatrix * View * Projection;
+	XMMATRIX WVP = WorldMatrix * view * projection;
 
 	// 変換行列を頂点シェーダーへセット
 	Shader_SetMatrix(WVP);
@@ -643,11 +646,6 @@ void Attack_Draw(int playerIndex)
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 	SetBlendState(BLENDSTATE_ALPHA);
-
-}
-
-void Stun(int playerIndex)
-{
 
 }
 

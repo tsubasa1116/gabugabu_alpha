@@ -28,7 +28,7 @@ void	BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	g_Ball.Model = ModelLoad("asset\\model\\ball.fbx");
 
-	g_Ball.Position = XMFLOAT3(0.0f, 0.5f, 0.0f);
+	g_Ball.position = XMFLOAT3(0.0f, 0.5f, 0.0f);
 	g_Ball.Rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	g_Ball.Velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
@@ -75,9 +75,9 @@ void	BallUpdate()
 	{
 		g_Ball.Velocity.x = 1.0f / 60.0f;
 	}
-	g_Ball.Position.x += g_Ball.Velocity.x;
-	g_Ball.Position.y += g_Ball.Velocity.y;
-	g_Ball.Position.z += g_Ball.Velocity.z;
+	g_Ball.position.x += g_Ball.Velocity.x;
+	g_Ball.position.y += g_Ball.Velocity.y;
+	g_Ball.position.z += g_Ball.Velocity.z;
 
 
 }
@@ -94,9 +94,9 @@ void	BallDraw()
 		g_Ball.Rotation.y,
 		g_Ball.Rotation.z);
 	XMMATRIX	translation = XMMatrixTranslation(
-		g_Ball.Position.x,
-		g_Ball.Position.y,
-		g_Ball.Position.z);
+		g_Ball.position.x,
+		g_Ball.position.y,
+		g_Ball.position.z);
 	XMMATRIX	world = scale * rotation * translation;
 
 	//ïœä∑çsóÒçÏê¨
@@ -115,7 +115,7 @@ void	BallDraw()
 
 XMFLOAT3 GetBallPosition()
 {
-	return g_Ball.Position;
+	return g_Ball.position;
 }
 
 
