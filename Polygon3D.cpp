@@ -941,16 +941,25 @@ void Polygon3D_Update()
 		// 描画スケールを反映したスケール（表示用）
 		XMFLOAT3 physicsScaling = XMFLOAT3(object[p].scaling.x * renderScale, object[p].scaling.y * renderScale, object[p].scaling.z * renderScale);
 
-		// --- プレイヤー用ヒットボックス比率（必要に応じて調整してください） ---
-		const float HITBOX_WIDTH_SCALE = 0.6f;	// X方向の縮小率
-		const float HITBOX_HEIGHT_SCALE = 1.0f;	// Y方向の拡大率
-		const float HITBOX_DEPTH_SCALE = 0.6f;	// Z方向の縮小率
+		// --- プレイヤー用ヒットボックス比率（向きで長短を切り替える） ---
+		// 高さは固定、水平面は向きに応じて長短を切り替える
+		const float HITBOX_HEIGHT_SCALE = 1.0f;
+		const float HITBOX_SHORT = 0.35f; // 向きと直交する短辺
+		const float HITBOX_LONG  = 0.65f; // 向きに沿った長辺
 
-		// ヒットボックス用スケール（衝突判定で使用）
+		// 回転から前方ベクトルを算出して、どちらの軸が優勢か判定する
+		float radFacing = XMConvertToRadians(object[p].rotation.y);
+		float facingX = sinf(radFacing);
+		float facingZ = cosf(radFacing);
+		bool facingZDominant = fabsf(facingZ) >= fabsf(facingX);
+
+		float widthScale  = facingZDominant ? HITBOX_SHORT : HITBOX_LONG; // X方向スケール
+		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT; // Z方向スケール
+
 		XMFLOAT3 hitboxScaling = XMFLOAT3(
-			object[p].scaling.x * renderScale * HITBOX_WIDTH_SCALE,
+			object[p].scaling.x * renderScale * widthScale,
 			object[p].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
-			object[p].scaling.z * renderScale * HITBOX_DEPTH_SCALE
+			object[p].scaling.z * renderScale * depthScale
 		);
 
 		// AABB を現在の位置・スケール（ヒットボックス）で更新しておく（衝突判定で使用）
@@ -1005,8 +1014,7 @@ void Polygon3D_Update()
 				// プレイヤーの底面がタイルの上面以下か
 				if (object[p].boundingBox.Min.y <= tileTopY)
 				{
-					// 頂点定義が -0.5..+0.5 を基準にしているので baseHalfHeight = 0.5
-					const float baseHalfHeight = POSITION; // POSITION はファイル上で 0.5f
+					const float baseHalfHeight = POSITION;
 					// 着地では見た目の高さ（描画スケール）を基準に計算しているため physicsScaling を使用
 					float halfHeight = baseHalfHeight * object[p].scaling.y * renderScale;
 
@@ -1018,7 +1026,8 @@ void Polygon3D_Update()
 					}
 
 					// AABB を再計算して整合性を保つ（描画スケールを考慮）
-					CalculateAABB(object[p].boundingBox, object[p].position, physicsScaling);
+					// ヒットボックス（向きに応じた長方形）で再計算する
+					CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
 
 					top_y = tileTopY;
 
@@ -1057,87 +1066,101 @@ void Polygon3D_Update()
 				object[p].position.z += collision.translation.z;
 
 				// 押し戻し後の新しいAABBを再計算（描画スケールを反映）
-				CalculateAABB(object[p].boundingBox, object[p].position, physicsScaling);
+				// ヒットボックス（向きに応じた長方形）で再計算する
+				CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
 			}
 		}
 
-		ATTACK_OBJECT* attack1 = GetAttack(1);
-		ATTACK_OBJECT* attack2 = GetAttack(2);
-
-		// プレイヤー p に対応するスキル（i==0 -> attack1, p==1 -> attack2）をプレイヤーのフォームに合わせてスケーリング同期
-		ATTACK_OBJECT* attackForPlayer = (p == 0) ? attack1 : ((p == 1) ? attack2 : nullptr);
-		if (attackForPlayer != nullptr)
+		// プレイヤーに対応する攻撃オブジェクトを PLAYER_MAX 分ループしてスケーリング同期
+		for (int i = 0; i < PLAYER_MAX; ++i)
 		{
-			// プレイヤーと同じスケールにする（攻撃オブジェクトは半分）
-			attackForPlayer->scaling.x = object[p].scaling.x / 2;
-			attackForPlayer->scaling.y = object[p].scaling.y / 2;
-			attackForPlayer->scaling.z = object[p].scaling.z / 2;
+			ATTACK_OBJECT* attackObject = GetAttack(i + 1); // GetAttack は 1-based
+			if (attackObject == nullptr) continue;
+
+			// プレイヤー側のスケールに合わせる（攻撃オブジェクトは半分）
+			attackObject->scaling.x = object[i].scaling.x * 0.5f;
+			attackObject->scaling.y = object[i].scaling.y * 0.5f;
+			attackObject->scaling.z = object[i].scaling.z * 0.5f;
 		}
+
 		///////////////////////////////////////////////////////////////////////////////////////////////
 
 		// -------------------------------------------------------------
-		// プレイヤーオブジェクト同士の当たり判定
+		// プレイヤーオブジェクト同士の当たり判定（PLAYER_MAX分対応）
 		// -------------------------------------------------------------
-
-		// 他プレイヤーのヒットボックススケーリングを作る（表示スケールを反映して AABB を扱う）
-		int otherIndex = (p == 0) ? 1 : 0;
-		XMFLOAT3 hitboxScalingOther = XMFLOAT3(
-			object[otherIndex].scaling.x * renderScale * HITBOX_WIDTH_SCALE,
-			object[otherIndex].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
-			object[otherIndex].scaling.z * renderScale * HITBOX_DEPTH_SCALE
-		);
-
-		// 両プレイヤーの AABB をヒットボックスで更新
-		CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
-		CalculateAABB(object[otherIndex].boundingBox, object[otherIndex].position, hitboxScalingOther);
-
-		// 衝突チェック
-		MTV collision_player = CalculateAABBMTV(object[0].boundingBox, object[1].boundingBox);
-
-		if (collision_player.isColliding)
+		// object[p] の AABB は既に計算済み（前方で CalculateAABB(object[p].boundingBox, ... ) を呼んでいる前提）
+		for (int otherIndex = p + 1; otherIndex < PLAYER_MAX; ++otherIndex)
 		{
-			// 吹き飛ばしの強さ（XZ方向）
-			float knockbackPowerXZ = 0.5f; // 強さを調整
-			// 吹き飛ばしの強さ（Y方向）
-			float knockbackPowerY = 0.3f; // 高さを調整
+			// 非アクティブは無視
+			if (!object[otherIndex].active) continue;
 
-			// 各プレイヤーの向き（ラジアン）を計算して向きベクトルを更新
+			// 他プレイヤーのヒットボックススケーリング（向きで長短を切り替える）
+			const float HITBOX_HEIGHT_SCALE = 1.0f;
+			const float HITBOX_SHORT = 0.35f;
+			const float HITBOX_LONG  = 0.65f;
+
+			// 宣言をループスコープの先頭に置く（後で再利用するため）
+			XMFLOAT3 hitboxScalingOther;
+
 			{
-				float rad_0 = XMConvertToRadians(object[0].rotation.y);
-				object[0].dir.x = sinf(rad_0);
-				object[0].dir.z = cosf(rad_0);
+				float radOther = XMConvertToRadians(object[otherIndex].rotation.y);
+				float otherFacingX = sinf(radOther);
+				float otherFacingZ = cosf(radOther);
+				bool otherFacingZDominant = fabsf(otherFacingZ) >= fabsf(otherFacingX);
+
+				float otherWidthScale = otherFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;
+				float otherDepthScale = otherFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;
+
+				hitboxScalingOther = XMFLOAT3(
+					object[otherIndex].scaling.x * renderScale * otherWidthScale,
+					object[otherIndex].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
+					object[otherIndex].scaling.z * renderScale * otherDepthScale
+				);
 			}
+
+			// 他プレイヤーの AABB を更新（ここで定義済みの hitboxScalingOther を使用）
+			CalculateAABB(object[otherIndex].boundingBox, object[otherIndex].position, hitboxScalingOther);
+
+			// 衝突チェック（ペア p <-> otherIndex を一度だけ判定）
+			MTV collision_player = CalculateAABBMTV(object[p].boundingBox, object[otherIndex].boundingBox);
+
+			if (collision_player.isColliding)
 			{
-				float rad_1 = XMConvertToRadians(object[1].rotation.y);
-				object[1].dir.x = sinf(rad_1);
-				object[1].dir.z = cosf(rad_1);
+				// 向きベクトルを更新（rotation.y から算出）
+				{
+					float rad_p = XMConvertToRadians(object[p].rotation.y);
+					object[p].dir.x = sinf(rad_p);
+					object[p].dir.z = cosf(rad_p);
+				}
+				{
+					float rad_o = XMConvertToRadians(object[otherIndex].rotation.y);
+					object[otherIndex].dir.x = sinf(rad_o);
+					object[otherIndex].dir.z = cosf(rad_o);
+				}
+
+				// 押し戻し量 (MTV) を半分にして双方に適用
+				XMFLOAT3 half_translation =
+				{
+					collision_player.translation.x * 0.5f,
+					collision_player.translation.y * 0.5f,
+					collision_player.translation.z * 0.5f
+				};
+
+				// object[p] を MTV の半分だけ押す
+				object[p].position.x += half_translation.x;
+				object[p].position.y += half_translation.y;
+				object[p].position.z += half_translation.z;
+
+				// object[otherIndex] を逆方向に半分だけ押す
+				object[otherIndex].position.x -= half_translation.x;
+				object[otherIndex].position.y -= half_translation.y;
+				object[otherIndex].position.z -= half_translation.z;
+
+				// 押し戻し後の新しいAABBを再計算 (ヒットボックスで)
+				CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
+				CalculateAABB(object[otherIndex].boundingBox, object[otherIndex].position, hitboxScalingOther);
 			}
-
-			// 押し戻し量 (MTV) を半分にする
-			XMFLOAT3 half_translation =
-			{
-				collision_player.translation.x * 0.5f,
-				collision_player.translation.y * 0.5f,
-				collision_player.translation.z * 0.5f
-			};
-
-			// プレイヤー0 (object[0]) を MTVの半分だけ 押す
-			// MTVの方向 (collision_player.translation) は「AをBから押し出す方向」だから、そのまま使う
-			object[0].position.x += half_translation.x;
-			object[0].position.y += half_translation.y;
-			object[0].position.z += half_translation.z;
-
-			// プレイヤー1 (object[1]) を MTVの逆方向の半分だけ 押す
-			// 逆方向にするために、X, Y, Z の符号を反転させる
-			object[1].position.x -= half_translation.x;
-			object[1].position.y -= half_translation.y;
-			object[1].position.z -= half_translation.z;
-
-			// 押し戻し後の新しいAABBを再計算 (ヒットボックスで)
-			CalculateAABB(object[0].boundingBox, object[0].position, hitboxScaling);
-			CalculateAABB(object[1].boundingBox, object[1].position, hitboxScalingOther);
 		}
-
 
 		SetHPValue(&HPBar[p], (int)object[p].hp, (int)object[p].maxHp);
 		UpdateHP(&HPBar[p]);
@@ -1301,7 +1324,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		{
 			// プレイヤーの描画に使われた行列をクリアする
 			XMMATRIX world = XMMatrixIdentity();
-			Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
+			 Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
 			//Shader_Begin(); // シェーダーを再設定
 
 			for (int i = 0; i < PLAYER_MAX; i++)
