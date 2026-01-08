@@ -11,9 +11,11 @@
 #define	PLAYER_MAX			(2)		// プレイヤー最大数
 #define	EVOLUTIONGAUGE_MAX	(10)	// 進化ゲージ最大値
 #define	ATTACKING_TIME		(0.5f)	// 攻撃持続時間（秒）
+#define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間（秒）
 #define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間（秒）
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間（秒）
+#define	DOWN_TIME			(3.0f)	// ダウン持続時間（秒）
 
 enum class PlayerDir
 {
@@ -64,6 +66,9 @@ struct PLAYEROBJECT
 	bool isAttacking;		// 攻撃中かどうか
 	float attackTimer;		// 攻撃タイマー
 
+	bool isAttacked;		// ダメージ中かどうか
+	float attackedTimer;	// ダメージタイマー
+
 	bool useSkill;			// スキル使用中かどうか
 	float skillTimer;		// スキルタイマー
 
@@ -77,9 +82,12 @@ struct PLAYEROBJECT
 	bool isStunning;		// スタン中かどうか
 	float stunTimer;		// スタンタイマー
 
+	bool isDown;			// ダウン中かどうか
+	float downTimer;		// ダウンタイマー
+
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
-	PlayerDir standbyDir;			// 待機時の向き
+	PlayerDir lastDir;			// 待機時の向き
 	bool isMoving = false;						// 移動中かどうか
 
 	Form form;								// 変身形態
@@ -108,8 +116,9 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 void Polygon3D_DrawHP();
 void Polygon3D_DrawEffect();
 
+// アニメーション関数
+static inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
 
-void AttackPlayerCollisions();
 void Polygon3D_Respawn(int playerIndex);
 void CheckRespawnPlayer(int playerIndex);
 

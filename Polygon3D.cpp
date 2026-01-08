@@ -73,6 +73,9 @@ static const float ANIM_FRAME_TIME = 0.15f; // 1フレームあたりの秒数
 static const int   SHEET_COLS = 16;
 static const int   SHEET_ROWS = 16;
 
+static int g_victoryState[PLAYER_MAX] = { 0 };			// 0=なし, 1=初回(208～220) 再生中, 2=ループ(216～220)
+static float g_downHoldTimer[PLAYER_MAX] = { 0.0f };	// 最終フレームホールド用タイマー（プレイヤー毎）
+
 //static	Vertex vdata[NUM_VERTEX] =
 //{
 //	//-Z面
@@ -270,12 +273,15 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].maxHp = 100.0f;
 	object[0].hp = object[0].maxHp;
+	object[0].power = 0.0f;
 	object[0].speed = 0.0f;
 	object[0].defense = 1.0f;
 	object[0].stock = 3;
 	object[0].active = true;
 	object[0].isAttacking = false;
 	object[0].attackTimer = 0.0f;
+	object[0].isAttacked = false;
+	object[0].attackedTimer = 0.0f;
 	object[0].useSkill = false;
 	object[0].skillTimer = 0.0f;
 	object[0].useSpecial = false;
@@ -285,7 +291,9 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].stunGauge = 0.0f;
 	object[0].isStunning = false;
 	object[0].stunTimer = 0.0f;
-	object[0].standbyDir = PlayerDir::Down; // 正面
+	object[0].isDown = false;
+	object[0].downTimer = 0.0f;
+	object[0].lastDir = PlayerDir::Down; // 正面
 	object[0].isMoving = false;
 	object[0].form = Form::Normal;
 	object[0].type = PlayerType::None;
@@ -306,6 +314,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
 	object[1].maxHp = 100.0f;
 	object[1].hp = object[1].maxHp;
+	object[1].power = 0.0f;
 	object[1].speed = 0.0f;
 	object[1].defense = 1.0f;
 	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -313,6 +322,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].active = true;
 	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
+	object[1].isAttacked = false;
+	object[1].attackedTimer = 0.0f;
 	object[1].useSkill = false;
 	object[1].skillTimer = 0.0f;
 	object[1].useSpecial = false;
@@ -322,7 +333,9 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].stunGauge = 0.0f;
 	object[1].isStunning = false;
 	object[1].stunTimer = 0.0f;
-	object[1].standbyDir = PlayerDir::Down; // 正面
+	object[1].isDown = false;
+	object[1].downTimer = 0.0f;
+	object[1].lastDir = PlayerDir::Down; // 正面
 	object[1].isMoving = false;
 	object[1].form = Form::Normal;
 	object[1].type = PlayerType::None;
@@ -491,6 +504,39 @@ void Polygon3D_Update()
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
+		// -------------------------------------------------------------
+		// 変身
+		// -------------------------------------------------------------
+		switch (object[p].form)
+		{
+		case Form::Normal: // 通常
+			object[p].scaling.x = 0.5f;
+			object[p].scaling.y = 0.5f;
+			object[p].scaling.z = 0.5f;
+			object[p].speed = 0.06f;
+			object[p].power = 15.0f;
+			break;
+
+		case Form::FirstEvolution: // 1進化
+			object[p].scaling.x = 0.8f;
+			object[p].scaling.y = 0.8f;
+			object[p].scaling.z = 0.8f;
+			object[p].speed = 0.05f;
+			object[p].power = 1.0f;
+			break;
+
+		case Form::SecondEvolution: // 2進化
+			object[p].scaling.x = 1.2f;
+			object[p].scaling.y = 1.2f;
+			object[p].scaling.z = 1.2f;
+			object[p].speed = 0.04f;
+			object[p].power = 1.5f;
+			break;
+
+		default:
+			break;
+		}
+
 		// スタンゲージが最大でスタンフラグを立てる
 		if (object[p].stunGauge >= STUNGAUGE_MAX)
 		{
@@ -502,7 +548,7 @@ void Polygon3D_Update()
 		if (object[p].isStunning)
 		{
 			// スタンタイマーを進める
-			object[p].stunTimer += 1.0f / 60.0f;
+			object[p].stunTimer += deltaTime;
 
 			// スタン時間経過でスタン解除
 			if (object[p].stunTimer >= STUN_TIME)
@@ -525,7 +571,11 @@ void Polygon3D_Update()
 			{
 				object[p].stunGauge = 0.0f;
 			}
+		}
 
+		// スタン中・ダウン中でなければ通常行動
+		if(!object[p].isStunning && !object[p].isDown)
+		{
 			// 発動トリガー入力をチェックして攻撃フラグを立てる
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
 			{
@@ -600,10 +650,85 @@ void Polygon3D_Update()
 			Move(object[p], object[p].moveDir);
 		}
 
-		// 進化時の無敵タイマー更新
+		// HPが0以下の処理（ダウンは1度だけ）
+		if (object[p].hp <= 0.0f && object[p].active && !object[p].isDown)
+		{
+			// ダウン状態に移行してタイマーをリセット
+			object[p].isDown = true;
+			object[p].downTimer = 0.0f;
+		}
+
+		// ダウン状態のタイマー更新とリスポーン判定
+		if (object[p].isDown)
+		{
+			// 行動停止
+			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
+			object[p].isAttacking = false;
+			object[p].useSkill = false;
+			object[p].useSpecial = false;
+
+			// ダウンタイマー更新
+			object[p].downTimer += deltaTime;
+
+			// プレイヤー毎のダウン時間が経過したらリスポーン処理
+			if (object[p].downTimer >= DOWN_TIME)
+			{
+				// 残機を1つ減らす
+				object[p].stock -= 1;
+
+				if (object[p].stock > 0)
+				{
+					Polygon3D_Respawn(p);
+				}
+				else
+				{
+					// 残機無しで復活なし
+					object[p].active = false;
+					object[p].isDown = false;
+					object[p].downTimer = 0.0f;
+				}
+			}
+		}
+
+		// 落下処理
+		if (object[p].active && object[p].position.y <= -10.0f)
+		{
+			// 残機を一つ減らす
+			object[p].stock -= 1;
+
+			if (object[p].stock > 0)
+			{
+				// リスポーン（位置・ステートリセット）
+				Polygon3D_Respawn(p);
+			}
+			else
+			{
+				// 残機無しで完全に非アクティブ化
+				object[p].active = false;
+			}
+		}
+
+		// ダメージを受けた時の処理
+		if (object[p].isAttacked)
+		{
+			// ダメージタイマー更新
+			object[p].attackedTimer += deltaTime;
+
+			// プレイヤー毎のダメージ時間が経過したらダメージ終了
+			if (object[p].attackedTimer >= ATTACKED_TIME)
+			{
+				object[p].isAttacked = false;
+				object[p].attackedTimer = 0.0f;
+			}
+		}
+
+		// 進化時の無敵処理
 		if (object[p].isInvincible)
 		{
-			object[p].invincibleTimer += 1.0f / 60.0f;
+			// 無敵タイマー更新
+			object[p].invincibleTimer += deltaTime;
+
+			// プレイヤー毎の無敵時間が経過したら無敵終了
 			if (object[p].invincibleTimer >= INVINCIBLE_TIME)
 			{
 				object[p].isInvincible = false;
@@ -618,43 +743,133 @@ void Polygon3D_Update()
 			int advance = (int)(g_animTimer[p] / ANIM_FRAME_TIME);
 			g_animTimer[p] -= advance * ANIM_FRAME_TIME;
 
-			// 汎用ループ関数（start から count フレームを循環）
-			auto loopRange = [&](int start, int count)
+			// 勝利 13コマ (ラスト5コマをループ)
+			if (Keyboard_IsKeyDown(KK_TAB) || g_victoryState[p] != 0)
+			{
+				// 押下で開始
+				if (Keyboard_IsKeyDown(KK_TAB) && g_victoryState[p] == 0)
 				{
-					int relative = (g_animFrame[p] - start + advance) % count;
-					if (relative < 0) relative += count;
-					g_animFrame[p] = start + relative;
-				};
+					g_victoryState[p] = 1;
+					g_animFrame[p] = 208; // 初回再生開始フレーム
+				}
 
-			// 移動 8コマ
-			if (object[p].isMoving)
-			{
-					 if (object[p].moveDir.x > 0.0f && object[p].moveDir.z > 0.0f) { loopRange(136, 8); object[p].standbyDir = PlayerDir::Up_Right; }	// 右上 136～143
-				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z > 0.0f) { loopRange(84, 8);	object[p].standbyDir = PlayerDir::Up_Left; }	// 左上  84～91
-				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z < 0.0f) { loopRange(188, 8); object[p].standbyDir = PlayerDir::Down_Right; }	// 右下 188～195
-				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z < 0.0f) { loopRange(32, 8); object[p].standbyDir = PlayerDir::Down_Left; }	// 左下  32～39
-				else if (object[p].moveDir.z > 0.0f) { loopRange(110, 8); object[p].standbyDir = PlayerDir::Up; }		// 上 110～117
-				else if (object[p].moveDir.z < 0.0f) { loopRange(6, 8); object[p].standbyDir = PlayerDir::Down; }		// 下   6～13
-				else if (object[p].moveDir.x > 0.0f) { loopRange(162, 8); object[p].standbyDir = PlayerDir::Right; }	// 右 162～169
-				else if (object[p].moveDir.x < 0.0f) { loopRange(58, 8); object[p].standbyDir = PlayerDir::Left; }		// 左  58～63
+				if (g_victoryState[p] == 1)
+				{
+					// 初回再生：フレームを単純増加（208..220 を順に表示）
+					g_animFrame[p] += advance;
+
+					// 220 を表示した後にループ領域へ移行する
+					if (g_animFrame[p] > 220)
+					{
+						g_victoryState[p] = 2;
+						g_animFrame[p] = 216; // ループ開始フレーム
+					}
+				}
+				else if (g_victoryState[p] == 2)
+				{
+					// ループ領域（216..220）をループする
+					LoopRange(g_animFrame[p], 216, 5, advance);
+				}
 			}
-
-			// 待機 6コマ
-			if (object[p].isMoving == false)
+			// ダウン 5コマ (ダメージ 2コマ + ダウン 3コマ) 最終コマで停止
+			else if (object[p].isDown == true)
 			{
-					 if (object[p].standbyDir == PlayerDir::Up_Right)	loopRange(130, 6);	// 右上 130～135
-				else if (object[p].standbyDir == PlayerDir::Up_Left)	loopRange(78, 6);	// 左上  78～83 
-				else if (object[p].standbyDir == PlayerDir::Down_Right)	loopRange(182, 6);	// 右下 182～187		
-				else if (object[p].standbyDir == PlayerDir::Down_Left)	loopRange(26, 6);	// 左下  26～31
-				else if (object[p].standbyDir == PlayerDir::Up)			loopRange(104, 6);	//  上  104～109
-				else if (object[p].standbyDir == PlayerDir::Down)		loopRange(0, 6);	//  下    0～5
-				else if (object[p].standbyDir == PlayerDir::Right)		loopRange(156, 6);	//  右  156～161
-				else if (object[p].standbyDir == PlayerDir::Left)		loopRange(52, 6);	//  左   52～57
+				// 向きに応じた開始フレームを決定
+				int start = 15; // デフォルト（Down）
+					 if (object[p].lastDir == PlayerDir::Up_Right)	 start = 145;
+				else if (object[p].lastDir == PlayerDir::Up_Left)	 start = 93;
+				else if (object[p].lastDir == PlayerDir::Down_Right) start = 197;
+				else if (object[p].lastDir == PlayerDir::Down_Left)	 start = 41;
+				else if (object[p].lastDir == PlayerDir::Up)		 start = 119;
+				else if (object[p].lastDir == PlayerDir::Down)		 start = 15;
+				else if (object[p].lastDir == PlayerDir::Right)		 start = 171;
+				else if (object[p].lastDir == PlayerDir::Left)		 start = 67;
+
+				const int count = 5;
+				const int lastFrame = start + count - 1;
+
+				// advance に対応する経過秒（g_animTimerでまとめて進めた分）
+				float elapsedSec = (float)advance * ANIM_FRAME_TIME;
+
+				// フレームが範囲外なら開始フレームに補正しタイマーリセット
+				if (g_animFrame[p] < start || g_animFrame[p] > lastFrame)
+				{
+					g_animFrame[p] = start;
+					g_downHoldTimer[p] = 0.0f;
+				}
+
+				// 最終フレーム以外なら通常進行（ループ）
+				if (g_animFrame[p] != lastFrame)
+				{
+					LoopRange(g_animFrame[p], start, count, advance);
+					g_downHoldTimer[p] = 0.0f; // 到達前はホールドタイマーをリセット
+				}
+				else
+				{
+					// 最終フレームに到達 ホールドを進める
+					g_downHoldTimer[p] += elapsedSec;
+
+					// ホールドが満了したら次に進める（ここでは1フレーム分だけ進める）
+					if (g_downHoldTimer[p] >= DOWN_TIME)
+					{
+						g_downHoldTimer[p] = 0.0f;
+						// 1フレーム分進める（ループにより start に戻る）
+						LoopRange(g_animFrame[p], start, count, 1);
+					}
+				}
+			}
+			// ダメージ 3コマ
+			else if (object[p].isAttacked == true || object[p].isStunning)
+			{
+					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 144, 3, advance);	// 右上 144～146
+				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  92, 3, advance);	// 左上  92～94
+				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 196, 3, advance);	// 右下 196～198
+				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  40, 3, advance);	// 左下  40～42
+				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 118, 3, advance);	//  上  118～120
+				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  14, 3, advance);	//  下   14～16
+				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 170, 3, advance);	//  右  170～172
+				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  66, 3, advance);	//  左   66～68
+			}
+			// 攻撃 6コマ
+			else if (object[p].isAttacking == true)
+			{
+					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 150, 6, advance);	// 右上 150～155
+				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  98, 6, advance);	// 左上  98～103
+				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 202, 6, advance);	// 右下 202～207
+				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  46, 6, advance);	// 左下  46～51
+				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 124, 6, advance);	//  上  124～129
+				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  20, 6, advance);	//  下   20～25
+				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 176, 6, advance);	//  右  176～181
+				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  72, 6, advance);	//  左   72～77
+			}
+			// 移動 8コマ
+			else if (object[p].isMoving == true)
+			{
+					 if (object[p].moveDir.x > 0.0f && object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p], 136, 8, advance); object[p].lastDir = PlayerDir::Up_Right; }		// 右上 136～143
+				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p],  84, 8, advance); object[p].lastDir = PlayerDir::Up_Left; }		// 左上  84～91
+				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p], 188, 8, advance); object[p].lastDir = PlayerDir::Down_Right; }	// 右下 188～195
+				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p],  32, 8, advance); object[p].lastDir = PlayerDir::Down_Left; }	// 左下  32～39
+				else if (object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p], 110, 8, advance); object[p].lastDir = PlayerDir::Up; }		// 上 110～117
+				else if (object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p],   6, 8, advance); object[p].lastDir = PlayerDir::Down; }	// 下   6～13
+				else if (object[p].moveDir.x > 0.0f) { LoopRange(g_animFrame[p], 162, 8, advance); object[p].lastDir = PlayerDir::Right; }	// 右 162～169
+				else if (object[p].moveDir.x < 0.0f) { LoopRange(g_animFrame[p],  58, 8, advance); object[p].lastDir = PlayerDir::Left; }	// 左  58～63
+			}
+			// 待機 6コマ
+			else if (object[p].isMoving == false)
+			{
+					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 130, 6, advance);	// 右上 130～135
+				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  78, 6, advance);	// 左上  78～83 
+				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 182, 6, advance);	// 右下 182～187		
+				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  26, 6, advance);	// 左下  26～31
+				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 104, 6, advance);	//  上  104～109
+				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],   0, 6, advance);	//  下    0～5
+				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 156, 6, advance);	//  右  156～161
+				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  52, 6, advance);	//  左   52～57
 			}
 		}
 	}
 
-	// がぶがぶとプレイヤーの当たり判定（object[0] <-> Attack2、object[1] <-> Attack1）
+	// がぶがぶとプレイヤーの当たり判定
 	AttackPlayerCollisions();
 
 	// デバッグ用 ImGui ウィンドウ
@@ -697,7 +912,7 @@ void Polygon3D_Update()
 				// または、ImGui::Textで整形して表示する
 
 				// 例1: 履歴のインデックスと値を直接表示
-				// ImGui::BulletText("[%d]: %d", i, (int)object[p].brokenHistory[i]);
+				// ImGui::BulletText("[%d]: %d", p, (int)object[p].brokenHistory[p]);
 
 				// 例2: 履歴の値を横に並べて表示
 				ImGui::SameLine(); // 同じ行に表示
@@ -717,40 +932,51 @@ void Polygon3D_Update()
 
 	ImGui::End();
 	
-	for (int i = 0; i < PLAYER_MAX; i++)
+	for (int p = 0; p < PLAYER_MAX; p++)
 	{
-		static XMFLOAT3 posBuff = object[i].position;	// デバッグ表示座標
+		static XMFLOAT3 posBuff = object[p].position;	// デバッグ表示座標
 
 		// 描画で使っているスプライト倍率と同じ値を物理にも使う
 		const float renderScale = 2.0f; // Draw 側の spriteScale に合わせる
-		// AABB と着地処理で使うスケーリング（描画スケールを反映）
-		XMFLOAT3 physicsScaling = XMFLOAT3(object[i].scaling.x * renderScale, object[i].scaling.y * renderScale, object[i].scaling.z * renderScale);
+		// 描画スケールを反映したスケール（表示用）
+		XMFLOAT3 physicsScaling = XMFLOAT3(object[p].scaling.x * renderScale, object[p].scaling.y * renderScale, object[p].scaling.z * renderScale);
 
-		// AABB を現在の位置・スケール（表示スケールを反映したもの）で更新しておく
-		CalculateAABB(object[i].boundingBox, object[i].position, physicsScaling);
+		// --- プレイヤー用ヒットボックス比率（必要に応じて調整してください） ---
+		const float HITBOX_WIDTH_SCALE = 0.6f;	// X方向の縮小率
+		const float HITBOX_HEIGHT_SCALE = 1.0f;	// Y方向の拡大率
+		const float HITBOX_DEPTH_SCALE = 0.6f;	// Z方向の縮小率
+
+		// ヒットボックス用スケール（衝突判定で使用）
+		XMFLOAT3 hitboxScaling = XMFLOAT3(
+			object[p].scaling.x * renderScale * HITBOX_WIDTH_SCALE,
+			object[p].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
+			object[p].scaling.z * renderScale * HITBOX_DEPTH_SCALE
+		);
+
+		// AABB を現在の位置・スケール（ヒットボックス）で更新しておく（衝突判定で使用）
+		CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
 
 		// y軸の移動量 (重力 + ジャンプ)
 		// 重力加速度のない簡易的な重力
-		object[i].position.y += -0.1f;
+		object[p].position.y += -0.1f;
 
 		// デバッグ出力
-		if (posBuff.x != object[i].position.x ||
-			posBuff.y != object[i].position.y ||
-			posBuff.z != object[i].position.z)
+		if (posBuff.x != object[p].position.x ||
+			posBuff.y != object[p].position.y ||
+			posBuff.z != object[p].position.z)
 		{
-			hal::dout << "x : " << object[i].position.x << std::endl;
-			hal::dout << "y : " << object[i].position.y << std::endl;
-			hal::dout << "z : " << object[i].position.z << std::endl;
+			hal::dout << "x : " << object[p].position.x << std::endl;
+			hal::dout << "y : " << object[p].position.y << std::endl;
+			hal::dout << "z : " << object[p].position.z << std::endl;
 		}
 
 		//hal::dout << vdata[0].position.x << std::endl;
 
-		posBuff = object[i].position;
+		posBuff = object[p].position;
 
 		// 地面の高さ（最低ライン）
 		//float groundHeight = -10.0f;	// 奈落の底
 		//bool isGrounded = false;		// 地面に足がついているかフラグ
-
 
 		// マップデータ（地面）との当たり判定
 		int fieldCount = GetFieldObjectCount();
@@ -771,28 +997,28 @@ void Polygon3D_Update()
 			hex.height = fieldObjects[j].height;	// 3.0
 
 			// プレイヤーのAABB（体の一部）が六角柱に乗っているか
-			if (CheckAABBHexCollision(object[i].boundingBox, hex))
+			if (CheckAABBHexCollision(object[p].boundingBox, hex))
 			{
 				// タイルの上面のY座標を計算
 				float tileTopY = fieldObjects[j].pos.y + (hex.height / 2.0f);	// -1 + 1.5 = 0.5
 
 				// プレイヤーの底面がタイルの上面以下か
-				if (object[i].boundingBox.Min.y <= tileTopY)
+				if (object[p].boundingBox.Min.y <= tileTopY)
 				{
 					// 頂点定義が -0.5..+0.5 を基準にしているので baseHalfHeight = 0.5
 					const float baseHalfHeight = POSITION; // POSITION はファイル上で 0.5f
-					// 描画スケールを反映した半高で着地位置を計算
-					float halfHeight = baseHalfHeight * object[i].scaling.y * renderScale;
+					// 着地では見た目の高さ（描画スケール）を基準に計算しているため physicsScaling を使用
+					float halfHeight = baseHalfHeight * object[p].scaling.y * renderScale;
 
 					// 着地させる（めり込みが起きないよう最低値として補正）
 					float targetY = tileTopY + halfHeight;
-					if (object[i].position.y < targetY)
+					if (object[p].position.y < targetY)
 					{
-						object[i].position.y = targetY;
+						object[p].position.y = targetY;
 					}
 
 					// AABB を再計算して整合性を保つ（描画スケールを考慮）
-					CalculateAABB(object[i].boundingBox, object[i].position, physicsScaling);
+					CalculateAABB(object[p].boundingBox, object[p].position, physicsScaling);
 
 					top_y = tileTopY;
 
@@ -821,64 +1047,31 @@ void Polygon3D_Update()
 			CalculateAABB(buildingObjects[j]->boundingBox, colliderPos, buildingObjects[j]->scaling);
 
 			// プレイヤー と 建物の当たり判定
-			MTV collision = CalculateAABBMTV(object[i].boundingBox, buildingObjects[j]->boundingBox);
+			MTV collision = CalculateAABBMTV(object[p].boundingBox, buildingObjects[j]->boundingBox);
 
 			if (collision.isColliding)
 			{
 				// 衝突していたら、MTVの分だけ位置を戻す
-				object[i].position.x += collision.translation.x;
-				object[i].position.y += collision.translation.y;
-				object[i].position.z += collision.translation.z;
+				object[p].position.x += collision.translation.x;
+				object[p].position.y += collision.translation.y;
+				object[p].position.z += collision.translation.z;
 
 				// 押し戻し後の新しいAABBを再計算（描画スケールを反映）
-				CalculateAABB(object[i].boundingBox, object[i].position, physicsScaling);
+				CalculateAABB(object[p].boundingBox, object[p].position, physicsScaling);
 			}
-		}
-
-		// -------------------------------------------------------------
-		// 変身
-		// -------------------------------------------------------------
-		switch (object[i].form)
-		{
-		case Form::Normal: // 通常
-			object[i].scaling.x = 0.5f;
-			object[i].scaling.y = 0.5f;
-			object[i].scaling.z = 0.5f;
-			object[i].speed = 0.06f;
-			object[i].power = 0.8f;
-			break;
-
-		case Form::FirstEvolution: // 1進化
-			object[i].scaling.x = 0.8f;
-			object[i].scaling.y = 0.8f;
-			object[i].scaling.z = 0.8f;
-			object[i].speed = 0.05f;
-			object[i].power = 1.0f;
-			break;
-
-		case Form::SecondEvolution: // 2進化
-			object[i].scaling.x = 1.2f;
-			object[i].scaling.y = 1.2f;
-			object[i].scaling.z = 1.2f;
-			object[i].speed = 0.04f;
-			object[i].power = 1.5f;
-			break;
-
-		default:
-			break;
 		}
 
 		ATTACK_OBJECT* attack1 = GetAttack(1);
 		ATTACK_OBJECT* attack2 = GetAttack(2);
 
-		// プレイヤー i に対応するスキル（i==0 -> attack1, i==1 -> attack2）をプレイヤーのフォームに合わせてスケーリング同期
-		ATTACK_OBJECT* attackForPlayer = (i == 0) ? attack1 : ((i == 1) ? attack2 : nullptr);
+		// プレイヤー p に対応するスキル（i==0 -> attack1, p==1 -> attack2）をプレイヤーのフォームに合わせてスケーリング同期
+		ATTACK_OBJECT* attackForPlayer = (p == 0) ? attack1 : ((p == 1) ? attack2 : nullptr);
 		if (attackForPlayer != nullptr)
 		{
 			// プレイヤーと同じスケールにする（攻撃オブジェクトは半分）
-			attackForPlayer->scaling.x = object[i].scaling.x / 2;
-			attackForPlayer->scaling.y = object[i].scaling.y / 2;
-			attackForPlayer->scaling.z = object[i].scaling.z / 2;
+			attackForPlayer->scaling.x = object[p].scaling.x / 2;
+			attackForPlayer->scaling.y = object[p].scaling.y / 2;
+			attackForPlayer->scaling.z = object[p].scaling.z / 2;
 		}
 		///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -886,36 +1079,39 @@ void Polygon3D_Update()
 		// プレイヤーオブジェクト同士の当たり判定
 		// -------------------------------------------------------------
 
-		// 他プレイヤーの physicsScaling を作る（両者とも表示スケールを反映して AABB を扱う）
-		int otherIndex = (i == 0) ? 1 : 0;
-		XMFLOAT3 physicsScalingOther = XMFLOAT3(object[otherIndex].scaling.x * renderScale, object[otherIndex].scaling.y * renderScale, object[otherIndex].scaling.z * renderScale);
+		// 他プレイヤーのヒットボックススケーリングを作る（表示スケールを反映して AABB を扱う）
+		int otherIndex = (p == 0) ? 1 : 0;
+		XMFLOAT3 hitboxScalingOther = XMFLOAT3(
+			object[otherIndex].scaling.x * renderScale * HITBOX_WIDTH_SCALE,
+			object[otherIndex].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
+			object[otherIndex].scaling.z * renderScale * HITBOX_DEPTH_SCALE
+		);
 
-		// プレイヤー0 と プレイヤー1 のAABBを更新（表示スケール反映）
-		CalculateAABB(object[i].boundingBox, object[i].position, physicsScaling);
-		CalculateAABB(object[1].boundingBox, object[1].position, physicsScalingOther);
+		// 両プレイヤーの AABB をヒットボックスで更新
+		CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
+		CalculateAABB(object[otherIndex].boundingBox, object[otherIndex].position, hitboxScalingOther);
 
-		// プレイヤー0 (A) と プレイヤー1 (B) の衝突をチェック
+		// 衝突チェック
 		MTV collision_player = CalculateAABBMTV(object[0].boundingBox, object[1].boundingBox);
 
 		if (collision_player.isColliding)
 		{
-			//hal::dout << " プレイヤー衝突！ 互いに吹き飛ばし実行" << std::endl;
 			// 吹き飛ばしの強さ（XZ方向）
 			float knockbackPowerXZ = 0.5f; // 強さを調整
 			// 吹き飛ばしの強さ（Y方向）
 			float knockbackPowerY = 0.3f; // 高さを調整
 
-			// プレイヤー0 の向き（ラジアン）を計算
-			float rad_0 = XMConvertToRadians(object[0].rotation.y);
-			// プレイヤー0 の向きベクトル（XZ平面）
-			object[0].dir.x = sinf(rad_0);
-			object[0].dir.z = cosf(rad_0);
-
-			// プレイヤー1 の向き（ラジアン）を計算
-			float rad_1 = XMConvertToRadians(object[1].rotation.y);
-			// プレイヤー1 の向きベクトル（XZ平面）
-			object[1].dir.x = sinf(rad_1);
-			object[1].dir.z = cosf(rad_1);
+			// 各プレイヤーの向き（ラジアン）を計算して向きベクトルを更新
+			{
+				float rad_0 = XMConvertToRadians(object[0].rotation.y);
+				object[0].dir.x = sinf(rad_0);
+				object[0].dir.z = cosf(rad_0);
+			}
+			{
+				float rad_1 = XMConvertToRadians(object[1].rotation.y);
+				object[1].dir.x = sinf(rad_1);
+				object[1].dir.z = cosf(rad_1);
+			}
 
 			// 押し戻し量 (MTV) を半分にする
 			XMFLOAT3 half_translation =
@@ -937,44 +1133,14 @@ void Polygon3D_Update()
 			object[1].position.y -= half_translation.y;
 			object[1].position.z -= half_translation.z;
 
-			// 押し戻し後の新しいAABBを再計算 (次フレームや他の衝突判定に備える)
-			CalculateAABB(object[0].boundingBox, object[0].position, physicsScaling);
-			CalculateAABB(object[1].boundingBox, object[1].position, physicsScalingOther);
-
-			// 吹き飛ばし後の新しいAABBを再計算 (他の衝突判定に備える)
-			CalculateAABB(object[0].boundingBox, object[0].position, physicsScaling);
-			CalculateAABB(object[1].boundingBox, object[1].position, physicsScalingOther);
+			// 押し戻し後の新しいAABBを再計算 (ヒットボックスで)
+			CalculateAABB(object[0].boundingBox, object[0].position, hitboxScaling);
+			CalculateAABB(object[1].boundingBox, object[1].position, hitboxScalingOther);
 		}
 
-		if (object[i].hp <= 0 && object[i].active)
-		{
-			object[i].stock--;
 
-			// 残機があれば復活
-			if (object[i].stock > 0)
-			{
-				// リスポーン
-				Polygon3D_Respawn(i);
-			}
-			else
-			{
-				// 残機無しで死亡
-				object[i].active = false;
-			}
-		}
-
-		SetHPValue(&HPBar[i], (int)object[i].hp, (int)object[i].maxHp);
-		UpdateHP(&HPBar[i]);
-	}
-
-	// -------------------------------------------------------------
-	// 当たり判定 Player1とAttack2
-	// -------------------------------------------------------------
-	//// AABBの更新
-
-	for (int idx = 0; idx < PLAYER_MAX; ++idx)
-	{
-		CheckRespawnPlayer(idx);
+		SetHPValue(&HPBar[p], (int)object[p].hp, (int)object[p].maxHp);
+		UpdateHP(&HPBar[p]);
 	}
 
 	// エフェクト用タイマー更新
@@ -1084,7 +1250,6 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 			Shader_SetColor({ 1,1,1,1 });
 
-
 			// バッファセット & 描画
 			UINT stride = sizeof(Vertex2);
 			UINT offset = 0;
@@ -1100,13 +1265,13 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	std::vector<std::pair<float, int>> list; // (距離二乗, index)
 	list.reserve(PLAYER_MAX);
 
-	for (int i = 0; i < PLAYER_MAX; ++i)
+	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		float dx = object[i].position.x - camPos.x;
-		float dy = object[i].position.y - camPos.y;
-		float dz = object[i].position.z - camPos.z;
+		float dx = object[p].position.x - camPos.x;
+		float dy = object[p].position.y - camPos.y;
+		float dz = object[p].position.z - camPos.z;
 		float dist2 = dx * dx + dy * dy + dz * dz;
-		list.emplace_back(dist2, i);
+		list.emplace_back(dist2, p);
 	}
 
 	// 遠い順（大きい順）にソート
@@ -1202,12 +1367,15 @@ void Polygon3D_Respawn(int playerIndex)
 		object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
 		object[0].maxHp = 100.0f;
 		object[0].hp = object[0].maxHp;
+		object[0].power = 0.0f;
 		object[0].speed = 0.0f;
 		object[0].defense = 1.0f;
 		object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].active = true;
 		object[0].isAttacking = false;
 		object[0].attackTimer = 0.0f;
+		object[0].isAttacked = false;
+		object[0].attackedTimer = 0.0f;
 		object[0].useSkill = false;
 		object[0].skillTimer = 0.0f;
 		object[0].useSpecial = false;
@@ -1217,8 +1385,10 @@ void Polygon3D_Respawn(int playerIndex)
 		object[0].stunGauge = 0.0f;
 		object[0].isStunning = false;
 		object[0].stunTimer = 0.0f;
+		object[0].isDown = false;
+		object[0].downTimer = 0.0f;
 
-		object[0].standbyDir = PlayerDir::Down; // 正面
+		object[0].lastDir = PlayerDir::Down; // 正面
 		object[0].isMoving = false;
 		object[0].form = Form::Normal;
 		object[0].type = PlayerType::None;
@@ -1248,12 +1418,15 @@ void Polygon3D_Respawn(int playerIndex)
 		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
 		object[1].maxHp = 100.0f;
 		object[1].hp = object[0].maxHp;
+		object[1].power = 0.0f;
 		object[1].speed = 0.0f;
 		object[1].defense = 1.0f;
 		object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].active = true;
 		object[1].isAttacking = false;
 		object[1].attackTimer = 0.0f;
+		object[1].isAttacked = false;
+		object[1].attackedTimer = 0.0f;
 		object[1].useSkill = false;
 		object[1].skillTimer = 0.0f;
 		object[1].useSpecial = false;
@@ -1263,8 +1436,10 @@ void Polygon3D_Respawn(int playerIndex)
 		object[1].stunGauge = 0.0f;
 		object[1].isStunning = false;
 		object[1].stunTimer = 0.0f;
+		object[1].isDown = false;
+		object[1].downTimer = 0.0f;
 
-		object[1].standbyDir = PlayerDir::Down; // 正面
+		object[1].lastDir = PlayerDir::Down; // 正面
 		object[1].isMoving = false;
 		object[1].form = Form::Normal;
 		object[1].type = PlayerType::None;
@@ -1287,113 +1462,11 @@ void Polygon3D_Respawn(int playerIndex)
 	}
 }
 
-void AttackPlayerCollisions()
+static inline void LoopRange(int& animFrame, int start, int count, int advance)
 {
-	// Attack / Player オブジェクト取得
-	ATTACK_OBJECT* attack1 = GetAttack(1);
-	ATTACK_OBJECT* attack2 = GetAttack(2);
-	PLAYEROBJECT* p1 = &object[0];
-	PLAYEROBJECT* p2 = &object[1];
-
-	// AABB を最新化
-	CalculateAABB(p1->boundingBox, p1->position, p1->scaling);
-	CalculateAABB(p2->boundingBox, p2->position, p2->scaling);
-	CalculateAABB(attack1->boundingBox, attack1->position, attack1->scaling);
-	CalculateAABB(attack2->boundingBox, attack2->position, attack2->scaling);
-
-	// ------------------------
-	// object[0] と Attack2 の当たり判定
-	// （Attack2 は object[1] のスキル）
-	// ------------------------
-	if (object[1].isAttacking)
-	{
-		MTV col = CalculateAABBMTV(p1->boundingBox, attack2->boundingBox);
-
-		// 当たっている かつ object[0]が無敵でない
-		if (col.isColliding && !object[0].isInvincible)
-		{
-			hal::dout << "Attack2 hit object[0] overlap=" << col.overlap << std::endl;
-
-			// ノックバック
-			p1->position.x += p2->dir.x * p2->power;
-			//p1->position.y += p2->power / 3;
-			p1->position.z += p2->dir.z * p2->power;
-
-			// ダメージ 攻撃を受ける側の防御力でダメージを軽減
-			p1->hp -= p2->power * p1->defense;
-			// スタンゲージ増加
-			p1->stunGauge += 0.5f;
-
-			//// ヒットでスキルを消す（1回ヒット）
-			//object[1].isAttacking = false;
-			//object[1].attackTimer = 0.0f;
-
-			// AABB を更新
-			CalculateAABB(p1->boundingBox, p1->position, p1->scaling);
-			CalculateAABB(attack2->boundingBox, attack2->position, attack2->scaling);
-		}
-	}
-
-	// ------------------------
-	// object[1] と Attack1 の当たり判定
-	// （Attack1 は object[0] のスキル）
-	// ------------------------
-	if (object[0].isAttacking)
-	{
-		MTV col = CalculateAABBMTV(p2->boundingBox, attack1->boundingBox);
-		
-		// 当たっている かつ object[1]が無敵でない
-		if (col.isColliding && !object[1].isInvincible)
-		{
-			hal::dout << "Attack1 hit object[1] overlap=" << col.overlap << std::endl;
-
-			// ノックバック
-			p2->position.x += p1->dir.x * p1->power;
-			//p2->position.y += p1->power;
-			p2->position.z += p1->dir.z * p1->power;
-
-			// ダメージ 攻撃を受ける側の防御力でダメージを軽減
-			p2->hp -= p1->power * p2->defense;
-			// スタンゲージ増加
-			p2->stunGauge += 0.5f;
-
-			//// ヒットでスキルを消す
-			//object[0].isAttacking = false;
-			//object[0].attackTimer = 0.0f;
-
-			// AABB を更新
-			CalculateAABB(p2->boundingBox, p2->position, p2->scaling);
-			CalculateAABB(attack1->boundingBox, attack1->position, attack1->scaling);
-		}
-	}
-}
-
-static void CheckRespawnPlayer(int playerIndex)
-{
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
-
-	bool needRespawn = false;
-
-	// HP <= 0 または落下判定でリスポーン
-	if (object[playerIndex].hp <= 0.0f)
-	{
-		object[playerIndex].hp = 0.0f;
-		needRespawn = true;
-	}
-
-	if (object[playerIndex].position.y < -10.0f)
-	{
-		needRespawn = true;
-	}
-
-	if(needRespawn)	
-	{
-		// 残機を1減らす
-		object[playerIndex].stock -= 1;
-
-		// 個別リスポーン処理
-		Polygon3D_Respawn(playerIndex);
-	}
+	int relative = (animFrame - start + advance) % count;
+	if (relative < 0) relative += count;
+	animFrame = start + relative;
 }
 
 //==================================

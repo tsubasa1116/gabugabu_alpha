@@ -320,7 +320,7 @@ void Attack_Update(int playerIndex)
 		atttackObject.position.y = playerObject->position.y;
 		atttackObject.position.z = dir.z * playerObject->scaling.z + playerObject->position.z;
 
-		// 攻撃タイマーを進める
+		// 攻撃タイマー更新
 		playerObject->attackTimer += 1.0f / 60.0f;
 
 		// プレイヤー毎の攻撃時間が経過したら攻撃終了
@@ -373,8 +373,8 @@ void Attack_Update(int playerIndex)
 						// 効果音やエフェクトを再生
 
 						// ヒットでスキルを終了
-						playerObject->isAttacking = false;
-						playerObject->attackTimer = 0.0f;
+						//playerObject->isAttacking = false;
+						//playerObject->attackTimer = 0.0f;
 
 						// 更新済みAABB
 						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
@@ -391,8 +391,8 @@ void Attack_Update(int playerIndex)
 						// 効果音やエフェクトを再生
 
 						// ヒットでスキルを終了
-						playerObject->isAttacking = false;
-						playerObject->attackTimer = 0.0f;
+						//playerObject->isAttacking = false;
+						//playerObject->attackTimer = 0.0f;
 
 						// 更新済みAABB
 						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
@@ -409,8 +409,8 @@ void Attack_Update(int playerIndex)
 						// 効果音やエフェクトを再生
 
 						// ヒットでスキルを終了
-						playerObject->isAttacking = false;
-						playerObject->attackTimer = 0.0f;
+						//playerObject->isAttacking = false;
+						//playerObject->attackTimer = 0.0f;
 
 						// 更新済みAABB
 						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
@@ -427,8 +427,8 @@ void Attack_Update(int playerIndex)
 						// 効果音やエフェクトを再生
 
 						// ヒットでスキルを終了
-						playerObject->isAttacking = false;
-						playerObject->attackTimer = 0.0f;
+						//playerObject->isAttacking = false;
+						//playerObject->attackTimer = 0.0f;
 
 						// 更新済みAABB
 						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
@@ -647,6 +647,83 @@ void Attack_Draw(int playerIndex)
 
 	SetBlendState(BLENDSTATE_ALPHA);
 
+}
+
+void AttackPlayerCollisions()
+{
+	// 各プレイヤーの攻撃オブジェクトをループして、他プレイヤー全員に当たり判定を行う
+	for (int atk = 0; atk < PLAYER_MAX; ++atk)
+	{
+		ATTACK_OBJECT* attack = GetAttack(atk + 1);
+		PLAYEROBJECT* attacker = GetPlayer(atk + 1);
+
+		if (attack == nullptr || attacker == nullptr) continue;
+		if (!attacker->isAttacking) continue;	// 攻撃中のみ判定
+
+		// 攻撃オブジェクトと攻撃者の AABB を更新
+		CalculateAABB(attack->boundingBox, attack->position, attack->scaling);
+		CalculateAABB(attacker->boundingBox, attacker->position, attacker->scaling);
+
+		// 攻撃者の向きベクトルを更新（rotation.y から算出）
+		{
+			float rad = XMConvertToRadians(attacker->rotation.y);
+			attacker->dir.x = sinf(rad);
+			attacker->dir.z = cosf(rad);
+		}
+
+		// --- プレイヤー側で使っている描画スケール・ヒットボックス比率と合わせる ---
+		const float RENDER_SCALE = 2.0f;
+		const float HITBOX_WIDTH_SCALE = 0.6f;
+		const float HITBOX_HEIGHT_SCALE = 1.0f;
+		const float HITBOX_DEPTH_SCALE = 0.6f;
+
+		// 攻撃が当たる対象として他プレイヤー全員をチェック
+		for (int def = 0; def < PLAYER_MAX; ++def)
+		{
+			if (def == atk) continue; // 自分には当たらない
+
+			PLAYEROBJECT* defender = GetPlayer(def + 1);
+			if (defender == nullptr) continue;
+			if (!defender->active) continue; // 非アクティブなプレイヤーは無視
+			// 被弾中や無敵ならスキップ
+			if (defender->isInvincible) continue;
+
+			// defender 用のヒットボックススケールを Polygon3D と同じ方式で計算して AABB を作る
+			XMFLOAT3 defenderHitboxScaling =
+			{
+				defender->scaling.x * RENDER_SCALE * HITBOX_WIDTH_SCALE,
+				defender->scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
+				defender->scaling.z * RENDER_SCALE * HITBOX_DEPTH_SCALE
+			};
+			CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+
+			// 判定（defender AABB と 攻撃オブジェクト AABB）
+			MTV col = CalculateAABBMTV(defender->boundingBox, attack->boundingBox);
+
+			if (col.isColliding)
+			{
+				// ノックバック（攻撃者の向きと攻撃力を使用）
+				defender->position.x += attacker->dir.x;
+				// defender->position.y += attacker->power / 3.0f;
+				defender->position.z += attacker->dir.z;
+
+				// ダメージ（防御で軽減）
+				defender->hp -= attacker->power * defender->defense;
+				if (defender->hp < 0.0f) defender->hp = 0.0f;
+
+				// スタンゲージ増加
+				defender->stunGauge += 0.5f;
+
+				// ダメージフラグ・タイマー（アニメ／UI 用）
+				defender->isAttacked = true;
+				defender->attackedTimer = 0.0f;
+
+				// 再計算して状態を整える
+				CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+				CalculateAABB(attack->boundingBox, attack->position, attack->scaling);
+			}
+		}
+	}
 }
 
 ATTACK_OBJECT* GetAttack(int playerIndex)

@@ -19,4 +19,6 @@ void Attack_Finalize();
 void Attack_Update(int playerIndex);
 void Attack_Draw(int playerIndex);
 
+void AttackPlayerCollisions();
+
 ATTACK_OBJECT* GetAttack(int playerIndex);

@@ -6,11 +6,11 @@
 //ウィンドウの表示
 #include <SDKDDKVer.h>	//利用できる最も上位の Windows プラットフォームが定義される
 #define WIN32_LEAN_AND_MEAN	//32bitアプリには不要な情報を抑止してコンパイル時間を短縮
-#include	<windows.h>
-#include	"debug_ostream.h"	//デバッグ表示
+#include <windows.h>
+#include "debug_ostream.h"	//デバッグ表示
 
-#include <algorithm>			//
-#include "direct3d.h"			//
+#include <algorithm>
+#include "direct3d.h"
 #include "shader.h"
 #include "polygon.h"
 #include "field.h"
@@ -23,7 +23,7 @@
 #include "Polygon3D.h"
 
 #include "Manager.h"
-#include "Audio.h"	//<<<<<<<<<<<<<追加
+#include "Audio.h"
 #include "input.h"
 
 #include "imgui.h"
@@ -46,7 +46,6 @@
 LPDIRECTINPUT8 g_pDI = nullptr;
 LPDIRECTINPUTDEVICE8 g_pGamepad[4] = { nullptr };
 int g_GamepadCount = 0;  // 接続されたプロコンの数
-
 
 #ifdef _DEBUG	//デバッグビルドの時だけ変数が作られる
 int		g_CountFPS;			//FPSカウンター
@@ -297,12 +296,12 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				// ======= ImGui初期化 =======
 				BeginImGuiFrame();
 				Manager_Update();
-				// ======= ImGui描画テスト =======
-				ImGui::Begin("Debug Window");
+				//// ======= ImGui描画テスト =======
+				//ImGui::Begin("Debug Window");
 
-				// ゲッターとかから情報を取ってきて表示していく
-				ImGui::Text("Hello, Dear ImGui!");
-				ImGui::End();
+				//// ゲッターとかから情報を取ってきて表示していく
+				//ImGui::Text("Hello, Dear ImGui!");
+				//ImGui::End();
 				for (int p = 0; p < g_GamepadCount; p++)
 				{
 					DIJOYSTATE2 js;
