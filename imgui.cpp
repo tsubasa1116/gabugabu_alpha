@@ -7444,7 +7444,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
             window->NameBufLen = (int)buf_len;
         }
 
-        // UPDATE CONTENTS POSITION, UPDATE HIDDEN STATUS
+        // UPDATE CONTENTS COORDINATE, UPDATE HIDDEN STATUS
 
         // Update contents size from last frame for auto-fitting (or use explicit size)
         CalcWindowContentSizes(window, &window->ContentSize, &window->ContentSizeIdeal);
@@ -7481,7 +7481,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         SetWindowViewport(window, viewport);
         SetCurrentWindow(window);
 
-        // LOCK BORDER POSITION AND PADDING FOR THE FRAME (so that altering them doesn't cause inconsistencies)
+        // LOCK BORDER COORDINATE AND PADDING FOR THE FRAME (so that altering them doesn't cause inconsistencies)
 
         if (flags & ImGuiWindowFlags_ChildWindow)
             window->WindowBorderSize = style.ChildBorderSize;
@@ -7531,7 +7531,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         }
         window->WantCollapseToggle = false;
 
-        // POSITION
+        // COORDINATE
 
         // Outer Decoration Sizes
         // (we need to clear ScrollbarSize immediately as CalcWindowAutoFitSize() needs it and can be called from other locations).
@@ -7580,7 +7580,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         window->SizeFull = CalcWindowSizeAfterConstraint(window, window->SizeFull);
         window->Size = window->Collapsed && !(flags & ImGuiWindowFlags_ChildWindow) ? window->TitleBarRect().GetSize() : window->SizeFull;
 
-        // POSITION
+        // COORDINATE
 
         // Popup latch its initial position, will position itself when it appears next frame
         if (window_just_activated_by_user)

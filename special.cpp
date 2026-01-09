@@ -34,164 +34,164 @@ static SPECIAL_OBJECT Special[PLAYER_MAX];
 static SPECIAL_GLASS g_SpecialGlass[2];
 
 // マクロ定義
-#define NUM_VERTEX (36)
+#define NUM_VERTEX (24)
 
-static Vertex Special_vdata[NUM_VERTEX] =
+static Vertex2 Special_vdata[NUM_VERTEX] =
 {
-	// -Z面
-	{
-		// 頂点0 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// -Z面 (法線: 0,0,-1)
+	{// 頂点0 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),		// 座標
+		XMFLOAT3(0.0f, 0.0f, -1.0f),		// 法線
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	// カラー
+		XMFLOAT2(0.0f,0.0f)					// テクスチャ座標
 	},
-	{
-		// 頂点1 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点1 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点2 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点2 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-	{
-		// 頂点3 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-	},
-
-	// +X面
-	{
-		// 頂点4 LEFT-TOP
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点5 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点6 LEFT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点7 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	{// 頂点3 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +Z面
-	{
-		// 頂点8 LEFT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// +X面 (法線: 1,0,0)
+	{// 頂点4 LEFT-TOP
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
 	},
-	{
-		// 頂点9 RIGHT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点5 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点10 LEFT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点6 LEFT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-	{
-		// 頂点11 RIGHT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-	},
-
-	// -X面
-	{
-		// 頂点12 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点13 RIGHT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点14 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点15 RIGHT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	{// 頂点7 RIGHT-BOTTM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +Y面
-	{
-		// 頂点16 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// +Z面 (法線: 0,0,1)
+	{// 頂点8 LEFT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
 	},
-	{
-		// 頂点17 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点9 RIGHT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点18 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点10 LEFT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-	{
-		// 頂点19 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	{// 頂点11 RIGHT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// -Y面
-	{
-		// 頂点20 LEFT-TOP
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// -X面 (法線: -1,0,0)
+	{// 頂点12 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
 	},
-	{
-		// 頂点21 RIGHT-TOP
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点13 RIGHT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点22 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点14 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-	{
-		// 頂点23 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	{// 頂点15 RIGHT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
+	},
+
+	// +Y面 (法線: 0,1,0)
+	{// 頂点16 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
+	},
+	{// 頂点17 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
+	},
+	{// 頂点18 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
+	},
+	{// 頂点19 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
+	},
+
+	// -Y面 (法線: 0,-1,0)
+	{// 頂点20 LEFT-TOP
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
+	},
+	{// 頂点21 RIGHT-TOP
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
+	},
+	{// 頂点22 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
+	},
+	{// 頂点23 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 };
 
@@ -303,7 +303,7 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
+	bd.ByteWidth = sizeof(Vertex2) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -363,7 +363,7 @@ void Special_Glass_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	SPECIAL_GLASS& glass = g_SpecialGlass[playerIndex];
 
 	// スペシャルの初期位置をプレイヤーの位置に設定（表示用）
@@ -375,10 +375,10 @@ void Special_Glass_Update(int playerIndex)
 		// 保存はスペシャル発動直後の一度だけ行う
 		// 他プレイヤーの位置（ワールド座標）を lockedTargets に格納
 		glass.lockedTargets.clear();
-		for (int i = 0; i < PLAYER_MAX; ++i)
+		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
-			if (i == playerIndex) continue; // 自分は除外
-			PLAYEROBJECT* other = GetPlayer(i + 1);
+			if (p == playerIndex) continue; // 自分は除外
+			PLAYEROBJECT* other = GetPlayer(p);
 			if (other)
 			{
 				glass.lockedTargets.push_back(other->position);
@@ -390,8 +390,8 @@ void Special_Glass_Update(int playerIndex)
 		// (locks saved) ? 発射はロックオン時間後に行う
 	}
 
-	// スペシャルタイマーを進める
-	playerObject->specialTimer += 1.0f / 60.0f;
+	// スペシャルタイマー更新
+	playerObject->specialTimer += DELTA_TIME;
 	glass.duration += 1.0f / 60.0f;
 
 	// ロックオン時間を過ぎたらミサイルを飛ばす（1回だけ）
@@ -531,7 +531,7 @@ void Special_Concrete_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	SPECIAL_OBJECT& sk = Special[playerIndex];
 
 	// スペシャル効果：
@@ -541,8 +541,8 @@ void Special_Concrete_Update(int playerIndex)
 	sk.position.y = playerObject->position.y;
 	sk.position.z = playerObject->position.z;
 
-	// スペシャルタイマーを進める
-	playerObject->specialTimer += 1.0f / 60.0f;
+	// スペシャルタイマー更新
+	playerObject->specialTimer += DELTA_TIME;
 
 	// スペシャルの効果時間が経過したらスペシャル終了
 	if (playerObject->specialTimer >= SPECIAL_CONCRETE_TIME)
@@ -557,12 +557,12 @@ void Special_Plant_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 
 	// スペシャル効果：
 
-	// スペシャルタイマーを進める
-	playerObject->specialTimer += 1.0f / 60.0f;
+	// スペシャルタイマー更新
+	playerObject->specialTimer += DELTA_TIME;
 
 	// スペシャルの効果時間が経過したらスペシャル終了
 	if (playerObject->specialTimer >= SPECIAL_PLANT_TIME)
@@ -577,12 +577,12 @@ void Special_Electric_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 
 	// スペシャル効果：
 
-	// スペシャルタイマーを進める
-	playerObject->specialTimer += 1.0f / 60.0f;
+	// スペシャルタイマー更新
+	playerObject->specialTimer += DELTA_TIME;
 
 	// スペシャルの効果時間が経過したらスペシャル終了
 	if (playerObject->specialTimer >= SPECIAL_ELECTRIC_TIME)
@@ -597,7 +597,7 @@ void Special_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 
 	// スペシャル使用中かつスタン中でない場合に更新処理を行う
 	if (playerObject->useSpecial && !playerObject->isStunning)
@@ -736,7 +736,7 @@ void Special_Draw()
 	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
 	// 頂点バッファ・インデックスバッファのセット
-	UINT stride = sizeof(Vertex);
+	UINT stride = sizeof(Vertex2);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
@@ -747,15 +747,15 @@ void Special_Draw()
 	D3D11_MAPPED_SUBRESOURCE msr;
 	// (注意: g_VertexBuffer が D3D11_USAGE_DYNAMIC である必要があります)
 	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	Vertex* vertex = (Vertex*)msr.pData;
+	Vertex2* vertex = (Vertex2*)msr.pData;
 	// vdata[] はキューブの頂点データを格納した配列を想定
-	CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex) * NUM_VERTEX);
+	CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
 	g_pContext->Unmap(g_VertexBuffer, 0);
 
 	// 2. プレイヤーごとの振り分け処理
-	for (int i = 0; i < PLAYER_MAX; ++i)
+	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		PLAYEROBJECT* playerObject = GetPlayer(i + 1);
+		PLAYEROBJECT* playerObject = GetPlayer(p);
 
 		// そのプレイヤーがスペシャルを使っているかチェック
 		if (!playerObject->useSpecial) continue;
@@ -766,13 +766,13 @@ void Special_Draw()
 			// プレイヤーのタイプに合わせて子関数を呼ぶ
 			switch (playerObject->type)
 			{
-			case PlayerType::Glass:		Special_Glass_Draw(i);
+			case PlayerType::Glass:		Special_Glass_Draw(p);
 				break;
-			case PlayerType::Concrete:	Special_Concrete_Draw(i);
+			case PlayerType::Concrete:	Special_Concrete_Draw(p);
 				break;
-			case PlayerType::Plant:		Special_Plant_Draw(i);
+			case PlayerType::Plant:		Special_Plant_Draw(p);
 				break;
-			case PlayerType::Electric:	Special_Electric_Draw(i);
+			case PlayerType::Electric:	Special_Electric_Draw(p);
 				break;
 			default:
 				break;
@@ -786,10 +786,11 @@ void Special_Draw()
 
 SPECIAL_OBJECT* GetSpecial(int playerIndex)
 {
-	if (playerIndex > PLAYER_MAX || playerIndex <= 0)
+	// 範囲チェック 0未満 または 4以上なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
 	{
 		return nullptr;
 	}
 
-	return &Special[playerIndex - 1];
+	return &Special[playerIndex];
 }

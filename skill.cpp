@@ -34,164 +34,164 @@ static SKILL_OBJECT Skill[PLAYER_MAX];
 static SKILL_GLASS g_SkillGlass[PLAYER_MAX];
 
 // マクロ定義
-#define NUM_VERTEX (36)
+#define NUM_VERTEX (24) // 24 頂点（キューブ各面 4 頂点 × 6 面）
 
-static Vertex Skill_vdata[NUM_VERTEX] =
+static Vertex2 Skill_vdata[NUM_VERTEX] =
 {
-	// -Z面
-	{
-		// 頂点0 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// -Z面 (法線: 0,0,-1)
+	{// 頂点0 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),		// 座標
+		XMFLOAT3(0.0f, 0.0f, -1.0f),		// 法線
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	// カラー
+		XMFLOAT2(0.0f,0.0f)					// テクスチャ座標
 	},
-	{
-		// 頂点1 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点1 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点2 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点2 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-	{
-		// 頂点3 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-	},
-
-	// +X面
-	{
-		// 頂点4 LEFT-TOP
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点5 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点6 LEFT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点7 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	{// 頂点3 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +Z面
-	{
-		// 頂点8 LEFT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// +X面 (法線: 1,0,0)
+	{// 頂点4 LEFT-TOP
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
 	},
-	{
-		// 頂点9 RIGHT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点5 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点10 LEFT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点6 LEFT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-	{
-		// 頂点11 RIGHT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-	},
-
-	// -X面
-	{
-		// 頂点12 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点13 RIGHT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点14 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点15 RIGHT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	{// 頂点7 RIGHT-BOTTM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +Y面
-	{
-		// 頂点16 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// +Z面 (法線: 0,0,1)
+	{// 頂点8 LEFT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
 	},
-	{
-		// 頂点17 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点9 RIGHT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点18 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点10 LEFT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-	{
-		// 頂点19 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	{// 頂点11 RIGHT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// -Y面
-	{
-		// 頂点20 LEFT-TOP
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// -X面 (法線: -1,0,0)
+	{// 頂点12 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
 	},
-	{
-		// 頂点21 RIGHT-TOP
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点13 RIGHT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点22 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点14 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-	{
-		// 頂点23 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	{// 頂点15 RIGHT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
+	},
+
+	// +Y面 (法線: 0,1,0)
+	{// 頂点16 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
+	},
+	{// 頂点17 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
+	},
+	{// 頂点18 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
+	},
+	{// 頂点19 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
+	},
+
+	// -Y面 (法線: 0,-1,0)
+	{// 頂点20 LEFT-TOP
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
+	},
+	{// 頂点21 RIGHT-TOP
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
+	},
+	{// 頂点22 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
+	},
+	{// 頂点23 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 };
 
@@ -282,7 +282,7 @@ void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
+	bd.ByteWidth = sizeof(Vertex2) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -327,7 +327,7 @@ void Skill_Finalize()
 		g_IndexBuffer = NULL;
 	}
 
-	for (int i = 0; i < PLAYER_MAX; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		if (g_Skill_Texture[i])
 		{
@@ -342,7 +342,8 @@ void Skill_Glass_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
 
 	// ここで Radius の値を動的に計算する
 	float dynamicRadius = playerObject->scaling.x; // scalingは等しいのでy,zでも可
@@ -362,8 +363,9 @@ void Skill_Glass_Update(int playerIndex)
 	// プレイヤーの現在の回転角度 (ラジアン)
 	float playerYaw = XMConvertToRadians(playerObject->rotation.y);
 
-	SKILL_GLASS& skillGlass = g_SkillGlass[playerIndex]; 
+	SKILL_GLASS& skillGlass = g_SkillGlass[playerIndex];
 
+	// 箱の位置・回転・スケールを更新しつつ AABB を更新
 	for (int i = 0; i < 5; ++i)
 	{
 		float relativeRad = XMConvertToRadians(RelativeAngles[i]);
@@ -379,12 +381,76 @@ void Skill_Glass_Update(int playerIndex)
 		skillGlass.boxes[i].position.z = playerObject->position.z + offsetZ;
 		skillGlass.boxes[i].rotation = XMFLOAT3(Rot[i], Rot[i], Rot[i]);
 		skillGlass.boxes[i].scaling = XMFLOAT3(Scal[i], Scal[i], Scal[i]);
+
+		// 箱の AABB を更新
+		CalculateAABB(skillGlass.boxes[i].boundingBox, skillGlass.boxes[i].position, skillGlass.boxes[i].scaling);
 	}
 
-	// スキル効果：
+	// -------------------------------
+	// 当たり判定：箱 vs 他プレイヤー
+	// 仕様：ガラススキルは「ダメージあり」「押し返しなし」
+	// -------------------------------
+	// プレイヤー側で使っている描画スケール・ヒットボックス比率と合わせる（attack.cpp と同等）
+	const float RENDER_SCALE = 2.0f;
+	const float HITBOX_WIDTH_SCALE = 0.6f;
+	const float HITBOX_HEIGHT_SCALE = 1.0f;
+	const float HITBOX_DEPTH_SCALE = 0.6f;
 
-	// スキルタイマーを進める
-	playerObject->skillTimer += 1.0f / 60.0f;
+	// 各箱について他プレイヤーと当たり判定
+	for (int b = 0; b < 5; ++b)
+	{
+		SKILL_OBJECT& box = skillGlass.boxes[b];
+
+		for (int def = 0; def < PLAYER_MAX; ++def)
+		{
+			if (def == playerIndex) continue; // 自分は無視
+
+			PLAYEROBJECT* defender = GetPlayer(def);
+			if (defender == nullptr) continue;
+
+			if (defender == nullptr) continue;
+			if (!defender->active) continue;      // 非アクティブは無視
+			if (defender->isInvincible) continue; // 無敵中は無視
+
+			// defender 用のヒットボックススケールを攻撃判定と合わせて計算して AABB を作る
+			XMFLOAT3 defenderHitboxScaling =
+			{
+				defender->scaling.x * RENDER_SCALE * HITBOX_WIDTH_SCALE,
+				defender->scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
+				defender->scaling.z * RENDER_SCALE * HITBOX_DEPTH_SCALE
+			};
+			CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+
+			// box の AABB 再更新
+			CalculateAABB(box.boundingBox, box.position, box.scaling);
+
+			// 判定（defender AABB と 箱 AABB）
+			MTV col = CalculateAABBMTV(defender->boundingBox, box.boundingBox);
+
+			if (col.isColliding)
+			{
+				// ダメージのみ（ノックバックは与えない）
+				float damage = 0.0f;
+				if (playerObject)
+				{
+					damage = 0.01f;
+				}
+				// 防御率でダメージ軽減
+				defender->hp -= damage * defender->defense;
+				if (defender->hp < 0.0f) defender->hp = 0.0f;
+
+				// スタンゲージ増加
+				defender->stunGauge += 0.01f;
+
+				// ダメージフラグ・タイマー（アニメ／UI 用）
+				defender->isAttacked = true;
+				defender->attackedTimer = 0.0f;
+			}
+		}
+	}
+
+	// スキルタイマー更新
+	playerObject->skillTimer += DELTA_TIME;
 
 	// スキルの効果時間が経過したらスキル終了
 	if (playerObject->skillTimer >= 30)
@@ -399,7 +465,9 @@ void Skill_Concrete_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+
 	SKILL_OBJECT& skillConcrete = Skill[playerIndex];
 
 	// スキル効果： ダメージ軽減20% (デフォルトは1.0f)
@@ -410,8 +478,8 @@ void Skill_Concrete_Update(int playerIndex)
 	skillConcrete.position.y = playerObject->position.y;
 	skillConcrete.position.z = playerObject->position.z;
 
-	// スキルタイマーを進める
-	playerObject->skillTimer += 1.0f / 60.0f;
+	// スキルタイマー更新
+	playerObject->skillTimer += DELTA_TIME;
 
 	// スキルの効果時間が経過したらスキル終了
 	if (playerObject->skillTimer >= SKILL_CONCRETE_TIME)
@@ -426,13 +494,14 @@ void Skill_Plant_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
 
 	// スキル効果：進化ゲージ2倍
 	playerObject->evolutionGaugeRate *= 2;
 
-	// スキルタイマーを進める
-	playerObject->skillTimer += 1.0f / 60.0f;
+	// スキルタイマー更新
+	playerObject->skillTimer += DELTA_TIME;
 
 	// スキルの効果時間が経過したらスキル終了
 	if (playerObject->skillTimer >= SKILL_PLANT_TIME)
@@ -447,13 +516,14 @@ void Skill_Electric_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
 
 	// スキル効果：スピード1.5倍
 	playerObject->speed *= 1.5f;
 
-	// スキルタイマーを進める
-	playerObject->skillTimer += 1.0f / 60.0f;
+	// スキルタイマー更新
+	playerObject->skillTimer += DELTA_TIME;
 
 	// スキルの効果時間が経過したらスキル終了
 	if (playerObject->skillTimer >= SKILL_ELECTRIC_TIME)
@@ -468,7 +538,8 @@ void Skill_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
 
 	// スキル使用中かつスタン中でない場合に更新処理を行う
 	if (playerObject->useSkill && !playerObject->isStunning)
@@ -587,6 +658,14 @@ void Skill_Electric_Draw(int playerIndex)
 
 void Skill_Draw()
 {
+	// ライトを設定（Polygon3D::Draw と同様のライト）
+	LIGHT light{};
+	light.Enable = TRUE;
+	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	light.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	light.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	Shader_SetLight(light);
+
 	// 1. 共通設定 (パイプラインステートの設定)
 	//    これを親で一度だけやることで処理落ちを防ぐ
 
@@ -598,25 +677,24 @@ void Skill_Draw()
 	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
 	// 頂点バッファ・インデックスバッファのセット
-	UINT stride = sizeof(Vertex);
+	UINT stride = sizeof(Vertex2);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// 頂点データ書き込み
-	// プレイヤー本体の描画と同様に、ここで一度だけ頂点データをGPUに送る
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	Vertex* vertex = (Vertex*)msr.pData;
-	// vdata[] はキューブの頂点データを格納した配列を想定
-	CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex) * NUM_VERTEX);
+	Vertex2* vertex = (Vertex2*)msr.pData;
+	CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
 	g_pContext->Unmap(g_VertexBuffer, 0);
 
 	// 2. プレイヤーごとの振り分け処理
-	for (int i = 0; i < PLAYER_MAX; ++i)
+	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		PLAYEROBJECT* playerObject = GetPlayer(i + 1);
+		PLAYEROBJECT* playerObject = GetPlayer(p);
+		if (playerObject == nullptr) continue;
 
 		// そのプレイヤーがスキルを使っているかチェック
 		if (!playerObject->useSkill) continue;
@@ -627,13 +705,13 @@ void Skill_Draw()
 			// プレイヤーのタイプに合わせて子関数を呼ぶ
 			switch (playerObject->type)
 			{
-			case PlayerType::Glass:		Skill_Glass_Draw(i);
+			case PlayerType::Glass:		Skill_Glass_Draw(p);
 				break;
-			case PlayerType::Concrete:	Skill_Concrete_Draw(i);
+			case PlayerType::Concrete:	Skill_Concrete_Draw(p);
 				break;
-			case PlayerType::Plant:		Skill_Plant_Draw(i);
+			case PlayerType::Plant:		Skill_Plant_Draw(p);
 				break;
-			case PlayerType::Electric:	Skill_Electric_Draw(i);
+			case PlayerType::Electric:	Skill_Electric_Draw(p);
 				break;
 			default:
 				break;
@@ -647,10 +725,11 @@ void Skill_Draw()
 
 SKILL_OBJECT* GetSkill(int playerIndex)
 {
-	if (playerIndex > PLAYER_MAX || playerIndex <= 0)
+	// 範囲チェック 0未満 または 4以上なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
 	{
 		return nullptr;
 	}
 
-	return &Skill[playerIndex - 1];
+	return &Skill[playerIndex];
 }

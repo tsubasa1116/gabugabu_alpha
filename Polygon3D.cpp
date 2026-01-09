@@ -211,32 +211,32 @@ static float g_downHoldTimer[PLAYER_MAX] = { 0.0f };	// 最終フレームホールド用タ
 //	},
 //};
 
-#define POSITION	(0.5f)	// デフォルト (0.5f)
+#define COORDINATE	(0.5f)	// デフォルト (0.5f)
 #define TEXCOORD	(1.0f)	// デフォルト (1.0f)
 
 // 頂点配列
 static Vertex2 vdata[NUM_VERTEX] =
 {
 	{// 頂点0 LEFT-TOP
-		XMFLOAT3(-POSITION, POSITION, 0.0f),	// 座標
+		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),// 座標
 		XMFLOAT3(0.0f, 0.0f, -1.0f),			// 法線ベクトル
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),		// カラー
 		XMFLOAT2(0.0f, 0.0f)					// テクスチャ座標
 	},
 	{// 頂点1 RIGHT-TOP
-		XMFLOAT3(POSITION, POSITION, 0.0f),
+		XMFLOAT3(COORDINATE, COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(TEXCOORD, 0.0f)
 	},
 	{// 頂点2 LEFT-BOTTOM
-		XMFLOAT3(-POSITION, -POSITION, 0.0f),
+		XMFLOAT3(-COORDINATE, -COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f, TEXCOORD)
 	},
 	{// 頂点3 RIGHT-BOTTOM
-		XMFLOAT3(POSITION, -POSITION, 0.0f),
+		XMFLOAT3(COORDINATE, -COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(TEXCOORD, TEXCOORD)
@@ -452,25 +452,43 @@ static void LoadTextureList(ID3D11Device* pDevice)
 //======================================================
 void Polygon3D_Finalize()
 {
-	if (g_IndexBuffer != NULL)
+	// シェーダーにバインドされている SRV をアンバインド（安全のため全要素分）
+	const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
+	if (g_pContext)
+	{
+		// 固定長配列を使って確実に nullptr を渡す（API は生配列を要求）
+		ID3D11ShaderResourceView* nullSRV[25] = {};
+		g_pContext->PSSetShaderResources(0, static_cast<UINT>(TEX_COUNT), nullSRV);
+	}
+
+	// インデックス／頂点バッファの解放（NULL チェック後に nullptr に設定）
+	if (g_IndexBuffer != nullptr)
 	{
 		g_IndexBuffer->Release();
-		g_IndexBuffer = NULL;
+		g_IndexBuffer = nullptr;
 	}
 
-	if (g_VertexBuffer != NULL)
+	if (g_VertexBuffer != nullptr)
 	{
 		g_VertexBuffer->Release();
-		g_VertexBuffer = NULL;
+		g_VertexBuffer = nullptr;
 	}
 
-	//テクスチャの解放
-	for (int i = 0; i < PLAYER_MAX; i++)
+	// テクスチャ配列全要素を安全に解放（コメント化して未ロードの要素も nullptr チェックで安全）
+	for (size_t i = 0; i < TEX_COUNT; ++i)
 	{
-		g_Texture[i]->Release();
-		g_Texture[i] = NULL;
+		if (g_Texture[i] != nullptr)
+		{
+			g_Texture[i]->Release();
+			g_Texture[i] = nullptr;
+		}
 	}
 
+	// デバイス／コンテキストは外部管理のため解放しないが、参照はクリアしておく
+	g_pContext = nullptr;
+	g_pDevice = nullptr;
+
+	// デバッグレンダラーの終了処理
 	Debug_Finalize();
 }
 
@@ -523,8 +541,6 @@ void Polygon3D_Update()
 
 	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_D9, KK_D0 };
 
-	const float deltaTime = 1.0f / 60.0f; // デルタタイム
-
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
 		// -------------------------------------------------------------
@@ -571,7 +587,7 @@ void Polygon3D_Update()
 		if (object[p].isStunning)
 		{
 			// スタンタイマーを進める
-			object[p].stunTimer += deltaTime;
+			object[p].stunTimer += DELTA_TIME;
 
 			// スタン時間経過でスタン解除
 			if (object[p].stunTimer >= STUN_TIME)
@@ -691,7 +707,7 @@ void Polygon3D_Update()
 			object[p].useSpecial = false;
 
 			// ダウンタイマー更新
-			object[p].downTimer += deltaTime;
+			object[p].downTimer += DELTA_TIME;
 
 			// プレイヤー毎のダウン時間が経過したらリスポーン処理
 			if (object[p].downTimer >= DOWN_TIME)
@@ -735,7 +751,7 @@ void Polygon3D_Update()
 		if (object[p].isAttacked)
 		{
 			// ダメージタイマー更新
-			object[p].attackedTimer += deltaTime;
+			object[p].attackedTimer += DELTA_TIME;
 
 			// プレイヤー毎のダメージ時間が経過したらダメージ終了
 			if (object[p].attackedTimer >= ATTACKED_TIME)
@@ -749,7 +765,7 @@ void Polygon3D_Update()
 		if (object[p].isInvincible)
 		{
 			// 無敵タイマー更新
-			object[p].invincibleTimer += deltaTime;
+			object[p].invincibleTimer += DELTA_TIME;
 
 			// プレイヤー毎の無敵時間が経過したら無敵終了
 			if (object[p].invincibleTimer >= INVINCIBLE_TIME)
@@ -760,13 +776,13 @@ void Polygon3D_Update()
 		}
 
 		// プレイヤー アニメーション更新
-		g_animTimer[p] += deltaTime;
+		g_animTimer[p] += DELTA_TIME;
 		if (g_animTimer[p] >= ANIM_FRAME_TIME)
 		{
 			int advance = (int)(g_animTimer[p] / ANIM_FRAME_TIME);
 			g_animTimer[p] -= advance * ANIM_FRAME_TIME;
 
-			// 勝利 第1形態 13コマ(ラスト5コマ ループ) 第2形態 20コマ(ラスト9コマ ループ) 第2形態 21コマ(ラストコマ ループ)
+			// 勝利 第1形態 13コマ(ラスト5コマ ループ) 第2形態 20コマ(ラスト9コマ ループ) 第3形態 21コマ(ラストコマ ループ)
 			if (Keyboard_IsKeyDown(KK_TAB) || g_victoryState[p] != 0)
 			{
 				// 押下で開始
@@ -1056,7 +1072,7 @@ void Polygon3D_Update()
 				// プレイヤーの底面がタイルの上面以下か
 				if (object[p].boundingBox.Min.y <= tileTopY)
 				{
-					const float baseHalfHeight = POSITION;
+					const float baseHalfHeight = COORDINATE;
 					// 着地では見た目の高さ（描画スケール）を基準に計算しているため physicsScaling を使用
 					float halfHeight = baseHalfHeight * object[p].scaling.y * renderScale;
 
@@ -1114,15 +1130,15 @@ void Polygon3D_Update()
 		}
 
 		// プレイヤーに対応する攻撃オブジェクトを PLAYER_MAX 分ループしてスケーリング同期
-		for (int i = 0; i < PLAYER_MAX; ++i)
+		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
-			ATTACK_OBJECT* attackObject = GetAttack(i + 1); // GetAttack は 1-based
+			ATTACK_OBJECT* attackObject = GetAttack(p); // GetAttack は 1-based
 			if (attackObject == nullptr) continue;
 
 			// プレイヤー側のスケールに合わせる（攻撃オブジェクトは半分）
-			attackObject->scaling.x = object[i].scaling.x * 0.5f;
-			attackObject->scaling.y = object[i].scaling.y * 0.5f;
-			attackObject->scaling.z = object[i].scaling.z * 0.5f;
+			attackObject->scaling.x = object[p].scaling.x * 0.5f;
+			attackObject->scaling.y = object[p].scaling.y * 0.5f;
+			attackObject->scaling.z = object[p].scaling.z * 0.5f;
 		}
 
 		///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1613,10 +1629,11 @@ void Polygon3D_DrawStock(int i)
 
 PLAYEROBJECT* GetPlayer(int playerIndex)
 {
-	if (playerIndex > PLAYER_MAX || playerIndex <= 0)
+	// 範囲チェック 0未満 または 4以上なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
 	{
 		return nullptr;
 	}
 
-	return &object[playerIndex - 1];
+	return &object[playerIndex];
 }

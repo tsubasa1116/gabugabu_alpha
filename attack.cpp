@@ -32,170 +32,164 @@ static ID3D11ShaderResourceView* g_Attack_Texture[PLAYER_MAX];
 static ATTACK_OBJECT Attack[PLAYER_MAX];
 
 // マクロ定義
-#define NUM_VERTEX (36)
+#define NUM_VERTEX (24)
 
-static Vertex Attack_vdata[NUM_VERTEX] =
+static Vertex2 Attack_vdata[NUM_VERTEX] =
 {
-	// -Z面
-	{
-		// 頂点0 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// -Z面 (法線: 0,0,-1)
+	{// 頂点0 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),		// 座標
+		XMFLOAT3(0.0f, 0.0f, -1.0f),		// 法線
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	// カラー
+		XMFLOAT2(0.0f,0.0f)					// テクスチャ座標
 	},
-	{
-		// 頂点1 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点1 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点2 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点2 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-
-	{
-		// 頂点3 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-	},
-
-	// +X面
-	{
-		// 頂点4 LEFT-TOP
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点5 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点6 LEFT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点3 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	{
-		// 頂点7 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	// +X面 (法線: 1,0,0)
+	{// 頂点4 LEFT-TOP
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
+	},
+	{// 頂点5 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
+	},
+	{// 頂点6 LEFT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
+	},
+	{// 頂点7 RIGHT-BOTTM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +Z面
-	{
-		// 頂点8 LEFT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// +Z面 (法線: 0,0,1)
+	{// 頂点8 LEFT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
 	},
-	{
-		// 頂点9 RIGHT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点9 RIGHT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点10 LEFT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点10 LEFT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-
-	{
-		// 頂点11 RIGHT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-	},
-
-	// -X面
-	{
-		// 頂点12 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点13 RIGHT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点14 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点11 RIGHT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	{
-		// 頂点15 RIGHT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	// -X面 (法線: -1,0,0)
+	{// 頂点12 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
+	},
+	{// 頂点13 RIGHT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
+	},
+	{// 頂点14 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
+	},
+	{// 頂点15 RIGHT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +Y面
-	{
-		// 頂点16 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// +Y面 (法線: 0,1,0)
+	{// 頂点16 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
 	},
-	{
-		// 頂点17 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点17 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点18 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点18 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-
-	{
-		// 頂点19 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-	},
-
-	// -Y面
-	{
-		// 頂点20 LEFT-TOP
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点21 RIGHT-TOP
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点22 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点19 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	{
-		// 頂点23 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	// -Y面 (法線: 0,-1,0)
+	{// 頂点20 LEFT-TOP
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
+	},
+	{// 頂点21 RIGHT-TOP
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
+	},
+	{// 頂点22 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
+	},
+	{// 頂点23 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 };
 
@@ -223,7 +217,7 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
+	bd.ByteWidth = sizeof(Vertex2) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -293,7 +287,7 @@ void Attack_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	ATTACK_OBJECT& atttackObject = Attack[playerIndex];
 
 	if (playerObject->isAttacking == true)
@@ -320,7 +314,7 @@ void Attack_Update(int playerIndex)
 		atttackObject.position.z = dir.z * playerObject->scaling.z + playerObject->position.z;
 
 		// 攻撃タイマー更新
-		playerObject->attackTimer += 1.0f / 60.0f;
+		playerObject->attackTimer += DELTA_TIME;
 
 		// プレイヤー毎の攻撃時間が経過したら攻撃終了
 		if (playerObject->attackTimer >= ATTACKING_TIME)
@@ -607,6 +601,15 @@ void Attack_Draw(int playerIndex)
 	// 変換行列を頂点シェーダーへセット
 	Shader_SetMatrix(WVP);
 
+	LIGHT light{};
+	light.Enable = TRUE;
+	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
+	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	// 拡散光と環境光
+	light.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	light.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	Shader_SetLight(light);
+
 	// シェーダーを描画パイプラインへ設定
 	Shader_Begin();
 
@@ -617,10 +620,10 @@ void Attack_Draw(int playerIndex)
 	// 頂点シェーダーを描画パイプラインへ設定
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	Vertex* vertex = (Vertex*)msr.pData;
+	Vertex2* vertex = (Vertex2*)msr.pData;
 
 	// 頂点データを頂点バッファへコピーする
-	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex) * NUM_VERTEX);
+	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
 
 	// コピー完了
 	g_pContext->Unmap(g_VertexBuffer, 0);
@@ -629,7 +632,7 @@ void Attack_Draw(int playerIndex)
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// 頂点バッファをセット
-	UINT stride = sizeof(Vertex);
+	UINT stride = sizeof(Vertex2);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 
@@ -653,8 +656,8 @@ void AttackPlayerCollisions()
 	// 各プレイヤーの攻撃オブジェクトをループして、他プレイヤー全員に当たり判定を行う
 	for (int atk = 0; atk < PLAYER_MAX; ++atk)
 	{
-		ATTACK_OBJECT* attack = GetAttack(atk + 1);
-		PLAYEROBJECT* attacker = GetPlayer(atk + 1);
+		ATTACK_OBJECT* attack = GetAttack(atk);
+		PLAYEROBJECT* attacker = GetPlayer(atk);
 
 		if (attack == nullptr || attacker == nullptr) continue;
 		if (!attacker->isAttacking) continue;	// 攻撃中のみ判定
@@ -681,7 +684,7 @@ void AttackPlayerCollisions()
 		{
 			if (def == atk) continue; // 自分には当たらない
 
-			PLAYEROBJECT* defender = GetPlayer(def + 1);
+			PLAYEROBJECT* defender = GetPlayer(def);
 			if (defender == nullptr) continue;
 			if (!defender->active) continue; // 非アクティブなプレイヤーは無視
 			// 被弾中や無敵ならスキップ
@@ -727,10 +730,11 @@ void AttackPlayerCollisions()
 
 ATTACK_OBJECT* GetAttack(int playerIndex)
 {
-	if (playerIndex > PLAYER_MAX || playerIndex <= 0)
+	// 範囲チェック 0未満 または 4以上なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
 	{
 		return nullptr;
 	}
 
-	return &Attack[playerIndex - 1];
+	return &Attack[playerIndex];
 }
