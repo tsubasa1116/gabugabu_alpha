@@ -61,7 +61,7 @@ static ID3D11Buffer* g_VertexBuffer = NULL;
 static ID3D11Buffer* g_IndexBuffer = NULL;
 
 // テクスチャ変数
-static ID3D11ShaderResourceView* g_Texture[6];
+static ID3D11ShaderResourceView* g_Texture[25];
 
 // エフェクト デバッグ用タイマー
 static float g_effectElapsed = 0.0f; // 秒単位での経過時間を保持
@@ -364,49 +364,24 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pContext = pContext;
 
 	// テクスチャ読み込み
-	TexMetadata metadata;
-	ScratchImage image;
+	LoadTextureList(pDevice);
 
-	LoadFromWICFile(L"asset\\texture\\characterMini_v2.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
-	assert(g_Texture[0]);
-
-	LoadFromWICFile(L"asset\\texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
-	assert(g_Texture[1]);
-
-	LoadFromWICFile(L"asset\\texture\\uiStockBlue_v2.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
-	assert(g_Texture[2]);
-
-	LoadFromWICFile(L"asset\\texture\\uiStockGleen_v2.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
-	assert(g_Texture[3]);
-
-	LoadFromWICFile(L"asset\\texture\\uiLightLoopBigConcrete_v1.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
-	assert(g_Texture[4]);
-
-	LoadFromWICFile(L"asset\\texture\\uiLightLoopBigGlass_v1.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
-	assert(g_Texture[5]);
-
-	//インデックスバッファ作成
+	// インデックスバッファ作成
 	{
 		D3D11_BUFFER_DESC	bd;
-		ZeroMemory(&bd, sizeof(bd));//０でクリア
+		ZeroMemory(&bd, sizeof(bd));	// 0でクリア
 		bd.Usage = D3D11_USAGE_DYNAMIC;
 		bd.ByteWidth = sizeof(UINT) * 6 * 6;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
 
-		//インデックスバッファへ書き込み
+		// インデックスバッファへ書き込み
 		D3D11_MAPPED_SUBRESOURCE   msr;
 		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		UINT* index = (UINT*)msr.pData;
 
-		//インデックスデータをバッファへコピー
+		// インデックスデータをバッファへコピー
 		CopyMemory(&index[0], &idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
@@ -421,6 +396,54 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		g_animFrame[i] = 0;
 		g_animTimer[i] = 0.0f;
+	}
+}
+
+static void LoadTextureList(ID3D11Device* pDevice)
+{
+	TexMetadata metadata;
+	ScratchImage image;
+
+	struct TexEntry { int idx; const wchar_t* path; const char* comment; };
+
+	const TexEntry texList[] = {
+		{  0, L"asset\\texture\\characterMini_v2.png", "第1形態" },
+		{  1, L"asset\\texture\\characterMidGlass_v1.png", "第2形態 ガラス" },
+		//{  2, L"asset\\texture\\characterMidGlass_v1.png", "第2形態 コンクリート" },
+		//{  3, L"asset\\texture\\characterMidGlass_v1.png", "第2形態 植物" },
+		//{  4, L"asset\\texture\\characterMidGlass_v1.png", "第2形態 電気" },
+		//{  5, L"asset\\texture\\characterMidGlass_v1.png", "第3形態 ガラス" },
+		//{  6, L"asset\\texture\\characterMidGlass_v1.png", "第3形態 コンクリート" },
+		//{  7, L"asset\\texture\\characterMidGlass_v1.png", "第3形態 植物" },
+		//{  8, L"asset\\texture\\characterMidGlass_v1.png", "第3形態 電気" },
+		{  9, L"asset\\texture\\uiStockBlue_v2.png", "UI ストック 青" },
+		{ 10, L"asset\\texture\\uiStockGleen_v2.png", "UI ストック 緑" },
+		//{ 11, L"asset\\texture\\uiStockGleen_v2.png", "UI ストック" },
+		//{ 12, L"asset\\texture\\uiStockGleen_v2.png", "UI ストック" },
+		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png", "エフェクト ガラス" },
+		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png", "エフェクト コンクリート" },
+		//{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png", "エフェクト 植物" },
+		//{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png", "エフェクト 電気" },
+	};
+
+	for (const auto& e : texList)
+	{
+		// コメント化している要素は配列エントリ自体をコメントアウトしているためここには来ない。
+		// （上ではコメント化行を // で無効化しているためコンパイル時に存在しません）
+		HRESULT hr = LoadFromWICFile(e.path, WIC_FLAGS_NONE, &metadata, image);
+		if (SUCCEEDED(hr))
+		{
+			if (FAILED(CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[e.idx])))
+			{
+				// 作成失敗時は nullptr を代入して続行
+				g_Texture[e.idx] = nullptr;
+			}
+		}
+		else
+		{
+			// 読み込み失敗は nullptr を代入して続行
+			g_Texture[e.idx] = nullptr;
+		}
 	}
 }
 
@@ -514,7 +537,7 @@ void Polygon3D_Update()
 			object[p].scaling.y = 0.5f;
 			object[p].scaling.z = 0.5f;
 			object[p].speed = 0.06f;
-			object[p].power = 15.0f;
+			object[p].power = 1.0f;
 			break;
 
 		case Form::FirstEvolution: // 1進化
@@ -522,7 +545,7 @@ void Polygon3D_Update()
 			object[p].scaling.y = 0.8f;
 			object[p].scaling.z = 0.8f;
 			object[p].speed = 0.05f;
-			object[p].power = 1.0f;
+			object[p].power = 1.5f;
 			break;
 
 		case Form::SecondEvolution: // 2進化
@@ -530,7 +553,7 @@ void Polygon3D_Update()
 			object[p].scaling.y = 1.2f;
 			object[p].scaling.z = 1.2f;
 			object[p].speed = 0.04f;
-			object[p].power = 1.5f;
+			object[p].power = 2.0f;
 			break;
 
 		default:
@@ -743,7 +766,7 @@ void Polygon3D_Update()
 			int advance = (int)(g_animTimer[p] / ANIM_FRAME_TIME);
 			g_animTimer[p] -= advance * ANIM_FRAME_TIME;
 
-			// 勝利 13コマ (ラスト5コマをループ)
+			// 勝利 第1形態 13コマ(ラスト5コマ ループ) 第2形態 20コマ(ラスト9コマ ループ) 第2形態 21コマ(ラストコマ ループ)
 			if (Keyboard_IsKeyDown(KK_TAB) || g_victoryState[p] != 0)
 			{
 				// 押下で開始
@@ -755,20 +778,39 @@ void Polygon3D_Update()
 
 				if (g_victoryState[p] == 1)
 				{
-					// 初回再生：フレームを単純増加（208..220 を順に表示）
+					// 初回再生 フレームを単純増加
 					g_animFrame[p] += advance;
 
-					// 220 を表示した後にループ領域へ移行する
-					if (g_animFrame[p] > 220)
+					// 第1形態 220 を表示した後にループ領域へ移行する
+					if (g_animFrame[p] > 220 && object[p].form == Form::Normal)
 					{
 						g_victoryState[p] = 2;
 						g_animFrame[p] = 216; // ループ開始フレーム
 					}
+					// 第2形態 227 を表示した後にループ領域へ移行する
+					if (g_animFrame[p] > 227 && object[p].form == Form::FirstEvolution)
+					{
+						g_victoryState[p] = 2;
+						g_animFrame[p] = 219; // ループ開始フレーム
+					}
+					// 第3形態 227 を表示した後にループ領域へ移行する
+					if (g_animFrame[p] > 227 && object[p].form == Form::SecondEvolution)
+					{
+						g_victoryState[p] = 2;
+						g_animFrame[p] = 219; // ループ開始フレーム
+					}
 				}
 				else if (g_victoryState[p] == 2)
 				{
-					// ループ領域（216..220）をループする
-					LoopRange(g_animFrame[p], 216, 5, advance);
+					switch (object[p].form)
+					{
+					case Form::Normal:			LoopRange(g_animFrame[p], 216, 5, advance);	// 第1形態 216～220をループ
+						break;
+					case Form::FirstEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// 第2形態 219～227をループ
+						break;
+					case Form::SecondEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// 第3形態 219～227をループ
+						break;
+					}
 				}
 			}
 			// ダウン 5コマ (ダメージ 2コマ + ダウン 3コマ) 最終コマで停止
@@ -882,11 +924,11 @@ void Polygon3D_Update()
 		ImGui::Text("Player %d", p + 1);
 		ImGui::Indent();
 
-		// evolutionGauge breakCount を列挙して表示
 		ImGui::SliderFloat("stunGauge", &object[p].stunGauge, 0.0f, 10.0f, "%.1f");
 		ImGui::SliderFloat("invincibleTimer", &object[p].invincibleTimer, 0.0f, 3.0f, "%.1f");
 		ImGui::BulletText("active            : %d", object[p].active);
 		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
+		ImGui::BulletText("useSpecial        : %d", object[p].useSpecial);
 		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
 		ImGui::BulletText("form              : %d", object[p].form);
 		ImGui::BulletText("type              : %d", object[p].type);
@@ -1175,6 +1217,15 @@ void Polygon3D_Update()
 //======================================================
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 {
+	LIGHT light{};
+	light.Enable = TRUE;
+	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
+	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	// 拡散光と環境光
+	light.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	light.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	Shader_SetLight(light);
+
 	static bool input1 = false;
 	// デバッグモード中のみキー入力を受け付ける
 	if (s_IsKonamiCodeEntered)
@@ -1185,8 +1236,6 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		}
 	}
 	
-	//Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-	 
 	// 攻撃描画
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
@@ -1236,6 +1285,10 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			vm.r[3].m128_f32[2] = object[idx].position.z;
 			vm.r[3].m128_f32[3] = 1.0f;
 
+			// World 行列（ビルボード用）をシェーダーに渡す
+			XMMATRIX WorldMatrix = ScalingMatrix * vm;
+			Shader_SetWorldMatrix(WorldMatrix);
+
 			XMMATRIX WVP = ScalingMatrix * vm * view * projection;
 
 			Shader_SetMatrix(WVP);
@@ -1270,7 +1323,47 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			CopyMemory(vertex, &localV[0], sizeof(Vertex2) * NUM_VERTEX);
 			g_pContext->Unmap(g_VertexBuffer, 0);
 
-			g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
+			ID3D11ShaderResourceView* srv = nullptr;
+
+			// 形態とタイプに応じたテクスチャを設定
+			switch (object[idx].form)
+			{
+			// 第1形態
+			case Form::Normal:				srv = g_Texture[0];
+				break;
+			// 第2形態
+			case Form::FirstEvolution:
+				switch (object[idx].type)
+				{
+				case PlayerType::Glass:		srv = g_Texture[1];
+					break;
+				case PlayerType::Concrete:	srv = g_Texture[0];
+					break;
+				case PlayerType::Plant:		srv = g_Texture[0];
+					break;
+				case PlayerType::Electric:	srv = g_Texture[0];
+					break;
+				default:
+					break;
+				}
+				break;
+			// 第3形態
+			case Form::SecondEvolution:
+				switch (object[idx].type)
+				{
+				case PlayerType::Glass:		srv = g_Texture[1];
+					break;
+				case PlayerType::Concrete:	srv = g_Texture[0];
+					break;
+				case PlayerType::Plant:		srv = g_Texture[0];
+					break;
+				case PlayerType::Electric:	srv = g_Texture[0];
+					break;
+				}
+				break;
+			}
+			g_pContext->PSSetShaderResources(0, 1, &srv);
+
 			Shader_SetColor({ 1,1,1,1 });
 
 			// バッファセット & 描画
@@ -1282,9 +1375,9 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			g_pContext->DrawIndexed(6, 0, 0);
 		};
 
-	// -------------------------
+	// -----------------------------------
 	// 透明描画のためのソート（遠い順）
-	// -------------------------
+	// -----------------------------------
 	std::vector<std::pair<float, int>> list; // (距離二乗, index)
 	list.reserve(PLAYER_MAX);
 
@@ -1363,7 +1456,7 @@ void Polygon3D_DrawHP()
 
 void Polygon3D_DrawEffect()
 {
-	Effect_Set(g_Texture[4], { 170.0f,600.0f }, { 400.0f, 400.0f });
+	Effect_Set(g_Texture[13], { 170.0f,600.0f }, { 400.0f, 400.0f });
 
 	//// g_Texture[4] を X 座標のみ 4 個並べて描画する
 	//// basePos: 左端の位置、size: 各エフェクトのサイズ
@@ -1511,7 +1604,7 @@ void Polygon3D_DrawStock(int i)
 		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
 		XMFLOAT2 size = { 300.0f, 300.0f };
 
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 2]);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 9]);
 	
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);

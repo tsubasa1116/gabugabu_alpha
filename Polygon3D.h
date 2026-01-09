@@ -110,6 +110,7 @@ struct PLAYEROBJECT
 };
 
 void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+static void LoadTextureList(ID3D11Device* pDevice);
 void Polygon3D_Finalize();
 void Polygon3D_Update();
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
@@ -120,7 +121,6 @@ void Polygon3D_DrawEffect();
 static inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
 
 void Polygon3D_Respawn(int playerIndex);
-void CheckRespawnPlayer(int playerIndex);
 
 void Polygon3D_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int playerIndex);

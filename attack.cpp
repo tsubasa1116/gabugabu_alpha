@@ -212,13 +212,12 @@ static UINT Attack_idxdata[6 * 6]
 
 void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Attack[0].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Attack[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Attack[0].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
-
-	Attack[1].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Attack[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Attack[1].scaling = XMFLOAT3(0.3f, 0.3f, 0.3f);
+	for (int p = 0; p < PLAYER_MAX; p++)
+	{
+		Attack[p].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		Attack[p].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		Attack[p].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	}
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
@@ -703,9 +702,9 @@ void AttackPlayerCollisions()
 			if (col.isColliding)
 			{
 				// ノックバック（攻撃者の向きと攻撃力を使用）
-				defender->position.x += attacker->dir.x;
+				defender->position.x += attacker->dir.x * attacker->power;
 				// defender->position.y += attacker->power / 3.0f;
-				defender->position.z += attacker->dir.z;
+				defender->position.z += attacker->dir.z * attacker->power;
 
 				// ダメージ（防御で軽減）
 				defender->hp -= attacker->power * defender->defense;

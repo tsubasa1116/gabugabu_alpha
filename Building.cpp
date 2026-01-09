@@ -59,10 +59,10 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
-	L"Asset\\Texture\\TileA3.png",
-	L"Asset\\Texture\\TileA3.png"
-	L"Asset\\Texture\\TileA3.png"
-	L"Asset\\Texture\\TileA3.png"
+	L"asset\\texture\\TileA3.png",
+	L"asset\\texture\\TileA3.png"
+	L"asset\\texture\\TileA3.png"
+	L"asset\\texture\\TileA3.png"
 };
 
 static Building* Buildings[100];
