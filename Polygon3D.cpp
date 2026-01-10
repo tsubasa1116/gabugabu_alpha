@@ -273,6 +273,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].maxHp = 100.0f;
 	object[0].hp = object[0].maxHp;
+	object[0].attack = 0.0f;
 	object[0].power = 0.0f;
 	object[0].speed = 0.0f;
 	object[0].defense = 1.0f;
@@ -314,6 +315,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
 	object[1].maxHp = 100.0f;
 	object[1].hp = object[1].maxHp;
+	object[1].attack = 0.0f;
 	object[1].power = 0.0f;
 	object[1].speed = 0.0f;
 	object[1].defense = 1.0f;
@@ -404,26 +406,26 @@ static void LoadTextureList(ID3D11Device* pDevice)
 	TexMetadata metadata;
 	ScratchImage image;
 
-	struct TexEntry { int idx; const wchar_t* path; const char* comment; };
+	struct TexEntry { int idx; const wchar_t* path;};
 
 	const TexEntry texList[] = {
-		{  0, L"asset\\texture\\characterMini_v2.png", "第1形態" },
-		{  1, L"asset\\texture\\characterMidGlass_v1.png", "第2形態 ガラス" },
-		//{  2, L"asset\\texture\\characterMidGlass_v1.png", "第2形態 コンクリート" },
-		//{  3, L"asset\\texture\\characterMidGlass_v1.png", "第2形態 植物" },
-		//{  4, L"asset\\texture\\characterMidGlass_v1.png", "第2形態 電気" },
-		//{  5, L"asset\\texture\\characterMidGlass_v1.png", "第3形態 ガラス" },
-		//{  6, L"asset\\texture\\characterMidGlass_v1.png", "第3形態 コンクリート" },
-		//{  7, L"asset\\texture\\characterMidGlass_v1.png", "第3形態 植物" },
-		//{  8, L"asset\\texture\\characterMidGlass_v1.png", "第3形態 電気" },
-		{  9, L"asset\\texture\\uiStockBlue_v2.png", "UI ストック 青" },
-		{ 10, L"asset\\texture\\uiStockGleen_v2.png", "UI ストック 緑" },
-		//{ 11, L"asset\\texture\\uiStockGleen_v2.png", "UI ストック" },
-		//{ 12, L"asset\\texture\\uiStockGleen_v2.png", "UI ストック" },
-		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png", "エフェクト ガラス" },
-		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png", "エフェクト コンクリート" },
-		//{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png", "エフェクト 植物" },
-		//{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png", "エフェクト 電気" },
+		{  0, L"asset\\texture\\characterMini_v2.png"},				// 第1形態
+		{  1, L"asset\\texture\\characterMidGlass_v1.png"},			// 第2形態 ガラス
+		{  2, L"asset\\texture\\characterMidConcrete_v1.png" },		// 第2形態 コンクリート
+		{  3, L"asset\\texture\\characterMidTree_v1.png" },			// 第2形態 植物
+		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
+		//{  5, L"asset\\texture\\characterMidGlass_v1.png" },		// 第3形態 ガラス
+		//{  6, L"asset\\texture\\characterMidGlass_v1.png" },		// 第3形態 コンクリート
+		//{  7, L"asset\\texture\\characterMidGlass_v1.png" },		// 第3形態 植物
+		//{  8, L"asset\\texture\\characterMidGlass_v1.png" },		// 第3形態 電気
+		{  9, L"asset\\texture\\uiStockBlue_v2.png"},				// UI ストック 青
+		{ 10, L"asset\\texture\\uiStockGleen_v2.png"},				// UI ストック 緑
+		//{ 11, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
+		//{ 12, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
+		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
+		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
+		//{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
+		//{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
 	};
 
 	for (const auto& e : texList)
@@ -552,26 +554,28 @@ void Polygon3D_Update()
 			object[p].scaling.x = 0.5f;
 			object[p].scaling.y = 0.5f;
 			object[p].scaling.z = 0.5f;
-			object[p].speed = 0.06f;
+			object[p].attack = 2.0f;
 			object[p].power = 1.0f;
+			object[p].speed = 0.06f;
 			break;
 
 		case Form::FirstEvolution: // 1進化
 			object[p].scaling.x = 0.8f;
 			object[p].scaling.y = 0.8f;
 			object[p].scaling.z = 0.8f;
-			object[p].speed = 0.05f;
+			object[p].attack = 3.0f;
 			object[p].power = 1.5f;
+			object[p].speed = 0.05f;
 			break;
 
 		case Form::SecondEvolution: // 2進化
 			object[p].scaling.x = 1.2f;
 			object[p].scaling.y = 1.2f;
 			object[p].scaling.z = 1.2f;
-			object[p].speed = 0.04f;
+			object[p].attack = 4.0f;
 			object[p].power = 2.0f;
+			object[p].speed = 0.04f;
 			break;
-
 		default:
 			break;
 		}
@@ -643,15 +647,15 @@ void Polygon3D_Update()
 				object[p].useSpecial = true;
 			}
 
-			// 攻撃中なら攻撃更新処理を呼び出す
-			if (object[p].isAttacking)
-			{
-				Attack_Update(p);
-			}
 			// スキル中ならスキル更新処理を呼び出す
 			if (object[p].useSkill)
 			{
 				Skill_Update(p);
+			}
+			// 攻撃中なら攻撃更新処理を呼び出す
+			if (object[p].isAttacking)
+			{
+				Attack_Update(p);
 			}
 			// スペシャル使用中ならスペシャル更新処理を呼び出す
 			if (object[p].useSpecial)
@@ -943,12 +947,15 @@ void Polygon3D_Update()
 		ImGui::SliderFloat("stunGauge", &object[p].stunGauge, 0.0f, 10.0f, "%.1f");
 		ImGui::SliderFloat("invincibleTimer", &object[p].invincibleTimer, 0.0f, 3.0f, "%.1f");
 		ImGui::BulletText("active            : %d", object[p].active);
+		ImGui::BulletText("speed             : %.3f", object[p].speed);
+		ImGui::BulletText("defense           : %.1f", object[p].defense);
 		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
 		ImGui::BulletText("useSpecial        : %d", object[p].useSpecial);
 		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
 		ImGui::BulletText("form              : %d", object[p].form);
 		ImGui::BulletText("type              : %d", object[p].type);
 		ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
+		ImGui::BulletText("EvolutionGaugeRate: %d", object[p].evolutionGaugeRate);
 		ImGui::BulletText("1 Glass breaks    : %d", object[p].breakCount_Glass);
 		ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
 		ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
@@ -1013,6 +1020,13 @@ void Polygon3D_Update()
 
 		float widthScale  = facingZDominant ? HITBOX_SHORT : HITBOX_LONG; // X方向スケール
 		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT; // Z方向スケール
+
+		// 第2形態 第3形態はXとZ同じにする
+		if (object[p].form == Form::FirstEvolution || object[p].form == Form::SecondEvolution)
+		{
+			widthScale = 0.25f;
+			depthScale = 0.25f;
+		}
 
 		XMFLOAT3 hitboxScaling = XMFLOAT3(
 			object[p].scaling.x * renderScale * widthScale,
@@ -1168,6 +1182,13 @@ void Polygon3D_Update()
 
 				float otherWidthScale = otherFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;
 				float otherDepthScale = otherFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;
+
+				// 第2形態 第3形態はXとZ同じにする
+				if (object[otherIndex].form == Form::FirstEvolution || object[otherIndex].form == Form::SecondEvolution)
+				{
+					widthScale = 0.25f;
+					depthScale = 0.25f;
+				}
 
 				hitboxScalingOther = XMFLOAT3(
 					object[otherIndex].scaling.x * renderScale * otherWidthScale,
@@ -1345,36 +1366,27 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			switch (object[idx].form)
 			{
 			// 第1形態
-			case Form::Normal:				srv = g_Texture[0];
-				break;
+			case Form::Normal:				srv = g_Texture[0];	break;
 			// 第2形態
 			case Form::FirstEvolution:
 				switch (object[idx].type)
 				{
-				case PlayerType::Glass:		srv = g_Texture[1];
-					break;
-				case PlayerType::Concrete:	srv = g_Texture[0];
-					break;
-				case PlayerType::Plant:		srv = g_Texture[0];
-					break;
-				case PlayerType::Electric:	srv = g_Texture[0];
-					break;
-				default:
-					break;
+				case PlayerType::Glass:		srv = g_Texture[1];	break;				
+				case PlayerType::Concrete:	srv = g_Texture[2];	break;
+				case PlayerType::Plant:		srv = g_Texture[3];	break;
+				case PlayerType::Electric:	srv = g_Texture[4];	break;
+				default: break;
 				}
 				break;
 			// 第3形態
 			case Form::SecondEvolution:
 				switch (object[idx].type)
 				{
-				case PlayerType::Glass:		srv = g_Texture[1];
-					break;
-				case PlayerType::Concrete:	srv = g_Texture[0];
-					break;
-				case PlayerType::Plant:		srv = g_Texture[0];
-					break;
-				case PlayerType::Electric:	srv = g_Texture[0];
-					break;
+				case PlayerType::Glass:		srv = g_Texture[1];	break;
+				case PlayerType::Concrete:	srv = g_Texture[2];	break;
+				case PlayerType::Plant:		srv = g_Texture[3];	break;
+				case PlayerType::Electric:	srv = g_Texture[4];	break;
+				default: break;
 				}
 				break;
 			}
@@ -1499,6 +1511,7 @@ void Polygon3D_Respawn(int playerIndex)
 		object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
 		object[0].maxHp = 100.0f;
 		object[0].hp = object[0].maxHp;
+		object[0].attack = 0.0f;
 		object[0].power = 0.0f;
 		object[0].speed = 0.0f;
 		object[0].defense = 1.0f;
@@ -1550,6 +1563,7 @@ void Polygon3D_Respawn(int playerIndex)
 		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
 		object[1].maxHp = 100.0f;
 		object[1].hp = object[0].maxHp;
+		object[1].attack = 0.0f;
 		object[1].power = 0.0f;
 		object[1].speed = 0.0f;
 		object[1].defense = 1.0f;

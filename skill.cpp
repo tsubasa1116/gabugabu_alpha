@@ -235,9 +235,12 @@ void Skill_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext
 
 void Skill_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Skill[0].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Skill[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Skill[0].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
+	for (int p = 0; p < PLAYER_MAX; p++)
+	{
+		Skill[p].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		Skill[p].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		Skill[p].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	}
 
 	// テクスチャ読み込み
 	TexMetadata metadata;
@@ -251,6 +254,13 @@ void Skill_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pCont
 
 void Skill_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
+	for (int p = 0; p < PLAYER_MAX; p++)
+	{
+		Skill[p].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		Skill[p].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		Skill[p].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	}
+
 	// テクスチャ読み込み
 	TexMetadata metadata;
 	ScratchImage image;
@@ -263,6 +273,13 @@ void Skill_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext
 
 void Skill_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
+	for (int p = 0; p < PLAYER_MAX; p++)
+	{
+		Skill[p].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		Skill[p].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		Skill[p].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	}
+
 	// テクスチャ読み込み
 	TexMetadata metadata;
 	ScratchImage image;
@@ -270,7 +287,6 @@ void Skill_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pCont
 	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[3]);
 	assert(g_Skill_Texture[3]);
-
 }
 
 void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -344,9 +360,10 @@ void Skill_Glass_Update(int playerIndex)
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
 
 	// ここで Radius の値を動的に計算する
-	float dynamicRadius = playerObject->scaling.x; // scalingは等しいのでy,zでも可
+	float dynamicRadius = player.scaling.x; // scalingは等しいのでy,zでも可
 
 	// 5つの箱に対応する相対角度 (度)
 	const float RelativeAngles[5] = { 20.0f, 130.0f, 180.0f, 220.0f, 290.0f };
@@ -358,10 +375,10 @@ void Skill_Glass_Update(int playerIndex)
 	const float Rot[5] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 	// 5つの箱のスケーリング値
-	const float Scal[5] = { 0.0f, 0.15f, 0.075f, 0.2f, 0.25f };
+	const float Scal[5] = { 0.05f, 0.15f, 0.075f, 0.2f, 0.1f };
 
 	// プレイヤーの現在の回転角度 (ラジアン)
-	float playerYaw = XMConvertToRadians(playerObject->rotation.y);
+	float playerYaw = XMConvertToRadians(player.rotation.y);
 
 	SKILL_GLASS& skillGlass = g_SkillGlass[playerIndex];
 
@@ -376,9 +393,9 @@ void Skill_Glass_Update(int playerIndex)
 		float offsetZ = dynamicRadius * sinf(finalAngle);
 
 		// 箱の座標を設定
-		skillGlass.boxes[i].position.x = playerObject->position.x + offsetX;
-		skillGlass.boxes[i].position.y = playerObject->position.y + High[i];
-		skillGlass.boxes[i].position.z = playerObject->position.z + offsetZ;
+		skillGlass.boxes[i].position.x = player.position.x + offsetX;
+		skillGlass.boxes[i].position.y = player.position.y + High[i];
+		skillGlass.boxes[i].position.z = player.position.z + offsetZ;
 		skillGlass.boxes[i].rotation = XMFLOAT3(Rot[i], Rot[i], Rot[i]);
 		skillGlass.boxes[i].scaling = XMFLOAT3(Scal[i], Scal[i], Scal[i]);
 
@@ -408,7 +425,6 @@ void Skill_Glass_Update(int playerIndex)
 			PLAYEROBJECT* defender = GetPlayer(def);
 			if (defender == nullptr) continue;
 
-			if (defender == nullptr) continue;
 			if (!defender->active) continue;      // 非アクティブは無視
 			if (defender->isInvincible) continue; // 無敵中は無視
 
@@ -430,13 +446,11 @@ void Skill_Glass_Update(int playerIndex)
 			if (col.isColliding)
 			{
 				// ダメージのみ（ノックバックは与えない）
-				float damage = 0.0f;
-				if (playerObject)
-				{
-					damage = 0.01f;
-				}
+				float damage = 0.01f;
+
 				// 防御率でダメージ軽減
 				defender->hp -= damage * defender->defense;
+				// HPが0以下にならないように
 				if (defender->hp < 0.0f) defender->hp = 0.0f;
 
 				// スタンゲージ増加
@@ -450,13 +464,13 @@ void Skill_Glass_Update(int playerIndex)
 	}
 
 	// スキルタイマー更新
-	playerObject->skillTimer += DELTA_TIME;
+	player.skillTimer += DELTA_TIME;
 
 	// スキルの効果時間が経過したらスキル終了
-	if (playerObject->skillTimer >= 30)
+	if (player.skillTimer >= 30)
 	{
-		playerObject->useSkill = false;
-		playerObject->skillTimer = 0.0f;
+		player.useSkill = false;
+		player.skillTimer = 0.0f;
 	}
 }
 
@@ -467,25 +481,30 @@ void Skill_Concrete_Update(int playerIndex)
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
 
 	SKILL_OBJECT& skillConcrete = Skill[playerIndex];
 
-	// スキル効果： ダメージ軽減20% (デフォルトは1.0f)
-	playerObject->defense = 0.8f;
+	// スキルタイマー更新
+	player.skillTimer += DELTA_TIME;
+
+	// スキル効果： ダメージ0.8倍 (デフォルトは1.0f)
+	player.defense = 0.8f;
 
 	// スキルの初期位置をプレイヤーの位置に設定
-	skillConcrete.position.x = playerObject->position.x;
-	skillConcrete.position.y = playerObject->position.y;
-	skillConcrete.position.z = playerObject->position.z;
+	skillConcrete.position.x = player.position.x;
+	skillConcrete.position.y = player.position.y;
+	skillConcrete.position.z = player.position.z;
 
 	// スキルタイマー更新
-	playerObject->skillTimer += DELTA_TIME;
+	player.skillTimer += DELTA_TIME;
 
 	// スキルの効果時間が経過したらスキル終了
-	if (playerObject->skillTimer >= SKILL_CONCRETE_TIME)
+	if (player.skillTimer >= SKILL_CONCRETE_TIME)
 	{
-		playerObject->useSkill = false;
-		playerObject->skillTimer = 0.0f;
+		player.defense = 1.0f;
+		player.useSkill = false;
+		player.skillTimer = 0.0f;
 	}
 }
 
@@ -496,18 +515,20 @@ void Skill_Plant_Update(int playerIndex)
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
-
-	// スキル効果：進化ゲージ2倍
-	playerObject->evolutionGaugeRate *= 2;
+	PLAYEROBJECT& player = *playerObject;
 
 	// スキルタイマー更新
-	playerObject->skillTimer += DELTA_TIME;
+	player.skillTimer += DELTA_TIME;
+
+	// スキル効果：進化ゲージ2倍（デフォルトは1）
+	player.evolutionGaugeRate = 2;
 
 	// スキルの効果時間が経過したらスキル終了
-	if (playerObject->skillTimer >= SKILL_PLANT_TIME)
+	if (player.skillTimer >= SKILL_PLANT_TIME)
 	{
-		playerObject->useSkill = false;
-		playerObject->skillTimer = 0.0f;
+		player.evolutionGaugeRate = 1;
+		player.useSkill = false;
+		player.skillTimer = 0.0f;
 	}
 }
 
@@ -518,18 +539,24 @@ void Skill_Electric_Update(int playerIndex)
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
 
-	// スキル効果：スピード1.5倍
-	playerObject->speed *= 1.5f;
+	float baseSpeed = 0.06f; // Normal
+	if (player.form == Form::FirstEvolution) baseSpeed = 0.05f;
+	else if (player.form == Form::SecondEvolution) baseSpeed = 0.04f;
 
 	// スキルタイマー更新
-	playerObject->skillTimer += DELTA_TIME;
+	player.skillTimer += DELTA_TIME;
 
+	// スキル効果：スピード1.5倍
+	player.speed = baseSpeed * 1.5f;
+	
 	// スキルの効果時間が経過したらスキル終了
-	if (playerObject->skillTimer >= SKILL_ELECTRIC_TIME)
+	if (player.skillTimer >= SKILL_ELECTRIC_TIME)
 	{
-		playerObject->useSkill = false;
-		playerObject->skillTimer = 0.0f;
+		player.speed = baseSpeed * 1.0f;
+		player.useSkill = false;
+		player.skillTimer = 0.0f;
 	}
 }
 
@@ -540,22 +567,18 @@ void Skill_Update(int playerIndex)
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
 
 	// スキル使用中かつスタン中でない場合に更新処理を行う
-	if (playerObject->useSkill && !playerObject->isStunning)
+	if (player.useSkill && !player.isStunning)
 	{
-		switch (playerObject->type)
+		switch (player.type)
 		{
-		case PlayerType::Glass:		Skill_Glass_Update(playerIndex);
-			break;
-		case PlayerType::Concrete:	Skill_Concrete_Update(playerIndex);
-			break;
-		case PlayerType::Plant:		Skill_Plant_Update(playerIndex);
-			break;
-		case PlayerType::Electric:	Skill_Electric_Update(playerIndex);
-			break;
-		default:
-			break;
+		case PlayerType::Glass:		Skill_Glass_Update(playerIndex);	break;
+		case PlayerType::Concrete:	Skill_Concrete_Update(playerIndex);	break;
+		case PlayerType::Plant:		Skill_Plant_Update(playerIndex);	break;
+		case PlayerType::Electric:	Skill_Electric_Update(playerIndex);	break;
+		default: break;
 		}
 	}
 }
@@ -695,26 +718,22 @@ void Skill_Draw()
 	{
 		PLAYEROBJECT* playerObject = GetPlayer(p);
 		if (playerObject == nullptr) continue;
+		PLAYEROBJECT& player = *playerObject;
 
 		// そのプレイヤーがスキルを使っているかチェック
-		if (!playerObject->useSkill) continue;
+		if (!player.useSkill) continue;
 
 		// プレイヤーがスタンしていない場合のみ描画
-		if (playerObject->isStunning == false)
+		if (player.isStunning == false)
 		{
 			// プレイヤーのタイプに合わせて子関数を呼ぶ
-			switch (playerObject->type)
+			switch (player.type)
 			{
-			case PlayerType::Glass:		Skill_Glass_Draw(p);
-				break;
-			case PlayerType::Concrete:	Skill_Concrete_Draw(p);
-				break;
-			case PlayerType::Plant:		Skill_Plant_Draw(p);
-				break;
-			case PlayerType::Electric:	Skill_Electric_Draw(p);
-				break;
-			default:
-				break;
+		case PlayerType::Glass:		Skill_Glass_Draw(p);	break;
+		case PlayerType::Concrete:	//Skill_Concrete_Draw(p);	break;
+		case PlayerType::Plant:		//Skill_Plant_Draw(p);		break;
+		case PlayerType::Electric:	//Skill_Electric_Draw(p);	break;
+		default: break;
 			}
 		}
 	}

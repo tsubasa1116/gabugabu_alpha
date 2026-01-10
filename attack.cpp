@@ -288,39 +288,37 @@ void Attack_Update(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
 	ATTACK_OBJECT& atttackObject = Attack[playerIndex];
 
-	if (playerObject->isAttacking == true)
+	if (player.isAttacking == true)
 	{
-		// がぶがぶの初期位置をプレイヤーの位置に設定
-		atttackObject.position.x = playerObject->position.x;
-		atttackObject.position.y = playerObject->position.y;
-		atttackObject.position.z = playerObject->position.z;
-
-		float Player_RotationY = playerObject->rotation.y;
+		float Player_RotationY = player.rotation.y;
 		float rad = XMConvertToRadians(Player_RotationY);
 
 		// 進行方向を計算
 		XMFLOAT3 dir =
 		{
-			sinf(rad),  // X方向
-			0.0f,       // Y方向（水平）
-			cosf(rad)   // Z方向
+			sinf(rad),	// X方向
+			0.0f,		// Y方向（水平）
+			cosf(rad)	// Z方向
 		};
 
 		// プレイヤーの前方にがぶがぶを配置
-		atttackObject.position.x = dir.x * playerObject->scaling.x + playerObject->position.x;
-		atttackObject.position.y = playerObject->position.y;
-		atttackObject.position.z = dir.z * playerObject->scaling.z + playerObject->position.z;
+		atttackObject.position.x = dir.x * player.scaling.x + player.position.x;
+		atttackObject.position.y = player.position.y;
+		atttackObject.position.z = dir.z * player.scaling.z + player.position.z;
 
 		// 攻撃タイマー更新
-		playerObject->attackTimer += DELTA_TIME;
+		player.attackTimer += DELTA_TIME;
 
 		// プレイヤー毎の攻撃時間が経過したら攻撃終了
-		if (playerObject->attackTimer >= ATTACKING_TIME)
+		if (player.attackTimer >= ATTACKING_TIME)
 		{
-			playerObject->isAttacking = false;
-			playerObject->attackTimer = 0.0f;
+			player.isAttacking = false;
+			player.attackTimer = 0.0f;
 		}
 	}
 
@@ -345,191 +343,82 @@ void Attack_Update(int playerIndex)
 
 		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER/*, KK_, KK_ */};
 
+		// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
 		if (collision.isColliding)
 		{
-			// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
+			BuildingType type = buildingObjects[i]->Type;
+
+			if (Keyboard_IsKeyDown(confirmKey[playerIndex]))
 			{
-				BuildingType type = buildingObjects[i]->Type;
-
 				// 各建物タイプごとの処理
-				if (Keyboard_IsKeyDown(confirmKey[playerIndex]))
+				switch (type)
 				{
-					switch (type)
-					{
-					case BuildingType::Glass:
-					{
-						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
-						playerObject->breakCount_Glass += 1;									// ガラスを壊した数をプラス
-						playerObject->evolutionGauge += 1 * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
+				case BuildingType::Glass:
+					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+					player.breakCount_Glass += 1;						// ガラスを壊した数をプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
-						// 効果音やエフェクトを再生
+					// 効果音やエフェクトを再生
 
-						// ヒットでスキルを終了
-						//playerObject->isAttacking = false;
-						//playerObject->attackTimer = 0.0f;
+					// ヒットでスキルを終了
+					//player.isAttacking = false;
+					//player.attackTimer = 0.0f;
 
-						// 更新済みAABB
-						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
-						break;
-					}
+					// 更新済みAABB
+					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
+					break;
 
-					case BuildingType::Concrete:
-					{
-						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
-						playerObject->breakCount_Concrete += 1;									// コンクリートを壊した数をプラス
-						playerObject->evolutionGauge += 1 * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
+				case BuildingType::Concrete:
+					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+					player.breakCount_Concrete += 1;					// コンクリートを壊した数をプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
-						// 効果音やエフェクトを再生
+					// 効果音やエフェクトを再生
 
-						// ヒットでスキルを終了
-						//playerObject->isAttacking = false;
-						//playerObject->attackTimer = 0.0f;
+					// ヒットでスキルを終了
+					//player.isAttacking = false;
+					//player.attackTimer = 0.0f;
 
-						// 更新済みAABB
-						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
-						break;
-					}
+					// 更新済みAABB
+					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
+					break;
 
-					case BuildingType::Plant:
-					{
-						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
-						playerObject->breakCount_Plant += 1;									// 植物を壊した数をプラス
-						playerObject->evolutionGauge += 1 * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
+				case BuildingType::Plant:					
+					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+					player.breakCount_Plant += 1;						// 植物を壊した数をプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
-						// 効果音やエフェクトを再生
+					// 効果音やエフェクトを再生
 
-						// ヒットでスキルを終了
-						//playerObject->isAttacking = false;
-						//playerObject->attackTimer = 0.0f;
+					// ヒットでスキルを終了
+					//player.isAttacking = false;
+					//player.attackTimer = 0.0f;
 
-						// 更新済みAABB
-						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
-						break;
-					}
+					// 更新済みAABB
+					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
+					break;
 
-					case BuildingType::Electric:
-					{
-						buildingObjects[i]->isActive = false;			// 建物を非アクティブ化
-						playerObject->breakCount_Electric += 1;			// 電気を壊した数をプラス
-						playerObject->evolutionGauge += 1;				// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);	// 最後に破壊した建物タイプを保存
+				case BuildingType::Electric:
+					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+					player.breakCount_Electric += 1;					// 電気を壊した数をプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
-						// 効果音やエフェクトを再生
+					// 効果音やエフェクトを再生
 
-						// ヒットでスキルを終了
-						//playerObject->isAttacking = false;
-						//playerObject->attackTimer = 0.0f;
+					// ヒットでスキルを終了
+					//player.isAttacking = false;
+					//player.attackTimer = 0.0f;
 
-						// 更新済みAABB
-						CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
-						break;
-					}
+					// 更新済みAABB
+					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
+					break;
 
-					default:
-						break;
-					}
-
-					// --- 進化処理 ---
-					if (playerObject->evolutionGauge >= EVOLUTIONGAUGE_MAX)
-					{
-						// プレイヤーを無敵にする
-						playerObject->isInvincible = true;
-						playerObject->invincibleTimer = 0.0f;
-
-						// 現在のフォーム（進化前の状態）を保存
-						Form currentForm = playerObject->form;
-
-						// 1. 進化段階を1つ進める
-						playerObject->form = static_cast<Form>(static_cast<int>(playerObject->form) + 1);
-
-						// 2. 2進化までしか進化しないように制限
-						if (playerObject->form >= Form::SecondEvolution)
-						{
-							playerObject->form = Form::SecondEvolution;
-						}
-
-						// 3. タイプ決定ロジック
-						//    Typeの決定は、Normalから FirstEvolutionに進化する場合のみ実行
-						if (currentForm == Form::Normal)
-						{
-							// 4種類の破壊した建物数を配列に格納
-							const int counts[4] =
-							{
-								playerObject->breakCount_Glass,		// idx 0
-								playerObject->breakCount_Concrete,	// idx 1
-								playerObject->breakCount_Plant,		// idx 2
-								playerObject->breakCount_Electric	// idx 3
-							};
-
-							// 対応するタイプ定義
-							const BuildingType types[4] =
-							{
-								BuildingType::Glass,
-								BuildingType::Concrete,
-								BuildingType::Plant,
-								BuildingType::Electric
-							};
-
-							// --- Step 1: 最大カウント数(maxCount)を求める ---
-							int maxCount = 0;
-							for (int i = 0; i < 4; i++)
-							{
-								if (counts[i] > maxCount)
-								{
-									maxCount = counts[i];
-								}
-							}
-
-							// --- Step 2: 履歴を「最新」から「過去」へ遡って勝者を決める ---
-							int maxIdx = 0;
-
-							// vectorを後ろから回す
-							for (int i = playerObject->brokenHistory.size() - 1; i >= 0; i--)
-							{
-								BuildingType historyType = playerObject->brokenHistory[i];
-								int typeIdx = -1;
-
-								// タイプをインデックス番号に変換
-								for (int j = 0; j < 4; j++)
-								{
-									if (historyType == types[j])
-									{
-										typeIdx = j;
-										break;
-									}
-								}
-
-								// 「今見ている履歴のタイプ」が「最大カウント数を持つグループ」の一員か？
-								if (typeIdx != -1 && counts[typeIdx] == maxCount)
-								{
-									maxIdx = typeIdx;
-									break; // 見つかった時点で確定！
-								}
-							}
-
-							// --- Step 3: 最終タイプ反映 ---
-							switch (maxIdx)
-							{
-							case 0: playerObject->type = PlayerType::Glass;    break;
-							case 1: playerObject->type = PlayerType::Concrete; break;
-							case 2: playerObject->type = PlayerType::Plant;    break;
-							case 3: playerObject->type = PlayerType::Electric; break;
-							}
-						}
-
-						// 4. リセット処理
-						playerObject->brokenHistory.clear(); // 履歴をクリア
-						playerObject->evolutionGauge = 0;
-						playerObject->breakCount_Glass = 0;
-						playerObject->breakCount_Concrete = 0;
-						playerObject->breakCount_Plant = 0;
-						playerObject->breakCount_Electric = 0;
-
-						continue;
-					}
+				default:
+					break;
 				}
 			}
 
@@ -548,6 +437,103 @@ void Attack_Update(int playerIndex)
 			// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
 		}
 	}
+
+	// --- 進化処理 ---
+	if (player.evolutionGauge >= EVOLUTIONGAUGE_MAX)
+	{
+		// プレイヤーを無敵にする
+		player.isInvincible = true;
+		player.invincibleTimer = 0.0f;
+
+		// 現在のフォーム（進化前の状態）を保存
+		Form currentForm = player.form;
+
+		// 1. 進化段階を1つ進める
+		player.form = static_cast<Form>(static_cast<int>(player.form) + 1);
+
+		// 2. 2進化までしか進化しないように制限
+		if (player.form >= Form::SecondEvolution)
+		{
+			player.form = Form::SecondEvolution;
+		}
+
+		// 3. タイプ決定ロジック
+		//    Typeの決定は、Normalから FirstEvolutionに進化する場合のみ実行
+		if (currentForm == Form::Normal)
+		{
+			// 4種類の破壊した建物数を配列に格納
+			const int counts[4] =
+			{
+				player.breakCount_Glass,		// idx 0
+				player.breakCount_Concrete,	// idx 1
+				player.breakCount_Plant,		// idx 2
+				player.breakCount_Electric	// idx 3
+			};
+
+			// 対応するタイプ定義
+			const BuildingType types[4] =
+			{
+				BuildingType::Glass,
+				BuildingType::Concrete,
+				BuildingType::Plant,
+				BuildingType::Electric
+			};
+
+			// --- Step 1: 最大カウント数(maxCount)を求める ---
+			int maxCount = 0;
+			for (int i = 0; i < 4; i++)
+			{
+				if (counts[i] > maxCount)
+				{
+					maxCount = counts[i];
+				}
+			}
+
+			// --- Step 2: 履歴を「最新」から「過去」へ遡って勝者を決める ---
+			int maxIdx = 0;
+
+			// vectorを後ろから回す
+			for (int i = player.brokenHistory.size() - 1; i >= 0; i--)
+			{
+				BuildingType historyType = player.brokenHistory[i];
+				int typeIdx = -1;
+
+				// タイプをインデックス番号に変換
+				for (int j = 0; j < 4; j++)
+				{
+					if (historyType == types[j])
+					{
+						typeIdx = j;
+						break;
+					}
+				}
+
+				// 「今見ている履歴のタイプ」が「最大カウント数を持つグループ」の一員か？
+				if (typeIdx != -1 && counts[typeIdx] == maxCount)
+				{
+					maxIdx = typeIdx;
+					break; // 見つかった時点で確定！
+				}
+			}
+
+			// --- Step 3: 最終タイプ反映 ---
+			switch (maxIdx)
+			{
+			case 0: player.type = PlayerType::Glass;    break;
+			case 1: player.type = PlayerType::Concrete; break;
+			case 2: player.type = PlayerType::Plant;    break;
+			case 3: player.type = PlayerType::Electric; break;
+			}
+		}
+
+		// 4. リセット処理
+		player.brokenHistory.clear(); // 履歴をクリア
+		player.evolutionGauge = 0;
+		player.breakCount_Glass = 0;
+		player.breakCount_Concrete = 0;
+		player.breakCount_Plant = 0;
+		player.breakCount_Electric = 0;
+	}
 }
 
 void Attack_Draw(int playerIndex)
@@ -556,7 +542,7 @@ void Attack_Draw(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	// 参照を取る
-	ATTACK_OBJECT& sk = Attack[playerIndex];
+	ATTACK_OBJECT& attackObject = Attack[playerIndex];
 	ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
 
 	// =====================
@@ -566,25 +552,25 @@ void Attack_Draw(int playerIndex)
 	// スケーリング行列の作成
 	XMMATRIX ScalingMatrix = XMMatrixScaling
 	(
-		sk.scaling.x,
-		sk.scaling.y,
-		sk.scaling.z
+		attackObject.scaling.x,
+		attackObject.scaling.y,
+		attackObject.scaling.z
 	);
 
 	// 回転行列の作成
 	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
 	(
-		XMConvertToRadians(sk.rotation.x),
-		XMConvertToRadians(sk.rotation.y),
-		XMConvertToRadians(sk.rotation.z)
+		XMConvertToRadians(attackObject.rotation.x),
+		XMConvertToRadians(attackObject.rotation.y),
+		XMConvertToRadians(attackObject.rotation.z)
 	);
 
 	// 平行移動行列の作成
 	XMMATRIX TranslationMatrix = XMMatrixTranslation
 	(
-		sk.position.x,
-		sk.position.y,
-		sk.position.z
+		attackObject.position.x,
+		attackObject.position.y,
+		attackObject.position.z
 	);
 
 	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
@@ -642,13 +628,9 @@ void Attack_Draw(int playerIndex)
 	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	//// 描画リクエスト
-	//g_pContext->Draw(NUM_VERTEX, 0);
-
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 	SetBlendState(BLENDSTATE_ALPHA);
-
 }
 
 void AttackPlayerCollisions()
@@ -656,28 +638,33 @@ void AttackPlayerCollisions()
 	// 各プレイヤーの攻撃オブジェクトをループして、他プレイヤー全員に当たり判定を行う
 	for (int atk = 0; atk < PLAYER_MAX; ++atk)
 	{
-		ATTACK_OBJECT* attack = GetAttack(atk);
-		PLAYEROBJECT* attacker = GetPlayer(atk);
+		if (atk < 0 || atk >= PLAYER_MAX) continue; // 追加の安全チェック
+		ATTACK_OBJECT& attackObject = Attack[atk];
 
-		if (attack == nullptr || attacker == nullptr) continue;
-		if (!attacker->isAttacking) continue;	// 攻撃中のみ判定
+		// player は既存の GetPlayer を使ってヌルチェック
+		PLAYEROBJECT* attackerPtr = GetPlayer(atk);
+		if (attackerPtr == nullptr) continue;
+		PLAYEROBJECT& attacker = *attackerPtr;
+
+		if (!attacker.isAttacking) continue;	// 攻撃中のみ判定
 
 		// 攻撃オブジェクトと攻撃者の AABB を更新
-		CalculateAABB(attack->boundingBox, attack->position, attack->scaling);
-		CalculateAABB(attacker->boundingBox, attacker->position, attacker->scaling);
+		CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
+		CalculateAABB(attacker.boundingBox, attacker.position, attacker.scaling);
 
 		// 攻撃者の向きベクトルを更新（rotation.y から算出）
 		{
-			float rad = XMConvertToRadians(attacker->rotation.y);
-			attacker->dir.x = sinf(rad);
-			attacker->dir.z = cosf(rad);
+			float rad = XMConvertToRadians(attacker.rotation.y);
+			attacker.dir.x = sinf(rad);
+			attacker.dir.z = cosf(rad);
 		}
 
 		// --- プレイヤー側で使っている描画スケール・ヒットボックス比率と合わせる ---
 		const float RENDER_SCALE = 2.0f;
-		const float HITBOX_WIDTH_SCALE = 0.6f;
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
-		const float HITBOX_DEPTH_SCALE = 0.6f;
+		// Polygon3D と同じ短辺/長辺定義を使う
+		const float HITBOX_SHORT = 0.35f;
+		const float HITBOX_LONG  = 0.65f;
 
 		// 攻撃が当たる対象として他プレイヤー全員をチェック
 		for (int def = 0; def < PLAYER_MAX; ++def)
@@ -686,31 +673,47 @@ void AttackPlayerCollisions()
 
 			PLAYEROBJECT* defender = GetPlayer(def);
 			if (defender == nullptr) continue;
-			if (!defender->active) continue; // 非アクティブなプレイヤーは無視
+			if (!defender->active) continue;
 			// 被弾中や無敵ならスキップ
 			if (defender->isInvincible) continue;
 
-			// defender 用のヒットボックススケールを Polygon3D と同じ方式で計算して AABB を作る
+			// --- defender の向きから短辺/長辺を決める（Polygon3D と同様） ---
+			float radDef = XMConvertToRadians(defender->rotation.y);
+			float defFacingX = sinf(radDef);
+			float defFacingZ = cosf(radDef);
+			bool defFacingZDominant = fabsf(defFacingZ) >= fabsf(defFacingX);
+
+			float widthScale  = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
+			float depthScale  = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
+
+			// 第2形態 第3形態はXとZ同じにする
+			if (defender->form == Form::FirstEvolution || defender->form == Form::SecondEvolution)
+			{
+				widthScale = 0.25f;
+				depthScale = 0.25f;
+			}
+
+			// defender 用のヒットボックススケールを計算して AABB を作る
 			XMFLOAT3 defenderHitboxScaling =
 			{
-				defender->scaling.x * RENDER_SCALE * HITBOX_WIDTH_SCALE,
+				defender->scaling.x * RENDER_SCALE * widthScale,
 				defender->scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
-				defender->scaling.z * RENDER_SCALE * HITBOX_DEPTH_SCALE
+				defender->scaling.z * RENDER_SCALE * depthScale
 			};
 			CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
 
 			// 判定（defender AABB と 攻撃オブジェクト AABB）
-			MTV col = CalculateAABBMTV(defender->boundingBox, attack->boundingBox);
+			MTV col = CalculateAABBMTV(defender->boundingBox, attackObject.boundingBox);
 
 			if (col.isColliding)
 			{
 				// ノックバック（攻撃者の向きと攻撃力を使用）
-				defender->position.x += attacker->dir.x * attacker->power;
+				defender->position.x += attacker.dir.x * attacker.power;
 				// defender->position.y += attacker->power / 3.0f;
-				defender->position.z += attacker->dir.z * attacker->power;
+				defender->position.z += attacker.dir.z * attacker.power;
 
 				// ダメージ（防御で軽減）
-				defender->hp -= attacker->power * defender->defense;
+				defender->hp -= attacker.attack * defender->defense;
 				if (defender->hp < 0.0f) defender->hp = 0.0f;
 
 				// スタンゲージ増加
@@ -720,9 +723,9 @@ void AttackPlayerCollisions()
 				defender->isAttacked = true;
 				defender->attackedTimer = 0.0f;
 
-				// 再計算して状態を整える
+				// 再計算
 				CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
-				CalculateAABB(attack->boundingBox, attack->position, attack->scaling);
+				CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
 			}
 		}
 	}

@@ -58,7 +58,8 @@ struct PLAYEROBJECT
 	AABB boundingBox;		// 当たり判定
 	float hp;				// 体力
 	float maxHp;			// 最大体力
-	float power;			// パワー
+	float attack;			// 攻撃力
+	float power;			// ふっとばしのパワー
 	float speed;			// スピード
 	float defense;			// 防御率
 	XMFLOAT3 dir;			// 向き
@@ -89,7 +90,7 @@ struct PLAYEROBJECT
 
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
-	PlayerDir lastDir;			// 待機時の向き
+	PlayerDir lastDir;							// 待機時の向き
 	bool isMoving = false;						// 移動中かどうか
 
 	Form form;								// 変身形態
@@ -104,7 +105,6 @@ struct PLAYEROBJECT
 
 	float gl, pl, co, el;
 	float gaugeOuter;
-
 
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル
 	bool is_knocked_back = false;						// 吹き飛ばし中かどうか

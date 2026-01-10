@@ -364,10 +364,13 @@ void Special_Glass_Update(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
 	SPECIAL_GLASS& glass = g_SpecialGlass[playerIndex];
 
 	// スペシャルの初期位置をプレイヤーの位置に設定（表示用）
-	Special[playerIndex].position = playerObject->position;
+	Special[playerIndex].position = player.position;
 
 	// -------- ロックオン情報を一度だけ保存する --------
 	if (!glass.locked)
@@ -391,14 +394,14 @@ void Special_Glass_Update(int playerIndex)
 	}
 
 	// スペシャルタイマー更新
-	playerObject->specialTimer += DELTA_TIME;
+	player.specialTimer += DELTA_TIME;
 	glass.duration += 1.0f / 60.0f;
 
 	// ロックオン時間を過ぎたらミサイルを飛ばす（1回だけ）
 	if (!glass.hasSpawned && glass.duration >= SPECIAL_GLASS_LOCKON_TIME)
 	{
 		// 発射元は「発動したプレイヤーの位置」
-		XMFLOAT3 spawnPos = playerObject->position;
+		XMFLOAT3 spawnPos = player.position;
 
 		// 各ロックオン先に対してミサイルを初期化
 		size_t targetCount = glass.lockedTargets.size();
@@ -471,10 +474,10 @@ void Special_Glass_Update(int playerIndex)
 	}
 
 	// スペシャルの効果時間が経過したらリセット（ミサイルも無効化）
-	if (playerObject->specialTimer >= SPECIAL_GLASS_TIME)
+	if (player.specialTimer >= SPECIAL_GLASS_TIME)
 	{
-		playerObject->useSpecial = false;
-		playerObject->specialTimer = 0.0f;
+		player.useSpecial = false;
+		player.specialTimer = 0.0f;
 
 		// リセット
 		glass.locked = false;
@@ -532,23 +535,22 @@ void Special_Concrete_Update(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
 	SPECIAL_OBJECT& sk = Special[playerIndex];
 
-	// スペシャル効果：
-
 	// スペシャルの初期位置をプレイヤーの位置に設定
-	sk.position.x = playerObject->position.x;
-	sk.position.y = playerObject->position.y;
-	sk.position.z = playerObject->position.z;
+	sk.position = player.position;
 
 	// スペシャルタイマー更新
-	playerObject->specialTimer += DELTA_TIME;
+	player.specialTimer += DELTA_TIME;
 
 	// スペシャルの効果時間が経過したらスペシャル終了
-	if (playerObject->specialTimer >= SPECIAL_CONCRETE_TIME)
+	if (player.specialTimer >= SPECIAL_CONCRETE_TIME)
 	{
-		playerObject->useSpecial = false;
-		playerObject->specialTimer = 0.0f;
+		player.useSpecial = false;
+		player.specialTimer = 0.0f;
 	}
 }
 
@@ -558,17 +560,17 @@ void Special_Plant_Update(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
-
-	// スペシャル効果：
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
 
 	// スペシャルタイマー更新
-	playerObject->specialTimer += DELTA_TIME;
+	player.specialTimer += DELTA_TIME;
 
 	// スペシャルの効果時間が経過したらスペシャル終了
-	if (playerObject->specialTimer >= SPECIAL_PLANT_TIME)
+	if (player.specialTimer >= SPECIAL_PLANT_TIME)
 	{
-		playerObject->useSpecial = false;
-		playerObject->specialTimer = 0.0f;
+		player.useSpecial = false;
+		player.specialTimer = 0.0f;
 	}
 }
 
@@ -578,17 +580,17 @@ void Special_Electric_Update(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
-
-	// スペシャル効果：
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
 
 	// スペシャルタイマー更新
-	playerObject->specialTimer += DELTA_TIME;
+	player.specialTimer += DELTA_TIME;
 
 	// スペシャルの効果時間が経過したらスペシャル終了
-	if (playerObject->specialTimer >= SPECIAL_ELECTRIC_TIME)
+	if (player.specialTimer >= SPECIAL_ELECTRIC_TIME)
 	{
-		playerObject->useSpecial = false;
-		playerObject->specialTimer = 0.0f;
+		player.useSpecial = false;
+		player.specialTimer = 0.0f;
 	}
 }
 
@@ -598,29 +600,25 @@ void Special_Update(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
 
 	// スペシャル使用中かつスタン中でない場合に更新処理を行う
-	if (playerObject->useSpecial && !playerObject->isStunning)
+	if (player.useSpecial && !player.isStunning)
 	{
-		// プレイヤーのタイプに合わせて子関数を呼ぶ
-		switch (playerObject->type)
+		switch (player.type)
 		{
-		case PlayerType::Glass:		Special_Glass_Update(playerIndex);
-			break;
-		case PlayerType::Concrete:	Special_Concrete_Update(playerIndex);
-			break;
-		case PlayerType::Plant:		Special_Plant_Update(playerIndex);
-			break;
-		case PlayerType::Electric:	Special_Electric_Update(playerIndex);
-			break;
-		default:
-			break;
+		case PlayerType::Glass:		Special_Glass_Update(playerIndex);		break;
+		case PlayerType::Concrete:	Special_Concrete_Update(playerIndex);	break;
+		case PlayerType::Plant:		Special_Plant_Update(playerIndex);		break;
+		case PlayerType::Electric:	Special_Electric_Update(playerIndex);	break;
+		default: break;
 		}
 
-		playerObject->form = Form::Normal;		// 変身形態を通常に戻す
-		playerObject->type = PlayerType::None;	// スペシャル使用後にタイプをリセット
-		playerObject->useSkill = false;			// スキル解除
-		playerObject->useSpecial = false;		// スペシャル解除
+		player.form = Form::Normal;		// 変身形態を通常に戻す
+		player.type = PlayerType::None;	// スペシャル使用後にタイプをリセット
+		player.useSkill = false;		// スキル解除
+		player.useSpecial = false;		// スペシャル解除
 	}
 }
 
@@ -756,26 +754,23 @@ void Special_Draw()
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
 		PLAYEROBJECT* playerObject = GetPlayer(p);
+		if (playerObject == nullptr) continue;
+		PLAYEROBJECT& player = *playerObject;
 
 		// そのプレイヤーがスペシャルを使っているかチェック
-		if (!playerObject->useSpecial) continue;
+		if (!player.useSpecial) continue;
 
 		// プレイヤーがスタンしていない場合のみ描画
-		if (playerObject->isStunning == false)
+		if (player.isStunning == false)
 		{
 			// プレイヤーのタイプに合わせて子関数を呼ぶ
-			switch (playerObject->type)
+			switch (player.type)
 			{
-			case PlayerType::Glass:		Special_Glass_Draw(p);
-				break;
-			case PlayerType::Concrete:	Special_Concrete_Draw(p);
-				break;
-			case PlayerType::Plant:		Special_Plant_Draw(p);
-				break;
-			case PlayerType::Electric:	Special_Electric_Draw(p);
-				break;
-			default:
-				break;
+			case PlayerType::Glass:		Special_Glass_Draw(p);		break;
+			case PlayerType::Concrete:	Special_Concrete_Draw(p);	break;
+			case PlayerType::Plant:		Special_Plant_Draw(p);		break;
+			case PlayerType::Electric:	Special_Electric_Draw(p);	break;
+			default: break;
 			}
 		}
 	}
