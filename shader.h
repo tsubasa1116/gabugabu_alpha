@@ -36,6 +36,7 @@ void Shader_SetColor(const XMFLOAT4& color);
 void Shader_BeginDebugColor();
 
 void Shader_SetGaugeTextures();
+void Shader_SetOutGaugeTextures();
 
 
 #endif // SHADER_H

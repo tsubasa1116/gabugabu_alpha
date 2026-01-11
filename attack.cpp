@@ -14,6 +14,8 @@ using namespace DirectX;
 #include "debug_ostream.h"
 #include "Polygon3D.h"
 #include "keyboard.h"
+#include "DamageText.h"
+#include "Effect.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -343,6 +345,9 @@ void Attack_Update(int playerIndex)
 	// 全てのフィールドオブジェクトと衝突判定を行う
 	for (int i = 0; i < buildingCount; ++i)
 	{
+		// 非アクティブなオブジェクトをスキップ（二重でゲージが加算されることを防ぐため）
+		if (!buildingObjects[i]->isActive) continue;
+
 		// i番目のフィールドオブジェクトのAABBを取得
 		// field.cppのInitializeで計算済みのため、そのまま参照
 		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
@@ -361,13 +366,14 @@ void Attack_Update(int playerIndex)
 				// 各建物タイプごとの処理（Glass を参考に拡張）
 				if (Keyboard_IsKeyDown(confirmKey[playerIndex]))
 				{
+
 					switch (type)
 					{
 					case BuildingType::Glass:
 					{
 						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
 						playerObject->breakCount_Glass += 1;									// ガラスを壊した数をプラス
-						playerObject->evolutionGauge += 1 * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
+						playerObject->evolutionGauge += 0.1f * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
 						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
@@ -385,7 +391,7 @@ void Attack_Update(int playerIndex)
 					{
 						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
 						playerObject->breakCount_Concrete += 1;									// コンクリートを壊した数をプラス
-						playerObject->evolutionGauge += 1 * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
+						playerObject->evolutionGauge += 0.1f * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
 						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
@@ -403,7 +409,7 @@ void Attack_Update(int playerIndex)
 					{
 						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
 						playerObject->breakCount_Plant += 1;									// 植物を壊した数をプラス
-						playerObject->evolutionGauge += 1 * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
+						playerObject->evolutionGauge += 0.1f * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
 						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
@@ -421,7 +427,7 @@ void Attack_Update(int playerIndex)
 					{
 						buildingObjects[i]->isActive = false;			// 建物を非アクティブ化
 						playerObject->breakCount_Electric += 1;			// 電気を壊した数をプラス
-						playerObject->evolutionGauge += 1;				// 進化ゲージをプラス
+						playerObject->evolutionGauge += 0.1f;				// 進化ゲージをプラス
 						playerObject->brokenHistory.push_back(type);	// 最後に破壊した建物タイプを保存
 
 						// 効果音やエフェクトを再生
@@ -525,6 +531,43 @@ void Attack_Update(int playerIndex)
 
 						// 4. リセット処理 (毎回実行)
 						//    タイプ決定の if ブロックの外に出すことで、どのフォーム段階からの進化でもリセットされる
+
+
+						// 追加：2進化に到達した直後ならエフェクトをセット
+						/*if (playerObject->form == Form::SecondEvolution && currentForm != Form::SecondEvolution)
+						{
+							XMFLOAT2 pos = { 170.0f, 600.0f };
+							XMFLOAT2 size = { 300.0f, 300.0f };
+							Effect_Set(0, pos, size);
+						}*/
+						// 追加：2進化に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
+						if (playerObject->form == Form::SecondEvolution && currentForm != Form::SecondEvolution)
+						{
+							// プレイヤーごとの画面上のエフェクト位置
+							const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
+							{
+								{ 145.0f, 640.0f }, // プレイヤー1
+								{ 455.0f, 640.0f }  // プレイヤー2
+							};
+
+							// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）
+							int effectTexNo = 0; // デフォルト
+							switch (playerObject->type)
+							{
+							case PlayerType::Glass:     effectTexNo = 0; break;
+							case PlayerType::Concrete:  effectTexNo = 1; break;
+							case PlayerType::Plant:     effectTexNo = 2; break;
+							case PlayerType::Electric:  effectTexNo = 3; break;
+							default:                    effectTexNo = 0; break;
+							}
+
+							// プレイヤー番号は playerIndex（0ベース）
+							XMFLOAT2 pos = playerEffectPos[playerIndex];
+							XMFLOAT2 size = { 300.0f, 300.0f };
+
+							Effect_Set(effectTexNo, pos, size);
+						}
+
 						playerObject->brokenHistory.clear(); // 履歴もクリアする
 						playerObject->evolutionGauge = 0;
 						playerObject->breakCount_Glass = 0;

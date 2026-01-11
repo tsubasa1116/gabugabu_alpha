@@ -132,8 +132,6 @@ void DrawHP(const HP* bar, int texNum)
 	float ratio = bar->current / bar->size.x;
 	ratio = max(0.0f, min(1.0f, ratio));
 
-	
-
 	// 画像バー本体（横に削る）
 	XMFLOAT2 uvMin = { 0.0f, 0.0f };
 	XMFLOAT2 uvMax = { ratio, 1.0f };
@@ -147,16 +145,16 @@ void DrawHP(const HP* bar, int texNum)
 	};
 
 	//// サイズ・位置調整（ごり押し）
-	//XMFLOAT2 fillSizeOK = { fillSize .x / 1.88f, fillSize .y / 2.0f};
-	//XMFLOAT2 fillPosOK = {bar->pos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 97.0f, bar->pos.y + 33.0f};
+	XMFLOAT2 fillSizeOK = { fillSize.x / 1.88f, fillSize.y};
+	XMFLOAT2 fillPosOK = {bar->pos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, bar->pos.y};
 	
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNum]);
 	DrawSprite(backPos, backSize, bar->backColor);
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	Shader_BeginHpber();
-	Shader_SetHpber(color::blue, color::red, 0.7f, 0.5f);
-	DrawSpriteUV(fillPos, fillSize, bar->fillColor, uvMin, uvMax);
+	Shader_SetHpber(color::blue, color::red, 0.3f, 0.5f);
+	DrawSpriteUV(fillPosOK, fillSizeOK, bar->fillColor, uvMin, uvMax);
 
 	Shader_Begin();
 

@@ -20,6 +20,7 @@
 #include	"score.h"
 #include	"Audio.h"
 #include    "gauge.h"
+#include    "DamageText.h"
 
 #include	"Polygon.h"
 #include	"Polygon3D.h"
@@ -114,6 +115,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//Score_Initialize(pDevice, pContext);//スコア初期化
 	Attack_Initialize(pDevice, pContext);
 	Skill_Initialize(pDevice, pContext);
+	DamageText_Initialize();
 
 	Polygon3D_Initialize(pDevice, pContext);//３Dテスト初期化
 
@@ -158,6 +160,7 @@ void Game_Finalize()
 	Camera_Finalize();
 	Attack_Finalize();
 	Skill_Finalize();
+	DamageText_Finalize();
 
 	UnloadAudio(g_BgmID);//サウンドの解放
 }
@@ -189,6 +192,7 @@ void Game_Update()
 	//Score_Update();
 	Polygon3D_Update();
 	Gauge_Update();
+	DamageText_Update();
 
 	//ゲームシーンへ遷移
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
@@ -223,6 +227,7 @@ void Game_Draw()
 	Polygon3D_DrawEffect();
 	Effect_Draw();
 	Polygon3D_DrawHP();
+	DamageText_Draw();
 	DrawTextEx(
 		L"こんにちは世界",        // 表示する文字
 		600, 400,                // 位置

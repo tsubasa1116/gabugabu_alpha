@@ -9,7 +9,7 @@
 
 // マクロ定義
 #define	PLAYER_MAX			(2)		// プレイヤー最大数
-#define	EVOLUTIONGAUGE_MAX	(10)	// 進化ゲージ最大値
+#define	EVOLUTIONGAUGE_MAX	(1.0f)	// 進化ゲージ最大値
 #define	ATTACK_DURATION		(0.5f)	// 攻撃持続時間（秒）
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_DURATION		(5.0f)	// スタン持続時間（秒）
@@ -64,16 +64,13 @@ struct PLAYEROBJECT
 
 	Form form;								// 変身形態
 	PlayerType type;						// プレイヤーの属性タイプ
-	int evolutionGauge;						// 進化ゲージ
-	int evolutionGaugeRate;					// 進化ゲージ 倍率
+	float evolutionGauge;						// 進化ゲージ
+	float evolutionGaugeRate;					// 進化ゲージ 倍率
 	int breakCount_Glass;					// 破壊した数 ガラス
 	int breakCount_Concrete;				// 破壊した数 コンクリート
 	int breakCount_Plant;					// 破壊した数 植物
 	int breakCount_Electric;				// 破壊した数 電気
 	std::vector<BuildingType> brokenHistory;// 破壊した建物のリスト
-
-	float gl, pl, co, el;
-	float gaugeOuter;
 
 
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル

@@ -30,11 +30,14 @@ using namespace DirectX;
 #include <iostream>
 #include "debug_ostream.h"
 #include "attack.h" 
+#include "DamageText.h"
+#include "makeText.h"
 ///////////////////////////////////////
 
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+
 
 
 //======================================================
@@ -44,8 +47,8 @@ using namespace DirectX;
 #define	PLAYER_MAX		(2)
 #define HPBER_SIZE_X	(270.0f)	// HPバーのサイズ
 #define HPBER_SIZE_Y	(270.0f)	// 〃
-#define GAUGE_POS_X		(77.0f)		// HPバーを基準としたゲージの位置調整
-#define GAUGE_POS_Y		(36.0f)		// 〃
+#define GAUGE_POS_X		(69.0f)		// HPバーを基準としたゲージの位置調整
+#define GAUGE_POS_Y		(8.0f)		// 〃
 
 //======================================================
 //	構造体宣言
@@ -474,17 +477,13 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].stunTimer = 0.0f;
 	object[0].form = Form::Normal;
 	object[0].type = PlayerType::None;
-	object[0].evolutionGauge = 0;
-	object[0].evolutionGaugeRate = 1;
-	object[0].breakCount_Glass = 0;
-	object[0].breakCount_Concrete = 0;
-	object[0].breakCount_Plant = 0;
-	object[0].breakCount_Electric = 0;
-	object[0].gl = 1.0f;
-	object[0].pl = 1.0f;
-	object[0].co = 1.0f;
-	object[0].el = 1.0f;
-	object[0].gaugeOuter = 1.0f;
+	object[0].evolutionGauge = 0.0f;
+	object[0].evolutionGaugeRate = 1.0f;
+	object[0].breakCount_Glass = 1;
+	object[0].breakCount_Concrete = 1;
+	object[0].breakCount_Plant = 1;
+	object[0].breakCount_Electric = 1;
+
 
 	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -507,17 +506,13 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].stunTimer = 0.0f;
 	object[1].form = Form::Normal;
 	object[1].type = PlayerType::None;
-	object[1].evolutionGauge = 0;
-	object[1].evolutionGaugeRate = 1;
-	object[1].breakCount_Glass = 0;
-	object[1].breakCount_Concrete = 0;
-	object[1].breakCount_Plant = 0;
-	object[1].breakCount_Electric = 0;
-	object[1].gl = 1.0f;
-	object[1].pl = 1.0f;
-	object[1].co = 1.0f;
-	object[1].el = 1.0f;
-	object[1].gaugeOuter = 1.0f;
+	object[1].evolutionGauge = 0.0f;
+	object[1].evolutionGaugeRate = 1.0f;
+	object[1].breakCount_Glass = 1;
+	object[1].breakCount_Concrete = 1;
+	object[1].breakCount_Plant = 1;
+	object[1].breakCount_Electric = 1;
+
 
 	//頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
@@ -798,22 +793,23 @@ void Polygon3D_Update()
 
 		if (ImGui::Button("gl +1"))
 		{
-			object[p].gl += 0.1f;
+			object[p].breakCount_Glass += 1;
 		}
 		else if (ImGui::Button("pl +1"))
 		{
-			object[p].pl += 0.1f;
+			object[p].breakCount_Plant += 1;
 		}
 		else if (ImGui::Button("co +1"))
 		{
-			object[p].co += 0.1f;
+			object[p].breakCount_Concrete += 1;
 		}
 		else if (ImGui::Button("el +1"))
 		{
-			object[p].el += 0.1f;
+			object[p].breakCount_Electric += 1;
 		}
-
-		ImGui::SliderFloat("Outer", &object[p].gaugeOuter, 0.0f, 1.0f);
+		
+		ImGui::SliderFloat("HP", &object[p].hp, 0.0f, 100.0f);
+		ImGui::SliderFloat("Outer", &object[p].evolutionGauge, 0.0f, 1.0f);
 
 		// 履歴リストのサイズを表示
 		size_t historySize = object[p].brokenHistory.size();
@@ -1353,8 +1349,8 @@ void Polygon3D_DrawHP()
 		DrawHP(&HPBar[i], i + 2);
 		XMFLOAT2 hp = HPBar[i].pos;
 
-		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
-			object[i].gaugeOuter, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y});
+		Gauge_Set(i, object[i].breakCount_Glass, object[i].breakCount_Concrete, object[i].breakCount_Plant, object[i].breakCount_Electric,
+			object[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y});
 
 		Gauge_Draw(i);
 
@@ -1366,7 +1362,7 @@ void Polygon3D_DrawHP()
 
 void Polygon3D_DrawEffect()
 {
-	Effect_Set(g_Texture[4], { 170.0f, 600.0f }, { 400.0f, 400.0f });
+	//Effect_Set(0, { 170.0f, 600.0f }, { 400.0f, 400.0f });
 }
 
 void Polygon3D_Respawn(int playerIndex)
@@ -1403,11 +1399,6 @@ void Polygon3D_Respawn(int playerIndex)
 		object[0].breakCount_Plant = 0;
 		object[0].breakCount_Electric = 0;
 		object[0].brokenHistory.clear();
-		object[0].gl = 1.0f;
-		object[0].pl = 1.0f;
-		object[0].co = 1.0f;
-		object[0].el = 1.0f;
-		object[0].gaugeOuter = 1.0f;
 
 		object[0].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[0].is_knocked_back = false;
@@ -1444,11 +1435,6 @@ void Polygon3D_Respawn(int playerIndex)
 		object[1].breakCount_Plant = 0;
 		object[1].breakCount_Electric = 0;
 		object[1].brokenHistory.clear();
-		object[1].gl = 1.0f;
-		object[1].pl = 1.0f;
-		object[1].co = 1.0f;
-		object[1].el = 1.0f;
-		object[1].gaugeOuter = 1.0f;
 
 		object[1].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].is_knocked_back = false;
@@ -1486,10 +1472,19 @@ void AttackPlayerCollisions()
 			//p1->position.y += p2->power / 3;
 			p1->position.z += p2->dir.z * p2->power;
 
+			// ダメージ用変数
+			float rawDamage = p2->power * p1->defense;
+
 			// ダメージ 攻撃を受ける側の防御力でダメージを軽減
-			p1->hp -= p2->power * p1->defense;
+			p1->hp -= rawDamage;
 			// スタンゲージ増加
 			p1->stunGauge += 0.5f;
+
+			// ダメージ数字を表示（頭上にオフセット）
+			int dmgInt = static_cast<int>(rawDamage + 0.5f);
+			XMFLOAT3 hitPos = p1->position;
+			hitPos.y += p1->scaling.y + 0.3f;
+			SetDamageText(hitPos, dmgInt, TextColor::Blue);
 
 			//// ヒットでスキルを消す（1回ヒット）
 			//object[1].isAttacking = false;
@@ -1517,10 +1512,19 @@ void AttackPlayerCollisions()
 			//p2->position.y += p1->power;
 			p2->position.z += p1->dir.z * p1->power;
 
+			// ダメージ用変数
+			float rawDamage = p1->power * p2->defense;
+
 			// ダメージ 攻撃を受ける側の防御力でダメージを軽減
-			p2->hp -= p1->power * p2->defense;
+			p2->hp -= rawDamage;
 			// スタンゲージ増加
 			p2->stunGauge += 0.5f;
+
+			// ダメージ数字を表示（頭上にオフセット）
+			int dmgInt = static_cast<int>(rawDamage + 0.5f);
+			XMFLOAT3 hitPos = p1->position;
+			hitPos.y += p1->scaling.y + 0.3f;
+			SetDamageText(hitPos, dmgInt, TextColor::Green);
 
 			//// ヒットでスキルを消す
 			//object[0].isAttacking = false;

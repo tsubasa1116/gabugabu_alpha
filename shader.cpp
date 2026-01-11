@@ -39,6 +39,9 @@ static ID3D11PixelShader* g_pDebugColorShader = nullptr; // コライダー可視化
 static ID3D11ShaderResourceView* g_GaugeTex[4] = {};
 static ID3D11SamplerState* g_GaugeSampler = nullptr;
 
+static ID3D11ShaderResourceView* g_OutGaugeTex = nullptr;
+static ID3D11SamplerState* g_OutGaugeSampler = nullptr;
+
 
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
@@ -300,15 +303,19 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		L"asset/texture/uiMaterialElectricity_v3.png"
 	};
 
+	TexMetadata metadata;
+	ScratchImage image;
+
 	for (int i = 0; i < 4; i++)
 	{
-		TexMetadata metadata;
-		ScratchImage image;
-
 		LoadFromWICFile(files[i], WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_GaugeTex[i]);
 		assert(g_GaugeTex[i]);
 	}
+
+	LoadFromWICFile(L"Asset\\Texture\\uiEvolutionGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_OutGaugeTex);
+	assert(g_OutGaugeTex);
 
 
 	//======================================================
@@ -348,18 +355,28 @@ void Shader_Finalize()
 
 
 //======================================================
-//	ゲージ用テクスチャセット関数
+//	内ゲージ用テクスチャセット関数
 //======================================================
 void Shader_SetGaugeTextures()
 {
 	// t0-t3
 	g_pContext->PSSetShaderResources(0, 4, g_GaugeTex);  // glass, concrete, plant, electric の順
 	
-
 	// s0
 	g_pContext->PSSetSamplers(0, 1, &g_GaugeSampler);
 }
 
+//======================================================
+//	外ゲージ用テクスチャセット関数
+//======================================================
+void Shader_SetOutGaugeTextures()
+{
+	// t0
+	g_pContext->PSSetShaderResources(0, 1, &g_OutGaugeTex); 
+
+	// s0
+	g_pContext->PSSetSamplers(0, 1, &g_OutGaugeSampler);
+}
 
 //======================================================
 //	行列関数
