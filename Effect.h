@@ -12,10 +12,11 @@ using namespace DirectX;
 class EFFECT
 {
 	public:
-		bool		Enable;
-		XMFLOAT3	Position;
-		int			FrameCount;	//アニメーションカウンター
-
+		bool enable;
+		XMFLOAT3 pos;
+		XMFLOAT2 size;
+		int frameCnt;	//アニメーションカウンター
+		int texNo;
 };
 //メイン処理関数
 void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
