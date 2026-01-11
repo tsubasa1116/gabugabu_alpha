@@ -9,7 +9,7 @@
 #define EFFECT_SPLIT_X 8
 #define EFFECT_SPLIT_Y 8
 #define EFFECT_FRAME_MAX 64
-#define EFFECT_SPEED 2
+#define EFFECT_SPEED 2.5
 #define EFFECT_TEX_MAX 4
 #define EFFECT_MAX 4
 
@@ -26,6 +26,8 @@ static EFFECT effect[EFFECT_MAX];
 
 static int g_EffectFrame = 0;
 static int g_EffectTimer = 0;
+
+static bool g_EffectLoopFlag = false;
 
 //===============================================
 //　テクスチャセット用関数
@@ -92,18 +94,33 @@ void Effect_Finalize()
 void Effect_Update()
 {
 	g_EffectTimer++;
+
 	if (g_EffectTimer >= EFFECT_SPEED)
 	{
 		g_EffectTimer = 0;
 		g_EffectFrame++;
 
-		if (g_EffectFrame >= 58)
+		if (!g_EffectLoopFlag)
 		{
-			g_EffectFrame = 0;
+			g_EffectTimer++;
+			if (g_EffectFrame > 29)
+			{
+				g_EffectLoopFlag = true;
+				g_EffectFrame = 32;
+			}
+			if (g_EffectFrame >= EFFECT_FRAME_MAX)
+			{
+				g_EffectFrame = 0;
+			}
 		}
-		if (g_EffectFrame >= EFFECT_FRAME_MAX)
+		else
 		{
-			g_EffectFrame = 0;
+			// ループ
+			g_EffectFrame++;
+			if (g_EffectFrame >= 61)
+			{
+				g_EffectFrame = 32;
+			}
 		}
 	}
 }
