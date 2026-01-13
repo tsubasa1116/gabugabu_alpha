@@ -77,7 +77,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 //===============================================
 void Effect_Finalize()
 {
-	for (int i = 0; i < EFFECT_TEX_MAX; i++)
+	for (int i = 0; i < EFFECT_MAX; i++)
 	{
 		if (g_Texture[i] && g_ReleaseOwned[i])
 		{

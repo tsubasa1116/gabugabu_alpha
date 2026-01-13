@@ -304,7 +304,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].form = Form::Normal;
 	object[0].type = PlayerType::None;
 	object[0].evolutionGauge = 0.0f;
-	object[0].evolutionGaugeRate = 1.0f;
+	object[0].evolutionGaugeRate = 0.1f;
 	object[0].breakCount_Glass = 1;
 	object[0].breakCount_Concrete = 1;
 	object[0].breakCount_Plant = 1;
@@ -343,7 +343,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].form = Form::Normal;
 	object[1].type = PlayerType::None;
 	object[1].evolutionGauge = 0.0f;
-	object[1].evolutionGaugeRate = 1.0f;
+	object[1].evolutionGaugeRate = 0.1f;
 	object[1].breakCount_Glass = 1;
 	object[1].breakCount_Concrete = 1;
 	object[1].breakCount_Plant = 1;

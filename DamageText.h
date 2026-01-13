@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include "direct3d.h"
 #include "color.h"
+#include "makeText.h"
 
 enum TextColor;
 

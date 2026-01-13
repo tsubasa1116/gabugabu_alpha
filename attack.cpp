@@ -520,77 +520,58 @@ void Attack_Update(int playerIndex)
 					break; // 見つかった時点で確定！
 				}
 			}
+			// --- Step 3: 最終タイプ反映 ---
+			switch (maxIdx)
+			{
+			case 0: playerObject->type = PlayerType::Glass;    break;
+			case 1: playerObject->type = PlayerType::Concrete; break;
+			case 2: playerObject->type = PlayerType::Plant;    break;
+			case 3: playerObject->type = PlayerType::Electric; break;
+			}
+		}
 
-							// --- Step 3: 最終タイプ反映 ---
-							switch (maxIdx)
-							{
-							case 0: playerObject->type = PlayerType::Glass;    break;
-							case 1: playerObject->type = PlayerType::Concrete; break;
-							case 2: playerObject->type = PlayerType::Plant;    break;
-							case 3: playerObject->type = PlayerType::Electric; break;
-							}
-						}
-
-						// 4. リセット処理 (毎回実行)
-						//    タイプ決定の if ブロックの外に出すことで、どのフォーム段階からの進化でもリセットされる
+		// 4. リセット処理 (毎回実行)
+		//    タイプ決定の if ブロックの外に出すことで、どのフォーム段階からの進化でもリセットされる
 
 
-						// 追加：2進化に到達した直後ならエフェクトをセット
-						/*if (playerObject->form == Form::SecondEvolution && currentForm != Form::SecondEvolution)
-						{
-							XMFLOAT2 pos = { 170.0f, 600.0f };
-							XMFLOAT2 size = { 300.0f, 300.0f };
-							Effect_Set(0, pos, size);
-						}*/
-						// 追加：2進化に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
-						if (playerObject->form == Form::SecondEvolution && currentForm != Form::SecondEvolution)
-						{
-							// プレイヤーごとの画面上のエフェクト位置
-							const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
-							{
-								{ 145.0f, 640.0f }, // プレイヤー1
-								{ 455.0f, 640.0f }  // プレイヤー2
-							};
+		// 2進化に到達した直後ならエフェクトをセット
+		/*if (playerObject->form == Form::SecondEvolution && currentForm != Form::SecondEvolution)
+		{
+			XMFLOAT2 pos = { 170.0f, 600.0f };
+			XMFLOAT2 size = { 300.0f, 300.0f };
+			Effect_Set(0, pos, size);
+		}*/
 
-							// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）
-							int effectTexNo = 0; // デフォルト
-							switch (playerObject->type)
-							{
-							case PlayerType::Glass:     effectTexNo = 0; break;
-							case PlayerType::Concrete:  effectTexNo = 1; break;
-							case PlayerType::Plant:     effectTexNo = 2; break;
-							case PlayerType::Electric:  effectTexNo = 3; break;
-							default:                    effectTexNo = 0; break;
-							}
+		// 2進化に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
+		if (playerObject->form == Form::SecondEvolution && currentForm != Form::SecondEvolution)
+		{
+			// プレイヤーごとの画面上のエフェクト位置
+			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
+			{
+				{ 145.0f, 640.0f }, // プレイヤー1
+				{ 455.0f, 640.0f }  // プレイヤー2
+			};
 
-							// プレイヤー番号は playerIndex（0ベース）
-							XMFLOAT2 pos = playerEffectPos[playerIndex];
-							XMFLOAT2 size = { 300.0f, 300.0f };
-
-							Effect_Set(effectTexNo, pos, size);
-						}
-
-						playerObject->brokenHistory.clear(); // 履歴もクリアする
-						playerObject->evolutionGauge = 0;
-						playerObject->breakCount_Glass = 0;
-						playerObject->breakCount_Concrete = 0;
-						playerObject->breakCount_Plant = 0;
-						playerObject->breakCount_Electric = 0;
-
-						continue;
-					}
-				}
+			// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）
+			int effectTexNo = 0; // デフォルト
+			switch (playerObject->type)
+			{
+			case PlayerType::Glass:     effectTexNo = 0; break;
+			case PlayerType::Concrete:  effectTexNo = 1; break;
+			case PlayerType::Plant:     effectTexNo = 2; break;
+			case PlayerType::Electric:  effectTexNo = 3; break;
+			default:                    effectTexNo = 0; break;
 			}
 
-		// 4. リセット処理
-		player.brokenHistory.clear(); // 履歴をクリア
-		player.evolutionGauge = 0;
-		player.breakCount_Glass = 0;
-		player.breakCount_Concrete = 0;
-		player.breakCount_Plant = 0;
-		player.breakCount_Electric = 0;
+			// プレイヤー番号は playerIndex（0ベース）
+			XMFLOAT2 pos = playerEffectPos[playerIndex];
+			XMFLOAT2 size = { 300.0f, 300.0f };
+
+			Effect_Set(effectTexNo, pos, size);
+		}
 	}
 }
+
 
 void Attack_Draw(int playerIndex)
 {
@@ -780,8 +761,8 @@ void AttackPlayerCollisions()
 
 				// ダメージ数字を表示（頭上にオフセット）
 				int dmgInt = static_cast<int>(rawDamage + 0.5f);
-				XMFLOAT3 hitPos = p1->position;
-				hitPos.y += p1->scaling.y + 0.3f;
+				XMFLOAT3 hitPos = defender->position;
+				hitPos.y += defender->scaling.y + 0.3f;
 				SetDamageText(hitPos, dmgInt, TextColor::Blue);
 
 				// ダメージフラグ・タイマー（アニメ／UI 用）
