@@ -43,8 +43,8 @@ unsigned int Direct3D_GetBackBufferWidth(); // バックバッファの幅を取得
 unsigned int Direct3D_GetBackBufferHeight(); // バックバッファの高さを取得
 
 
-void	SetDepthTest(bool flg);	//深度テスト切り替え
-
+void SetDepthTest(bool flg);	//深度テスト切り替え
+void SetDepthReadOnly();		// 深度テストは有効だが深度バッファへの書き込みを無効にする
 
 enum	BLENDSTATE
 {

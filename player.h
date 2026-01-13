@@ -18,7 +18,7 @@ enum PIECE_STATE
 class PIECE
 {
 	public:
-		XMFLOAT2		Position;	//表示座標
+		XMFLOAT2		position;	//表示座標
 		int				Type[3];	//色種別
 		PIECE_STATE		State;		//状態
 

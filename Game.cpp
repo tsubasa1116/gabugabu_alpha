@@ -1,51 +1,42 @@
 //======================================================
-//	game.cpp[]
+//	Game.cpp[]
 // 
 //	制作者：前野翼			日付：2024//
 //======================================================
-//Game.cpp
 
-#include	"Manager.h"
-#include	"sprite.h"
-#include	"Game.h"
-#include	"keyboard.h"
-#include	"makeText.h"
-
-#include	"player.h"
-#include    "p.h"
-#include	"Block.h"
-#include	"field.h"
-#include	"building.h"
-#include	"Effect.h"
-#include	"score.h"
-#include	"Audio.h"
-#include    "gauge.h"
-
-#include	"Polygon.h"
-#include	"Polygon3D.h"
-#include	"Camera.h"
-
+#include "Manager.h"
+#include "sprite.h"
+#include "Game.h"
+#include "keyboard.h"
+#include "makeText.h"
+#include "player.h"
+#include "p.h"
+#include "Block.h"
+#include "field.h"
+#include "building.h"
+#include "Effect.h"
+#include "score.h"
+#include "Audio.h"
+#include "gauge.h"
+#include "Polygon.h"
+#include "Polygon3D.h"
+#include "Camera.h"
 #include "Ball.h"
 #include "attack.h"
 #include "skill.h"
-
+#include "special.h"
 #include "fade.h"
-
-
-
-#include	"direct3d.h"//<<<<<<<<<<<<<<<<<<<
-
-
+#include "direct3d.h"
 
 //======================================================
 //	構造謡宣言
 //======================================================
-LIGHTOBJECT		Light;//<<<<<<ライト管理オブジェクト
+LIGHTOBJECT Light;
 
 //======================================================
 //	グローバル変数
 //======================================================
-static	int		g_BgmID = NULL;	//サウンド管理ID
+static int g_BgmID = NULL;	// サウンド管理ID
 bool input2 = false;
 
 const int KONAMI_CODE[] = {
@@ -104,42 +95,39 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Initialize_MakeText();
 	CreateRenderTarget_MakeText();
 
-	Field_Initialize(pDevice, pContext); // フィールドの初期化
-	//BallInitialize(pDevice, pContext); // ボールの初期化
-
-	//P_Initialize(pDevice, pContext); // プレイヤーの初期化
-	//Player_Initialize(pDevice, pContext); // ポリゴンの初期化
-	//Block_Initialize(pDevice, pContext);//ブロックの初期化
-	Effect_Initialize(pDevice, pContext);//エフェクト初期化
-	//Score_Initialize(pDevice, pContext);//スコア初期化
+	Polygon3D_Initialize(pDevice, pContext);
+	Field_Initialize(pDevice, pContext);
+	Effect_Initialize(pDevice, pContext);
 	Attack_Initialize(pDevice, pContext);
 	Skill_Initialize(pDevice, pContext);
+	Special_Initialize(pDevice, pContext);
+	Camera_Initialize();
 
-	Polygon3D_Initialize(pDevice, pContext);//３Dテスト初期化
+	//BallInitialize(pDevice, pContext);
+	//P_Initialize(pDevice, pContext);		// プレイヤーの初期化
+	//Player_Initialize(pDevice, pContext);	// ポリゴンの初期化
+	//Block_Initialize(pDevice, pContext);
+	//Score_Initialize(pDevice, pContext);
 
-	Camera_Initialize();	//カメラ初期化
-
-	g_BgmID = LoadAudio("asset\\Audio\\bgm.wav");	//サウンドロード
-	//PlayAudio(g_BgmID, true);		//再生開始（ループあり）
-	//PlayAudio(g_BgmID);			//再生開始（ループなし）
-	//PlayAudio(g_BgmID, false);	//再生開始（ループなし）
+	g_BgmID = LoadAudio("asset\\Audio\\bgm.wav");	// サウンドロード
+	//PlayAudio(g_BgmID, true);		// 再生開始（ループあり）
+	//PlayAudio(g_BgmID);			// 再生開始（ループなし）
+	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし）
 
 	//ライト初期化
-	XMFLOAT4	para;
+	XMFLOAT4 para;
 
-	para = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);//環境光の色
+	para = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);	// 環境光の色
 	Light.SetAmbient(para);
-
-	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);//光の色
+	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);	// 光の色
 	Light.SetDiffuse(para);
+	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);	// 光方向
 
-	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);//光方向
-	float	len = sqrtf(para.x * para.x + para.y * para.y + para.z * para.z);
+	float len = sqrtf(para.x * para.x + para.y * para.y + para.z * para.z);
 	para.x /= len;
 	para.y /= len;
 	para.z /= len;
-	Light.SetDirection(para);//光の方向（正規化済）
-
+	Light.SetDirection(para);	// 光の方向（正規化済）
 }
 
 //======================================================
@@ -148,18 +136,20 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void Game_Finalize()
 {
 	Field_Finalize();
-	//BallFinalize();
-	//P_Finalize();
-	//Block_Finalize();
-	//Player_Finalize();	// ポリゴンの終了処理
 	Effect_Finalize();
-	//Score_Finalize();
 	Polygon3D_Finalize();
 	Camera_Finalize();
 	Attack_Finalize();
 	Skill_Finalize();
+	Special_Finalize();
+	
+	//BallFinalize();
+	//P_Finalize();
+	//Block_Finalize();
+	//Player_Finalize();	// ポリゴンの終了処理
+	//Score_Finalize();
 
-	UnloadAudio(g_BgmID);//サウンドの解放
+	UnloadAudio(g_BgmID);	// サウンドの解放
 }
 
 //======================================================
@@ -178,23 +168,25 @@ void Game_Update()
 	else if (Keyboard_IsKeyDownTrigger(KK_B))		CheckKonamiCode(KK_B);
 	else if (Keyboard_IsKeyDownTrigger(KK_A))		CheckKonamiCode(KK_A);
 	// ------------------------------------
-	//更新処理
-	Camera_Update();
-	//BallUpdate();
+	// 更新処理
+	// ------------------------------------
+	Polygon3D_Update();
 	Field_Update();
+	Effect_Update();
+	Gauge_Update();
+	Camera_Update();	// プレイヤーの更新の後に呼ぶ
+
+	//BallUpdate();
 	//P_Update();
 	//Player_Update();
 	//Block_Update();
-	Effect_Update();
 	//Score_Update();
-	Polygon3D_Update();
-	Gauge_Update();
-
-	//ゲームシーンへ遷移
+	
+	// ゲームシーンへ遷移
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-		//フェードアウトさせてシーンを切り替える
-		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
+		// フェードアウトさせてシーンを切り替える
+		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
 	}
 }
@@ -204,40 +196,37 @@ void Game_Update()
 //======================================================
 void Game_Draw()
 { 
-	Light.SetEnable(TRUE);			//ライティングON
-	Shader_SetLight(Light.Light);	//ライト構造体をシェーダーへセット
+	Light.SetEnable(TRUE);			// ライティングON
+	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセット
 	SetDepthTest(TRUE);
 
-	Camera_Draw();		//Drawの最初で呼ぶ！
+	Camera_Draw();	// Drawの最初で呼ぶ！
 	Field_Draw(s_IsKonamiCodeEntered);
-	//BallDraw();
 	Polygon3D_Draw(s_IsKonamiCodeEntered);
 	Skill_Draw();
+	Special_Draw();
 	
+	//BallDraw();
 
 	//2D描画
-	Light.SetEnable(FALSE);			//ライティングOFF
-	Shader_SetLight(Light.Light);	//ライト構造体をシェーダーへセット
+	Light.SetEnable(FALSE);			// ライティングOFF
+	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
     
 	Polygon3D_DrawEffect();
 	Effect_Draw();
 	Polygon3D_DrawHP();
 	DrawTextEx(
-		L"こんにちは世界",        // 表示する文字
-		600, 400,                // 位置
-		60.0f,                   // サイズ
-		L"玉ねぎ楷書激無料版v7改", // フォント
-		TextColor::Yellow        // 色
+		L"こんにちは世界",			// 表示する文字
+		600, 400,					// 位置
+		60.0f,						// サイズ
+		L"玉ねぎ楷書激無料版v7改",	// フォント
+		TextColor::Yellow			// 色
 	);
 	
-	//BallDraw();
 	//P_Draw();
 	//Block_Draw();
 	//Player_Draw();
 	//Score_Draw();
-
-
-
 }
 

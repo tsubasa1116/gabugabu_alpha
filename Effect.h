@@ -13,7 +13,7 @@ class EFFECT
 {
 	public:
 		bool		Enable;
-		XMFLOAT3	Position;
+		XMFLOAT3	position;
 		int			FrameCount;	//アニメーションカウンター
 
 };
@@ -23,4 +23,6 @@ void Effect_Finalize();
 void Effect_Update();
 void Effect_Draw();
 void Effect_Set(ID3D11ShaderResourceView* tex, XMFLOAT2 pos, XMFLOAT2 size);
+void Effect_SetMultiple(ID3D11ShaderResourceView* tex, XMFLOAT2 basePos, XMFLOAT2 size, int count, float spacingX);
+
 

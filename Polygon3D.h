@@ -8,11 +8,29 @@
 #include "Building.h" 
 
 // マクロ定義
-#define	PLAYER_MAX			(2)		// プレイヤー最大数
+#define	PLAYER_MAX				(2)	// プレイヤー最大数
+#define	DELTA_TIME	 (1.0f / 60.0f)	// デルタタイム（秒）
+
 #define	EVOLUTIONGAUGE_MAX	(10)	// 進化ゲージ最大値
-#define	ATTACK_DURATION		(0.5f)	// 攻撃持続時間（秒）
+#define	ATTACKING_TIME		(0.5f)	// 攻撃持続時間（秒）
+#define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間（秒）
+#define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間（秒）
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
-#define	STUN_DURATION		(5.0f)	// スタン持続時間（秒）
+#define	STUN_TIME			(5.0f)	// スタン持続時間（秒）
+#define	DOWN_TIME			(3.0f)	// ダウン持続時間（秒）
+
+enum class PlayerDir
+{
+	Up_Right = 0,
+	Up_Left,
+	Down_Right,
+	Down_Left,
+	Up,
+	Down,
+	Right,
+	Left,
+	Max
+};
 
 enum class Form
 {
@@ -21,7 +39,8 @@ enum class Form
 	SecondEvolution		// 2進化
 };
 
-enum class PlayerType {
+enum class PlayerType
+{
 	None,		// 未設定
 	Glass,		// ガラス
 	Concrete,	// コンクリ
@@ -39,7 +58,8 @@ struct PLAYEROBJECT
 	AABB boundingBox;		// 当たり判定
 	float hp;				// 体力
 	float maxHp;			// 最大体力
-	float power;			// パワー
+	float attack;			// 攻撃力
+	float power;			// ふっとばしのパワー
 	float speed;			// スピード
 	float defense;			// 防御率
 	XMFLOAT3 dir;			// 向き
@@ -49,18 +69,29 @@ struct PLAYEROBJECT
 	bool isAttacking;		// 攻撃中かどうか
 	float attackTimer;		// 攻撃タイマー
 
+	bool isAttacked;		// ダメージ中かどうか
+	float attackedTimer;	// ダメージタイマー
+
 	bool useSkill;			// スキル使用中かどうか
 	float skillTimer;		// スキルタイマー
 
 	bool useSpecial;		// スペシャル使用中かどうか
 	float specialTimer;		// スペシャルタイマー
 
+	bool isInvincible;		// 無敵中かどうか
+	float invincibleTimer;	// 無敵タイマー
+
 	float stunGauge;		// スタンゲージ
 	bool isStunning;		// スタン中かどうか
 	float stunTimer;		// スタンタイマー
 
+	bool isDown;			// ダウン中かどうか
+	float downTimer;		// ダウンタイマー
+
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
+	PlayerDir lastDir;							// 待機時の向き
+	bool isMoving = false;						// 移動中かどうか
 
 	Form form;								// 変身形態
 	PlayerType type;						// プレイヤーの属性タイプ
@@ -75,23 +106,23 @@ struct PLAYEROBJECT
 	float gl, pl, co, el;
 	float gaugeOuter;
 
-
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル
 	bool is_knocked_back = false;						// 吹き飛ばし中かどうか
 	float knockback_duration = 0.0f;					// 吹き飛ばしの残り時間（フレーム数
 };
 
 void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+static void LoadTextureList(ID3D11Device* pDevice);
 void Polygon3D_Finalize();
 void Polygon3D_Update();
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 void Polygon3D_DrawHP();
 void Polygon3D_DrawEffect();
 
+// アニメーション関数
+static inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
 
-void AttackPlayerCollisions();
 void Polygon3D_Respawn(int playerIndex);
-void CheckRespawnPlayer(int playerIndex);
 
 void Polygon3D_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int playerIndex);

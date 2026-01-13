@@ -30,7 +30,7 @@ enum BALL_STATE
 class BALL
 {
 	public:
-		XMFLOAT3	Position;	//表示座標
+		XMFLOAT3	position;	//表示座標
 		XMFLOAT3	Rotation;	//回転角
 		XMFLOAT3	Scaling;	//拡大率
 		XMFLOAT3	Velocity;	//速度
