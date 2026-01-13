@@ -74,6 +74,7 @@ struct PLAYEROBJECT
 
 	bool useSkill;			// スキル使用中かどうか
 	float skillTimer;		// スキルタイマー
+	float skillCoolTimer;	// スキルクールタイマー
 
 	bool useSpecial;		// スペシャル使用中かどうか
 	float specialTimer;		// スペシャルタイマー

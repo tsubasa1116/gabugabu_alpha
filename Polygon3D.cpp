@@ -140,6 +140,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].attackedTimer = 0.0f;
 	object[0].useSkill = false;
 	object[0].skillTimer = 0.0f;
+	object[0].skillCoolTimer = 0.0f;
 	object[0].useSpecial = false;
 	object[0].specialTimer = 0.0f;
 	object[0].isInvincible = false;
@@ -183,6 +184,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].attackedTimer = 0.0f;
 	object[1].useSkill = false;
 	object[1].skillTimer = 0.0f;
+	object[1].skillCoolTimer = 0.0f;
 	object[1].useSpecial = false;
 	object[1].specialTimer = 0.0f;
 	object[1].isInvincible = false;
@@ -226,6 +228,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].attackedTimer = 0.0f;
 	object[2].useSkill = false;
 	object[2].skillTimer = 0.0f;
+	object[2].skillCoolTimer = 0.0f;
 	object[2].useSpecial = false;
 	object[2].specialTimer = 0.0f;
 	object[2].isInvincible = false;
@@ -269,6 +272,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].attackedTimer = 0.0f;
 	object[3].useSkill = false;
 	object[3].skillTimer = 0.0f;
+	object[3].skillCoolTimer = 0.0f;
 	object[3].useSpecial = false;
 	object[3].specialTimer = 0.0f;
 	object[3].isInvincible = false;
@@ -587,20 +591,15 @@ void Polygon3D_Update()
 				object[p].useSpecial = true;
 			}
 
-			// スキル中ならスキル更新処理を呼び出す
-			if (object[p].useSkill)
+			// フラグが立ったら更新処理を呼び出す
+			if (object[p].useSkill)		Skill_Update(p);	// スキル
+			if (object[p].isAttacking)	Attack_Update(p);	// 攻撃
+			if (object[p].useSpecial)	Special_Update(p);	// スペシャル
+			// プレイヤーごとのスキルクールタイムを毎フレーム減算
+			if (object[p].skillCoolTimer > 0.0f)
 			{
-				Skill_Update(p);
-			}
-			// 攻撃中なら攻撃更新処理を呼び出す
-			if (object[p].isAttacking)
-			{
-				Attack_Update(p);
-			}
-			// スペシャル使用中ならスペシャル更新処理を呼び出す
-			if (object[p].useSpecial)
-			{
-				Special_Update(p);
+				object[p].skillCoolTimer -= DELTA_TIME;
+				if (object[p].skillCoolTimer < 0.0f) object[p].skillCoolTimer = 0.0f;
 			}
 
 			// 現在のプレイヤー p の移動ベクトルだけをリセット
@@ -1467,6 +1466,7 @@ void Polygon3D_Respawn(int playerIndex)
 		object[0].attackedTimer = 0.0f;
 		object[0].useSkill = false;
 		object[0].skillTimer = 0.0f;
+		object[0].skillCoolTimer = 0.0f;
 		object[0].useSpecial = false;
 		object[0].specialTimer = 0.0f;
 		object[0].isInvincible = false;
@@ -1476,7 +1476,6 @@ void Polygon3D_Respawn(int playerIndex)
 		object[0].stunTimer = 0.0f;
 		object[0].isDown = false;
 		object[0].downTimer = 0.0f;
-
 		object[0].lastDir = PlayerDir::Down; // 正面
 		object[0].isMoving = false;
 		object[0].form = Form::Normal;
@@ -1519,6 +1518,7 @@ void Polygon3D_Respawn(int playerIndex)
 		object[1].attackedTimer = 0.0f;
 		object[1].useSkill = false;
 		object[1].skillTimer = 0.0f;
+		object[1].skillCoolTimer = 0.0f;
 		object[1].useSpecial = false;
 		object[1].specialTimer = 0.0f;
 		object[1].isInvincible = false;
@@ -1528,7 +1528,6 @@ void Polygon3D_Respawn(int playerIndex)
 		object[1].stunTimer = 0.0f;
 		object[1].isDown = false;
 		object[1].downTimer = 0.0f;
-
 		object[1].lastDir = PlayerDir::Down; // 正面
 		object[1].isMoving = false;
 		object[1].form = Form::Normal;
@@ -1572,6 +1571,7 @@ void Polygon3D_Respawn(int playerIndex)
 		object[2].attackedTimer = 0.0f;
 		object[2].useSkill = false;
 		object[2].skillTimer = 0.0f;
+		object[2].skillCoolTimer = 0.0f;
 		object[2].useSpecial = false;
 		object[2].specialTimer = 0.0f;
 		object[2].isInvincible = false;
@@ -1618,6 +1618,7 @@ void Polygon3D_Respawn(int playerIndex)
 		object[3].attackedTimer = 0.0f;
 		object[3].useSkill = false;
 		object[3].skillTimer = 0.0f;
+		object[3].skillCoolTimer = 0.0f;
 		object[3].useSpecial = false;
 		object[3].specialTimer = 0.0f;
 		object[3].isInvincible = false;
