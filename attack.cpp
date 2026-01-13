@@ -569,6 +569,15 @@ void Attack_Update(int playerIndex)
 
 			Effect_Set(effectTexNo, pos, size);
 		}
+
+
+
+		player.brokenHistory.clear(); // —š—ð‚àƒNƒŠƒA‚·‚é
+		player.evolutionGauge = 0;
+		player.breakCount_Glass = 0;
+		player.breakCount_Concrete = 0;
+		player.breakCount_Plant = 0;
+		player.breakCount_Electric = 0;
 	}
 }
 

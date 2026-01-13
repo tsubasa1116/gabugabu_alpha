@@ -185,11 +185,42 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
 		}
 	}
 
+ if (slot < 0) return;
+
 	effect[slot].enable = true;
 	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
 	effect[slot].size = size;
 	effect[slot].frameCnt = 0;
 	effect[slot].texNo = texNo;
+}
+
+//===============================================
+//　エフェクト消去
+//===============================================
+void Effect_Clear(int pIndex)
+{
+	// プレイヤーごとのエフェクト位置
+	const XMFLOAT2 playerEffectPos[2] =
+	{
+		{ 145.0f, 640.0f }, // プレイヤー1
+		{ 455.0f, 640.0f }  // プレイヤー2
+	};
+
+	if (pIndex < 0 || pIndex >= 2) return;
+
+	XMFLOAT2 targetPos = playerEffectPos[pIndex];
+
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable) continue;
+
+		// 位置が一致するエフェクトを無効化
+		if (fabsf(effect[i].pos.x - targetPos.x) < 1.0f &&
+			fabsf(effect[i].pos.y - targetPos.y) < 1.0f)
+		{
+			effect[i].enable = false;
+		}
+	}
 }
 
 //void Effect_SetMultiple(ID3D11ShaderResourceView* tex, XMFLOAT2 basePos, XMFLOAT2 size, int count, float spacingX)

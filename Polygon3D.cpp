@@ -696,6 +696,7 @@ void Polygon3D_Update()
 			// ダウン状態に移行してタイマーをリセット
 			object[p].isDown = true;
 			object[p].downTimer = 0.0f;
+			Effect_Clear(p);
 		}
 
 		// ダウン状態のタイマー更新とリスポーン判定
@@ -733,6 +734,7 @@ void Polygon3D_Update()
 		// 落下処理
 		if (object[p].active && object[p].position.y <= -10.0f)
 		{
+			Effect_Clear(p);
 			// 残機を一つ減らす
 			object[p].stock -= 1;
 
