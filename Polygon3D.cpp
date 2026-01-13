@@ -353,6 +353,92 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].el = 1.0f;
 	object[1].gaugeOuter = 1.0f;
 
+	object[2].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
+	object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	object[2].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+	object[2].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	object[2].maxHp = 100.0f;
+	object[2].hp = object[2].maxHp;
+	object[2].attack = 0.0f;
+	object[2].power = 0.0f;
+	object[2].speed = 0.0f;
+	object[2].defense = 1.0f;
+	object[2].stock = 3;
+	object[2].active = true;
+	object[2].isAttacking = false;
+	object[2].attackTimer = 0.0f;
+	object[2].isAttacked = false;
+	object[2].attackedTimer = 0.0f;
+	object[2].useSkill = false;
+	object[2].skillTimer = 0.0f;
+	object[2].useSpecial = false;
+	object[2].specialTimer = 0.0f;
+	object[2].isInvincible = false;
+	object[2].invincibleTimer = 0.0f;
+	object[2].stunGauge = 0.0f;
+	object[2].isStunning = false;
+	object[2].stunTimer = 0.0f;
+	object[2].isDown = false;
+	object[2].downTimer = 0.0f;
+	object[2].lastDir = PlayerDir::Down; // 正面
+	object[2].isMoving = false;
+	object[2].form = Form::Normal;
+	object[2].type = PlayerType::None;
+	object[2].evolutionGauge = 0;
+	object[2].evolutionGaugeRate = 1;
+	object[2].breakCount_Glass = 0;
+	object[2].breakCount_Concrete = 0;
+	object[2].breakCount_Plant = 0;
+	object[2].breakCount_Electric = 0;
+	object[2].gl = 1.0f;
+	object[2].pl = 1.0f;
+	object[2].co = 1.0f;
+	object[2].el = 1.0f;
+	object[2].gaugeOuter = 1.0f;
+
+	object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
+	object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	object[3].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+	object[3].maxHp = 100.0f;
+	object[3].hp = object[3].maxHp;
+	object[3].attack = 0.0f;
+	object[3].power = 0.0f;
+	object[3].speed = 0.0f;
+	object[3].defense = 1.0f;
+	object[3].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	object[3].stock = 3;
+	object[3].active = true;
+	object[3].isAttacking = false;
+	object[3].attackTimer = 0.0f;
+	object[3].isAttacked = false;
+	object[3].attackedTimer = 0.0f;
+	object[3].useSkill = false;
+	object[3].skillTimer = 0.0f;
+	object[3].useSpecial = false;
+	object[3].specialTimer = 0.0f;
+	object[3].isInvincible = false;
+	object[3].invincibleTimer = 0.0f;
+	object[3].stunGauge = 0.0f;
+	object[3].isStunning = false;
+	object[3].stunTimer = 0.0f;
+	object[3].isDown = false;
+	object[3].downTimer = 0.0f;
+	object[3].lastDir = PlayerDir::Down; // 正面
+	object[3].isMoving = false;
+	object[3].form = Form::Normal;
+	object[3].type = PlayerType::None;
+	object[3].evolutionGauge = 0;
+	object[3].evolutionGaugeRate = 1;
+	object[3].breakCount_Glass = 0;
+	object[3].breakCount_Concrete = 0;
+	object[3].breakCount_Plant = 0;
+	object[3].breakCount_Electric = 0;
+	object[3].gl = 1.0f;
+	object[3].pl = 1.0f;
+	object[3].co = 1.0f;
+	object[3].el = 1.0f;
+	object[3].gaugeOuter = 1.0f;
+
 	//頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
 	ZeroMemory(&bd, sizeof(bd));//0でクリア
@@ -1566,7 +1652,7 @@ void Polygon3D_Respawn(int playerIndex)
 		object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
 		object[1].maxHp = 100.0f;
-		object[1].hp = object[0].maxHp;
+		object[1].hp = object[1].maxHp;
 		object[1].attack = 0.0f;
 		object[1].power = 0.0f;
 		object[1].speed = 0.0f;
@@ -1609,6 +1695,99 @@ void Polygon3D_Respawn(int playerIndex)
 		object[1].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[1].is_knocked_back = false;
 		object[1].knockback_duration = 0.0f;
+	}
+	// 残機が1つ以上ある場合
+	else if (object[2].active == true && playerIndex == 2)
+	{
+
+		object[2].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
+		object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[2].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[2].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[2].maxHp = 100.0f;
+		object[2].hp = object[2].maxHp;
+		object[2].attack = 0.0f;
+		object[2].power = 0.0f;
+		object[2].speed = 0.0f;
+		object[2].defense = 1.0f;
+		object[2].stock = 3;
+		object[2].active = true;
+		object[2].isAttacking = false;
+		object[2].attackTimer = 0.0f;
+		object[2].isAttacked = false;
+		object[2].attackedTimer = 0.0f;
+		object[2].useSkill = false;
+		object[2].skillTimer = 0.0f;
+		object[2].useSpecial = false;
+		object[2].specialTimer = 0.0f;
+		object[2].isInvincible = false;
+		object[2].invincibleTimer = 0.0f;
+		object[2].stunGauge = 0.0f;
+		object[2].isStunning = false;
+		object[2].stunTimer = 0.0f;
+		object[2].isDown = false;
+		object[2].downTimer = 0.0f;
+		object[2].lastDir = PlayerDir::Down; // 正面
+		object[2].isMoving = false;
+		object[2].form = Form::Normal;
+		object[2].type = PlayerType::None;
+		object[2].evolutionGauge = 0;
+		object[2].evolutionGaugeRate = 1;
+		object[2].breakCount_Glass = 0;
+		object[2].breakCount_Concrete = 0;
+		object[2].breakCount_Plant = 0;
+		object[2].breakCount_Electric = 0;
+		object[2].gl = 1.0f;
+		object[2].pl = 1.0f;
+		object[2].co = 1.0f;
+		object[2].el = 1.0f;
+		object[2].gaugeOuter = 1.0f;
+	}
+	// 残機が1つ以上ある場合
+	else if (object[3].active == true && playerIndex == 3)
+	{
+		object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
+		object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[3].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[3].maxHp = 100.0f;
+		object[3].hp = object[3].maxHp;
+		object[3].attack = 0.0f;
+		object[3].power = 0.0f;
+		object[3].speed = 0.0f;
+		object[3].defense = 1.0f;
+		object[3].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[3].stock = 3;
+		object[3].active = true;
+		object[3].isAttacking = false;
+		object[3].attackTimer = 0.0f;
+		object[3].isAttacked = false;
+		object[3].attackedTimer = 0.0f;
+		object[3].useSkill = false;
+		object[3].skillTimer = 0.0f;
+		object[3].useSpecial = false;
+		object[3].specialTimer = 0.0f;
+		object[3].isInvincible = false;
+		object[3].invincibleTimer = 0.0f;
+		object[3].stunGauge = 0.0f;
+		object[3].isStunning = false;
+		object[3].stunTimer = 0.0f;
+		object[3].isDown = false;
+		object[3].downTimer = 0.0f;
+		object[3].lastDir = PlayerDir::Down; // 正面
+		object[3].isMoving = false;
+		object[3].form = Form::Normal;
+		object[3].type = PlayerType::None;
+		object[3].evolutionGauge = 0;
+		object[3].evolutionGaugeRate = 1;
+		object[3].breakCount_Glass = 0;
+		object[3].breakCount_Concrete = 0;
+		object[3].breakCount_Plant = 0;
+		object[3].breakCount_Electric = 0;
+		object[3].gl = 1.0f;
+		object[3].pl = 1.0f;
+		object[3].co = 1.0f;
+		object[3].el = 1.0f;
+		object[3].gaugeOuter = 1.0f;
 	}
 }
 

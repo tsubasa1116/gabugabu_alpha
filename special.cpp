@@ -31,7 +31,7 @@ static ID3D11ShaderResourceView* g_Special_Texture[10];
 // オブジェクト
 static SPECIAL_OBJECT Special[PLAYER_MAX];
 
-static SPECIAL_GLASS g_SpecialGlass[2];
+static SPECIAL_GLASS g_SpecialGlass[PLAYER_MAX];
 
 // マクロ定義
 #define NUM_VERTEX (24)
