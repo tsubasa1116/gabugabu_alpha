@@ -17,10 +17,13 @@ using namespace DirectX;
 // 列挙型定義
 //=========================================
 enum class BuildingType {
+
 	Glass,		// ガラス建物
 	Concrete,	// コンクリ建物
 	Plant,		// 植物建物
 	Electric,	// 電気建物
+	Tower,      //東京タワー
+	a,
 	None,		// 未設定
 	Max
 };

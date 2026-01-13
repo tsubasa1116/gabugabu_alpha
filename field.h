@@ -20,8 +20,11 @@ enum FIELD
 
 	FIELD_Glass,		// ガラス建物
 	FIELD_Concrete,		// コンクリ建物
+	FIELD_Concrete1,
 	FIELD_Plant,		// 植物建物
 	FIELD_Electric,		// 電気建物
+	FIELD_Tower,        //東京タワー
+	FIELD_a,
 
 	FIELD_MAX
 };

@@ -140,6 +140,8 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		case FIELD::FIELD_Concrete:	type = BuildingType::Concrete;	break;
 		case FIELD::FIELD_Plant:	type = BuildingType::Plant;		break;
 		case FIELD::FIELD_Electric:	type = BuildingType::Electric;	break;
+		case FIELD::FIELD_Tower:	type = BuildingType::Tower;	break;
+		case FIELD::FIELD_a:	type = BuildingType::a;		break;
 
 		// FIELD_BOX（ただの地面）の場合は建物を作らない
 		case FIELD::FIELD_BOX:		type = BuildingType::None;		break;
@@ -183,8 +185,14 @@ static const char* g_ModelName[] = {
 	"propsElectricitySub_v2",	// 車と信号
 	"propsGlassSub_v2",			// ビル
 	"propsTreeSub_v2",			// 広葉樹
-	"build_glass_new"			// 変な建物
+	"propsTowerMain_v3"			//東京タワ-
+	
+
 };
+static const char* g_ModelName1[] = {
+	"raibu",
+};
+
 
 //==============================================
 // フェーズや種類に応じてモデルを読み込む
@@ -199,6 +207,7 @@ void Building::LoadModelForPhase()
 	}
 
 	//const char* path = nullptr;		// モデルファイルパス
+
 
 	const char* path = nullptr;
 
@@ -229,6 +238,19 @@ void Building::LoadModelForPhase()
 		else										path = g_ModelName[2];
 		break;
 
+	case BuildingType::Tower:
+		if (Phase == BuildingPhase::New)		    path = g_ModelName[5];
+		else if (Phase == BuildingPhase::Damaged)	path = g_ModelName[5];
+		else										path = g_ModelName[5];
+		break;
+	case BuildingType::a:
+		if (Phase == BuildingPhase::New)		    path = g_ModelName1[0];
+		else if (Phase == BuildingPhase::Damaged)	path = g_ModelName1[0];
+		else										path = g_ModelName1[0];
+		break;
+
+	
+		break;
 	default:
 		//path = "asset/build_default.fbx"; // デフォルトモデル
 		break;
