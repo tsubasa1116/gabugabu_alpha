@@ -414,10 +414,10 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  2, L"asset\\texture\\characterMidConcrete_v1.png" },		// 第2形態 コンクリート
 		{  3, L"asset\\texture\\characterMidTree_v1.png" },			// 第2形態 植物
 		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
-		//{  5, L"asset\\texture\\characterMidGlass_v1.png" },		// 第3形態 ガラス
-		//{  6, L"asset\\texture\\characterMidGlass_v1.png" },		// 第3形態 コンクリート
-		//{  7, L"asset\\texture\\characterMidGlass_v1.png" },		// 第3形態 植物
-		//{  8, L"asset\\texture\\characterMidGlass_v1.png" },		// 第3形態 電気
+		{  5, L"asset\\texture\\characterBigGlass_v1.png" },		// 第3形態 ガラス
+		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// 第3形態 コンクリート
+		{  7, L"asset\\texture\\characterBigTree_v1.png" },		// 第3形態 植物
+		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },		// 第3形態 電気
 		{  9, L"asset\\texture\\uiStockBlue_v2.png"},				// UI ストック 青
 		{ 10, L"asset\\texture\\uiStockGleen_v2.png"},				// UI ストック 緑
 		//{ 11, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
@@ -813,8 +813,8 @@ void Polygon3D_Update()
 						g_victoryState[p] = 2;
 						g_animFrame[p] = 219; // ループ開始フレーム
 					}
-					// 第3形態 227 を表示した後にループ領域へ移行する
-					if (g_animFrame[p] > 227 && object[p].form == Form::SecondEvolution)
+					// 第3形態 229 を表示した後にループ領域へ移行する
+					if (g_animFrame[p] > 229 && object[p].form == Form::SecondEvolution)
 					{
 						g_victoryState[p] = 2;
 						g_animFrame[p] = 219; // ループ開始フレーム
@@ -828,7 +828,7 @@ void Polygon3D_Update()
 						break;
 					case Form::FirstEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// 第2形態 219～227をループ
 						break;
-					case Form::SecondEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// 第3形態 219～227をループ
+					case Form::SecondEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// 第3形態 219～229をループ
 						break;
 					}
 				}
@@ -1386,6 +1386,10 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 				case PlayerType::Concrete:	srv = g_Texture[2];	break;
 				case PlayerType::Plant:		srv = g_Texture[3];	break;
 				case PlayerType::Electric:	srv = g_Texture[4];	break;
+				//case PlayerType::Glass:		srv = g_Texture[5];	break;
+				//case PlayerType::Concrete:	srv = g_Texture[6];	break;
+				//case PlayerType::Plant:		srv = g_Texture[7];	break;
+				//case PlayerType::Electric:	srv = g_Texture[8];	break;
 				default: break;
 				}
 				break;
