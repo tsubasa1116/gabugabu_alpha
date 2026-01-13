@@ -8,7 +8,7 @@
 #include "Building.h" 
 
 // マクロ定義
-#define	PLAYER_MAX				(2)	// プレイヤー最大数
+#define	PLAYER_MAX				(4)	// プレイヤー最大数
 #define	DELTA_TIME	 (1.0f / 60.0f)	// デルタタイム（秒）
 
 #define	EVOLUTIONGAUGE_MAX	(1.0f)	// 進化ゲージ最大値
