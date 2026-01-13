@@ -76,141 +76,6 @@ static const int   SHEET_ROWS = 16;
 static int g_victoryState[PLAYER_MAX] = { 0 };			// 0=なし, 1=初回(208～220) 再生中, 2=ループ(216～220)
 static float g_downHoldTimer[PLAYER_MAX] = { 0.0f };	// 最終フレームホールド用タイマー（プレイヤー毎）
 
-//static	Vertex vdata[NUM_VERTEX] =
-//{
-//	//-Z面
-//	{//頂点0 LEFT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, -0.5f),		//座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//カラー
-//		XMFLOAT2(0.0f,0.0f)					//テクスチャ座標
-//	},
-//	{//頂点1 RIGHT-TOP
-//		XMFLOAT3(0.5f, 0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点2 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点3 RIGHT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//
-//	//+X面
-//	{//頂点4 LEFT-TOP
-//		XMFLOAT3(0.5f, 0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点5 RIGHT-TOP
-//		XMFLOAT3(0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点6 LEFT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点7 RIGHT-BOTTM
-//		XMFLOAT3(0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//
-//	//+Z面
-//	{//頂点8 LEFT-TOP
-//		XMFLOAT3(0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点9 RIGHT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点10 LEFT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点11 RIGHT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//
-//	//-X面
-//	{//頂点12 LEFT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点13 RIGHT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点14 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点15 RIGHT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//
-//	//+Y面
-//	{//頂点16 LEFT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点17 RIGHT-TOP
-//		XMFLOAT3(0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点18 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, 0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点19 RIGHT-BOTTOM
-//		XMFLOAT3(0.5f, 0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//
-//	//-Y面
-//	{//頂点20 LEFT-TOP
-//		XMFLOAT3(-0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点21 RIGHT-TOP
-//		XMFLOAT3(0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点22 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点23 RIGHT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//};
-
 #define COORDINATE	(0.5f)	// デフォルト (0.5f)
 #define TEXCOORD	(1.0f)	// デフォルト (1.0f)
 
@@ -248,16 +113,6 @@ static UINT idxdata[6]
 {
 	 0, 1, 2, 2, 1, 3, // -Z面
 };
-
-//static UINT idxdata[6 * 6]
-//{
-//	 0,  1,  2,  2,  1,  3, // -Z面
-//	 4,  5,  6,  6,  5,  7, // +X面
-//	 8,  9, 10, 10,  9, 11, // +Z面
-//	12, 13, 14, 14, 13, 15, // -X面
-//	16, 17, 18, 18, 17, 19, // +Y面
-//	20, 21, 22, 22, 21, 23, // -Y面
-//};
 
 static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
 
@@ -439,11 +294,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].el = 1.0f;
 	object[3].gaugeOuter = 1.0f;
 
-	//頂点バッファ作成
+	// 頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
-	ZeroMemory(&bd, sizeof(bd));//0でクリア
+	ZeroMemory(&bd, sizeof(bd));// 0でクリア
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;//格納できる頂点数*頂点サイズ
+	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// 格納できる頂点数*頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -502,8 +357,8 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
 		{  5, L"asset\\texture\\characterBigGlass_v1.png" },		// 第3形態 ガラス
 		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// 第3形態 コンクリート
-		{  7, L"asset\\texture\\characterBigTree_v1.png" },		// 第3形態 植物
-		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },		// 第3形態 電気
+		{  7, L"asset\\texture\\characterBigTree_v1.png" },			// 第3形態 植物
+		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },	// 第3形態 電気
 		{  9, L"asset\\texture\\uiStockBlue_v2.png"},				// UI ストック 青
 		{ 10, L"asset\\texture\\uiStockGleen_v2.png"},				// UI ストック 緑
 		//{ 11, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
@@ -517,7 +372,6 @@ static void LoadTextureList(ID3D11Device* pDevice)
 	for (const auto& e : texList)
 	{
 		// コメント化している要素は配列エントリ自体をコメントアウトしているためここには来ない。
-		// （上ではコメント化行を // で無効化しているためコンパイル時に存在しません）
 		HRESULT hr = LoadFromWICFile(e.path, WIC_FLAGS_NONE, &metadata, image);
 		if (SUCCEEDED(hr))
 		{
