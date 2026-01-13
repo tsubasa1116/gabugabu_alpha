@@ -191,3 +191,13 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
 	effect[slot].frameCnt = 0;
 	effect[slot].texNo = texNo;
 }
+
+//void Effect_SetMultiple(ID3D11ShaderResourceView* tex, XMFLOAT2 basePos, XMFLOAT2 size, int count, float spacingX)
+//{
+//	if (count <= 0) count = 1;
+//	g_Texture = tex;
+//	g_EffectBasePos = basePos;
+//	g_EffectSize = size;
+//	g_EffectCount = count;
+//	g_EffectSpacingX = spacingX;
+//}

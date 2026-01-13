@@ -34,170 +34,164 @@ static ID3D11ShaderResourceView* g_Attack_Texture[PLAYER_MAX];
 static ATTACK_OBJECT Attack[PLAYER_MAX];
 
 // マクロ定義
-#define NUM_VERTEX (36)
+#define NUM_VERTEX (24)
 
-static Vertex Attack_vdata[NUM_VERTEX] =
+static Vertex2 Attack_vdata[NUM_VERTEX] =
 {
-	// -Z面
-	{
-		// 頂点0 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// -Z面 (法線: 0,0,-1)
+	{// 頂点0 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),		// 座標
+		XMFLOAT3(0.0f, 0.0f, -1.0f),		// 法線
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	// カラー
+		XMFLOAT2(0.0f,0.0f)					// テクスチャ座標
 	},
-	{
-		// 頂点1 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点1 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点2 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点2 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-
-	{
-		// 頂点3 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-	},
-
-	// +X面
-	{
-		// 頂点4 LEFT-TOP
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点5 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点6 LEFT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点3 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	{
-		// 頂点7 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	// +X面 (法線: 1,0,0)
+	{// 頂点4 LEFT-TOP
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
+	},
+	{// 頂点5 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
+	},
+	{// 頂点6 LEFT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
+	},
+	{// 頂点7 RIGHT-BOTTM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +Z面
-	{
-		// 頂点8 LEFT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// +Z面 (法線: 0,0,1)
+	{// 頂点8 LEFT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
 	},
-	{
-		// 頂点9 RIGHT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点9 RIGHT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点10 LEFT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点10 LEFT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-
-	{
-		// 頂点11 RIGHT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-	},
-
-	// -X面
-	{
-		// 頂点12 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点13 RIGHT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点14 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点11 RIGHT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	{
-		// 頂点15 RIGHT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	// -X面 (法線: -1,0,0)
+	{// 頂点12 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
+	},
+	{// 頂点13 RIGHT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
+	},
+	{// 頂点14 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
+	},
+	{// 頂点15 RIGHT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +Y面
-	{
-		// 頂点16 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
+	// +Y面 (法線: 0,1,0)
+	{// 頂点16 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
 	},
-	{
-		// 頂点17 RIGHT-TOP
-		XMFLOAT3(0.5f, 0.5f, 0.5f),       // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
+	{// 頂点17 RIGHT-TOP
+		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
 	},
-	{
-		// 頂点18 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点18 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
 	},
-
-	{
-		// 頂点19 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, 0.5f, -0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
-	},
-
-	// -Y面
-	{
-		// 頂点20 LEFT-TOP
-		XMFLOAT3(-0.5f, -0.5f, -0.5f),    // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点21 RIGHT-TOP
-		XMFLOAT3(0.5f, -0.5f, -0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 0.0f),             // テクスチャ座標
-	},
-	{
-		// 頂点22 LEFT-BOTTOM
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),     // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(0.0f, 1.0f),             // テクスチャ座標
+	{// 頂点19 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, 0.5f, -0.5f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 
-	{
-		// 頂点23 RIGHT-BOTTOM
-		XMFLOAT3(0.5f, -0.5f, 0.5f),      // 座標
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), // 色
-		XMFLOAT2(1.0f, 1.0f),             // テクスチャ座標
+	// -Y面 (法線: 0,-1,0)
+	{// 頂点20 LEFT-TOP
+		XMFLOAT3(-0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,0.0f)
+	},
+	{// 頂点21 RIGHT-TOP
+		XMFLOAT3(0.5f, -0.5f, -0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,0.0f)
+	},
+	{// 頂点22 LEFT-BOTTOM
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f,1.0f)
+	},
+	{// 頂点23 RIGHT-BOTTOM
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(1.0f,1.0f)
 	},
 };
 
@@ -214,19 +208,18 @@ static UINT Attack_idxdata[6 * 6]
 
 void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Attack[0].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Attack[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Attack[0].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
-
-	Attack[1].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Attack[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Attack[1].scaling = XMFLOAT3(0.3f, 0.3f, 0.3f);
+	for (int p = 0; p < PLAYER_MAX; p++)
+	{
+		Attack[p].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		Attack[p].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		Attack[p].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	}
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
+	bd.ByteWidth = sizeof(Vertex2) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -296,40 +289,38 @@ void Attack_Update(int playerIndex)
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex + 1);
-	ATTACK_OBJECT& sk = Attack[playerIndex];
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
 
-	if (playerObject->isAttacking == true)
+	ATTACK_OBJECT& atttackObject = Attack[playerIndex];
+
+	if (player.isAttacking == true)
 	{
-		// がぶがぶの初期位置をプレイヤーの位置に設定
-		sk.position.x = playerObject->position.x;
-		sk.position.y = playerObject->position.y;
-		sk.position.z = playerObject->position.z;
-
-		float Player_RotationY = playerObject->rotation.y;
+		float Player_RotationY = player.rotation.y;
 		float rad = XMConvertToRadians(Player_RotationY);
 
 		// 進行方向を計算
 		XMFLOAT3 dir =
 		{
-			sinf(rad),  // X方向
-			0.0f,       // Y方向（水平）
-			cosf(rad)   // Z方向
+			sinf(rad),	// X方向
+			0.0f,		// Y方向（水平）
+			cosf(rad)	// Z方向
 		};
 
 		// プレイヤーの前方にがぶがぶを配置
-		sk.position.x = dir.x * playerObject->scaling.x + playerObject->position.x;
-		sk.position.y = playerObject->position.y;
-		sk.position.z = dir.z * playerObject->scaling.z + playerObject->position.z;
+		atttackObject.position.x = dir.x * player.scaling.x + player.position.x;
+		atttackObject.position.y = player.position.y;
+		atttackObject.position.z = dir.z * player.scaling.z + player.position.z;
 
-		// 攻撃タイマーを進める
-		playerObject->attackTimer += 1.0f / 60.0f;
+		// 攻撃タイマー更新
+		player.attackTimer += DELTA_TIME;
 
 		// プレイヤー毎の攻撃時間が経過したら攻撃終了
-		if (playerObject->attackTimer > ATTACK_DURATION)
+		if (player.attackTimer >= ATTACKING_TIME)
 		{
-			playerObject->isAttacking = false;
-			playerObject->attackTimer = 0.0f;
+			player.isAttacking = false;
+			player.attackTimer = 0.0f;
 		}
 	}
 
@@ -337,7 +328,7 @@ void Attack_Update(int playerIndex)
 	// 当たり判定
 	// -------------------------------------------------------------
 	// AABBの更新
-	CalculateAABB(sk.boundingBox, sk.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
+	CalculateAABB(atttackObject.boundingBox, atttackObject.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
 
 	int buildingCount = GetBuildingCount();			// 数を取得
 	Building** buildingObjects = GetBuildings();	// リストを取得
@@ -353,171 +344,182 @@ void Attack_Update(int playerIndex)
 		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
 
 		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
-		MTV collision = CalculateAABBMTV(sk.boundingBox, pStaticObjectAABB);
+		MTV collision = CalculateAABBMTV(atttackObject.boundingBox, pStaticObjectAABB);
 
 		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER/*, KK_, KK_ */};
 
+		// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
 		if (collision.isColliding)
 		{
-			// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
+			BuildingType type = buildingObjects[i]->Type;
+
+			if (Keyboard_IsKeyDown(confirmKey[playerIndex]))
 			{
-				BuildingType type = buildingObjects[i]->Type;
-
-				// 各建物タイプごとの処理（Glass を参考に拡張）
-				if (Keyboard_IsKeyDown(confirmKey[playerIndex]))
+				// 各建物タイプごとの処理
+				switch (type)
 				{
+				case BuildingType::Glass:
+					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+					player.breakCount_Glass += 1;						// ガラスを壊した数をプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
-					switch (type)
+					// 効果音やエフェクトを再生
+
+					// ヒットでスキルを終了
+					//player.isAttacking = false;
+					//player.attackTimer = 0.0f;
+
+					// 更新済みAABB
+					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
+					break;
+
+				case BuildingType::Concrete:
+					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+					player.breakCount_Concrete += 1;					// コンクリートを壊した数をプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
+
+					// 効果音やエフェクトを再生
+
+					// ヒットでスキルを終了
+					//player.isAttacking = false;
+					//player.attackTimer = 0.0f;
+
+					// 更新済みAABB
+					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
+					break;
+
+				case BuildingType::Plant:					
+					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+					player.breakCount_Plant += 1;						// 植物を壊した数をプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
+
+					// 効果音やエフェクトを再生
+
+					// ヒットでスキルを終了
+					//player.isAttacking = false;
+					//player.attackTimer = 0.0f;
+
+					// 更新済みAABB
+					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
+					break;
+
+				case BuildingType::Electric:
+					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+					player.breakCount_Electric += 1;					// 電気を壊した数をプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
+
+					// 効果音やエフェクトを再生
+
+					// ヒットでスキルを終了
+					//player.isAttacking = false;
+					//player.attackTimer = 0.0f;
+
+					// 更新済みAABB
+					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
+					break;
+
+				default:
+					break;
+				}
+			}
+
+			// 衝突していたら、MTVの分だけ位置を戻す
+			atttackObject.position.x += collision.translation.x;
+			atttackObject.position.y += collision.translation.y;
+			atttackObject.position.z += collision.translation.z;
+
+			// 押し戻し後の新しいAABBを再計算
+			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
+			CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
+
+			// デバッグ出力
+			hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
+
+			// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
+		}
+	}
+
+	// --- 進化処理 ---
+	if (player.evolutionGauge >= EVOLUTIONGAUGE_MAX)
+	{
+		// プレイヤーを無敵にする
+		player.isInvincible = true;
+		player.invincibleTimer = 0.0f;
+
+		// 現在のフォーム（進化前の状態）を保存
+		Form currentForm = player.form;
+
+		// 1. 進化段階を1つ進める
+		player.form = static_cast<Form>(static_cast<int>(player.form) + 1);
+
+		// 2. 2進化までしか進化しないように制限
+		if (player.form >= Form::SecondEvolution)
+		{
+			player.form = Form::SecondEvolution;
+		}
+
+		// 3. タイプ決定ロジック
+		//    Typeの決定は、Normalから FirstEvolutionに進化する場合のみ実行
+		if (currentForm == Form::Normal)
+		{
+			// 4種類の破壊した建物数を配列に格納
+			const int counts[4] =
+			{
+				player.breakCount_Glass,		// idx 0
+				player.breakCount_Concrete,	// idx 1
+				player.breakCount_Plant,		// idx 2
+				player.breakCount_Electric	// idx 3
+			};
+
+			// 対応するタイプ定義
+			const BuildingType types[4] =
+			{
+				BuildingType::Glass,
+				BuildingType::Concrete,
+				BuildingType::Plant,
+				BuildingType::Electric
+			};
+
+			// --- Step 1: 最大カウント数(maxCount)を求める ---
+			int maxCount = 0;
+			for (int i = 0; i < 4; i++)
+			{
+				if (counts[i] > maxCount)
+				{
+					maxCount = counts[i];
+				}
+			}
+
+			// --- Step 2: 履歴を「最新」から「過去」へ遡って勝者を決める ---
+			int maxIdx = 0;
+
+			// vectorを後ろから回す
+			for (int i = player.brokenHistory.size() - 1; i >= 0; i--)
+			{
+				BuildingType historyType = player.brokenHistory[i];
+				int typeIdx = -1;
+
+				// タイプをインデックス番号に変換
+				for (int j = 0; j < 4; j++)
+				{
+					if (historyType == types[j])
 					{
-					case BuildingType::Glass:
-					{
-						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
-						playerObject->breakCount_Glass += 1;									// ガラスを壊した数をプラス
-						playerObject->evolutionGauge += 0.1f * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
-
-						// 効果音やエフェクトを再生
-
-						// ヒットでスキルを終了
-						playerObject->isAttacking = false;
-						playerObject->attackTimer = 0.0f;
-
-						// 更新済みAABB
-						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
+						typeIdx = j;
 						break;
 					}
+				}
 
-					case BuildingType::Concrete:
-					{
-						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
-						playerObject->breakCount_Concrete += 1;									// コンクリートを壊した数をプラス
-						playerObject->evolutionGauge += 0.1f * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
-
-						// 効果音やエフェクトを再生
-
-						// ヒットでスキルを終了
-						playerObject->isAttacking = false;
-						playerObject->attackTimer = 0.0f;
-
-						// 更新済みAABB
-						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-						break;
-					}
-
-					case BuildingType::Plant:
-					{
-						buildingObjects[i]->isActive = false;									// 建物を非アクティブ化
-						playerObject->breakCount_Plant += 1;									// 植物を壊した数をプラス
-						playerObject->evolutionGauge += 0.1f * playerObject->evolutionGaugeRate;	// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);							// 最後に破壊した建物タイプを保存
-
-						// 効果音やエフェクトを再生
-
-						// ヒットでスキルを終了
-						playerObject->isAttacking = false;
-						playerObject->attackTimer = 0.0f;
-
-						// 更新済みAABB
-						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-						break;
-					}
-
-					case BuildingType::Electric:
-					{
-						buildingObjects[i]->isActive = false;			// 建物を非アクティブ化
-						playerObject->breakCount_Electric += 1;			// 電気を壊した数をプラス
-						playerObject->evolutionGauge += 0.1f;				// 進化ゲージをプラス
-						playerObject->brokenHistory.push_back(type);	// 最後に破壊した建物タイプを保存
-
-						// 効果音やエフェクトを再生
-
-						// ヒットでスキルを終了
-						playerObject->isAttacking = false;
-						playerObject->attackTimer = 0.0f;
-
-						// 更新済みAABB
-						CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-						break;
-					}
-
-					default:
-						break;
-					}
-
-					// --- 進化処理 ---
-					if (playerObject->evolutionGauge >= EVOLUTIONGAUGE_MAX)
-					{
-						// 現在のフォーム（進化前の状態）を保存
-						Form currentForm = playerObject->form;
-
-						// 1. 進化段階を1つ進める (毎回実行)
-						playerObject->form = static_cast<Form>(static_cast<int>(playerObject->form) + 1);
-
-						// 2. 2進化までしか進化しないように制限 (毎回実行)
-						if (playerObject->form >= Form::SecondEvolution)
-						{
-							playerObject->form = Form::SecondEvolution;
-						}
-
-						// 3. タイプ決定ロジック
-						//    Typeの決定は、Normal(0) から FirstEvolution(1) に進化する場合のみ実行
-						if (currentForm == Form::Normal)
-						{
-							// 4種類の破壊した建物数を配列に格納
-							const int counts[4] =
-							{
-								playerObject->breakCount_Glass,    // idx 0
-								playerObject->breakCount_Concrete, // idx 1
-								playerObject->breakCount_Plant,    // idx 2
-								playerObject->breakCount_Electric  // idx 3
-							};
-
-							// 対応するタイプ定義
-							const BuildingType types[4] =
-							{
-								BuildingType::Glass,
-								BuildingType::Concrete,
-								BuildingType::Plant,
-								BuildingType::Electric
-							};
-
-							// --- Step 1: 最大カウント数(maxCount)を求める ---
-							int maxCount = 0;
-							for (int i = 0; i < 4; i++)
-							{
-								if (counts[i] > maxCount)
-								{
-									maxCount = counts[i];
-								}
-							}
-
-							// --- Step 2: 履歴を「最新」から「過去」へ遡って勝者を決める ---
-							int maxIdx = 0; // デフォルト（例: Glass）
-
-							// vectorを後ろから回す
-							for (int i = playerObject->brokenHistory.size() - 1; i >= 0; i--)
-							{
-								BuildingType historyType = playerObject->brokenHistory[i];
-								int typeIdx = -1;
-
-								// タイプをインデックス番号に変換
-								for (int j = 0; j < 4; j++)
-								{
-									if (historyType == types[j])
-									{
-										typeIdx = j;
-										break;
-									}
-								}
-
-								// 重要ロジック：「今見ている履歴のタイプ」が「最大カウント数を持つグループ」の一員か？
-								if (typeIdx != -1 && counts[typeIdx] == maxCount)
-								{
-									maxIdx = typeIdx;
-									break; // 見つかった時点で確定！
-								}
-							}
+				// 「今見ている履歴のタイプ」が「最大カウント数を持つグループ」の一員か？
+				if (typeIdx != -1 && counts[typeIdx] == maxCount)
+				{
+					maxIdx = typeIdx;
+					break; // 見つかった時点で確定！
+				}
+			}
 
 							// --- Step 3: 最終タイプ反映 ---
 							switch (maxIdx)
@@ -580,20 +582,13 @@ void Attack_Update(int playerIndex)
 				}
 			}
 
-			// 衝突していたら、MTVの分だけ位置を戻す
-			sk.position.x += collision.translation.x;
-			sk.position.y += collision.translation.y;
-			sk.position.z += collision.translation.z;
-
-			// 押し戻し後の新しいAABBを再計算
-			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
-			CalculateAABB(sk.boundingBox, sk.position, sk.scaling);
-
-			// デバッグ出力
-			hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
-
-			// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
-		}
+		// 4. リセット処理
+		player.brokenHistory.clear(); // 履歴をクリア
+		player.evolutionGauge = 0;
+		player.breakCount_Glass = 0;
+		player.breakCount_Concrete = 0;
+		player.breakCount_Plant = 0;
+		player.breakCount_Electric = 0;
 	}
 }
 
@@ -603,7 +598,7 @@ void Attack_Draw(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	// 参照を取る
-	ATTACK_OBJECT& sk = Attack[playerIndex];
+	ATTACK_OBJECT& attackObject = Attack[playerIndex];
 	ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
 
 	// =====================
@@ -613,40 +608,49 @@ void Attack_Draw(int playerIndex)
 	// スケーリング行列の作成
 	XMMATRIX ScalingMatrix = XMMatrixScaling
 	(
-		sk.scaling.x,
-		sk.scaling.y,
-		sk.scaling.z
+		attackObject.scaling.x,
+		attackObject.scaling.y,
+		attackObject.scaling.z
 	);
 
 	// 回転行列の作成
 	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
 	(
-		XMConvertToRadians(sk.rotation.x),
-		XMConvertToRadians(sk.rotation.y),
-		XMConvertToRadians(sk.rotation.z)
+		XMConvertToRadians(attackObject.rotation.x),
+		XMConvertToRadians(attackObject.rotation.y),
+		XMConvertToRadians(attackObject.rotation.z)
 	);
 
 	// 平行移動行列の作成
 	XMMATRIX TranslationMatrix = XMMatrixTranslation
 	(
-		sk.position.x,
-		sk.position.y,
-		sk.position.z
+		attackObject.position.x,
+		attackObject.position.y,
+		attackObject.position.z
 	);
 
 	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
 
 	// プロジェクション行列作成
-	XMMATRIX Projection = GetProjectionMatrix();
+	XMMATRIX projection = GetProjectionMatrix();
 
 	// ビュー行列作成
-	XMMATRIX View = GetViewMatrix();
+	XMMATRIX view = GetViewMatrix();
 
 	// 最終的な変換行列を作成
-	XMMATRIX WVP = WorldMatrix * View * Projection;
+	XMMATRIX WVP = WorldMatrix * view * projection;
 
 	// 変換行列を頂点シェーダーへセット
 	Shader_SetMatrix(WVP);
+
+	LIGHT light{};
+	light.Enable = TRUE;
+	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
+	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	// 拡散光と環境光
+	light.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	light.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	Shader_SetLight(light);
 
 	// シェーダーを描画パイプラインへ設定
 	Shader_Begin();
@@ -658,10 +662,10 @@ void Attack_Draw(int playerIndex)
 	// 頂点シェーダーを描画パイプラインへ設定
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	Vertex* vertex = (Vertex*)msr.pData;
+	Vertex2* vertex = (Vertex2*)msr.pData;
 
 	// 頂点データを頂点バッファへコピーする
-	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex) * NUM_VERTEX);
+	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
 
 	// コピー完了
 	g_pContext->Unmap(g_VertexBuffer, 0);
@@ -670,7 +674,7 @@ void Attack_Draw(int playerIndex)
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// 頂点バッファをセット
-	UINT stride = sizeof(Vertex);
+	UINT stride = sizeof(Vertex2);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 
@@ -680,26 +684,125 @@ void Attack_Draw(int playerIndex)
 	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	//// 描画リクエスト
-	//g_pContext->Draw(NUM_VERTEX, 0);
-
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 	SetBlendState(BLENDSTATE_ALPHA);
-
 }
 
-void Stun(int playerIndex)
+void AttackPlayerCollisions()
 {
+	// 各プレイヤーの攻撃オブジェクトをループして、他プレイヤー全員に当たり判定を行う
+	for (int atk = 0; atk < PLAYER_MAX; ++atk)
+	{
+		if (atk < 0 || atk >= PLAYER_MAX) continue; // 追加の安全チェック
+		ATTACK_OBJECT& attackObject = Attack[atk];
 
+		// player は既存の GetPlayer を使ってヌルチェック
+		PLAYEROBJECT* attackerPtr = GetPlayer(atk);
+		if (attackerPtr == nullptr) continue;
+		PLAYEROBJECT& attacker = *attackerPtr;
+
+		if (!attacker.isAttacking) continue;	// 攻撃中のみ判定
+
+		// 攻撃オブジェクトと攻撃者の AABB を更新
+		CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
+		CalculateAABB(attacker.boundingBox, attacker.position, attacker.scaling);
+
+		// 攻撃者の向きベクトルを更新（rotation.y から算出）
+		{
+			float rad = XMConvertToRadians(attacker.rotation.y);
+			attacker.dir.x = sinf(rad);
+			attacker.dir.z = cosf(rad);
+		}
+
+		// --- プレイヤー側で使っている描画スケール・ヒットボックス比率と合わせる ---
+		const float RENDER_SCALE = 2.0f;
+		const float HITBOX_HEIGHT_SCALE = 1.0f;
+		// Polygon3D と同じ短辺/長辺定義を使う
+		const float HITBOX_SHORT = 0.35f;
+		const float HITBOX_LONG  = 0.65f;
+
+		// 攻撃が当たる対象として他プレイヤー全員をチェック
+		for (int def = 0; def < PLAYER_MAX; ++def)
+		{
+			if (def == atk) continue; // 自分には当たらない
+
+			PLAYEROBJECT* defender = GetPlayer(def);
+			if (defender == nullptr) continue;
+			if (!defender->active) continue;
+			// 被弾中や無敵ならスキップ
+			if (defender->isInvincible) continue;
+
+			// --- defender の向きから短辺/長辺を決める（Polygon3D と同様） ---
+			float radDef = XMConvertToRadians(defender->rotation.y);
+			float defFacingX = sinf(radDef);
+			float defFacingZ = cosf(radDef);
+			bool defFacingZDominant = fabsf(defFacingZ) >= fabsf(defFacingX);
+
+			float widthScale  = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
+			float depthScale  = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
+
+			// 第2形態 第3形態はXとZ同じにする
+			if (defender->form == Form::FirstEvolution || defender->form == Form::SecondEvolution)
+			{
+				widthScale = 0.25f;
+				depthScale = 0.25f;
+			}
+
+			// defender 用のヒットボックススケールを計算して AABB を作る
+			XMFLOAT3 defenderHitboxScaling =
+			{
+				defender->scaling.x * RENDER_SCALE * widthScale,
+				defender->scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
+				defender->scaling.z * RENDER_SCALE * depthScale
+			};
+			CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+
+			// 判定（defender AABB と 攻撃オブジェクト AABB）
+			MTV col = CalculateAABBMTV(defender->boundingBox, attackObject.boundingBox);
+
+			if (col.isColliding)
+			{
+				// ノックバック（攻撃者の向きと攻撃力を使用）
+				defender->position.x += attacker.dir.x * attacker.power;
+				// defender->position.y += attacker->power / 3.0f;
+				defender->position.z += attacker.dir.z * attacker.power;
+
+				// ダメージ用変数
+				float rawDamage = attacker.attack * defender->defense;
+
+				// ダメージ（防御で軽減）
+				defender->hp -= rawDamage;
+				if (defender->hp < 0.0f) defender->hp = 0.0f;
+
+				// スタンゲージ増加
+				defender->stunGauge += 0.5f;
+
+				// ダメージ数字を表示（頭上にオフセット）
+				int dmgInt = static_cast<int>(rawDamage + 0.5f);
+				XMFLOAT3 hitPos = p1->position;
+				hitPos.y += p1->scaling.y + 0.3f;
+				SetDamageText(hitPos, dmgInt, TextColor::Blue);
+
+				// ダメージフラグ・タイマー（アニメ／UI 用）
+				defender->isAttacked = true;
+				defender->attackedTimer = 0.0f;
+
+				// 再計算
+				CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+				CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
+			}
+		}
+	}
 }
 
 ATTACK_OBJECT* GetAttack(int playerIndex)
 {
-	if (playerIndex > PLAYER_MAX || playerIndex <= 0)
+	// 範囲チェック 0未満 または 4以上なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
 	{
 		return nullptr;
 	}
 
-	return &Attack[playerIndex - 1];
+	return &Attack[playerIndex];
 }

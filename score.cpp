@@ -91,7 +91,7 @@ void Score_Draw(void)
 	Shader_Begin();
 
 	//シェーダーに２D描画の設定をする
-	XMMATRIX	Projection = XMMatrixOrthographicOffCenterLH(
+	XMMATRIX	projection = XMMatrixOrthographicOffCenterLH(
 		0.0f,
 		SCREEN_WIDTH,
 		SCREEN_HEIGHT,
@@ -116,7 +116,7 @@ void Score_Draw(void)
 		//スクロール用行列作成
 		XMMATRIX	mat = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 
-		mat = World * mat * Projection;
+		mat = World * mat * projection;
 
 		//シェーダーへ行列をセット
 		Shader_SetMatrix(mat);

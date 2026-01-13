@@ -31,9 +31,7 @@ static float	bFactor[4] = { 0.0f,0.0f,0.0f,0.0f };
 static ID3D11BlendState* bState[BLENDSTATE_MAX];
 static ID3D11DepthStencilState* g_DepthStateEnable;
 static ID3D11DepthStencilState* g_DepthStateDisable;
-
-
-
+static ID3D11DepthStencilState* g_DepthStateReadOnly; // 深度テスト有効・書き込み無効
 
 bool Direct3D_Initialize(HWND hWnd)
 {
@@ -158,24 +156,37 @@ bool Direct3D_Initialize(HWND hWnd)
 
 
 	// 深度ステンシルステート設定
-	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-	depthStencilDesc.DepthEnable = TRUE;
-	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	depthStencilDesc.StencilEnable = FALSE;
-	g_pDevice->CreateDepthStencilState(&depthStencilDesc, &g_DepthStateEnable);//深度有効ステート
-	depthStencilDesc.DepthEnable = FALSE;
-	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	g_pDevice->CreateDepthStencilState(&depthStencilDesc, &g_DepthStateDisable);//深度無効ステート
+	D3D11_DEPTH_STENCIL_DESC depthStencilDescR0;
+	ZeroMemory(&depthStencilDescR0, sizeof(depthStencilDescR0));
+	depthStencilDescR0.DepthEnable = TRUE;
+	depthStencilDescR0.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	depthStencilDescR0.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStencilDescR0.StencilEnable = FALSE;
+	g_pDevice->CreateDepthStencilState(&depthStencilDescR0, &g_DepthStateReadOnly);//深度有効ステート
+	depthStencilDescR0.DepthEnable = FALSE;
+	depthStencilDescR0.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	g_pDevice->CreateDepthStencilState(&depthStencilDescR0, &g_DepthStateDisable);//深度無効ステート
 
 	g_pDeviceContext->OMSetDepthStencilState(g_DepthStateDisable, NULL); //デフォルト　深度無効
 
-	return true;
+	//// 深度ステンシルステート設定
+	//D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+	//ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+	//depthStencilDesc.DepthEnable = TRUE;
+	//depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	//depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	//depthStencilDesc.StencilEnable = FALSE;
+	//g_pDevice->CreateDepthStencilState(&depthStencilDesc, &g_DepthStateEnable);//深度有効ステート
+	//depthStencilDesc.DepthEnable = FALSE;
+	//depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	//g_pDevice->CreateDepthStencilState(&depthStencilDesc, &g_DepthStateDisable);//深度無効ステート
 
+	//g_pDeviceContext->OMSetDepthStencilState(g_DepthStateDisable, NULL); //デフォルト　深度無効
+
+	return true;
 }
 
-void	SetDepthTest(bool flg)
+void SetDepthTest(bool flg)
 {
 	if (flg == true)
 	{
@@ -185,8 +196,6 @@ void	SetDepthTest(bool flg)
 	{
 		g_pDeviceContext->OMSetDepthStencilState(g_DepthStateDisable, NULL); //デフォルト　深度無効
 	}
-
-
 }
 
 void Direct3D_Finalize()
@@ -207,6 +216,8 @@ void Direct3D_Finalize()
 		g_pDevice->Release();
 		g_pDevice = nullptr;
 	}
+
+	SAFE_RELEASE(g_DepthStateReadOnly);
 }
 
 void Direct3D_Clear()
@@ -354,11 +365,13 @@ void releaseBackBuffer()
 	}
 }
 
-
-//以下の関数を一番下へ追加
 void SetBlendState(BLENDSTATE blend)
 {
-
 	g_pDeviceContext->OMSetBlendState(bState[blend], bFactor, 0xffffffff);
+}
 
+// プレイヤーが重なった時に奥のプレイヤー透けて見えるようにするための関数
+void SetDepthReadOnly()
+{
+	g_pDeviceContext->OMSetDepthStencilState(g_DepthStateReadOnly, NULL);
 }
