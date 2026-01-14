@@ -12,6 +12,7 @@ using namespace DirectX;
 #include "direct3d.h"
 #include "debug_ostream.h"
 #include <fstream>
+#include "imgui.h"
 
 //======================================================
 //	グローバル変数
@@ -26,9 +27,11 @@ static ID3D11Buffer* g_pWorldConstantBuffer = nullptr;//定数バッファ1個
 
 static ID3D11PixelShader* g_pGaugeShader = nullptr;
 static ID3D11PixelShader* g_pOutGaugeShader = nullptr;
+static ID3D11PixelShader* g_pHpberShader = nullptr;
 
 static ID3D11Buffer* g_pGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pOutGaugeBuffer = nullptr;
+static ID3D11Buffer* g_pHpberBuffer = nullptr;
 static ID3D11Buffer* g_pColorBuffer = nullptr;
 
 static ID3D11PixelShader* g_pDebugColorShader = nullptr; // コライダー可視化
@@ -39,10 +42,6 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 
 struct GAUGEBUFFER
 {
-	float gaugeValue;
-	float pad[3];
-	XMFLOAT4 gaugeColor;
-
 	float fire;
 	float water;
 	float wind;
@@ -64,6 +63,13 @@ struct OUTGAUGEBUFFER
 struct COLORBUFFER
 {
 	XMFLOAT4 setColor;
+};
+
+struct HPBERBUFFER
+{
+	XMFLOAT4 palam;
+	XMFLOAT4 colorA;
+	XMFLOAT4 colorB;
 };
 
 //======================================================
@@ -113,10 +119,20 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		pDevice->CreateBuffer(&cbd, NULL, &g_pColorBuffer);
 	}
 
+	//HpberBuffer
+	{
+		D3D11_BUFFER_DESC cbd{};
+		cbd.Usage = D3D11_USAGE_DYNAMIC;
+		cbd.ByteWidth = sizeof(HPBERBUFFER);
+		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		pDevice->CreateBuffer(&cbd, NULL, &g_pHpberBuffer);
+	}
+
 
 	// 事前コンパイル済み頂点シェーダーの読み込み
 	//csoはhlslファイルの実行形式ファイル
-	std::ifstream ifs_vs("shader_vertex_2d.cso", std::ios::binary);
+	std::ifstream ifs_vs("vs_main.cso", std::ios::binary);
 
 	if (!ifs_vs) {
 		MessageBox(nullptr, "頂点シェーダーの読み込みに失敗しました\n\nshader_vertex_2d.cso", "エラー", MB_OK);
@@ -184,7 +200,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 
 	// 事前コンパイル済みピクセルシェーダーの読み込み
-	std::ifstream ifs_ps("shader_pixel_2d.cso", std::ios::binary);
+	std::ifstream ifs_ps("ps_main.cso", std::ios::binary);
 	if (!ifs_ps) {
 		MessageBox(nullptr, "ピクセルシェーダーの読み込みに失敗しました\n\nshader_pixel_2d.cso", "エラー", MB_OK);
 		return false;
@@ -211,7 +227,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//----------------------------------------------------------
 	// ピクセルシェーダー読み込み
 	//----------------------------------------------------------
-	std::ifstream ifs_ps_g("shader_gauge.cso", std::ios::binary);
+	std::ifstream ifs_ps_g("ps_gauge.cso", std::ios::binary);
 	if (!ifs_ps_g) return false;
 
 	ifs_ps_g.seekg(0, std::ios::end);
@@ -227,7 +243,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//----------------------------------------------------------
 	// ピクセルシェーダー読み込み
 	//----------------------------------------------------------
-	std::ifstream ifs_ps_og("shader_outgauge.cso", std::ios::binary);
+	std::ifstream ifs_ps_og("ps_outgauge.cso", std::ios::binary);
 	if (!ifs_ps_og) return false;
 
 	ifs_ps_og.seekg(0, std::ios::end);
@@ -242,7 +258,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//----------------------------------------------------------
 	// デバッグ用カラーピクセルシェーダー読み込み
 	//----------------------------------------------------------
-	std::ifstream ifs_ps_dbg("shader_pixel_debug_color.cso", std::ios::binary);
+	std::ifstream ifs_ps_dbg("ps_debug_color.cso", std::ios::binary);
 	if (!ifs_ps_dbg) {
 		hal::dout << "Shader_Initialize() : デバッグ用シェーダーの読み込みに失敗しました\n\nshader_pixel_debug_color.cso" << std::endl;
 		return false;
@@ -256,6 +272,21 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	ifs_ps_dbg.read((char*)psBin_dbg.data(), psSize_dbg);
 
 	g_pDevice->CreatePixelShader(psBin_dbg.data(), psSize_dbg, nullptr, &g_pDebugColorShader);
+
+	//----------------------------------------------------------
+	// ピクセルシェーダー読み込み
+	//----------------------------------------------------------
+	std::ifstream ifs_ps_hpber("ps_hpber.cso", std::ios::binary);
+	if (!ifs_ps_hpber) return false;
+
+	ifs_ps_hpber.seekg(0, std::ios::end);
+	size_t psSize_hpber = (size_t)ifs_ps_hpber.tellg();
+	ifs_ps_hpber.seekg(0, std::ios::beg);
+
+	std::vector<unsigned char> psBin_hpber(psSize_hpber);
+	ifs_ps_hpber.read((char*)psBin_hpber.data(), psSize_hpber);
+
+	g_pDevice->CreatePixelShader(psBin_hpber.data(), psSize_hpber, nullptr, &g_pHpberShader);
 
 
 
@@ -380,6 +411,18 @@ void Shader_BeginOutGauge()
 	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
 }
 
+//======================================================
+//	HPバー用シェーダー設定
+//======================================================
+void Shader_BeginHpber()
+{
+	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(g_pHpberShader, nullptr, 0);
+
+	g_pContext->IASetInputLayout(g_pInputLayout);
+	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
+}
+
 
 //======================================================
 //	内ゲージ
@@ -390,19 +433,6 @@ void Shader_SetGaugeMulti(float fire, float water, float wind, float earth,
 {
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	g_pContext->Map(g_pGaugeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-
-	struct GAUGEBUFFER
-	{
-		float fire;
-		float water;
-		float wind;
-		float earth;
-
-		XMFLOAT4 fireColor;
-		XMFLOAT4 waterColor;
-		XMFLOAT4 windColor;
-		XMFLOAT4 earthColor;
-	};
 
 	GAUGEBUFFER gb{};
 	gb.fire = fire;
@@ -439,6 +469,29 @@ void Shader_SetOutGauge(float value, XMFLOAT4 color)
 	g_pContext->Unmap(g_pOutGaugeBuffer, 0);
 
 	g_pContext->PSSetConstantBuffers(4, 1, &g_pOutGaugeBuffer);
+}
+
+
+//======================================================
+//	色設定
+//======================================================
+void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed)
+{
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	g_pContext->Map(g_pHpberBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	
+	static float g_Time = 0.0f;
+	g_Time += 0.02f;
+
+	HPBERBUFFER ob{};
+	ob.palam = {g_Time, al, speed, 0};
+	ob.colorA = colA;
+	ob.colorB = colB;
+	
+	memcpy(mapped.pData, &ob, sizeof(ob));
+	g_pContext->Unmap(g_pHpberBuffer, 0);
+
+	g_pContext->PSSetConstantBuffers(5, 1, &g_pHpberBuffer);
 }
 
 

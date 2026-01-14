@@ -100,13 +100,13 @@ void Gauge_Draw(int i)
 
 	Shader_BeginOutGauge();
 	Shader_SetOutGauge(g.outer, color::red);
-	DrawSprite(g.pos, { 70,70 }, color::white);
+	DrawSprite(g.pos, { 85,85 }, color::white);
 
 	Shader_BeginGauge();
 	Shader_SetGaugeMulti(g.fire, g.water, g.wind, g.earth,
 		                 color::sky, color::green, color::gray, color::yellow);
 
-	DrawSprite(g.pos, { 60,60 }, color::white);
+	DrawSprite(g.pos, { 75,75 }, color::white);
 
 	/*SetBlendState(BLENDSTATE_ALFA);
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);

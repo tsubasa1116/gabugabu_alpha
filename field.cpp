@@ -389,11 +389,11 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
 
 	//プロジェクション行列作成
-	XMMATRIX	Projection = GetProjectionMatrix();
+	XMMATRIX	projection = GetProjectionMatrix();
 	//ビュー行列作成
-	XMMATRIX	View = GetViewMatrix();
+	XMMATRIX	view = GetViewMatrix();
 	//先にVP変換行列を作っておく
-	XMMATRIX VP = View * Projection;
+	XMMATRIX VP = view * projection;
 
 	//MAPの表示
 	int i = 0;

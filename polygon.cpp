@@ -115,7 +115,7 @@ void Polygon_Draw(void)
 
 	// 頂点シェーダーに変換行列を設定
 
-	XMMATRIX	Projection = XMMatrixOrthographicOffCenterLH(
+	XMMATRIX	projection = XMMatrixOrthographicOffCenterLH(
 								0.0f,
 								SCREEN_WIDTH,
 								SCREEN_HEIGHT,
@@ -129,7 +129,7 @@ void Polygon_Draw(void)
 	XMMATRIX	World = Scaling * Rotation * Translation;
 
 	XMMATRIX	mat = XMMatrixIdentity();
-	mat = mat * World * Projection;
+	mat = mat * World * projection;
 
 	Shader_SetMatrix(mat);
 
