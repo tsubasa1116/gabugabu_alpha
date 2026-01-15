@@ -12,6 +12,7 @@
 #include	"Sound.h"
 
 #include "fade.h"
+#include "swipe.h"
 #include "shader.h"
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//テクスチャ１枚を表すオブジェクト
@@ -47,11 +48,11 @@ void Sound_Update()
 	//キー入力チェック
 	//スタートボタンが押されたらシーンを切り替え
 	//フェード処理中はキーを受け付けない
-	if (Keyboard_IsKeyDownTrigger(KK_SPACE) && (GetFadeState() == FADE_NONE))
+	if (Keyboard_IsKeyDownTrigger(KK_SPACE) && (GetSwipeState() == SWIPE_NONE))
 	{
 		//フェードアウトさせてシーンを切り替える
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_START);
+		SetSwipe(40.0f, color, SWIPE_OUT, SCENE_TITLE);
 	}
 
 }

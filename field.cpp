@@ -63,6 +63,7 @@ static const char* g_ModelName[] = {
 	"propsTreeSub_v2",			// 広葉樹
 	"build_glass_new"			// 変な建物
 };
+
 //マップデータ配列
 MAPDATA		Map[] =
 {
