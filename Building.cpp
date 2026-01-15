@@ -145,8 +145,8 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		case FIELD::FIELD_Concrete:	type = BuildingType::Concrete;	break;
 		case FIELD::FIELD_Plant:	type = BuildingType::Plant;		break;
 		case FIELD::FIELD_Electric:	type = BuildingType::Electric;	break;
-		case FIELD::FIELD_Tower:	type = BuildingType::Tower;	break;
-		case FIELD::FIELD_a:	type = BuildingType::a;		break;
+		case FIELD::FIELD_Tower:	type = BuildingType::Tower;		break;
+		case FIELD::FIELD_a:		type = BuildingType::a;			break;
 
 		// FIELD_BOXÅiÇΩÇæÇÃínñ ÅjÇÃèÍçáÇÕåöï®ÇçÏÇÁÇ»Ç¢
 		case FIELD::FIELD_BOX:		type = BuildingType::None;		break;

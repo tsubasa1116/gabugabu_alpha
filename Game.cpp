@@ -221,9 +221,9 @@ void Game_Draw()
 	Polygon3D_DrawEffect();
 	Effect_Draw();
 	Polygon3D_DrawHP();
-	Polygon3D_DrawText();
+	
 	DamageText_Draw();
-
+	Polygon3D_DrawText();
 	//DrawTextEx(
 	//	L"Ç±ÇÒÇ…ÇøÇÕê¢äE",			// ï\é¶Ç∑ÇÈï∂éö
 	//	600, 400,					// à íu
