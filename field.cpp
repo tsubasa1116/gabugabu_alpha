@@ -64,6 +64,7 @@ static const char* g_ModelName[] = {
 	"build_glass_new"			// 変な建物
 	"propsTowerMain_v3"			//東京タワ-
 };
+
 //マップデータ配列
 MAPDATA		Map[] =
 {

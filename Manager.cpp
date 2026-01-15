@@ -16,6 +16,7 @@
 #include "Sound.h"
 #include "Result.h"
 #include "fade.h"
+#include "swipe.h"
 
 #include "shader.h"
 
@@ -28,6 +29,7 @@ static bool g_InitSoundOnce = false;	//最初だけ初期化したか
 void	Manager_Initialize()
 {
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 
 	////本来はtitleの初期化でフェードインをセットする
 	//XMFLOAT4 color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -37,6 +39,7 @@ void	Manager_Initialize()
 
 	//本来の形
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 #ifdef _DEBUG
 	SetScene(SCENE_GAME);	//debug用に最初からゲームシーンへ
 #else
@@ -49,6 +52,7 @@ void	Manager_Initialize()
 void	Manager_Finalize()
 {
 	Fade_Finalize();
+	Swipe_Finalize();
 	SetScene(SCENE_NONE);
 }
 
@@ -81,7 +85,7 @@ void	Manager_Update()
 	}
 
 	Fade_Update();
-
+	Swipe_Update();
 }
 
 void	Manager_Draw()
@@ -113,7 +117,7 @@ void	Manager_Draw()
 	}
 
 	Fade_Draw();
-
+	Swipe_Draw();
 }
 
 void	SetScene(SCENE scene) //シーンを切り替える

@@ -198,6 +198,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="special.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="Start.cpp" />
+    <ClCompile Include="swipe.cpp" />
     <ClCompile Include="Title.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -245,6 +246,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="special.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="Start.h" />
+    <ClInclude Include="swipe.h" />
     <ClInclude Include="Title.h" />
   </ItemGroup>
   <ItemGroup>
