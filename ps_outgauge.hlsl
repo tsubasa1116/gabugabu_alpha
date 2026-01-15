@@ -5,6 +5,9 @@ cbuffer cbGaugeOuter : register(b4)
     float4 gaugeColor;
 };
 
+Texture2D g_OutTexture : register(t0);
+SamplerState g_OutSampler : register(s0);
+
 static const float2 center = float2(0.5, 0.5);
 static const float outerRadius = 0.48;
 static const float innerRadius = 0.38;
@@ -20,27 +23,28 @@ struct PS_INPUT
 float4 main(PS_INPUT input) : SV_Target
 {
     float2 uv = input.texcoord;
-    float2 p = uv - center;
-    float dist = length(p);
 
-    // 内側の穴 or 外側の外は描かない
-    if (dist < innerRadius || dist > outerRadius)
+    // テクスチャでマスク（画像のアルファが透明部を決める）
+    float4 tex = g_OutTexture.Sample(g_OutSampler, uv);
+    if (tex.a < 0.01f)
         discard;
 
-    // 角度
+    // 中心基準で角度計算（0..1 に正規化）
+    float2 center = float2(0.5, 0.5);
+    float2 p = uv - center;
     float angle = atan2(p.y, p.x);
-    angle += 3.14 * 0.5;
-    // angle = -angle;
-    angle = frac(angle / (2 * 3.14));
+    angle += 3.14159265 * 0.5;
+    angle = frac(angle / (2.0 * 3.14159265));
 
-    if (dist > outerRadius - borderThickness)
-    {
-        return float4(0, 0, 0, 1); // 黒枠
-    }
-    
-    // 進捗判定
+    // 進捗内ならゲージ色、外なら透明（テクスチャのアルファを掛ける）
     if (angle <= gaugeValue)
-        return gaugeColor;
+    {
+        // テクスチャの色を乗算して柔らかく（テクスチャが白ならそのまま）
+        float3 rgb = gaugeColor.rgb * tex.rgb;
+        float a = gaugeColor.a * tex.a;
+        return float4(rgb, a);
+    }
 
-    return float4(1, 1, 1, 1); // 未達部分は透明
+    // 未塗り部分は透明にする（リング画像自体は透明部分を持つのでここでも透明）
+    return float4(0, 0, 0, 0);
 }

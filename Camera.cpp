@@ -8,6 +8,7 @@
 #include "keyboard.h"
 #include "Ball.h"
 #include "Polygon3D.h"
+#include "input.h"
 
 // ƒOƒ[ƒoƒ‹•Ï”
 static CAMERA	CameraObject;
@@ -72,6 +73,25 @@ void Camera_Update()
 	{
 		vec.y = -1.0f;
 	}
+
+
+	if (g_Input->Up)
+	{
+		vec.z = 1.0f;
+	}
+	if (g_Input->Down)
+	{
+		vec.z = -1.0f;
+	}
+	if (g_Input->Right)
+	{
+		vec.x = 1.0f;
+	}
+	if (g_Input->Left)
+	{
+		vec.x = -1.0f;
+	}
+
 
 	// vec‚Ì³‹K‰»
 	float len = sqrtf(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);

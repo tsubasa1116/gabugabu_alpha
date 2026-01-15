@@ -27,6 +27,9 @@ using namespace DirectX;
 #include "debug_render.h"
 #include "debug_ostream.h"
 #include "attack.h" 
+#include "DamageText.h"
+#include "makeText.h"
+///////////////////////////////////////
 
 #include "imgui.h"
 #include "imgui_impl_win32.h"
@@ -43,8 +46,8 @@ using namespace DirectX;
 #define	NUM_VERTEX		(6)
 #define HPBER_SIZE_X	(270.0f)	// HPバーのサイズ
 #define HPBER_SIZE_Y	(270.0f)	// 〃
-#define GAUGE_POS_X		(77.0f)		// HPバーを基準としたゲージの位置調整
-#define GAUGE_POS_Y		(36.0f)		// 〃
+#define GAUGE_POS_X		(69.0f)		// HPバーを基準としたゲージの位置調整
+#define GAUGE_POS_Y		(8.0f)		// 〃
 
 //======================================================
 //	構造体宣言
@@ -163,17 +166,13 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].isMoving = false;
 	object[0].form = Form::Normal;
 	object[0].type = PlayerType::None;
-	object[0].evolutionGauge = 0;
-	object[0].evolutionGaugeRate = 1;
-	object[0].breakCount_Glass = 0;
-	object[0].breakCount_Concrete = 0;
-	object[0].breakCount_Plant = 0;
-	object[0].breakCount_Electric = 0;
-	object[0].gl = 1.0f;
-	object[0].pl = 1.0f;
-	object[0].co = 1.0f;
-	object[0].el = 1.0f;
-	object[0].gaugeOuter = 1.0f;
+	object[0].evolutionGauge = 0.0f;
+	object[0].evolutionGaugeRate = 0.1f;
+	object[0].breakCount_Glass = 1;
+	object[0].breakCount_Concrete = 1;
+	object[0].breakCount_Plant = 1;
+	object[0].breakCount_Electric = 1;
+
 
 	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -208,17 +207,13 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].isMoving = false;
 	object[1].form = Form::Normal;
 	object[1].type = PlayerType::None;
-	object[1].evolutionGauge = 0;
-	object[1].evolutionGaugeRate = 1;
-	object[1].breakCount_Glass = 0;
-	object[1].breakCount_Concrete = 0;
-	object[1].breakCount_Plant = 0;
-	object[1].breakCount_Electric = 0;
-	object[1].gl = 1.0f;
-	object[1].pl = 1.0f;
-	object[1].co = 1.0f;
-	object[1].el = 1.0f;
-	object[1].gaugeOuter = 1.0f;
+	object[1].evolutionGauge = 0.0f;
+	object[1].evolutionGaugeRate = 0.1f;
+	object[1].breakCount_Glass = 1;
+	object[1].breakCount_Concrete = 1;
+	object[1].breakCount_Plant = 1;
+	object[1].breakCount_Electric = 1;
+
 
 	object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -259,11 +254,6 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].breakCount_Concrete = 0;
 	object[2].breakCount_Plant = 0;
 	object[2].breakCount_Electric = 0;
-	object[2].gl = 1.0f;
-	object[2].pl = 1.0f;
-	object[2].co = 1.0f;
-	object[2].el = 1.0f;
-	object[2].gaugeOuter = 1.0f;
 
 	object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
 	object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -304,11 +294,6 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].breakCount_Concrete = 0;
 	object[3].breakCount_Plant = 0;
 	object[3].breakCount_Electric = 0;
-	object[3].gl = 1.0f;
-	object[3].pl = 1.0f;
-	object[3].co = 1.0f;
-	object[3].el = 1.0f;
-	object[3].gaugeOuter = 1.0f;
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
@@ -356,8 +341,10 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// デバッグレンダラー初期化
 	Debug_Initialize(pDevice, pContext);
 
-	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  630.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  630.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[2], { 800.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[3], { 1120.0f, 620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 
 	// アニメーションの初期化
 	for (int i = 0; i < PLAYER_MAX; ++i)
@@ -385,16 +372,16 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
 		{  5, L"asset\\texture\\characterBigGlass_v1.png" },		// 第3形態 ガラス
 		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// 第3形態 コンクリート
-		{  7, L"asset\\texture\\characterBigTree_v1.png" },			// 第3形態 植物
-		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },	// 第3形態 電気
-		{  9, L"asset\\texture\\uiStockBlue_v2.png"},				// UI ストック 青
-		{ 10, L"asset\\texture\\uiStockGleen_v2.png"},				// UI ストック 緑
-		//{ 11, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
-		//{ 12, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
+		{  7, L"asset\\texture\\characterBigTree_v1.png" },		// 第3形態 植物
+		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },		// 第3形態 電気
+		{  9, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 青
+		{ 10, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 緑
+		{ 11, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 
+		{ 12, L"asset\\texture\\uiStockGreen_v4.png" },			// UI ストック 
 		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
 		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
-		//{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
-		//{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
+		{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
+		{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
 	};
 
 	for (const auto& e : texList)
@@ -523,6 +510,45 @@ void Polygon3D_Update()
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
+		if (!object[p].active) continue;
+
+		// ワールド座標をスクリーン座標に変換
+		XMFLOAT3 worldPos = object[p].position;
+		worldPos.y += 2.0f; // プレイヤーの上方に表示
+
+		XMVECTOR posVec = XMLoadFloat3(&worldPos);
+		XMMATRIX view = GetViewMatrix();
+		XMMATRIX proj = GetProjectionMatrix();
+		XMMATRIX viewProj = view * proj;
+
+		// ビューポート変換
+		XMVECTOR screenPos = XMVector3Project(
+			posVec,
+			0.0f, 0.0f,
+			1280.0f, 720.0f,
+			0.0f, 1.0f,
+			proj, view,
+			XMMatrixIdentity()
+		);
+
+		// Z値チェック（カメラの後ろなら描画しない）
+		float screenZ = XMVectorGetZ(screenPos);
+		if (screenZ > 0.0f && screenZ < 1.0f)
+		{
+			float screenX = XMVectorGetX(screenPos);
+			float screenY = XMVectorGetY(screenPos);
+
+			// テキスト描画（Update内では呼び出さない、Draw内で描画する）
+			// ここでは座標を保存しておく
+			object[p].screenPos = XMFLOAT2(screenX, screenY);
+			object[p].isOnScreen = true;
+		}
+		else
+		{
+			object[p].isOnScreen = false;
+		}
+
+
 		// -------------------------------------------------------------
 		// 変身
 		// -------------------------------------------------------------
@@ -608,14 +634,14 @@ void Polygon3D_Update()
 					object[p].useSkill = true;
 				}
 			}
-			if (g_Input[0].A)
+			if (g_Input[p].A)
 			{
-				object[0].isAttacking = true;
+				object[p].isAttacking = true;
 
 				// 第2・第3形態の場合、スキル使用フラグも立てる
-				if (object[0].type != PlayerType::None)
+				if (object[p].type != PlayerType::None)
 				{
-					object[0].useSkill = true;
+					object[p].useSkill = true;
 				}
 			}
 
@@ -655,11 +681,30 @@ void Polygon3D_Update()
 			}
 			else if (p == 1) // プレイヤー2 (矢印キー)
 			{
+				if (g_Input[1].LStickX > 0.0f) { object[1].moveDir.x += 1.0f; object[1].isMoving = true; }
+				if (g_Input[1].LStickX < 0.0f) { object[1].moveDir.x -= 1.0f; object[1].isMoving = true; }
+				if (g_Input[1].LStickY > 0.0f) { object[1].moveDir.z -= 1.0f; object[1].isMoving = true; }
+				if (g_Input[1].LStickY < 0.0f) { object[1].moveDir.z += 1.0f; object[1].isMoving = true; }
+
 				if (Keyboard_IsKeyDown(KK_UP))		{object[1].moveDir.z += 1.0f; object[1].isMoving = true;}
 				if (Keyboard_IsKeyDown(KK_DOWN))	{object[1].moveDir.z -= 1.0f; object[1].isMoving = true;}
 				if (Keyboard_IsKeyDown(KK_LEFT))	{object[1].moveDir.x -= 1.0f; object[1].isMoving = true;}
 				if (Keyboard_IsKeyDown(KK_RIGHT))	{object[1].moveDir.x += 1.0f; object[1].isMoving = true;}
 				if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
+			}
+			else if (p == 2) // プレイヤー3
+			{
+				if (g_Input[2].LStickX > 0.0f) { object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
+				if (g_Input[2].LStickX < 0.0f) { object[2].moveDir.x -= 1.0f; object[2].isMoving = true; }
+				if (g_Input[2].LStickY > 0.0f) { object[2].moveDir.z -= 1.0f; object[2].isMoving = true; }
+				if (g_Input[2].LStickY < 0.0f) { object[2].moveDir.z += 1.0f; object[2].isMoving = true; }
+			}
+			else if (p == 3) // プレイヤー4
+			{
+				if (g_Input[3].LStickX > 0.0f) { object[3].moveDir.x += 1.0f; object[3].isMoving = true; }
+				if (g_Input[3].LStickX < 0.0f) { object[3].moveDir.x -= 1.0f; object[3].isMoving = true; }
+				if (g_Input[3].LStickY > 0.0f) { object[3].moveDir.z -= 1.0f; object[3].isMoving = true; }
+				if (g_Input[3].LStickY < 0.0f) { object[3].moveDir.z += 1.0f; object[3].isMoving = true; }
 			}
 
 			// 現在のプレイヤー p だけを動かす
@@ -672,6 +717,7 @@ void Polygon3D_Update()
 			// ダウン状態に移行してタイマーをリセット
 			object[p].isDown = true;
 			object[p].downTimer = 0.0f;
+			Effect_Clear(p);
 		}
 
 		// ダウン状態のタイマー更新とリスポーン判定
@@ -712,6 +758,7 @@ void Polygon3D_Update()
 		// 落下処理
 		if (object[p].active && object[p].position.y <= -10.0f)
 		{
+			Effect_Clear(p);
 			// 残機を一つ減らす
 			object[p].stock -= 1;
 
@@ -925,6 +972,7 @@ void Polygon3D_Update()
 		ImGui::SliderFloat("stunGauge", &object[p].stunGauge, 0.0f, 10.0f, "%.1f");
 		ImGui::SliderFloat("invincibleTimer", &object[p].invincibleTimer, 0.0f, 3.0f, "%.1f");
 		ImGui::BulletText("active            : %d", object[p].active);
+		ImGui::BulletText("stock             : %d", object[p].stock);
 		ImGui::BulletText("rank              : %d", object[p].rank);
 		ImGui::BulletText("speed             : %.3f", object[p].speed);
 		ImGui::BulletText("defense           : %.1f", object[p].defense);
@@ -935,10 +983,31 @@ void Polygon3D_Update()
 		ImGui::BulletText("type              : %d", object[p].type);
 		ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
 		ImGui::BulletText("EvolutionGaugeRate: %d", object[p].evolutionGaugeRate);
-		ImGui::BulletText("1 Glass breaks    : %d", object[p].breakCount_Glass);
-		ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
-		ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
-		ImGui::BulletText("4 Electric breaks : %d", object[p].breakCount_Electric);
+
+		if (ImGui::Button("hp -1"))
+		{
+			object[p].hp -= 0.1f;
+		}
+
+		if (ImGui::Button("gl +1"))
+		{
+			object[p].breakCount_Glass += 1;
+		}
+		else if (ImGui::Button("pl +1"))
+		{
+			object[p].breakCount_Plant += 1;
+		}
+		else if (ImGui::Button("co +1"))
+		{
+			object[p].breakCount_Concrete += 1;
+		}
+		else if (ImGui::Button("el +1"))
+		{
+			object[p].breakCount_Electric += 1;
+		}
+		
+		ImGui::SliderFloat("HP", &object[p].hp, 0.0f, 100.0f);
+		ImGui::SliderFloat("Outer", &object[p].evolutionGauge, 0.0f, 1.0f);
 
 		// 履歴リストのサイズを表示
 		size_t historySize = object[p].brokenHistory.size();
@@ -1454,8 +1523,8 @@ void Polygon3D_DrawHP()
 		DrawHP(&HPBar[i], i + 2);
 		XMFLOAT2 hp = HPBar[i].pos;
 
-		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
-			object[i].gaugeOuter, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y});
+		Gauge_Set(i, object[i].breakCount_Glass, object[i].breakCount_Concrete, object[i].breakCount_Plant, object[i].breakCount_Electric,
+			object[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y});
 
 		Gauge_Draw(i);
 
@@ -1467,19 +1536,7 @@ void Polygon3D_DrawHP()
 
 void Polygon3D_DrawEffect()
 {
-	Effect_Set(g_Texture[13], { 170.0f,600.0f }, { 400.0f, 400.0f });
-
-	//// g_Texture[4] を X 座標のみ 4 個並べて描画する
-	//// basePos: 左端の位置、size: 各エフェクトのサイズ
-	//// spacingX: 各インスタンスの X 間隔（表示幅 + 余白）
-	//XMFLOAT2 basePos = { 170.0f, 600.0f };
-	//XMFLOAT2 size = { 400.0f, 400.0f };
-	//int count = 4;
-	//float spacingX = 320.0f;
-
-	//ID3D11ShaderResourceView* texToUse = (g_effectElapsed >= 5.0f) ? g_Texture[5] : g_Texture[4];
-
-	//Effect_SetMultiple(texToUse, basePos, size, count, spacingX);
+	//Effect_Set(0, { 170.0f, 600.0f }, { 400.0f, 400.0f });
 }
 
 void Polygon3D_Respawn(int playerIndex)
@@ -1488,60 +1545,176 @@ void Polygon3D_Respawn(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	// 残機が1つ以上ある場合
-	if (object[playerIndex].active == true)
+	if (object[0].active == true && playerIndex == 0)
 	{
-		object[playerIndex].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[playerIndex].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[playerIndex].maxHp = 100.0f;
-		object[playerIndex].hp = object[0].maxHp;
-		object[playerIndex].attack = 0.0f;
-		object[playerIndex].power = 0.0f;
-		object[playerIndex].speed = 0.0f;
-		object[playerIndex].defense = 1.0f;
-		object[playerIndex].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[playerIndex].active = true;
-		object[playerIndex].isAttacking = false;
-		object[playerIndex].attackTimer = 0.0f;
-		object[playerIndex].isAttacked = false;
-		object[playerIndex].attackedTimer = 0.0f;
-		object[playerIndex].useSkill = false;
-		object[playerIndex].skillTimer = 0.0f;
-		object[playerIndex].skillCoolTimer = 0.0f;
-		object[playerIndex].useSpecial = false;
-		object[playerIndex].specialTimer = 0.0f;
-		object[playerIndex].isInvincible = false;
-		object[playerIndex].invincibleTimer = 0.0f;
-		object[playerIndex].stunGauge = 0.0f;
-		object[playerIndex].isStunning = false;
-		object[playerIndex].stunTimer = 0.0f;
-		object[playerIndex].isDown = false;
-		object[playerIndex].downTimer = 0.0f;
-		object[playerIndex].lastDir = PlayerDir::Down; // 正面
-		object[playerIndex].isMoving = false;
-		object[playerIndex].form = Form::Normal;
-		object[playerIndex].type = PlayerType::None;
-		object[playerIndex].evolutionGauge = 0;
-		object[playerIndex].evolutionGaugeRate = 1;
-		object[playerIndex].breakCount_Glass = 0;
-		object[playerIndex].breakCount_Concrete = 0;
-		object[playerIndex].breakCount_Plant = 0;
-		object[playerIndex].breakCount_Electric = 0;
-		object[playerIndex].brokenHistory.clear();
-		object[playerIndex].gl = 1.0f;
-		object[playerIndex].pl = 1.0f;
-		object[playerIndex].co = 1.0f;
-		object[playerIndex].el = 1.0f;
-		object[playerIndex].gaugeOuter = 1.0f;
+		object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
+		object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[0].maxHp = 100.0f;
+		object[0].hp = object[0].maxHp;
+		object[0].attack = 0.0f;
+		object[0].power = 0.0f;
+		object[0].speed = 0.0f;
+		object[0].defense = 1.0f;
+		object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[0].active = true;
+		object[0].isAttacking = false;
+		object[0].attackTimer = 0.0f;
+		object[0].isAttacked = false;
+		object[0].attackedTimer = 0.0f;
+		object[0].useSkill = false;
+		object[0].skillTimer = 0.0f;
+		object[0].useSpecial = false;
+		object[0].specialTimer = 0.0f;
+		object[0].isInvincible = false;
+		object[0].invincibleTimer = 0.0f;
+		object[0].stunGauge = 0.0f;
+		object[0].isStunning = false;
+		object[0].stunTimer = 0.0f;
+		object[0].isDown = false;
+		object[0].downTimer = 0.0f;
 
-		object[playerIndex].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[playerIndex].is_knocked_back = false;
-		object[playerIndex].knockback_duration = 0.0f;
+		object[0].lastDir = PlayerDir::Down; // 正面
+		object[0].isMoving = false;
+		object[0].form = Form::Normal;
+		object[0].type = PlayerType::None;
+		object[0].evolutionGauge = 0;
+		object[0].evolutionGaugeRate = 1;
+		object[0].breakCount_Glass = 0;
+		object[0].breakCount_Concrete = 0;
+		object[0].breakCount_Plant = 0;
+		object[0].breakCount_Electric = 0;
+		object[0].brokenHistory.clear();
+
+		object[0].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[0].is_knocked_back = false;
+		object[0].knockback_duration = 0.0f;
 	}
 
-	if (playerIndex == 0) object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
-	if (playerIndex == 1) object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
-	if (playerIndex == 2) object[2].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
-	if (playerIndex == 3) object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
+	// 残機が1つ以上ある場合
+	else if (object[1].active == true && playerIndex == 1)
+	{
+		object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
+		object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[1].maxHp = 100.0f;
+		object[1].hp = object[1].maxHp;
+		object[1].attack = 0.0f;
+		object[1].power = 0.0f;
+		object[1].speed = 0.0f;
+		object[1].defense = 1.0f;
+		object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[1].active = true;
+		object[1].isAttacking = false;
+		object[1].attackTimer = 0.0f;
+		object[1].isAttacked = false;
+		object[1].attackedTimer = 0.0f;
+		object[1].useSkill = false;
+		object[1].skillTimer = 0.0f;
+		object[1].useSpecial = false;
+		object[1].specialTimer = 0.0f;
+		object[1].isInvincible = false;
+		object[1].invincibleTimer = 0.0f;
+		object[1].stunGauge = 0.0f;
+		object[1].isStunning = false;
+		object[1].stunTimer = 0.0f;
+		object[1].isDown = false;
+		object[1].downTimer = 0.0f;
+
+		object[1].lastDir = PlayerDir::Down; // 正面
+		object[1].isMoving = false;
+		object[1].form = Form::Normal;
+		object[1].type = PlayerType::None;
+		object[1].evolutionGauge = 0;
+		object[1].evolutionGaugeRate = 1;
+		object[1].breakCount_Glass = 0;
+		object[1].breakCount_Concrete = 0;
+		object[1].breakCount_Plant = 0;
+		object[1].breakCount_Electric = 0;
+		object[1].brokenHistory.clear();
+
+		object[1].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[1].is_knocked_back = false;
+		object[1].knockback_duration = 0.0f;
+	}
+
+		object[2].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
+		object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[2].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[2].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[2].maxHp = 100.0f;
+		object[2].hp = object[2].maxHp;
+		object[2].attack = 0.0f;
+		object[2].power = 0.0f;
+		object[2].speed = 0.0f;
+		object[2].defense = 1.0f;
+		object[2].active = true;
+		object[2].isAttacking = false;
+		object[2].attackTimer = 0.0f;
+		object[2].isAttacked = false;
+		object[2].attackedTimer = 0.0f;
+		object[2].useSkill = false;
+		object[2].skillTimer = 0.0f;
+		object[2].useSpecial = false;
+		object[2].specialTimer = 0.0f;
+		object[2].isInvincible = false;
+		object[2].invincibleTimer = 0.0f;
+		object[2].stunGauge = 0.0f;
+		object[2].isStunning = false;
+		object[2].stunTimer = 0.0f;
+		object[2].isDown = false;
+		object[2].downTimer = 0.0f;
+		object[2].lastDir = PlayerDir::Down; // 正面
+		object[2].isMoving = false;
+		object[2].form = Form::Normal;
+		object[2].type = PlayerType::None;
+		object[2].evolutionGauge = 0;
+		object[2].evolutionGaugeRate = 1;
+		object[2].breakCount_Glass = 0;
+		object[2].breakCount_Concrete = 0;
+		object[2].breakCount_Plant = 0;
+		object[2].breakCount_Electric = 0;
+	}
+	// 残機が1つ以上ある場合
+	else if (object[3].active == true && playerIndex == 3)
+	{
+		object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
+		object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[3].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[3].maxHp = 100.0f;
+		object[3].hp = object[3].maxHp;
+		object[3].attack = 0.0f;
+		object[3].power = 0.0f;
+		object[3].speed = 0.0f;
+		object[3].defense = 1.0f;
+		object[3].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[3].active = true;
+		object[3].isAttacking = false;
+		object[3].attackTimer = 0.0f;
+		object[3].isAttacked = false;
+		object[3].attackedTimer = 0.0f;
+		object[3].useSkill = false;
+		object[3].skillTimer = 0.0f;
+		object[3].useSpecial = false;
+		object[3].specialTimer = 0.0f;
+		object[3].isInvincible = false;
+		object[3].invincibleTimer = 0.0f;
+		object[3].stunGauge = 0.0f;
+		object[3].isStunning = false;
+		object[3].stunTimer = 0.0f;
+		object[3].isDown = false;
+		object[3].downTimer = 0.0f;
+		object[3].lastDir = PlayerDir::Down; // 正面
+		object[3].isMoving = false;
+		object[3].form = Form::Normal;
+		object[3].type = PlayerType::None;
+		object[3].evolutionGauge = 0;
+		object[3].evolutionGaugeRate = 1;
+		object[3].breakCount_Glass = 0;
+		object[3].breakCount_Concrete = 0;
+		object[3].breakCount_Plant = 0;
+		object[3].breakCount_Electric = 0;
+	}
 }
 
 static inline void LoopRange(int& animFrame, int start, int count, int advance)
@@ -1560,15 +1733,15 @@ void Polygon3D_DrawStock(int i)
 	Shader_BeginUI();
 
 	// HPバー位置取得・ゲージ座標設定
-	float bx = HPBar[i].pos.x;
-	float by = HPBar[i].pos.y - 5.0f;
+	float bx = HPBar[i].pos.x - 12.0f;
+	float by = HPBar[i].pos.y + 5.0f;
 
 	// プレイヤーごとのストック描画
 	for (int j = 0; j < object[i].stock; j++)
 	{
 		// ストック描画変数
-		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
-		XMFLOAT2 size = { 300.0f, 300.0f };
+		XMFLOAT2 pos = { bx + j * 28.0f, by };	// 横並び
+		XMFLOAT2 size = { 240.0f, 240.0f };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 9]);
 	
@@ -1588,6 +1761,49 @@ PLAYEROBJECT* GetPlayer(int playerIndex)
 	return &object[playerIndex];
 }
 
+
+void Polygon3D_DrawText()
+{
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		if (!object[p].active || !object[p].isOnScreen) continue;
+
+		wchar_t playerLabel[8];
+		swprintf_s(playerLabel, L"P%d", p + 1);
+
+		// プレイヤーごとに色設定
+		TextColor textColor;
+		switch (p)
+		{
+		case 0:
+			textColor = TextColor::Red;
+			break;
+		case 1:
+			textColor = TextColor::Blue;
+			break;
+		case 2:
+			textColor = TextColor::Yellow;
+			break;
+		case 3:
+			textColor = TextColor::Green;
+			break;
+		default:
+			textColor = TextColor::White;
+			break;
+		}
+
+		// フォントサイズの半分程度左にずらす
+		float offsetX = 15.0f;
+
+		DrawTextEx(
+			playerLabel,
+			object[p].screenPos.x - offsetX,
+			object[p].screenPos.y - 10.0f,  // テキストの高さ分上に表示
+			40.0f,                           // フォントサイズ
+			L"Impact",
+			textColor
+		);
+	}
 static void Ranking(int playerIndex)
 {
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
