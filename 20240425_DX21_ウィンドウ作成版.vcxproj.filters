@@ -54,6 +54,7 @@
     <ClCompile Include="Start.cpp" />
     <ClCompile Include="Title.cpp" />
     <ClCompile Include="DamageText.cpp" />
+    <ClCompile Include="swipe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attack.h" />
@@ -102,6 +103,7 @@
     <ClInclude Include="Start.h" />
     <ClInclude Include="Title.h" />
     <ClInclude Include="DamageText.h" />
+    <ClInclude Include="swipe.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />

@@ -362,6 +362,14 @@ void Skill_Glass_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
+	// クールタイムが残っている場合は起動をキャンセル
+	if (player.useSkill && player.skillCoolTimer > 0.0f)
+	{
+		player.useSkill = false;
+		player.skillTimer = 0.0f;
+		return;
+	}
+
 	// ここで Radius の値を動的に計算する
 	float dynamicRadius = player.scaling.x; // scalingは等しいのでy,zでも可
 
@@ -443,6 +451,7 @@ void Skill_Glass_Update(int playerIndex)
 			// 判定（defender AABB と 箱 AABB）
 			MTV col = CalculateAABBMTV(defender->boundingBox, box.boundingBox);
 
+			// 当たってもアニメーションはなし
 			if (col.isColliding)
 			{
 				// ダメージのみ（ノックバックは与えない）
@@ -455,10 +464,6 @@ void Skill_Glass_Update(int playerIndex)
 
 				// スタンゲージ増加
 				defender->stunGauge += 0.01f;
-
-				// ダメージフラグ・タイマー（アニメ／UI 用）
-				defender->isAttacked = true;
-				defender->attackedTimer = 0.0f;
 			}
 		}
 	}
@@ -467,10 +472,11 @@ void Skill_Glass_Update(int playerIndex)
 	player.skillTimer += DELTA_TIME;
 
 	// スキルの効果時間が経過したらスキル終了
-	if (player.skillTimer >= 30)
+	if (player.skillTimer >= SKILL_GLASS_TIME)
 	{
 		player.useSkill = false;
 		player.skillTimer = 0.0f;
+		player.skillCoolTimer = SKILL_GLASS_COOLTIME;
 	}
 }
 
@@ -484,6 +490,14 @@ void Skill_Concrete_Update(int playerIndex)
 	PLAYEROBJECT& player = *playerObject;
 
 	SKILL_OBJECT& skillConcrete = Skill[playerIndex];
+
+	// クールタイムが残っている場合は起動をキャンセル
+	if (player.useSkill && player.skillCoolTimer > 0.0f)
+	{
+		player.useSkill = false;
+		player.skillTimer = 0.0f;
+		return;
+	}
 
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;
@@ -505,6 +519,7 @@ void Skill_Concrete_Update(int playerIndex)
 		player.defense = 1.0f;
 		player.useSkill = false;
 		player.skillTimer = 0.0f;
+		player.skillCoolTimer = SKILL_CONCRETE_COOLTIME;
 	}
 }
 
@@ -516,6 +531,14 @@ void Skill_Plant_Update(int playerIndex)
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
+
+	// クールタイムが残っている場合は起動をキャンセル
+	if (player.useSkill && player.skillCoolTimer > 0.0f)
+	{
+		player.useSkill = false;
+		player.skillTimer = 0.0f;
+		return;
+	}
 
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;
@@ -529,6 +552,7 @@ void Skill_Plant_Update(int playerIndex)
 		player.evolutionGaugeRate = 1;
 		player.useSkill = false;
 		player.skillTimer = 0.0f;
+		player.skillCoolTimer = SKILL_PLANT_COOLTIME;
 	}
 }
 
@@ -540,6 +564,14 @@ void Skill_Electric_Update(int playerIndex)
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
+
+	// クールタイムが残っている場合は起動をキャンセル
+	if (player.useSkill && player.skillCoolTimer > 0.0f)
+	{
+		player.useSkill = false;
+		player.skillTimer = 0.0f;
+		return;
+	}
 
 	float baseSpeed = 0.06f; // Normal
 	if (player.form == Form::FirstEvolution) baseSpeed = 0.05f;
@@ -557,6 +589,7 @@ void Skill_Electric_Update(int playerIndex)
 		player.speed = baseSpeed * 1.0f;
 		player.useSkill = false;
 		player.skillTimer = 0.0f;
+		player.skillCoolTimer = SKILL_ELECTRIC_COOLTIME;
 	}
 }
 
