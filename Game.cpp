@@ -109,8 +109,8 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//Block_Initialize(pDevice, pContext);
 	//Score_Initialize(pDevice, pContext);
 
-	g_BgmID = LoadAudio("asset\\Audio\\bgm.wav");	// サウンドロード
-	//PlayAudio(g_BgmID, true);		// 再生開始（ループあり）
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// サウンドロード
+	PlayAudio(g_BgmID, true);		// 再生開始(ループあり)
 	//PlayAudio(g_BgmID);			// 再生開始（ループなし）
 	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし）
 
