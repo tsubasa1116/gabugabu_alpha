@@ -1545,176 +1545,60 @@ void Polygon3D_Respawn(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	// 残機が1つ以上ある場合
-	if (object[0].active == true && playerIndex == 0)
+	if (object[playerIndex].active == true)
 	{
-		object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
-		object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[0].maxHp = 100.0f;
-		object[0].hp = object[0].maxHp;
-		object[0].attack = 0.0f;
-		object[0].power = 0.0f;
-		object[0].speed = 0.0f;
-		object[0].defense = 1.0f;
-		object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[0].active = true;
-		object[0].isAttacking = false;
-		object[0].attackTimer = 0.0f;
-		object[0].isAttacked = false;
-		object[0].attackedTimer = 0.0f;
-		object[0].useSkill = false;
-		object[0].skillTimer = 0.0f;
-		object[0].useSpecial = false;
-		object[0].specialTimer = 0.0f;
-		object[0].isInvincible = false;
-		object[0].invincibleTimer = 0.0f;
-		object[0].stunGauge = 0.0f;
-		object[0].isStunning = false;
-		object[0].stunTimer = 0.0f;
-		object[0].isDown = false;
-		object[0].downTimer = 0.0f;
+		object[playerIndex].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[playerIndex].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[playerIndex].maxHp = 100.0f;
+		object[playerIndex].hp = object[0].maxHp;
+		object[playerIndex].attack = 0.0f;
+		object[playerIndex].power = 0.0f;
+		object[playerIndex].speed = 0.0f;
+		object[playerIndex].defense = 1.0f;
+		object[playerIndex].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[playerIndex].active = true;
+		object[playerIndex].isAttacking = false;
+		object[playerIndex].attackTimer = 0.0f;
+		object[playerIndex].isAttacked = false;
+		object[playerIndex].attackedTimer = 0.0f;
+		object[playerIndex].useSkill = false;
+		object[playerIndex].skillTimer = 0.0f;
+		object[playerIndex].skillCoolTimer = 0.0f;
+		object[playerIndex].useSpecial = false;
+		object[playerIndex].specialTimer = 0.0f;
+		object[playerIndex].isInvincible = false;
+		object[playerIndex].invincibleTimer = 0.0f;
+		object[playerIndex].stunGauge = 0.0f;
+		object[playerIndex].isStunning = false;
+		object[playerIndex].stunTimer = 0.0f;
+		object[playerIndex].isDown = false;
+		object[playerIndex].downTimer = 0.0f;
+		object[playerIndex].lastDir = PlayerDir::Down; // 正面
+		object[playerIndex].isMoving = false;
+		object[playerIndex].form = Form::Normal;
+		object[playerIndex].type = PlayerType::None;
+		object[playerIndex].evolutionGauge = 0;
+		object[playerIndex].evolutionGaugeRate = 1;
+		object[playerIndex].breakCount_Glass = 0;
+		object[playerIndex].breakCount_Concrete = 0;
+		object[playerIndex].breakCount_Plant = 0;
+		object[playerIndex].breakCount_Electric = 0;
+		object[playerIndex].brokenHistory.clear();
+		object[playerIndex].gl = 1.0f;
+		object[playerIndex].pl = 1.0f;
+		object[playerIndex].co = 1.0f;
+		object[playerIndex].el = 1.0f;
+		object[playerIndex].gaugeOuter = 1.0f;
 
-		object[0].lastDir = PlayerDir::Down; // 正面
-		object[0].isMoving = false;
-		object[0].form = Form::Normal;
-		object[0].type = PlayerType::None;
-		object[0].evolutionGauge = 0;
-		object[0].evolutionGaugeRate = 1;
-		object[0].breakCount_Glass = 0;
-		object[0].breakCount_Concrete = 0;
-		object[0].breakCount_Plant = 0;
-		object[0].breakCount_Electric = 0;
-		object[0].brokenHistory.clear();
-
-		object[0].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[0].is_knocked_back = false;
-		object[0].knockback_duration = 0.0f;
+		object[playerIndex].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[playerIndex].is_knocked_back = false;
+		object[playerIndex].knockback_duration = 0.0f;
 	}
 
-	// 残機が1つ以上ある場合
-	else if (object[1].active == true && playerIndex == 1)
-	{
-		object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
-		object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[1].maxHp = 100.0f;
-		object[1].hp = object[1].maxHp;
-		object[1].attack = 0.0f;
-		object[1].power = 0.0f;
-		object[1].speed = 0.0f;
-		object[1].defense = 1.0f;
-		object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[1].active = true;
-		object[1].isAttacking = false;
-		object[1].attackTimer = 0.0f;
-		object[1].isAttacked = false;
-		object[1].attackedTimer = 0.0f;
-		object[1].useSkill = false;
-		object[1].skillTimer = 0.0f;
-		object[1].useSpecial = false;
-		object[1].specialTimer = 0.0f;
-		object[1].isInvincible = false;
-		object[1].invincibleTimer = 0.0f;
-		object[1].stunGauge = 0.0f;
-		object[1].isStunning = false;
-		object[1].stunTimer = 0.0f;
-		object[1].isDown = false;
-		object[1].downTimer = 0.0f;
-
-		object[1].lastDir = PlayerDir::Down; // 正面
-		object[1].isMoving = false;
-		object[1].form = Form::Normal;
-		object[1].type = PlayerType::None;
-		object[1].evolutionGauge = 0;
-		object[1].evolutionGaugeRate = 1;
-		object[1].breakCount_Glass = 0;
-		object[1].breakCount_Concrete = 0;
-		object[1].breakCount_Plant = 0;
-		object[1].breakCount_Electric = 0;
-		object[1].brokenHistory.clear();
-
-		object[1].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[1].is_knocked_back = false;
-		object[1].knockback_duration = 0.0f;
-	}
-
-		object[2].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
-		object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[2].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[2].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[2].maxHp = 100.0f;
-		object[2].hp = object[2].maxHp;
-		object[2].attack = 0.0f;
-		object[2].power = 0.0f;
-		object[2].speed = 0.0f;
-		object[2].defense = 1.0f;
-		object[2].active = true;
-		object[2].isAttacking = false;
-		object[2].attackTimer = 0.0f;
-		object[2].isAttacked = false;
-		object[2].attackedTimer = 0.0f;
-		object[2].useSkill = false;
-		object[2].skillTimer = 0.0f;
-		object[2].useSpecial = false;
-		object[2].specialTimer = 0.0f;
-		object[2].isInvincible = false;
-		object[2].invincibleTimer = 0.0f;
-		object[2].stunGauge = 0.0f;
-		object[2].isStunning = false;
-		object[2].stunTimer = 0.0f;
-		object[2].isDown = false;
-		object[2].downTimer = 0.0f;
-		object[2].lastDir = PlayerDir::Down; // 正面
-		object[2].isMoving = false;
-		object[2].form = Form::Normal;
-		object[2].type = PlayerType::None;
-		object[2].evolutionGauge = 0;
-		object[2].evolutionGaugeRate = 1;
-		object[2].breakCount_Glass = 0;
-		object[2].breakCount_Concrete = 0;
-		object[2].breakCount_Plant = 0;
-		object[2].breakCount_Electric = 0;
-	}
-	// 残機が1つ以上ある場合
-	else if (object[3].active == true && playerIndex == 3)
-	{
-		object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
-		object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[3].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[3].maxHp = 100.0f;
-		object[3].hp = object[3].maxHp;
-		object[3].attack = 0.0f;
-		object[3].power = 0.0f;
-		object[3].speed = 0.0f;
-		object[3].defense = 1.0f;
-		object[3].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[3].active = true;
-		object[3].isAttacking = false;
-		object[3].attackTimer = 0.0f;
-		object[3].isAttacked = false;
-		object[3].attackedTimer = 0.0f;
-		object[3].useSkill = false;
-		object[3].skillTimer = 0.0f;
-		object[3].useSpecial = false;
-		object[3].specialTimer = 0.0f;
-		object[3].isInvincible = false;
-		object[3].invincibleTimer = 0.0f;
-		object[3].stunGauge = 0.0f;
-		object[3].isStunning = false;
-		object[3].stunTimer = 0.0f;
-		object[3].isDown = false;
-		object[3].downTimer = 0.0f;
-		object[3].lastDir = PlayerDir::Down; // 正面
-		object[3].isMoving = false;
-		object[3].form = Form::Normal;
-		object[3].type = PlayerType::None;
-		object[3].evolutionGauge = 0;
-		object[3].evolutionGaugeRate = 1;
-		object[3].breakCount_Glass = 0;
-		object[3].breakCount_Concrete = 0;
-		object[3].breakCount_Plant = 0;
-		object[3].breakCount_Electric = 0;
-	}
+	if (playerIndex == 0) object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
+	if (playerIndex == 1) object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
+	if (playerIndex == 2) object[2].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
+	if (playerIndex == 3) object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
 }
 
 static inline void LoopRange(int& animFrame, int start, int count, int advance)
@@ -1804,6 +1688,7 @@ void Polygon3D_DrawText()
 			textColor
 		);
 	}
+}
 static void Ranking(int playerIndex)
 {
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
