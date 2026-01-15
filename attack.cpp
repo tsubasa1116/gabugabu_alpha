@@ -432,7 +432,7 @@ void Attack_Update(int playerIndex)
 			CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 
 			// デバッグ出力
-			hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
+			//hal::dout << "衝突！押し戻し量: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X軸" : (collision.translation.y != 0 ? "Y軸" : "Z軸")) << std::endl;
 
 			// ↑↑↑　#include "debug_ostream.h"　のインクルードでデバッグ確認
 		}

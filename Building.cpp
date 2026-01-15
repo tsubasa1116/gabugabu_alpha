@@ -27,10 +27,12 @@
 #include "model.h"   // ModelLoad / ModelRelease / ModelDraw
 
 #include "keyboard.h"
+#include <chrono> // ファイル先頭で
 
 ///////////////////////////////////////
 #include "collider.h"
 #include "debug_render.h"
+#include "debug_ostream.h"
 ///////////////////////////////////////
 
 //======================================================
@@ -123,6 +125,9 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	MAPDATA* fieldMap = GetFieldObjects();
 	int fieldCount = GetFieldObjectCount();	// マップの配列数を取得
 
+
+	auto model_start = std::chrono::high_resolution_clock::now();
+
 	// マップを走査して建物を配置
 	for (int i = 0; i < fieldCount; i++)
 	{
@@ -160,6 +165,12 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			BuildingCount++;
 		}
 	}
+
+	// --- モデルロード時間計測終了 ---
+	auto model_end = std::chrono::high_resolution_clock::now();
+	auto model_ms = std::chrono::duration_cast<std::chrono::milliseconds>(model_end - model_start).count();
+	hal::dout << "全建物モデルロード時間: " << model_ms << " ms" << std::endl;
+
 }
 
 //======================================================
@@ -263,7 +274,14 @@ void Building::LoadModelForPhase()
 		snprintf(modelPath, sizeof(modelPath), "asset/model/%s.fbx", path);
 
 		// モデル読み込み
+		//m_Model = ModelLoad(modelPath);
+		 // --- ここで個別ロード時間計測 ---
+		auto start = std::chrono::high_resolution_clock::now();
 		m_Model = ModelLoad(modelPath);
+		auto end = std::chrono::high_resolution_clock::now();
+		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		hal::dout << "モデルロード: " << modelPath << " " << ms << " ms" << std::endl;
+
 	}
 }
 	

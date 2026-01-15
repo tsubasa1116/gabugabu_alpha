@@ -31,6 +31,8 @@ using namespace DirectX;
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+#include <chrono>
+#include <codecvt>
 
 //======================================================
 //	マクロ定義
@@ -451,8 +453,17 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
+#ifdef _DEBUG_
+	// テクスチャロード時間計測
+	auto tex_start = std::chrono::high_resolution_clock::now();
+	LoadTextureList(pDevice);
+	auto tex_end = std::chrono::high_resolution_clock::now();
+	auto tex_ms = std::chrono::duration_cast<std::chrono::milliseconds>(tex_end - tex_start).count();
+	hal::dout << "テクスチャロード時間: " << tex_ms << " ms" << std::endl;
+#else
 	// テクスチャ読み込み
 	LoadTextureList(pDevice);
+#endif
 
 	// インデックスバッファ作成
 	{
@@ -516,6 +527,9 @@ static void LoadTextureList(ID3D11Device* pDevice)
 
 	for (const auto& e : texList)
 	{
+
+		auto start = std::chrono::high_resolution_clock::now();
+
 		// コメント化している要素は配列エントリ自体をコメントアウトしているためここには来ない。
 		// （上ではコメント化行を // で無効化しているためコンパイル時に存在しません）
 		HRESULT hr = LoadFromWICFile(e.path, WIC_FLAGS_NONE, &metadata, image);
@@ -532,6 +546,13 @@ static void LoadTextureList(ID3D11Device* pDevice)
 			// 読み込み失敗は nullptr を代入して続行
 			g_Texture[e.idx] = nullptr;
 		}
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+		// std::wstring を std::string に変換して出力
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+		hal::dout << "テクスチャロード: " << conv.to_bytes(e.path) << " " << ms << " ms" << std::endl;
 	}
 }
 
@@ -1127,15 +1148,15 @@ void Polygon3D_Update()
 		// 重力加速度のない簡易的な重力
 		object[p].position.y += -0.1f;
 
-		// デバッグ出力
-		if (posBuff.x != object[p].position.x ||
-			posBuff.y != object[p].position.y ||
-			posBuff.z != object[p].position.z)
-		{
-			hal::dout << "x : " << object[p].position.x << std::endl;
-			hal::dout << "y : " << object[p].position.y << std::endl;
-			hal::dout << "z : " << object[p].position.z << std::endl;
-		}
+		//// デバッグ出力
+		//if (posBuff.x != object[p].position.x ||
+		//	posBuff.y != object[p].position.y ||
+		//	posBuff.z != object[p].position.z)
+		//{
+		//	hal::dout << "x : " << object[p].position.x << std::endl;
+		//	hal::dout << "y : " << object[p].position.y << std::endl;
+		//	hal::dout << "z : " << object[p].position.z << std::endl;
+		//}
 
 		//hal::dout << vdata[0].position.x << std::endl;
 
