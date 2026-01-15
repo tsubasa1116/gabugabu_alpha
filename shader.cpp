@@ -36,21 +36,24 @@ static ID3D11Buffer* g_pColorBuffer = nullptr;
 
 static ID3D11PixelShader* g_pDebugColorShader = nullptr; // コライダー可視化
 
+static ID3D11ShaderResourceView* g_GaugeTex[4] = {};
+static ID3D11SamplerState* g_GaugeSampler = nullptr;
+
+static ID3D11ShaderResourceView* g_OutGaugeTex = nullptr;
+static ID3D11SamplerState* g_OutGaugeSampler = nullptr;
+
+
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 struct GAUGEBUFFER
 {
-	float fire;
-	float water;
-	float wind;
-	float earth;
+	float glass;
+	float concrete;
+	float plant;
+	float electric;
 
-	XMFLOAT4 fireColor;
-	XMFLOAT4 waterColor;
-	XMFLOAT4 windColor;
-	XMFLOAT4 earthColor;
 };
 
 struct OUTGAUGEBUFFER
@@ -146,7 +149,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	// バイナリデータを格納するためのバッファを確保
 	unsigned char* vsbinary_pointer = new unsigned char[filesize];
-	
+
 	ifs_vs.read((char*)vsbinary_pointer, filesize); // バイナリデータを読み込む
 	ifs_vs.close(); // ファイルを閉じる
 
@@ -289,6 +292,45 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice->CreatePixelShader(psBin_hpber.data(), psSize_hpber, nullptr, &g_pHpberShader);
 
 
+	//======================================================
+	//	ゲージ用テクスチャ読み込み
+	//======================================================
+	const wchar_t* files[4] =
+	{
+		L"asset/texture/uiMaterialGlass_v3.png",
+		L"asset/texture/uiMaterialConcrete_v3.png",
+		L"asset/texture/uiMaterialTree_v3.png",
+		L"asset/texture/uiMaterialElectricity_v3.png"
+	};
+
+	TexMetadata metadata;
+	ScratchImage image;
+
+	for (int i = 0; i < 4; i++)
+	{
+		LoadFromWICFile(files[i], WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_GaugeTex[i]);
+		assert(g_GaugeTex[i]);
+	}
+
+	LoadFromWICFile(L"Asset\\Texture\\uiEvolutionGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_OutGaugeTex);
+	assert(g_OutGaugeTex);
+
+
+	//======================================================
+	//	ゲージ用サンプラーステート作成
+	//======================================================
+	D3D11_SAMPLER_DESC desc{};
+	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	desc.MinLOD = 0;
+	desc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	pDevice->CreateSamplerState(&desc, &g_GaugeSampler);
 
 
 	return true;
@@ -310,6 +352,31 @@ void Shader_Finalize()
 
 }
 
+
+
+//======================================================
+//	内ゲージ用テクスチャセット関数
+//======================================================
+void Shader_SetGaugeTextures()
+{
+	// t0-t3
+	g_pContext->PSSetShaderResources(0, 4, g_GaugeTex);  // glass, concrete, plant, electric の順
+	
+	// s0
+	g_pContext->PSSetSamplers(0, 1, &g_GaugeSampler);
+}
+
+//======================================================
+//	外ゲージ用テクスチャセット関数
+//======================================================
+void Shader_SetOutGaugeTextures()
+{
+	// t0
+	g_pContext->PSSetShaderResources(0, 1, &g_OutGaugeTex); 
+
+	// s0
+	g_pContext->PSSetSamplers(0, 1, &g_OutGaugeSampler);
+}
 
 //======================================================
 //	行列関数
@@ -427,23 +494,16 @@ void Shader_BeginHpber()
 //======================================================
 //	内ゲージ
 //======================================================
-void Shader_SetGaugeMulti(float fire, float water, float wind, float earth,
-	XMFLOAT4 fireColor, XMFLOAT4 waterColor,
-	XMFLOAT4 windColor, XMFLOAT4 earthColor)
+void Shader_SetGaugeMulti(float glass, float concrete, float plant, float electric)
 {
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	g_pContext->Map(g_pGaugeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 
 	GAUGEBUFFER gb{};
-	gb.fire = fire;
-	gb.water = water;
-	gb.wind = wind;
-	gb.earth = earth;
-
-	gb.fireColor = fireColor;
-	gb.waterColor = waterColor;
-	gb.windColor = windColor;
-	gb.earthColor = earthColor;
+	gb.glass = glass;
+	gb.concrete = concrete;
+	gb.plant = plant;
+	gb.electric = electric;
 
 	memcpy(mapped.pData, &gb, sizeof(gb));
 	g_pContext->Unmap(g_pGaugeBuffer, 0);
@@ -479,15 +539,15 @@ void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed)
 {
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	g_pContext->Map(g_pHpberBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-	
+
 	static float g_Time = 0.0f;
 	g_Time += 0.02f;
 
 	HPBERBUFFER ob{};
-	ob.palam = {g_Time, al, speed, 0};
+	ob.palam = { g_Time, al, speed, 0 };
 	ob.colorA = colA;
 	ob.colorB = colB;
-	
+
 	memcpy(mapped.pData, &ob, sizeof(ob));
 	g_pContext->Unmap(g_pHpberBuffer, 0);
 
