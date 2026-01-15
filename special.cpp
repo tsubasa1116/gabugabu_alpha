@@ -606,6 +606,8 @@ void Special_Update(int playerIndex)
 	// スペシャル使用中かつスタン中でない場合に更新処理を行う
 	if (player.useSpecial && !player.isStunning)
 	{
+		//SetCameraAtPosition(player.position);
+
 		switch (player.type)
 		{
 		case PlayerType::Glass:		Special_Glass_Update(playerIndex);		break;
