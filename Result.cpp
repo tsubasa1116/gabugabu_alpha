@@ -19,11 +19,15 @@
 
 #include <cfloat> // FLT_MAX
 #include <array>
+#include <chrono> // 追加：時間計測
+#include <algorithm> // 追加：std::min（残しても問題なし）
 
-static	ID3D11ShaderResourceView* g_Texture = NULL;	//背景
+static	ID3D11ShaderResourceView* g_Texture = NULL;		// 背景
+static	ID3D11ShaderResourceView* g_Texture2 = NULL;	// 次へ
+static	ID3D11ShaderResourceView* g_Texture3 = NULL;	// 選択
 static ID3D11ShaderResourceView* g_ResultTex = nullptr; // 既存モデル用テクスチャ
 static TexMetadata		g_ResultTexMeta{};
-static MODEL* g_ResultModel = nullptr;               // 既存モデル
+static MODEL* g_ResultModel = nullptr;					// 既存モデル
 
 // 新規：タワーモデルとテクスチャ群（4つ）
 static MODEL* g_TowerModel = nullptr;
@@ -38,6 +42,14 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 // モデル中心・半径（Initializeで計算）
 static XMFLOAT3 g_ResultModelCenter = { 0.0f, 0.0f, 0.0f };
 static float    g_ResultModelRadius = 1.0f;
+
+// ---------- ポップイン用タイマー / アニメーション状態 ----------
+static std::chrono::steady_clock::time_point g_StartTime;
+static bool g_ButtonsAnimStarted = false;
+static std::chrono::steady_clock::time_point g_AnimStartTime;
+static constexpr double g_ButtonDelaySeconds = 5.0;     // 5秒遅延
+static constexpr double g_ButtonAnimDuration = 0.6;     // アニメーション長（秒）
+// -----------------------------------------------------------------
 
 // ユーティリティ：モデルのバウンディング計算
 static void CalculateModelBounds(MODEL* model, XMFLOAT3& outCenter, float& outRadius)
@@ -79,6 +91,38 @@ static void CalculateModelBounds(MODEL* model, XMFLOAT3& outCenter, float& outRa
 	outRadius = sqrtf(hx * hx + hy * hy + hz * hz);
 }
 
+// イージング：EaseOutBack（ポップ感、オーバーシュートあり）
+static float EaseOutBack(float t)
+{
+	const float c1 = 1.70158f;
+	const float c3 = c1 + 1.0f;
+	t = t - 1.0f;
+	return 1.0f + (c3 * t * t * t + c1 * t * t);
+}
+
+// リニア補間
+static float Lerp(float a, float b, float t)
+{
+	return a + (b - a) * t;
+}
+
+// 値を [0,1] にクランプ（std::min マクロ衝突回避のため使用）
+static double Clamp01(double v)
+{
+	if (v <= 0.0) return 0.0;
+	if (v >= 1.0) return 1.0;
+	return v;
+}
+
+// 現在時刻（秒）取得（開始時刻からの経過）
+static double GetElapsedSeconds()
+{
+	using namespace std::chrono;
+	auto now = steady_clock::now();
+	auto elapsed = duration_cast<duration<double>>(now - g_StartTime);
+	return elapsed.count();
+}
+
 //======================================================
 //	初期化関数
 //======================================================
@@ -86,6 +130,10 @@ void Result_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
+
+	// タイマー開始時刻を記録
+	g_StartTime = std::chrono::steady_clock::now();
+	g_ButtonsAnimStarted = false;
 
 	// 背景テクスチャ読み込み
 	{
@@ -138,6 +186,24 @@ void Result_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_TowerTexMeta[i] = meta;
 	}
 
+	// 次へテクスチャ読み込み
+	{
+		TexMetadata		metadata;
+		ScratchImage	image;
+		LoadFromWICFile(L"asset\\texture\\nextButton.png", WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture2);
+		assert(g_Texture2);//読み込み失敗時にダイアログを表示
+	}
+
+	// 選択テクスチャ読み込み
+	{
+		TexMetadata		metadata;
+		ScratchImage	image;
+		LoadFromWICFile(L"asset\\texture\\selectButton.png", WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture3);
+		assert(g_Texture3);//読み込み失敗時にダイアログを表示
+	}
+
 	//フェードインのセット
 	XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	SetFade(60.0f, color, FADE_IN, SCENE_GAME);
@@ -150,6 +216,8 @@ void Result_Finalize()
 {
 	//テクスチャの解放など
 	SAFE_RELEASE(g_Texture);
+	SAFE_RELEASE(g_Texture2);
+	SAFE_RELEASE(g_Texture3);
 	SAFE_RELEASE(g_ResultTex);
 
 	for (int i = 0; i < 4; ++i)
@@ -182,6 +250,14 @@ void Result_Update()
 		//フェードアウトさせてシーンを切り替える
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_TITLE);
+	}
+
+	// 遅延経過チェック：アニメーション開始タイミングを Result_Update でも保持
+	double elapsed = GetElapsedSeconds();
+	if (!g_ButtonsAnimStarted && elapsed >= g_ButtonDelaySeconds)
+	{
+		g_ButtonsAnimStarted = true;
+		g_AnimStartTime = std::chrono::steady_clock::now();
 	}
 }
 
@@ -226,6 +302,15 @@ void Result_Draw()
 
 		// 3D 用の行列（アーチはそのまま表示）
 		XMMATRIX worldArch = XMMatrixIdentity();
+
+		// 回転を追加（FBX向けの回転調整）
+		// rotation は必要に応じて変更してください（ラジアン）
+		XMFLOAT3 rotationArch = { 0.0f, 0.0f, 0.0f };
+		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
+			rotationArch.x + XMConvertToRadians(-90.0f),
+			rotationArch.y,
+			rotationArch.z);
+		worldArch = RotationMatrix * worldArch;
 
 		// カメラ（モデル群を中心に）
 		XMVECTOR eyePos = XMVectorSet(g_ResultModelCenter.x, g_ResultModelCenter.y + 1.5f, g_ResultModelCenter.z - (g_ResultModelRadius * 2.0f + 2.0f), 0.0f);
@@ -327,6 +412,15 @@ void Result_Draw()
 				targetPos.y - g_TowerModelCenter.y,
 				targetPos.z - g_TowerModelCenter.z);
 
+			// 回転を追加（FBX向けの回転調整）
+			// rotation は必要に応じて変更してください（ラジアン）
+			XMFLOAT3 rotationTower = { 0.0f, 0.0f, 0.0f };
+			XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
+				rotationTower.x + XMConvertToRadians(-90.0f),
+				rotationTower.y,
+				rotationTower.z);
+			world = RotationMatrix * world;
+
 			Shader_SetMatrix(world * view * proj);
 
 			// 各メッシュを描画（各タワーに固有テクスチャを適用）
@@ -349,4 +443,95 @@ void Result_Draw()
 		if (oldDepth) oldDepth->Release();
 		SAFE_RELEASE(pDepthState);
 	}
+
+	// ここで UI 用の直交投影行列に戻す（重要）
+	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
+		0.0f,
+		SCREEN_WIDTH,
+		SCREEN_HEIGHT,
+		0.0f,
+		0.0f,
+		1.0f));
+	// スプライトの描画は通常ブレンド無しかアルファにする（既存スタイルに合わせる）
+	SetBlendState(BLENDSTATE_NONE);
+
+	// --- ボタン：5秒後に右からポップアウト ---
+	// ボタン基本情報
+	const XMFLOAT2 btnSize = { 200.0f, 200.0f };
+	const float targetX = SCREEN_WIDTH - 100.0f;
+	const float startX = SCREEN_WIDTH + btnSize.x * 0.5f + 50.0f; // 右画面外から出てくる
+	double nowElapsed = GetElapsedSeconds();
+
+	// 次へボタン
+	if (g_Texture2)
+	{
+		// 遅延中はまだ表示しない
+		if (nowElapsed >= g_ButtonDelaySeconds)
+		{
+			// アニメーション進行度
+			double animElapsed = 0.0;
+			if (g_ButtonsAnimStarted)
+			{
+				auto now = std::chrono::steady_clock::now();
+				animElapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - g_AnimStartTime).count();
+			}
+
+			double rawT = animElapsed / g_ButtonAnimDuration;
+			float t = static_cast<float>(Clamp01(rawT));
+			float eased = EaseOutBack(t);
+
+			// 位置・スケール・アルファ補間
+			float curX = Lerp(startX, targetX, eased);
+			float curScale = Lerp(0.6f, 1.05f, eased); // 少しオーバーして戻る
+			float alpha = Lerp(0.0f, 1.0f, t);
+
+			// ポップ青寄せ
+			XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+			// DrawSprite は中心座標で描画する想定
+			XMFLOAT2 pos = { curX, SCREEN_HEIGHT / 2 + 230 };
+			XMFLOAT2 size = { btnSize.x * curScale, btnSize.y * curScale };
+
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture2);//g_Textureを使うように設定する
+			SetBlendState(BLENDSTATE_ALPHA);
+			DrawSprite(pos, size, col);
+		}
+	}
+
+	// 選択ボタン
+	if (g_Texture3)
+	{
+		// 遅延中はまだ表示しない
+		if (nowElapsed >= g_ButtonDelaySeconds)
+		{
+			double animElapsed = 0.0;
+			if (g_ButtonsAnimStarted)
+			{
+				auto now = std::chrono::steady_clock::now();
+				animElapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - g_AnimStartTime).count();
+			}
+
+			// 少し遅らせて2つめのボタンは同じアニメだが開始を少し遅らせたい場合は offset を追加可能
+			double rawT = animElapsed / g_ButtonAnimDuration;
+			float t = static_cast<float>(Clamp01(rawT));
+			float eased = EaseOutBack(t);
+
+			float curX = Lerp(startX, targetX, eased);
+			float curScale = Lerp(0.6f, 1.05f, eased);
+			float alpha = Lerp(0.0f, 1.0f, t);
+
+			XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+			XMFLOAT2 pos = { curX, SCREEN_HEIGHT / 2 + 300 };
+			XMFLOAT2 size = { btnSize.x * curScale, btnSize.y * curScale };
+
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture3);//g_Textureを使うように設定する
+			SetBlendState(BLENDSTATE_ALPHA);
+			DrawSprite(pos, size, col);
+		}
+	}
+	// ------------------------------------------------------------------
+
+	// スプライトの描画は通常ブレンド無しかアルファにする（既存スタイルに合わせる）
+	SetBlendState(BLENDSTATE_NONE);
 }
