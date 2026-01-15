@@ -1,7 +1,7 @@
 // =====================================================
 //	polygon3D.cpp[]
 // 
-//	制作者：平岡颯馬			日付：2025/12/16
+//	制作者：平岡颯馬			日付：2025/01/13
 //======================================================
 
 #include <d3d11.h>
@@ -33,6 +33,9 @@ using namespace DirectX;
 #include "imgui_impl_dx11.h"
 #include <chrono>
 #include <codecvt>
+
+#include <vector>
+#include <algorithm>
 
 //======================================================
 //	マクロ定義
@@ -75,143 +78,11 @@ static const float ANIM_FRAME_TIME = 0.15f; // 1フレームあたりの秒数
 static const int   SHEET_COLS = 16;
 static const int   SHEET_ROWS = 16;
 
-static int g_victoryState[PLAYER_MAX] = { 0 };			// 0=なし, 1=初回(208～220) 再生中, 2=ループ(216～220)
+static int g_victoryState[PLAYER_MAX] = { 0 };			// 0=なし, 1=初回 再生中, 2=ループ
 static float g_downHoldTimer[PLAYER_MAX] = { 0.0f };	// 最終フレームホールド用タイマー（プレイヤー毎）
 
-//static	Vertex vdata[NUM_VERTEX] =
-//{
-//	//-Z面
-//	{//頂点0 LEFT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, -0.5f),		//座標
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	//カラー
-//		XMFLOAT2(0.0f,0.0f)					//テクスチャ座標
-//	},
-//	{//頂点1 RIGHT-TOP
-//		XMFLOAT3(0.5f, 0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点2 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点3 RIGHT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//
-//	//+X面
-//	{//頂点4 LEFT-TOP
-//		XMFLOAT3(0.5f, 0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点5 RIGHT-TOP
-//		XMFLOAT3(0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点6 LEFT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点7 RIGHT-BOTTM
-//		XMFLOAT3(0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//
-//	//+Z面
-//	{//頂点8 LEFT-TOP
-//		XMFLOAT3(0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点9 RIGHT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点10 LEFT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点11 RIGHT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//
-//	//-X面
-//	{//頂点12 LEFT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点13 RIGHT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点14 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点15 RIGHT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//
-//	//+Y面
-//	{//頂点16 LEFT-TOP
-//		XMFLOAT3(-0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点17 RIGHT-TOP
-//		XMFLOAT3(0.5f, 0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点18 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, 0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点19 RIGHT-BOTTOM
-//		XMFLOAT3(0.5f, 0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//
-//	//-Y面
-//	{//頂点20 LEFT-TOP
-//		XMFLOAT3(-0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,0.0f)
-//	},
-//	{//頂点21 RIGHT-TOP
-//		XMFLOAT3(0.5f, -0.5f, -0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,0.0f)
-//	},
-//	{//頂点22 LEFT-BOTTOM
-//		XMFLOAT3(-0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(0.0f,1.0f)
-//	},
-//	{//頂点23 RIGHT-BOTTOM
-//		XMFLOAT3(0.5f, -0.5f, 0.5f),
-//		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-//		XMFLOAT2(1.0f,1.0f)
-//	},
-//};
+// 順位・死亡順の管理
+static std::vector<int> g_deathOrder;	// 死亡したプレイヤーのインデックス（先に死んだ者が先頭）
 
 #define COORDINATE	(0.5f)	// デフォルト (0.5f)
 #define TEXCOORD	(1.0f)	// デフォルト (1.0f)
@@ -251,16 +122,6 @@ static UINT idxdata[6]
 	 0, 1, 2, 2, 1, 3, // -Z面
 };
 
-//static UINT idxdata[6 * 6]
-//{
-//	 0,  1,  2,  2,  1,  3, // -Z面
-//	 4,  5,  6,  6,  5,  7, // +X面
-//	 8,  9, 10, 10,  9, 11, // +Z面
-//	12, 13, 14, 14, 13, 15, // -X面
-//	16, 17, 18, 18, 17, 19, // +Y面
-//	20, 21, 22, 22, 21, 23, // -Y面
-//};
-
 static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
 
 //======================================================
@@ -280,6 +141,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].speed = 0.0f;
 	object[0].defense = 1.0f;
 	object[0].stock = 3;
+	object[0].rank = 0;
 	object[0].active = true;
 	object[0].isAttacking = false;
 	object[0].attackTimer = 0.0f;
@@ -287,6 +149,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].attackedTimer = 0.0f;
 	object[0].useSkill = false;
 	object[0].skillTimer = 0.0f;
+	object[0].skillCoolTimer = 0.0f;
 	object[0].useSpecial = false;
 	object[0].specialTimer = 0.0f;
 	object[0].isInvincible = false;
@@ -323,6 +186,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].defense = 1.0f;
 	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].stock = 3;
+	object[1].rank = 0;
 	object[1].active = true;
 	object[1].isAttacking = false;
 	object[1].attackTimer = 0.0f;
@@ -330,6 +194,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].attackedTimer = 0.0f;
 	object[1].useSkill = false;
 	object[1].skillTimer = 0.0f;
+	object[1].skillCoolTimer = 0.0f;
 	object[1].useSpecial = false;
 	object[1].specialTimer = 0.0f;
 	object[1].isInvincible = false;
@@ -355,7 +220,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].el = 1.0f;
 	object[1].gaugeOuter = 1.0f;
 
-	object[2].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
+	object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[2].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
 	object[2].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -366,6 +231,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].speed = 0.0f;
 	object[2].defense = 1.0f;
 	object[2].stock = 3;
+	object[2].rank = 0;
 	object[2].active = true;
 	object[2].isAttacking = false;
 	object[2].attackTimer = 0.0f;
@@ -373,6 +239,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].attackedTimer = 0.0f;
 	object[2].useSkill = false;
 	object[2].skillTimer = 0.0f;
+	object[2].skillCoolTimer = 0.0f;
 	object[2].useSpecial = false;
 	object[2].specialTimer = 0.0f;
 	object[2].isInvincible = false;
@@ -409,6 +276,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].defense = 1.0f;
 	object[3].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[3].stock = 3;
+	object[3].rank = 0;
 	object[3].active = true;
 	object[3].isAttacking = false;
 	object[3].attackTimer = 0.0f;
@@ -416,6 +284,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].attackedTimer = 0.0f;
 	object[3].useSkill = false;
 	object[3].skillTimer = 0.0f;
+	object[3].skillCoolTimer = 0.0f;
 	object[3].useSpecial = false;
 	object[3].specialTimer = 0.0f;
 	object[3].isInvincible = false;
@@ -441,11 +310,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].el = 1.0f;
 	object[3].gaugeOuter = 1.0f;
 
-	//頂点バッファ作成
+	// 頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
-	ZeroMemory(&bd, sizeof(bd));//0でクリア
+	ZeroMemory(&bd, sizeof(bd));// 0でクリア
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;//格納できる頂点数*頂点サイズ
+	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// 格納できる頂点数*頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -496,6 +365,9 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_animFrame[i] = 0;
 		g_animTimer[i] = 0.0f;
 	}
+
+	// 順位情報を初期化
+	g_deathOrder.clear();
 }
 
 static void LoadTextureList(ID3D11Device* pDevice)
@@ -513,8 +385,8 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
 		{  5, L"asset\\texture\\characterBigGlass_v1.png" },		// 第3形態 ガラス
 		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// 第3形態 コンクリート
-		{  7, L"asset\\texture\\characterBigTree_v1.png" },		// 第3形態 植物
-		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },		// 第3形態 電気
+		{  7, L"asset\\texture\\characterBigTree_v1.png" },			// 第3形態 植物
+		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },	// 第3形態 電気
 		{  9, L"asset\\texture\\uiStockBlue_v2.png"},				// UI ストック 青
 		{ 10, L"asset\\texture\\uiStockGleen_v2.png"},				// UI ストック 緑
 		//{ 11, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
@@ -531,7 +403,6 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		auto start = std::chrono::high_resolution_clock::now();
 
 		// コメント化している要素は配列エントリ自体をコメントアウトしているためここには来ない。
-		// （上ではコメント化行を // で無効化しているためコンパイル時に存在しません）
 		HRESULT hr = LoadFromWICFile(e.path, WIC_FLAGS_NONE, &metadata, image);
 		if (SUCCEEDED(hr))
 		{
@@ -754,20 +625,15 @@ void Polygon3D_Update()
 				object[p].useSpecial = true;
 			}
 
-			// スキル中ならスキル更新処理を呼び出す
-			if (object[p].useSkill)
+			// フラグが立ったら更新処理を呼び出す
+			if (object[p].useSkill)		Skill_Update(p);	// スキル
+			if (object[p].isAttacking)	Attack_Update(p);	// 攻撃
+			if (object[p].useSpecial)	Special_Update(p);	// スペシャル
+			// プレイヤーごとのスキルクールタイムを毎フレーム減算
+			if (object[p].skillCoolTimer > 0.0f)
 			{
-				Skill_Update(p);
-			}
-			// 攻撃中なら攻撃更新処理を呼び出す
-			if (object[p].isAttacking)
-			{
-				Attack_Update(p);
-			}
-			// スペシャル使用中ならスペシャル更新処理を呼び出す
-			if (object[p].useSpecial)
-			{
-				Special_Update(p);
+				object[p].skillCoolTimer -= DELTA_TIME;
+				if (object[p].skillCoolTimer < 0.0f) object[p].skillCoolTimer = 0.0f;
 			}
 
 			// 現在のプレイヤー p の移動ベクトルだけをリセット
@@ -836,6 +702,9 @@ void Polygon3D_Update()
 					object[p].active = false;
 					object[p].isDown = false;
 					object[p].downTimer = 0.0f;
+
+					// 順位登録（内部で重複登録を防止）
+					Ranking(p);
 				}
 			}
 		}
@@ -855,6 +724,8 @@ void Polygon3D_Update()
 			{
 				// 残機無しで完全に非アクティブ化
 				object[p].active = false;
+				// 順位登録
+				Ranking(p);
 			}
 		}
 
@@ -1054,6 +925,7 @@ void Polygon3D_Update()
 		ImGui::SliderFloat("stunGauge", &object[p].stunGauge, 0.0f, 10.0f, "%.1f");
 		ImGui::SliderFloat("invincibleTimer", &object[p].invincibleTimer, 0.0f, 3.0f, "%.1f");
 		ImGui::BulletText("active            : %d", object[p].active);
+		ImGui::BulletText("rank              : %d", object[p].rank);
 		ImGui::BulletText("speed             : %.3f", object[p].speed);
 		ImGui::BulletText("defense           : %.1f", object[p].defense);
 		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
@@ -1612,204 +1484,64 @@ void Polygon3D_DrawEffect()
 
 void Polygon3D_Respawn(int playerIndex)
 {
+	// 範囲チェック 0未満 または 4以上なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	// 残機が1つ以上ある場合
-	if (object[0].active == true && playerIndex == 0)
+	if (object[playerIndex].active == true)
 	{
-		object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
-		object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[0].maxHp = 100.0f;
-		object[0].hp = object[0].maxHp;
-		object[0].attack = 0.0f;
-		object[0].power = 0.0f;
-		object[0].speed = 0.0f;
-		object[0].defense = 1.0f;
-		object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[0].active = true;
-		object[0].isAttacking = false;
-		object[0].attackTimer = 0.0f;
-		object[0].isAttacked = false;
-		object[0].attackedTimer = 0.0f;
-		object[0].useSkill = false;
-		object[0].skillTimer = 0.0f;
-		object[0].useSpecial = false;
-		object[0].specialTimer = 0.0f;
-		object[0].isInvincible = false;
-		object[0].invincibleTimer = 0.0f;
-		object[0].stunGauge = 0.0f;
-		object[0].isStunning = false;
-		object[0].stunTimer = 0.0f;
-		object[0].isDown = false;
-		object[0].downTimer = 0.0f;
+		object[playerIndex].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[playerIndex].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[playerIndex].maxHp = 100.0f;
+		object[playerIndex].hp = object[0].maxHp;
+		object[playerIndex].attack = 0.0f;
+		object[playerIndex].power = 0.0f;
+		object[playerIndex].speed = 0.0f;
+		object[playerIndex].defense = 1.0f;
+		object[playerIndex].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[playerIndex].active = true;
+		object[playerIndex].isAttacking = false;
+		object[playerIndex].attackTimer = 0.0f;
+		object[playerIndex].isAttacked = false;
+		object[playerIndex].attackedTimer = 0.0f;
+		object[playerIndex].useSkill = false;
+		object[playerIndex].skillTimer = 0.0f;
+		object[playerIndex].skillCoolTimer = 0.0f;
+		object[playerIndex].useSpecial = false;
+		object[playerIndex].specialTimer = 0.0f;
+		object[playerIndex].isInvincible = false;
+		object[playerIndex].invincibleTimer = 0.0f;
+		object[playerIndex].stunGauge = 0.0f;
+		object[playerIndex].isStunning = false;
+		object[playerIndex].stunTimer = 0.0f;
+		object[playerIndex].isDown = false;
+		object[playerIndex].downTimer = 0.0f;
+		object[playerIndex].lastDir = PlayerDir::Down; // 正面
+		object[playerIndex].isMoving = false;
+		object[playerIndex].form = Form::Normal;
+		object[playerIndex].type = PlayerType::None;
+		object[playerIndex].evolutionGauge = 0;
+		object[playerIndex].evolutionGaugeRate = 1;
+		object[playerIndex].breakCount_Glass = 0;
+		object[playerIndex].breakCount_Concrete = 0;
+		object[playerIndex].breakCount_Plant = 0;
+		object[playerIndex].breakCount_Electric = 0;
+		object[playerIndex].brokenHistory.clear();
+		object[playerIndex].gl = 1.0f;
+		object[playerIndex].pl = 1.0f;
+		object[playerIndex].co = 1.0f;
+		object[playerIndex].el = 1.0f;
+		object[playerIndex].gaugeOuter = 1.0f;
 
-		object[0].lastDir = PlayerDir::Down; // 正面
-		object[0].isMoving = false;
-		object[0].form = Form::Normal;
-		object[0].type = PlayerType::None;
-		object[0].evolutionGauge = 0;
-		object[0].evolutionGaugeRate = 1;
-		object[0].breakCount_Glass = 0;
-		object[0].breakCount_Concrete = 0;
-		object[0].breakCount_Plant = 0;
-		object[0].breakCount_Electric = 0;
-		object[0].brokenHistory.clear();
-		object[0].gl = 1.0f;
-		object[0].pl = 1.0f;
-		object[0].co = 1.0f;
-		object[0].el = 1.0f;
-		object[0].gaugeOuter = 1.0f;
-
-		object[0].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[0].is_knocked_back = false;
-		object[0].knockback_duration = 0.0f;
+		object[playerIndex].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[playerIndex].is_knocked_back = false;
+		object[playerIndex].knockback_duration = 0.0f;
 	}
 
-	// 残機が1つ以上ある場合
-	else if (object[1].active == true && playerIndex == 1)
-	{
-		object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
-		object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[1].maxHp = 100.0f;
-		object[1].hp = object[1].maxHp;
-		object[1].attack = 0.0f;
-		object[1].power = 0.0f;
-		object[1].speed = 0.0f;
-		object[1].defense = 1.0f;
-		object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[1].active = true;
-		object[1].isAttacking = false;
-		object[1].attackTimer = 0.0f;
-		object[1].isAttacked = false;
-		object[1].attackedTimer = 0.0f;
-		object[1].useSkill = false;
-		object[1].skillTimer = 0.0f;
-		object[1].useSpecial = false;
-		object[1].specialTimer = 0.0f;
-		object[1].isInvincible = false;
-		object[1].invincibleTimer = 0.0f;
-		object[1].stunGauge = 0.0f;
-		object[1].isStunning = false;
-		object[1].stunTimer = 0.0f;
-		object[1].isDown = false;
-		object[1].downTimer = 0.0f;
-
-		object[1].lastDir = PlayerDir::Down; // 正面
-		object[1].isMoving = false;
-		object[1].form = Form::Normal;
-		object[1].type = PlayerType::None;
-		object[1].evolutionGauge = 0;
-		object[1].evolutionGaugeRate = 1;
-		object[1].breakCount_Glass = 0;
-		object[1].breakCount_Concrete = 0;
-		object[1].breakCount_Plant = 0;
-		object[1].breakCount_Electric = 0;
-		object[1].brokenHistory.clear();
-		object[1].gl = 1.0f;
-		object[1].pl = 1.0f;
-		object[1].co = 1.0f;
-		object[1].el = 1.0f;
-		object[1].gaugeOuter = 1.0f;
-
-		object[1].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[1].is_knocked_back = false;
-		object[1].knockback_duration = 0.0f;
-	}
-	// 残機が1つ以上ある場合
-	else if (object[2].active == true && playerIndex == 2)
-	{
-
-		object[2].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
-		object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[2].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[2].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[2].maxHp = 100.0f;
-		object[2].hp = object[2].maxHp;
-		object[2].attack = 0.0f;
-		object[2].power = 0.0f;
-		object[2].speed = 0.0f;
-		object[2].defense = 1.0f;
-		object[2].stock = 3;
-		object[2].active = true;
-		object[2].isAttacking = false;
-		object[2].attackTimer = 0.0f;
-		object[2].isAttacked = false;
-		object[2].attackedTimer = 0.0f;
-		object[2].useSkill = false;
-		object[2].skillTimer = 0.0f;
-		object[2].useSpecial = false;
-		object[2].specialTimer = 0.0f;
-		object[2].isInvincible = false;
-		object[2].invincibleTimer = 0.0f;
-		object[2].stunGauge = 0.0f;
-		object[2].isStunning = false;
-		object[2].stunTimer = 0.0f;
-		object[2].isDown = false;
-		object[2].downTimer = 0.0f;
-		object[2].lastDir = PlayerDir::Down; // 正面
-		object[2].isMoving = false;
-		object[2].form = Form::Normal;
-		object[2].type = PlayerType::None;
-		object[2].evolutionGauge = 0;
-		object[2].evolutionGaugeRate = 1;
-		object[2].breakCount_Glass = 0;
-		object[2].breakCount_Concrete = 0;
-		object[2].breakCount_Plant = 0;
-		object[2].breakCount_Electric = 0;
-		object[2].gl = 1.0f;
-		object[2].pl = 1.0f;
-		object[2].co = 1.0f;
-		object[2].el = 1.0f;
-		object[2].gaugeOuter = 1.0f;
-	}
-	// 残機が1つ以上ある場合
-	else if (object[3].active == true && playerIndex == 3)
-	{
-		object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
-		object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[3].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[3].maxHp = 100.0f;
-		object[3].hp = object[3].maxHp;
-		object[3].attack = 0.0f;
-		object[3].power = 0.0f;
-		object[3].speed = 0.0f;
-		object[3].defense = 1.0f;
-		object[3].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[3].stock = 3;
-		object[3].active = true;
-		object[3].isAttacking = false;
-		object[3].attackTimer = 0.0f;
-		object[3].isAttacked = false;
-		object[3].attackedTimer = 0.0f;
-		object[3].useSkill = false;
-		object[3].skillTimer = 0.0f;
-		object[3].useSpecial = false;
-		object[3].specialTimer = 0.0f;
-		object[3].isInvincible = false;
-		object[3].invincibleTimer = 0.0f;
-		object[3].stunGauge = 0.0f;
-		object[3].isStunning = false;
-		object[3].stunTimer = 0.0f;
-		object[3].isDown = false;
-		object[3].downTimer = 0.0f;
-		object[3].lastDir = PlayerDir::Down; // 正面
-		object[3].isMoving = false;
-		object[3].form = Form::Normal;
-		object[3].type = PlayerType::None;
-		object[3].evolutionGauge = 0;
-		object[3].evolutionGaugeRate = 1;
-		object[3].breakCount_Glass = 0;
-		object[3].breakCount_Concrete = 0;
-		object[3].breakCount_Plant = 0;
-		object[3].breakCount_Electric = 0;
-		object[3].gl = 1.0f;
-		object[3].pl = 1.0f;
-		object[3].co = 1.0f;
-		object[3].el = 1.0f;
-		object[3].gaugeOuter = 1.0f;
-	}
+	if (playerIndex == 0) object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
+	if (playerIndex == 1) object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
+	if (playerIndex == 2) object[2].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
+	if (playerIndex == 3) object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
 }
 
 static inline void LoopRange(int& animFrame, int start, int count, int advance)
@@ -1854,4 +1586,37 @@ PLAYEROBJECT* GetPlayer(int playerIndex)
 	}
 
 	return &object[playerIndex];
+}
+
+static void Ranking(int playerIndex)
+{
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+	// 二重登録防止
+	if (object[playerIndex].rank != 0) return;
+
+	// 死亡順に追加
+	g_deathOrder.push_back(playerIndex);
+	size_t pos = g_deathOrder.size();
+
+	// 先に死んだプレイヤーが低順位になる（pos=1 -> 4位）
+	object[playerIndex].rank = PLAYER_MAX - (int)(pos - 1);
+
+	// 最後の一人が確定したら残りを1位にする
+	if (g_deathOrder.size() == (size_t)(PLAYER_MAX - 1))
+	{
+		for (int p = 0; p < PLAYER_MAX; ++p)
+		{
+			if (object[p].rank == 0)
+			{
+				object[p].rank = 1;
+				break;
+			}
+		}
+	}
+}
+
+int GetPlayerRank(int playerIndex)
+{
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return 0;
+	return object[playerIndex].rank;
 }

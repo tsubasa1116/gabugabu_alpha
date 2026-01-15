@@ -64,6 +64,7 @@ struct PLAYEROBJECT
 	float defense;			// 防御率
 	XMFLOAT3 dir;			// 向き
 	int stock;				// 残機
+	int rank;				// 順位
 	bool active;			// 生存フラグ
 
 	bool isAttacking;		// 攻撃中かどうか
@@ -74,6 +75,7 @@ struct PLAYEROBJECT
 
 	bool useSkill;			// スキル使用中かどうか
 	float skillTimer;		// スキルタイマー
+	float skillCoolTimer;	// スキルクールタイマー
 
 	bool useSpecial;		// スペシャル使用中かどうか
 	float specialTimer;		// スペシャルタイマー
@@ -93,15 +95,15 @@ struct PLAYEROBJECT
 	PlayerDir lastDir;							// 待機時の向き
 	bool isMoving = false;						// 移動中かどうか
 
-	Form form;								// 変身形態
-	PlayerType type;						// プレイヤーの属性タイプ
-	int evolutionGauge;						// 進化ゲージ
-	int evolutionGaugeRate;					// 進化ゲージ 倍率
-	int breakCount_Glass;					// 破壊した数 ガラス
-	int breakCount_Concrete;				// 破壊した数 コンクリート
-	int breakCount_Plant;					// 破壊した数 植物
-	int breakCount_Electric;				// 破壊した数 電気
-	std::vector<BuildingType> brokenHistory;// 破壊した建物のリスト
+	Form form;									// 変身形態
+	PlayerType type;							// プレイヤーの属性タイプ
+	int evolutionGauge;							// 進化ゲージ
+	int evolutionGaugeRate;						// 進化ゲージ 倍率
+	int breakCount_Glass;						// 破壊した数 ガラス
+	int breakCount_Concrete;					// 破壊した数 コンクリート
+	int breakCount_Plant;						// 破壊した数 植物
+	int breakCount_Electric;					// 破壊した数 電気
+	std::vector<BuildingType> brokenHistory;	// 破壊した建物のリスト
 
 	float gl, pl, co, el;
 	float gaugeOuter;
@@ -121,6 +123,8 @@ void Polygon3D_DrawEffect();
 
 // アニメーション関数
 static inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
+
+void Ranking(int playerIndex);
 
 void Polygon3D_Respawn(int playerIndex);
 

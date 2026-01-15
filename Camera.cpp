@@ -20,7 +20,7 @@ static float	s_LerpTime = 0.0f;		// Lerpの進捗度 (0.0fから1.0fへ変化)
 const float		LERP_SPEED = 0.05f;		// Lerpの速さ (毎フレーム進む割合)
 
 void Camera_Initialize()
-{ 
+{
 	// セッターを使った初期化
 	XMFLOAT3 pos = XMFLOAT3(0.0f, 10.0f, -10.0f);
 	XMFLOAT3 at = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -214,7 +214,7 @@ void Camera_Update()
 	return;
 }
 
-void	Camera_Draw()
+void Camera_Draw()
 { 
 	//プロジェクション行列作成
 	CameraObject.projection = XMMatrixPerspectiveFovLH
