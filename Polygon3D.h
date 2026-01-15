@@ -107,6 +107,9 @@ struct PLAYEROBJECT
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル
 	bool is_knocked_back = false;						// 吹き飛ばし中かどうか
 	float knockback_duration = 0.0f;					// 吹き飛ばしの残り時間（フレーム数
+
+	XMFLOAT2 screenPos;     // テキスト描画用スクリーン座標
+	bool isOnScreen;
 };
 
 void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -124,5 +127,7 @@ void Polygon3D_Respawn(int playerIndex);
 
 void Polygon3D_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int playerIndex);
+
+void Polygon3D_DrawText();
 
 

@@ -16,6 +16,7 @@ using namespace DirectX;
 #include "keyboard.h"
 #include "DamageText.h"
 #include "Effect.h"
+#include "input.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -353,7 +354,7 @@ void Attack_Update(int playerIndex)
 		{
 			BuildingType type = buildingObjects[i]->Type;
 
-			if (Keyboard_IsKeyDown(confirmKey[playerIndex]))
+			if (g_Input[playerIndex].A)
 			{
 				// 各建物タイプごとの処理
 				switch (type)
@@ -361,7 +362,7 @@ void Attack_Update(int playerIndex)
 				case BuildingType::Glass:
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Glass += 1;						// ガラスを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -377,7 +378,7 @@ void Attack_Update(int playerIndex)
 				case BuildingType::Concrete:
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Concrete += 1;					// コンクリートを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -393,7 +394,7 @@ void Attack_Update(int playerIndex)
 				case BuildingType::Plant:					
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Plant += 1;						// 植物を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -409,7 +410,7 @@ void Attack_Update(int playerIndex)
 				case BuildingType::Electric:
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Electric += 1;					// 電気を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -426,6 +427,8 @@ void Attack_Update(int playerIndex)
 					break;
 				}
 			}
+
+
 
 			// 衝突していたら、MTVの分だけ位置を戻す
 			atttackObject.position.x += collision.translation.x;
@@ -548,8 +551,10 @@ void Attack_Update(int playerIndex)
 			// プレイヤーごとの画面上のエフェクト位置
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
 			{
-				{ 145.0f, 640.0f }, // プレイヤー1
-				{ 455.0f, 640.0f }  // プレイヤー2
+				{ 160.0f, 620.0f }, // プレイヤー1
+				{ 470.0f, 620.0f }, // プレイヤー2
+				{ 780.0f, 620.0f }, // プレイヤー3
+				{ 1090.0f, 620.0f }  // プレイヤー4
 			};
 
 			// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）

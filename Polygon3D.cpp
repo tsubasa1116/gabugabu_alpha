@@ -387,11 +387,6 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].breakCount_Concrete = 0;
 	object[2].breakCount_Plant = 0;
 	object[2].breakCount_Electric = 0;
-	object[2].gl = 1.0f;
-	object[2].pl = 1.0f;
-	object[2].co = 1.0f;
-	object[2].el = 1.0f;
-	object[2].gaugeOuter = 1.0f;
 
 	object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
 	object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -430,11 +425,6 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].breakCount_Concrete = 0;
 	object[3].breakCount_Plant = 0;
 	object[3].breakCount_Electric = 0;
-	object[3].gl = 1.0f;
-	object[3].pl = 1.0f;
-	object[3].co = 1.0f;
-	object[3].el = 1.0f;
-	object[3].gaugeOuter = 1.0f;
 
 	//頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
@@ -473,8 +463,10 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// デバッグレンダラー初期化
 	Debug_Initialize(pDevice, pContext);
 
-	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[2], { 800.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[3], { 1120.0f, 620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 
 	// アニメーションの初期化
 	for (int i = 0; i < PLAYER_MAX; ++i)
@@ -501,14 +493,14 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// 第3形態 コンクリート
 		{  7, L"asset\\texture\\characterBigTree_v1.png" },		// 第3形態 植物
 		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },		// 第3形態 電気
-		{  9, L"asset\\texture\\uiStockBlue_v2.png"},				// UI ストック 青
-		{ 10, L"asset\\texture\\uiStockGleen_v2.png"},				// UI ストック 緑
-		//{ 11, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
-		//{ 12, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
+		{  9, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 青
+		{ 10, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 緑
+		{ 11, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 
+		{ 12, L"asset\\texture\\uiStockGreen_v4.png" },			// UI ストック 
 		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
 		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
-		//{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
-		//{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
+		{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
+		{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
 	};
 
 	for (const auto& e : texList)
@@ -628,6 +620,45 @@ void Polygon3D_Update()
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
+		if (!object[p].active) continue;
+
+		// ワールド座標をスクリーン座標に変換
+		XMFLOAT3 worldPos = object[p].position;
+		worldPos.y += 2.0f; // プレイヤーの上方に表示
+
+		XMVECTOR posVec = XMLoadFloat3(&worldPos);
+		XMMATRIX view = GetViewMatrix();
+		XMMATRIX proj = GetProjectionMatrix();
+		XMMATRIX viewProj = view * proj;
+
+		// ビューポート変換
+		XMVECTOR screenPos = XMVector3Project(
+			posVec,
+			0.0f, 0.0f,
+			1280.0f, 720.0f,
+			0.0f, 1.0f,
+			proj, view,
+			XMMatrixIdentity()
+		);
+
+		// Z値チェック（カメラの後ろなら描画しない）
+		float screenZ = XMVectorGetZ(screenPos);
+		if (screenZ > 0.0f && screenZ < 1.0f)
+		{
+			float screenX = XMVectorGetX(screenPos);
+			float screenY = XMVectorGetY(screenPos);
+
+			// テキスト描画（Update内では呼び出さない、Draw内で描画する）
+			// ここでは座標を保存しておく
+			object[p].screenPos = XMFLOAT2(screenX, screenY);
+			object[p].isOnScreen = true;
+		}
+		else
+		{
+			object[p].isOnScreen = false;
+		}
+
+
 		// -------------------------------------------------------------
 		// 変身
 		// -------------------------------------------------------------
@@ -713,14 +744,14 @@ void Polygon3D_Update()
 					object[p].useSkill = true;
 				}
 			}
-			if (g_Input[0].A)
+			if (g_Input[p].A)
 			{
-				object[0].isAttacking = true;
+				object[p].isAttacking = true;
 
 				// 第2・第3形態の場合、スキル使用フラグも立てる
-				if (object[0].type != PlayerType::None)
+				if (object[p].type != PlayerType::None)
 				{
-					object[0].useSkill = true;
+					object[p].useSkill = true;
 				}
 			}
 
@@ -765,11 +796,30 @@ void Polygon3D_Update()
 			}
 			else if (p == 1) // プレイヤー2 (矢印キー)
 			{
+				if (g_Input[1].LStickX > 0.0f) { object[1].moveDir.x += 1.0f; object[1].isMoving = true; }
+				if (g_Input[1].LStickX < 0.0f) { object[1].moveDir.x -= 1.0f; object[1].isMoving = true; }
+				if (g_Input[1].LStickY > 0.0f) { object[1].moveDir.z -= 1.0f; object[1].isMoving = true; }
+				if (g_Input[1].LStickY < 0.0f) { object[1].moveDir.z += 1.0f; object[1].isMoving = true; }
+
 				if (Keyboard_IsKeyDown(KK_UP))		{object[1].moveDir.z += 1.0f; object[1].isMoving = true;}
 				if (Keyboard_IsKeyDown(KK_DOWN))	{object[1].moveDir.z -= 1.0f; object[1].isMoving = true;}
 				if (Keyboard_IsKeyDown(KK_LEFT))	{object[1].moveDir.x -= 1.0f; object[1].isMoving = true;}
 				if (Keyboard_IsKeyDown(KK_RIGHT))	{object[1].moveDir.x += 1.0f; object[1].isMoving = true;}
 				if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
+			}
+			else if (p == 2) // プレイヤー3
+			{
+				if (g_Input[2].LStickX > 0.0f) { object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
+				if (g_Input[2].LStickX < 0.0f) { object[2].moveDir.x -= 1.0f; object[2].isMoving = true; }
+				if (g_Input[2].LStickY > 0.0f) { object[2].moveDir.z -= 1.0f; object[2].isMoving = true; }
+				if (g_Input[2].LStickY < 0.0f) { object[2].moveDir.z += 1.0f; object[2].isMoving = true; }
+			}
+			else if (p == 3) // プレイヤー4
+			{
+				if (g_Input[3].LStickX > 0.0f) { object[3].moveDir.x += 1.0f; object[3].isMoving = true; }
+				if (g_Input[3].LStickX < 0.0f) { object[3].moveDir.x -= 1.0f; object[3].isMoving = true; }
+				if (g_Input[3].LStickY > 0.0f) { object[3].moveDir.z -= 1.0f; object[3].isMoving = true; }
+				if (g_Input[3].LStickY < 0.0f) { object[3].moveDir.z += 1.0f; object[3].isMoving = true; }
 			}
 
 			// 現在のプレイヤー p だけを動かす
@@ -1032,7 +1082,7 @@ void Polygon3D_Update()
 		ImGui::SliderFloat("stunGauge", &object[p].stunGauge, 0.0f, 10.0f, "%.1f");
 		ImGui::SliderFloat("invincibleTimer", &object[p].invincibleTimer, 0.0f, 3.0f, "%.1f");
 		ImGui::BulletText("active            : %d", object[p].active);
-		ImGui::BulletText("speed             : %.3f", object[p].speed);
+		ImGui::BulletText("stock             : %d", object[p].stock);
 		ImGui::BulletText("defense           : %.1f", object[p].defense);
 		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
 		ImGui::BulletText("useSpecial        : %d", object[p].useSpecial);
@@ -1041,10 +1091,6 @@ void Polygon3D_Update()
 		ImGui::BulletText("type              : %d", object[p].type);
 		ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
 		ImGui::BulletText("EvolutionGaugeRate: %d", object[p].evolutionGaugeRate);
-		ImGui::BulletText("1 Glass breaks    : %d", object[p].breakCount_Glass);
-		ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
-		ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
-		ImGui::BulletText("4 Electric breaks : %d", object[p].breakCount_Electric);
 
 		if (ImGui::Button("hp -1"))
 		{
@@ -1712,7 +1758,6 @@ void Polygon3D_Respawn(int playerIndex)
 		object[2].power = 0.0f;
 		object[2].speed = 0.0f;
 		object[2].defense = 1.0f;
-		object[2].stock = 3;
 		object[2].active = true;
 		object[2].isAttacking = false;
 		object[2].attackTimer = 0.0f;
@@ -1739,11 +1784,6 @@ void Polygon3D_Respawn(int playerIndex)
 		object[2].breakCount_Concrete = 0;
 		object[2].breakCount_Plant = 0;
 		object[2].breakCount_Electric = 0;
-		object[2].gl = 1.0f;
-		object[2].pl = 1.0f;
-		object[2].co = 1.0f;
-		object[2].el = 1.0f;
-		object[2].gaugeOuter = 1.0f;
 	}
 	// 残機が1つ以上ある場合
 	else if (object[3].active == true && playerIndex == 3)
@@ -1758,7 +1798,6 @@ void Polygon3D_Respawn(int playerIndex)
 		object[3].speed = 0.0f;
 		object[3].defense = 1.0f;
 		object[3].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[3].stock = 3;
 		object[3].active = true;
 		object[3].isAttacking = false;
 		object[3].attackTimer = 0.0f;
@@ -1785,11 +1824,6 @@ void Polygon3D_Respawn(int playerIndex)
 		object[3].breakCount_Concrete = 0;
 		object[3].breakCount_Plant = 0;
 		object[3].breakCount_Electric = 0;
-		object[3].gl = 1.0f;
-		object[3].pl = 1.0f;
-		object[3].co = 1.0f;
-		object[3].el = 1.0f;
-		object[3].gaugeOuter = 1.0f;
 	}
 }
 
@@ -1809,15 +1843,15 @@ void Polygon3D_DrawStock(int i)
 	Shader_BeginUI();
 
 	// HPバー位置取得・ゲージ座標設定
-	float bx = HPBar[i].pos.x;
-	float by = HPBar[i].pos.y - 5.0f;
+	float bx = HPBar[i].pos.x - 12.0f;
+	float by = HPBar[i].pos.y + 5.0f;
 
 	// プレイヤーごとのストック描画
 	for (int j = 0; j < object[i].stock; j++)
 	{
 		// ストック描画変数
-		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
-		XMFLOAT2 size = { 300.0f, 300.0f };
+		XMFLOAT2 pos = { bx + j * 28.0f, by };	// 横並び
+		XMFLOAT2 size = { 240.0f, 240.0f };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 9]);
 	
@@ -1835,4 +1869,49 @@ PLAYEROBJECT* GetPlayer(int playerIndex)
 	}
 
 	return &object[playerIndex];
+}
+
+
+void Polygon3D_DrawText()
+{
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		if (!object[p].active || !object[p].isOnScreen) continue;
+
+		wchar_t playerLabel[8];
+		swprintf_s(playerLabel, L"P%d", p + 1);
+
+		// プレイヤーごとに色設定
+		TextColor textColor;
+		switch (p)
+		{
+		case 0:
+			textColor = TextColor::Red;
+			break;
+		case 1:
+			textColor = TextColor::Blue;
+			break;
+		case 2:
+			textColor = TextColor::Yellow;
+			break;
+		case 3:
+			textColor = TextColor::Green;
+			break;
+		default:
+			textColor = TextColor::White;
+			break;
+		}
+
+		// フォントサイズの半分程度左にずらす
+		float offsetX = 15.0f;
+
+		DrawTextEx(
+			playerLabel,
+			object[p].screenPos.x - offsetX,
+			object[p].screenPos.y - 10.0f,  // テキストの高さ分上に表示
+			40.0f,                           // フォントサイズ
+			L"Impact",
+			textColor
+		);
+	}
 }

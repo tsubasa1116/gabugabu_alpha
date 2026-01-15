@@ -10,7 +10,7 @@
 #define EFFECT_SPLIT_Y 8
 #define EFFECT_FRAME_MAX 64
 #define EFFECT_SPEED 2.5
-#define EFFECT_TEX_MAX 4
+#define EFFECT_TEX_MAX 8
 #define EFFECT_MAX 4
 
 //グローバル変数
@@ -200,13 +200,15 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
 void Effect_Clear(int pIndex)
 {
 	// プレイヤーごとのエフェクト位置
-	const XMFLOAT2 playerEffectPos[2] =
+	const XMFLOAT2 playerEffectPos[4] =
 	{
-		{ 145.0f, 640.0f }, // プレイヤー1
-		{ 455.0f, 640.0f }  // プレイヤー2
+		{ 160.0f, 620.0f }, // プレイヤー1
+		{ 470.0f, 620.0f },  // プレイヤー2
+		{ 780.0f, 620.0f }, // プレイヤー3
+		{ 1090.0f, 620.0f }  // プレイヤー4
 	};
 
-	if (pIndex < 0 || pIndex >= 2) return;
+	if (pIndex < 0 || pIndex >= 4) return;
 
 	XMFLOAT2 targetPos = playerEffectPos[pIndex];
 
