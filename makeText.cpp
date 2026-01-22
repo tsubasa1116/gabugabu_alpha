@@ -1,4 +1,4 @@
-#include "makeText.h"
+ï»¿#include "makeText.h"
 #include "direct3d.h"
 #include "debug_ostream.h"
 
@@ -21,7 +21,7 @@ static ComPtr<IDWriteTextFormat> g_textFormat;
 
 bool Initialize_MakeText()
 {
-	// D2Dƒtƒ@ƒNƒgƒŠ‚Ìì¬
+	// D2Dãƒ•ã‚¡ã‚¯ãƒˆãƒªã®ä½œæˆ
 	D2D1CreateFactory(
 		D2D1_FACTORY_TYPE_SINGLE_THREADED,
 		__uuidof(ID2D1Factory1),
@@ -29,21 +29,21 @@ bool Initialize_MakeText()
 		(void**)&g_d2dFactory
 	);
 
-	// DWriteƒtƒ@ƒNƒgƒŠ‚Ìì¬
+	// DWriteãƒ•ã‚¡ã‚¯ãƒˆãƒªã®ä½œæˆ
 	DWriteCreateFactory(
 		DWRITE_FACTORY_TYPE_SHARED,
 		__uuidof(IDWriteFactory),
 		(IUnknown**)&g_dwriteFactory
 	);
 	
-	// DXGIƒfƒoƒCƒX‚Ìæ“¾
+	// DXGIãƒ‡ãƒã‚¤ã‚¹ã®å–å¾—
 	ComPtr<IDXGIDevice> dxgiDevice;
 	Direct3D_GetDevice()->QueryInterface(__uuidof(IDXGIDevice), &dxgiDevice);
 	
-	// D2DƒfƒoƒCƒX‚Ìì¬
+	// D2Dãƒ‡ãƒã‚¤ã‚¹ã®ä½œæˆ
 	g_d2dFactory->CreateDevice(dxgiDevice.Get(), &g_d2dDevice);
 	
-	// D2DƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìì¬
+	// D2Dãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ä½œæˆ
 	g_d2dDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &g_d2dContext);
 	
 	return true;
@@ -98,7 +98,7 @@ void DrawTextEx(
 	TextColor color
 )
 {
-	// ƒtƒHƒ“ƒgì¬
+	// ãƒ•ã‚©ãƒ³ãƒˆä½œæˆ
 	ComPtr<IDWriteTextFormat> format;
 	g_dwriteFactory->CreateTextFormat(
 		fontName,

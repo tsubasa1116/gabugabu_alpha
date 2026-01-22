@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -11,29 +11,29 @@
 using namespace DirectX;
 
 //=========================================
-// MAP\¬ƒuƒƒbƒN‚Ìí—Ş
+// MAPæ§‹æˆãƒ–ãƒ­ãƒƒã‚¯ã®ç¨®é¡
 //=========================================
 
 enum FIELD
 {
-    FIELD_BOX = 0,        // ” 
-    FIELD_BUILDING,       // Œš•¨iBuildingj
+    FIELD_BOX = 0,        // ç®±
+    FIELD_BUILDING,       // å»ºç‰©ï¼ˆBuildingï¼‰
     FIELD_MAX
 };
 
 //=========================================
-// MAPƒf[ƒ^\‘¢‘Ìi1ƒ}ƒX•ªj
+// MAPãƒ‡ãƒ¼ã‚¿æ§‹é€ ä½“ï¼ˆ1ãƒã‚¹åˆ†ï¼‰
 //=========================================
 
 class Glass
 {
 public:
-    XMFLOAT3 pos;         // À•W
-    AABB boundingBox;     // “–‚½‚è”»’è
+    XMFLOAT3 pos;         // åº§æ¨™
+    AABB boundingBox;     // å½“ãŸã‚Šåˆ¤å®š
     FIELD GL;
 
     bool isActive = true;
-    // --- ‚±‚±‚ğ’Ç‰ÁI ---
+    // --- ã“ã“ã‚’è¿½åŠ ï¼ ---
     BuildingType type = BuildingType::Glass;
 
 };
@@ -41,12 +41,12 @@ public:
 class Concrete
 {
 public:
-    XMFLOAT3 pos;         // À•W
-    AABB boundingBox;     // “–‚½‚è”»’è
+    XMFLOAT3 pos;         // åº§æ¨™
+    AABB boundingBox;     // å½“ãŸã‚Šåˆ¤å®š
     FIELD Co;
 
     bool isActive = true;
-    // --- ‚±‚±‚ğ’Ç‰ÁI ---
+    // --- ã“ã“ã‚’è¿½åŠ ï¼ ---
     BuildingType type = BuildingType::Concrete;
 
 };
@@ -54,12 +54,12 @@ public:
 class Plant
 {
 public:
-    XMFLOAT3 pos;         // À•W
-    AABB boundingBox;     // “–‚½‚è”»’è
+    XMFLOAT3 pos;         // åº§æ¨™
+    AABB boundingBox;     // å½“ãŸã‚Šåˆ¤å®š
     FIELD Pl;
 
     bool isActive = true;
-    // --- ‚±‚±‚ğ’Ç‰ÁI ---
+    // --- ã“ã“ã‚’è¿½åŠ ï¼ ---
     BuildingType type = BuildingType::Plant;
 
 };
@@ -67,11 +67,11 @@ public:
 class ELECTRIC
 {
 public:
-    XMFLOAT3 pos;         // À•W
-    AABB boundingBox;     // “–‚½‚è”»’è
+    XMFLOAT3 pos;         // åº§æ¨™
+    AABB boundingBox;     // å½“ãŸã‚Šåˆ¤å®š
     FIELD El;
     bool isActive = true;
-    // --- ‚±‚±‚ğ’Ç‰ÁI ---
+    // --- ã“ã“ã‚’è¿½åŠ ï¼ ---
     BuildingType type = BuildingType::Electric;
 
 };

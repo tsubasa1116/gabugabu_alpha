@@ -1,6 +1,6 @@
-/*==============================================================================
+ï»¿/*==============================================================================
 
-   ƒ|ƒŠƒSƒ“•`‰æ [gauge.cpp]
+   ãƒãƒªã‚´ãƒ³æç”» [gauge.cpp]
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -15,23 +15,23 @@ static GaugeData g_Gauge[GAUGE_PLAYER_MAX];
 
 static ID3D11ShaderResourceView* g_Texture = NULL;
 
-// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
+// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 
 //====================================================================================
-// ‰Šú‰»
+// åˆæœŸåŒ–
 //====================================================================================
 void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìƒ`ƒFƒbƒN
+	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ãƒã‚§ãƒƒã‚¯
 	if (!pDevice || !pContext) {
-		hal::dout << "Gauge_Initialize() : —^‚¦‚ç‚ê‚½ƒfƒoƒCƒX‚©ƒRƒ“ƒeƒLƒXƒg‚ª•s³‚Å‚·" << std::endl;
+		hal::dout << "Gauge_Initialize() : ä¸ãˆã‚‰ã‚ŒãŸãƒ‡ãƒã‚¤ã‚¹ã‹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãŒä¸æ­£ã§ã™" << std::endl;
 		return;
 	}
 
-	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ì•Û‘¶
+	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ä¿å­˜
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
@@ -47,15 +47,15 @@ void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	TexMetadata		metadata;
 	ScratchImage	image;
-	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
+	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-	assert(g_Texture);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+	assert(g_Texture);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 
 }
 
 
 //====================================================================================
-// I—¹
+// çµ‚äº†
 //====================================================================================
 void Gauge_Finalize(void)
 {
@@ -64,7 +64,7 @@ void Gauge_Finalize(void)
 
 
 //====================================================================================
-// XV
+// æ›´æ–°
 //====================================================================================
 void Gauge_Update(void)
 {
@@ -73,7 +73,7 @@ void Gauge_Update(void)
 
 
 //====================================================================================
-// ‘¼‚Ìƒtƒ@ƒCƒ‹‚ÅƒQ[ƒW‚ğƒZƒbƒg‚·‚éŠÖ”
+// ä»–ã®ãƒ•ã‚¡ã‚¤ãƒ«ã§ã‚²ãƒ¼ã‚¸ã‚’ã‚»ãƒƒãƒˆã™ã‚‹é–¢æ•°
 //====================================================================================
 void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricity,
 	           float outer, const XMFLOAT2& pos)
@@ -90,7 +90,7 @@ void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricit
 
 
 //====================================================================================
-// •`‰æ
+// æç”»
 //====================================================================================
 void Gauge_Draw(int i)
 {

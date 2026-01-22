@@ -1,16 +1,16 @@
-//======================================================
+ï»¿//======================================================
 //	fade.cpp[]
 // 
-//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
+//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
 //======================================================
 //fade.cpp
 
 #include	"fade.h"
 #include	"shader.h"
 
-FadeObject	g_Fade;		//ƒtƒF[ƒhˆ—\‘¢‘Ì
+FadeObject	g_Fade;		//ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†æ§‹é€ ä½“
 
-static	ID3D11ShaderResourceView* g_Texture = NULL;	//ƒeƒNƒXƒ`ƒƒ‚P–‡‚ğ•\‚·ƒIƒuƒWƒFƒNƒg
+static	ID3D11ShaderResourceView* g_Texture = NULL;	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼‘æšã‚’è¡¨ã™ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
@@ -21,18 +21,18 @@ void Fade_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	//ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	//ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	TexMetadata		metadata;
 	ScratchImage	image;
 	LoadFromWICFile(L"asset\\texture\\fade.bmp", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-	assert(g_Texture);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+	assert(g_Texture);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 
 	g_Fade.fadecolor.x = 0.0f;
 	g_Fade.fadecolor.y = 0.0f;
 	g_Fade.fadecolor.z = 0.0f;
 	g_Fade.fadecolor.w = 1.0f;
-	g_Fade.frame = 60.0f;	//60ƒtƒŒ[ƒ€‚ÅƒtƒF[ƒhŠ®—¹
+	g_Fade.frame = 60.0f;	//60ãƒ•ãƒ¬ãƒ¼ãƒ ã§ãƒ•ã‚§ãƒ¼ãƒ‰å®Œäº†
 	g_Fade.state = FADE_STATE::FADE_NONE;
 
 }
@@ -52,41 +52,41 @@ void Fade_Update()
 
 void Fade_Draw()
 { 
-	//Œ»İ‚Ìó‹µ
+	//ç¾åœ¨ã®çŠ¶æ³
 	switch (g_Fade.state)
 	{
 		case FADE_STATE::FADE_NONE:
 			return;
 		case FADE_STATE::FADE_IN:
 			if (g_Fade.fadecolor.w < 0.0)
-			{//ƒtƒF[ƒhƒCƒ“I—¹
+			{//ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³çµ‚äº†
 				g_Fade.fadecolor.w = 0.0f;
 				g_Fade.state = FADE_STATE::FADE_NONE;
 			}
 			break;
 		case FADE_STATE::FADE_OUT:
 			if (g_Fade.fadecolor.w > 1.0f)
-			{//ƒtƒF[ƒhƒAƒEƒgI—¹
+			{//ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆçµ‚äº†
 				g_Fade.fadecolor.w = 1.0;
-				//ƒtƒF[ƒhƒCƒ“‰Šú‰»
+				//ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³åˆæœŸåŒ–
 				SetFade(g_Fade.frame, g_Fade.fadecolor, FADE_STATE::FADE_IN, g_Fade.scene);
-				//ƒV[ƒ“Ø‚è‘Ö‚¦
+				//ã‚·ãƒ¼ãƒ³åˆ‡ã‚Šæ›¿ãˆ
 				SetScene(g_Fade.scene);
 			}
 			break;
 	}
 
-	//ƒXƒvƒ‰ƒCƒg•\¦
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆè¡¨ç¤º
 
 //---------------------------------------------------
-	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 	Shader_Begin();
 
-	// ‰æ–ÊƒTƒCƒYæ“¾
+	// ç”»é¢ã‚µã‚¤ã‚ºå–å¾—
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
-	// ’¸“_ƒVƒF[ƒ_[‚É•ÏŠ·s—ñ‚ğİ’è
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«å¤‰æ›è¡Œåˆ—ã‚’è¨­å®š
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
 		0.0f,
 		SCREEN_WIDTH,
@@ -96,23 +96,23 @@ void Fade_Draw()
 		1.0f));
 	//---------------------------------------------------
 
-		//ƒeƒNƒXƒ`ƒƒ‚ğƒZƒbƒg
+		//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã‚»ãƒƒãƒˆ
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
 
-	//ƒXƒvƒ‰ƒCƒg•`‰æ
-	SetBlendState(BLENDSTATE_ALPHA);//ƒ¿ƒuƒŒƒ“ƒh
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆæç”»
+	SetBlendState(BLENDSTATE_ALPHA);//Î±ãƒ–ãƒ¬ãƒ³ãƒ‰
 	XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 	XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
 	DrawSprite(pos, size, g_Fade.fadecolor);
 
-	//ƒtƒF[ƒhˆ—
+	//ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†
 	switch (g_Fade.state)
 	{
 		case FADE_STATE::FADE_IN:
-			g_Fade.fadecolor.w -= (1.0f / g_Fade.frame);//“§–¾‚É‚µ‚Ä‚¢‚­
+			g_Fade.fadecolor.w -= (1.0f / g_Fade.frame);//é€æ˜ã«ã—ã¦ã„ã
 			break;
 		case FADE_STATE::FADE_OUT:
-			g_Fade.fadecolor.w += (1.0f / g_Fade.frame);//•s“§–¾‚É‚µ‚Ä‚¢‚­
+			g_Fade.fadecolor.w += (1.0f / g_Fade.frame);//ä¸é€æ˜ã«ã—ã¦ã„ã
 			break;
 	}
 
@@ -128,11 +128,11 @@ void	SetFade(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene)
 
 	if (g_Fade.state == FADE_IN)
 	{
-		g_Fade.fadecolor.w = 1.0f;	//•s“§–¾‚É‚·‚é
+		g_Fade.fadecolor.w = 1.0f;	//ä¸é€æ˜ã«ã™ã‚‹
 	}
 	else
 	{
-		g_Fade.fadecolor.w = 0.0f;	//“§–¾‚É‚·‚é
+		g_Fade.fadecolor.w = 0.0f;	//é€æ˜ã«ã™ã‚‹
 	}
 
 
@@ -140,7 +140,7 @@ void	SetFade(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene)
 
 FADE_STATE	GetFadeState()
 {
-	return	g_Fade.state;	//Œ»İ‚Ìó‘Ô
+	return	g_Fade.state;	//ç¾åœ¨ã®çŠ¶æ…‹
 }
 
 

@@ -1,4 +1,4 @@
-
+ï»¿
 //Effect.h
 
 #pragma once
@@ -14,10 +14,10 @@ class EFFECT
 	public:
 		bool		Enable;
 		XMFLOAT3	position;
-		int			FrameCount;	//ƒAƒjƒ[ƒVƒ‡ƒ“ƒJƒEƒ“ƒ^[
+		int			FrameCount;	//ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
 
 };
-//ƒƒCƒ“ˆ—ŠÖ”
+//ãƒ¡ã‚¤ãƒ³å‡¦ç†é–¢æ•°
 void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Effect_Finalize();
 void Effect_Update();

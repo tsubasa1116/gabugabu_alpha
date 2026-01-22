@@ -1,5 +1,4 @@
-
-//.h
+﻿// Result.h
 #pragma once
 
 #include "direct3d.h"

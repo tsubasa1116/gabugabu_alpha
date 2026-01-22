@@ -1,6 +1,6 @@
-/*==============================================================================
+ï»¿/*==============================================================================
 
-   ƒ|ƒŠƒSƒ“•`‰æ [polygon.cpp]
+   ãƒãƒªã‚´ãƒ³æç”» [polygon.cpp]
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -10,35 +10,35 @@ using namespace DirectX;
 #include "direct3d.h"
 #include "shader.h"
 #include "debug_ostream.h"
-#include "sprite.h"//ƒXƒvƒ‰ƒCƒg‹@”\‚ğ’Ç‰Á
+#include "sprite.h"//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆæ©Ÿèƒ½ã‚’è¿½åŠ 
 
-#include "keyboard.h"//<<<<<<<<<<<<<<<<<<<’Ç‰Á
+#include "keyboard.h"//<<<<<<<<<<<<<<<<<<<è¿½åŠ 
 
-static	ID3D11ShaderResourceView* g_Texture = NULL;	//ƒeƒNƒXƒ`ƒƒ‚P–‡‚ğ•\‚·ƒIƒuƒWƒFƒNƒg
+static	ID3D11ShaderResourceView* g_Texture = NULL;	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼‘æšã‚’è¡¨ã™ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 
-// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
+// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 void Polygon_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìƒ`ƒFƒbƒN
+	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ãƒã‚§ãƒƒã‚¯
 	if (!pDevice || !pContext) {
-		hal::dout << "Polygon_Initialize() : —^‚¦‚ç‚ê‚½ƒfƒoƒCƒX‚©ƒRƒ“ƒeƒLƒXƒg‚ª•s³‚Å‚·" << std::endl;
+		hal::dout << "Polygon_Initialize() : ä¸ãˆã‚‰ã‚ŒãŸãƒ‡ãƒã‚¤ã‚¹ã‹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãŒä¸æ­£ã§ã™" << std::endl;
 		return;
 	}
 
-	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ì•Û‘¶
+	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ä¿å­˜
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	//ƒeƒNƒXƒ`ƒƒ‰æ‘œ“Ç‚İ‚İ
+	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ç”»åƒèª­ã¿è¾¼ã¿
 	TexMetadata		metadata;
 	ScratchImage	image;
 //	LoadFromWICFile(L"asset\\texture\\shadow.png", WIC_FLAGS_NONE, &metadata, image);
 	LoadFromWICFile(L"asset\\texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-	assert(g_Texture);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+	assert(g_Texture);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 
 }
 
@@ -49,71 +49,71 @@ void Polygon_Finalize(void)
 
 void Polygon_Draw(void)
 {
-	// ‰æ–ÊƒTƒCƒYæ“¾
+	// ç”»é¢ã‚µã‚¤ã‚ºå–å¾—
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
-	XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ƒXƒvƒ‰ƒCƒg‚ÌF
+	XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®è‰²
 	XMFLOAT2 size = { 200, 300 };
 
 	static XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT - 150 };
-	if (Keyboard_IsKeyDown(KK_W))//WƒL[
+	if (Keyboard_IsKeyDown(KK_W))//Wã‚­ãƒ¼
 	{
-		//ƒL[‚ª‰Ÿ‚³‚ê‚½ê‡
+		//ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸå ´åˆ
 		pos.y += -2.0f;
 	}
-	//ƒgƒŠƒK[ƒL[‚Ìê‡
-	if (Keyboard_IsKeyDown(KK_S))//S–îˆóƒL[
+	//ãƒˆãƒªã‚¬ãƒ¼ã‚­ãƒ¼ã®å ´åˆ
+	if (Keyboard_IsKeyDown(KK_S))//SçŸ¢å°ã‚­ãƒ¼
 	{
-		//ƒL[‚ª‰Ÿ‚³‚ê‚½ê‡
+		//ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸå ´åˆ
 		pos.y += 2.0f;
 	}
-	if (Keyboard_IsKeyDown(KK_A))//AƒL[
+	if (Keyboard_IsKeyDown(KK_A))//Aã‚­ãƒ¼
 	{
-		//ƒL[‚ª‰Ÿ‚³‚ê‚½ê‡
+		//ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸå ´åˆ
 		pos.x += -2.0f;
 	}
-	//ƒgƒŠƒK[ƒL[‚Ìê‡
-	if (Keyboard_IsKeyDown(KK_D))//D–îˆóƒL[
+	//ãƒˆãƒªã‚¬ãƒ¼ã‚­ãƒ¼ã®å ´åˆ
+	if (Keyboard_IsKeyDown(KK_D))//DçŸ¢å°ã‚­ãƒ¼
 	{
-		//ƒL[‚ª‰Ÿ‚³‚ê‚½ê‡
+		//ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸå ´åˆ
 		pos.x += 2.0f;
 	}
 
-	//ƒXƒvƒ‰ƒCƒg‰ñ“]Šp(“x)
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆå›è»¢è§’(åº¦)
 	static float deg = 0.0f;
-	//ƒL[ƒ{[ƒh‚Ì“ü—Íƒ`ƒFƒbƒN
-	if (Keyboard_IsKeyDown(KK_LEFT))//¶–îˆóƒL[
+	//ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®å…¥åŠ›ãƒã‚§ãƒƒã‚¯
+	if (Keyboard_IsKeyDown(KK_LEFT))//å·¦çŸ¢å°ã‚­ãƒ¼
 	{
-		//ƒL[‚ª‰Ÿ‚³‚ê‚½ê‡
+		//ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸå ´åˆ
 		deg += 2.0f;
 	}
-	//ƒgƒŠƒK[ƒL[‚Ìê‡
-	if (Keyboard_IsKeyDown(KK_RIGHT))//‰E–îˆóƒL[
+	//ãƒˆãƒªã‚¬ãƒ¼ã‚­ãƒ¼ã®å ´åˆ
+	if (Keyboard_IsKeyDown(KK_RIGHT))//å³çŸ¢å°ã‚­ãƒ¼
 	{
-		//ƒL[‚ª‰Ÿ‚³‚ê‚½ê‡
+		//ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸå ´åˆ
 		deg += -2.0f;
 	}
-	//ƒXƒP[ƒŠƒ“ƒO
+	//ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°
 	static	float	scl = 1.0f;
-	if (Keyboard_IsKeyDown(KK_UP))//ã–îˆóƒL[
+	if (Keyboard_IsKeyDown(KK_UP))//ä¸ŠçŸ¢å°ã‚­ãƒ¼
 	{
-		//ƒL[‚ª‰Ÿ‚³‚ê‚½ê‡
+		//ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸå ´åˆ
 		scl += 0.1f;
 		if (scl > 5.0f) scl = 5.0f;
 	}
-	//ƒgƒŠƒK[ƒL[‚Ìê‡
-	if (Keyboard_IsKeyDown(KK_DOWN))//«–îˆóƒL[
+	//ãƒˆãƒªã‚¬ãƒ¼ã‚­ãƒ¼ã®å ´åˆ
+	if (Keyboard_IsKeyDown(KK_DOWN))//â†“çŸ¢å°ã‚­ãƒ¼
 	{
-		//ƒL[‚ª‰Ÿ‚³‚ê‚½ê‡
+		//ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸå ´åˆ
 		scl += -0.1f;
 		if (scl < 1.0f) scl = 1.0f;
 	}
 
-	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 	Shader_Begin();
 
-	// ’¸“_ƒVƒF[ƒ_[‚É•ÏŠ·s—ñ‚ğİ’è
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«å¤‰æ›è¡Œåˆ—ã‚’è¨­å®š
 
 	XMMATRIX	projection = XMMatrixOrthographicOffCenterLH(
 								0.0f,
@@ -133,15 +133,15 @@ void Polygon_Draw(void)
 
 	Shader_SetMatrix(mat);
 
-	SetBlendState(BLENDSTATE_ALPHA);//ƒuƒŒƒ“ƒh–³‚µ
+	SetBlendState(BLENDSTATE_ALPHA);//ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—
 
-	//ƒXƒvƒ‰ƒCƒg•`‰æƒeƒXƒg
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Texture‚ğg‚¤‚æ‚¤‚Éİ’è‚·‚é
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆæç”»ãƒ†ã‚¹ãƒˆ
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Textureã‚’ä½¿ã†ã‚ˆã†ã«è¨­å®šã™ã‚‹
 
-	static float bno = 0;	//ƒuƒƒbƒN‚Ì”Ô†
+	static float bno = 0;	//ãƒ–ãƒ­ãƒƒã‚¯ã®ç•ªå·
 	DrawSprite(size, col, (int)bno, 4, 3);
 
-	bno += 5.0f/60.0f;	//“K“–‚É”š‚ğ‘‚â‚·
+	bno += 5.0f/60.0f;	//é©å½“ã«æ•°å­—ã‚’å¢—ã‚„ã™
 	if (bno >= 10.0f)
 	{
 		bno = 0.0f;

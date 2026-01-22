@@ -1,21 +1,21 @@
-//1. 10~10ƒ}ƒbƒv‚É4í—Ş‚ÌŒš•¨‚ğ’u‚­
-//MapGrid ‚ğg‚Á‚Ä 10~10 ‚Ì“ñŸŒ³”z—ñ‚É Building ‚ğ”z’u
-//‰Šú‰»‚Éƒ‰ƒ“ƒ_ƒ€‚Å Glass / Concrete / Plant / Electric ‚ğŠ„‚è“–‚Ä‰Â”\
+ï»¿//1. 10Ã—10ãƒãƒƒãƒ—ã«4ç¨®é¡ã®å»ºç‰©ã‚’ç½®ã
+//MapGrid ã‚’ä½¿ã£ã¦ 10Ã—10 ã®äºŒæ¬¡å…ƒé…åˆ—ã« Building ã‚’é…ç½®
+//åˆæœŸåŒ–æ™‚ã«ãƒ©ãƒ³ãƒ€ãƒ ã§ Glass / Concrete / Plant / Electric ã‚’å‰²ã‚Šå½“ã¦å¯èƒ½
 //
-//2. V‚½‚ÉŒš•¨ƒNƒ‰ƒX‚ğì‚Á‚ÄŠÇ—
-//Building ƒNƒ‰ƒX‚Åí—ŞiBuildingTypej‚Æó‘ÔiBuildingPhasej‚ğŠÇ—
+//2. æ–°ãŸã«å»ºç‰©ã‚¯ãƒ©ã‚¹ã‚’ä½œã£ã¦ç®¡ç†
+//Building ã‚¯ãƒ©ã‚¹ã§ç¨®é¡ï¼ˆBuildingTypeï¼‰ã¨çŠ¶æ…‹ï¼ˆBuildingPhaseï¼‰ã‚’ç®¡ç†
 //
-//3. í—Ş‚ÍƒXƒLƒ‹‚É‡‚í‚¹‚½ 4 í—Şi—ñ‹“‘Ì‚ÅŠÇ—j
+//3. ç¨®é¡ã¯ã‚¹ã‚­ãƒ«ã«åˆã‚ã›ãŸ 4 ç¨®é¡ï¼ˆåˆ—æŒ™ä½“ã§ç®¡ç†ï¼‰
 //enum class BuildingType { Glass, Concrete, Plant, Electric };
-//—ñ‹“‘Ì‚ÅŠÇ—‚µ‚Ä‚¢‚é‚Ì‚ÅŒã‚ÅƒXƒCƒbƒ`‚â”z—ñ‚Åˆµ‚¢‚â‚·‚¢
+//åˆ—æŒ™ä½“ã§ç®¡ç†ã—ã¦ã„ã‚‹ã®ã§å¾Œã§ã‚¹ã‚¤ãƒƒãƒã‚„é…åˆ—ã§æ‰±ã„ã‚„ã™ã„
 //
-//4. V•i¨‰ó‚ê‚©‚¯¨‰ó‚ê‚½iƒtƒF[ƒYj
+//4. æ–°å“â†’å£Šã‚Œã‹ã‘â†’å£Šã‚ŒãŸï¼ˆãƒ•ã‚§ãƒ¼ã‚ºï¼‰
 //enum class BuildingPhase { New, Damaged, Broken };
-//SetPhase() ‚Åó‘Ô•ÏX‰Â”\
+//SetPhase() ã§çŠ¶æ…‹å¤‰æ›´å¯èƒ½
 //
-//5. ƒtƒF[ƒY‚²‚Æ‚É‰¼ƒeƒNƒXƒ`ƒƒ‚ğ•Ï‚¦‚é
-//UpdateTexture() ‚ÅƒtƒF[ƒY•ÏX‚É‰¼ƒeƒNƒXƒ`ƒƒ•¶š—ñ‚ğ©“®XV
-//GetTexture() ‚ÅŒ»İ‚ÌƒtƒF[ƒY‚ÌƒeƒNƒXƒ`ƒƒ–¼‚ğæ“¾‰Â”\
+//5. ãƒ•ã‚§ãƒ¼ã‚ºã”ã¨ã«ä»®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’å¤‰ãˆã‚‹
+//UpdateTexture() ã§ãƒ•ã‚§ãƒ¼ã‚ºå¤‰æ›´æ™‚ã«ä»®ãƒ†ã‚¯ã‚¹ãƒãƒ£æ–‡å­—åˆ—ã‚’è‡ªå‹•æ›´æ–°
+//GetTexture() ã§ç¾åœ¨ã®ãƒ•ã‚§ãƒ¼ã‚ºã®ãƒ†ã‚¯ã‚¹ãƒãƒ£åã‚’å–å¾—å¯èƒ½
 
 //Building.cpp
 //#include "field.h"
@@ -33,31 +33,31 @@
 ///////////////////////////////////////
 
 //======================================================
-//	ƒ}ƒNƒ’è‹`
+//	ãƒã‚¯ãƒ­å®šç¾©
 //======================================================
 #define BOX_NUM_VERTEX	(24)
 
 //======================================================
-//	ƒOƒ[ƒoƒ‹•Ï”
+//	ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 //======================================================
-//MODEL* Test = NULL;//ƒfƒoƒbƒO
+//MODEL* Test = NULL;//ãƒ‡ãƒãƒƒã‚°
 
 
-////ƒOƒ[ƒoƒ‹•Ï”
+////ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 //static	ID3D11Device* g_pDevice = NULL;
 //static	ID3D11DeviceContext* g_pContext = NULL;
-////’¸“_ƒoƒbƒtƒ@
+////é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
 //static	ID3D11Buffer* g_VertexBuffer = NULL;
-////ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
+////ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
 //static	ID3D11Buffer* g_IndexBuffer = NULL;
-//ƒeƒNƒXƒ`ƒƒ•Ï”
+//ãƒ†ã‚¯ã‚¹ãƒãƒ£å¤‰æ•°
 //static ID3D11ShaderResourceView* g_Texture;
 
-// FIELD enum (FIELD_BUILDING, FIELD_BOX) ‚Ì”‚¾‚¯ƒeƒNƒXƒ`ƒƒ‚ğŠÇ—
+// FIELD enum (FIELD_BUILDING, FIELD_BOX) ã®æ•°ã ã‘ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ç®¡ç†
 #define FIELD_TEX_MAX 2 
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 
-// FIELD::no ‚Ì’l‚É‘Î‰‚·‚éƒeƒNƒXƒ`ƒƒƒtƒ@ƒCƒ‹–¼
+// FIELD::no ã®å€¤ã«å¯¾å¿œã™ã‚‹ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ•ã‚¡ã‚¤ãƒ«å
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"asset\\texture\\TileA3.png",
 	L"asset\\texture\\TileA3.png"
@@ -66,36 +66,36 @@ static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 };
 
 static Building* Buildings[100];
-static int BuildingCount = 0; // Œ»İ‚ÌŒš•¨”
+static int BuildingCount = 0; // ç¾åœ¨ã®å»ºç‰©æ•°
 
 //==============================================
-// ‘S‚Ä‚ÌŒš•¨‚ğ•`‰æ
+// å…¨ã¦ã®å»ºç‰©ã‚’æç”»
 //==============================================
 void Building_DrawAll(bool s_IsKonamiCodeEntered)
 {
 	for (int i = 0; i < BuildingCount; ++i)
 	{
 		if (Buildings[i] != nullptr) {
-			// ƒAƒNƒeƒBƒu‚È‚ç•`‰æ
+			// ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªã‚‰æç”»
 			if(Buildings[i]->isActive)	Buildings[i]->Draw(s_IsKonamiCodeEntered);
 		}
 	}
 }
 
 //======================================================
-//	ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//	ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 //======================================================
 Building::Building(BuildingType type, XMFLOAT3 pos)
 	: Type(type), position(pos), Phase(BuildingPhase::New), m_Model(nullptr), isActive(true)
 {
 	scaling = {1.0f,1.0f,1.0f};
 	rotation = {0.0f,0.0f,0.0f};
-	// ¶¬‚ÉŒ»İ‚ÌType‚ÆPhase(New)‚É‡‚í‚¹‚Äƒ‚ƒfƒ‹‚ğƒ[ƒh
+	// ç”Ÿæˆæ™‚ã«ç¾åœ¨ã®Typeã¨Phase(New)ã«åˆã‚ã›ã¦ãƒ¢ãƒ‡ãƒ«ã‚’ãƒ­ãƒ¼ãƒ‰
 	LoadModelForPhase();
 }
 
 //======================================================
-//	ƒfƒXƒgƒ‰ƒNƒ^
+//	ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 //======================================================
 Building::~Building()
 {
@@ -107,29 +107,29 @@ Building::~Building()
 }
 
 //======================================================
-//	‰Šú‰»
+//	åˆæœŸåŒ–
 //======================================================
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// Šù‘¶‚ÌŒš•¨‚ğƒNƒŠƒA
+	// æ—¢å­˜ã®å»ºç‰©ã‚’ã‚¯ãƒªã‚¢
 	Building_Finalize();
 
 
 
 
 
-	// Field‚Ìî•ñ‚ğæ“¾
+	// Fieldã®æƒ…å ±ã‚’å–å¾—
 	MAPDATA* fieldMap = GetFieldObjects();
-	int fieldCount = GetFieldObjectCount();	// ƒ}ƒbƒv‚Ì”z—ñ”‚ğæ“¾
+	int fieldCount = GetFieldObjectCount();	// ãƒãƒƒãƒ—ã®é…åˆ—æ•°ã‚’å–å¾—
 
-	// ƒ}ƒbƒv‚ğ‘–¸‚µ‚ÄŒš•¨‚ğ”z’u
+	// ãƒãƒƒãƒ—ã‚’èµ°æŸ»ã—ã¦å»ºç‰©ã‚’é…ç½®
 	for (int i = 0; i < fieldCount; i++)
 	{
-		// ‚à‚µƒ}ƒbƒv‚ª–³Œø‚È‚çƒXƒLƒbƒv
+		// ã‚‚ã—ãƒãƒƒãƒ—ãŒç„¡åŠ¹ãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
 		if (fieldMap[i].no == FIELD::FIELD_MAX) continue;
 
 		// ----------------------------------------------------
-		// FIELD ‚Ìí—Ş‚ğ BuildingType ‚É•ÏŠ·‚·‚é
+		// FIELD ã®ç¨®é¡ã‚’ BuildingType ã«å¤‰æ›ã™ã‚‹
 		// ----------------------------------------------------
 		BuildingType type = BuildingType::None;
 
@@ -140,18 +140,18 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		case FIELD::FIELD_Plant:	type = BuildingType::Plant;		break;
 		case FIELD::FIELD_Electric:	type = BuildingType::Electric;	break;
 
-		// FIELD_BOXi‚½‚¾‚Ì’n–Êj‚Ìê‡‚ÍŒš•¨‚ğì‚ç‚È‚¢
+		// FIELD_BOXï¼ˆãŸã ã®åœ°é¢ï¼‰ã®å ´åˆã¯å»ºç‰©ã‚’ä½œã‚‰ãªã„
 		case FIELD::FIELD_BOX:		type = BuildingType::None;		break;
 		}
 
 		// ----------------------------------------------------
-		// Œš•¨ƒ^ƒCƒv‚ªŒˆ‚Ü‚Á‚½‚ç¶¬‚·‚é
+		// å»ºç‰©ã‚¿ã‚¤ãƒ—ãŒæ±ºã¾ã£ãŸã‚‰ç”Ÿæˆã™ã‚‹
 		// ----------------------------------------------------
 		if (type != BuildingType::None)
 		{
-			if (BuildingCount >= 100) break; // ãŒÀƒ`ƒFƒbƒN
+			if (BuildingCount >= 100) break; // ä¸Šé™ãƒã‚§ãƒƒã‚¯
 
-			// ¶¬iÀ•W‚ÍMap‚Ì‚à‚Ì‚ğg‚¤j
+			// ç”Ÿæˆï¼ˆåº§æ¨™ã¯Mapã®ã‚‚ã®ã‚’ä½¿ã†ï¼‰
 
 			Buildings[BuildingCount] = new Building(type, fieldMap[i].pos);
 			BuildingCount++;
@@ -160,11 +160,11 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 }
 
 //======================================================
-//	I—¹ˆ—
+//	çµ‚äº†å‡¦ç†
 //======================================================
 void Building_Finalize(void)
 {
-	// ¶¬‚µ‚½Œš•¨‚ğ‚·‚×‚Äíœ
+	// ç”Ÿæˆã—ãŸå»ºç‰©ã‚’ã™ã¹ã¦å‰Šé™¤
 	for (int i = 0; i < BuildingCount; ++i)
 	{
 		if (Buildings[i])
@@ -177,31 +177,31 @@ void Building_Finalize(void)
 }
 
 static const char* g_ModelName[] = {
-	"propsConcreteMain_v2",		// 3ƒ}ƒX‘åŒš•¨
-	"propsConcreteSub_v2",		// ƒ}ƒ“ƒVƒ‡ƒ“
-	"propsElectricitySub_v2",	// Ô‚ÆM†
-	"propsGlassSub_v2",			// ƒrƒ‹
-	"propsTreeSub_v2",			// L—t÷
-	"build_glass_new"			// •Ï‚ÈŒš•¨
+	"propsConcreteMain_v2",		// 3ãƒã‚¹å¤§å»ºç‰©
+	"propsConcreteSub_v2",		// ãƒãƒ³ã‚·ãƒ§ãƒ³
+	"propsElectricitySub_v2",	// è»Šã¨ä¿¡å·
+	"propsGlassSub_v2",			// ãƒ“ãƒ«
+	"propsTreeSub_v2",			// åºƒè‘‰æ¨¹
+	"build_glass_new"			// å¤‰ãªå»ºç‰©
 };
 
 //==============================================
-// ƒtƒF[ƒY‚âí—Ş‚É‰‚¶‚Äƒ‚ƒfƒ‹‚ğ“Ç‚İ‚Ş
+// ãƒ•ã‚§ãƒ¼ã‚ºã‚„ç¨®é¡ã«å¿œã˜ã¦ãƒ¢ãƒ‡ãƒ«ã‚’èª­ã¿è¾¼ã‚€
 //==============================================
 void Building::LoadModelForPhase()
 {
-	// ‚·‚Å‚Éƒ‚ƒfƒ‹‚ª‚ ‚éê‡‚Í‰ğ•úiƒtƒF[ƒYØ‚è‘Ö‚¦‚È‚Çj
+	// ã™ã§ã«ãƒ¢ãƒ‡ãƒ«ãŒã‚ã‚‹å ´åˆã¯è§£æ”¾ï¼ˆãƒ•ã‚§ãƒ¼ã‚ºåˆ‡ã‚Šæ›¿ãˆæ™‚ãªã©ï¼‰
 	if (m_Model)
 	{
 		ModelRelease(m_Model);
 		m_Model = nullptr;
 	}
 
-	//const char* path = nullptr;		// ƒ‚ƒfƒ‹ƒtƒ@ƒCƒ‹ƒpƒX
+	//const char* path = nullptr;		// ãƒ¢ãƒ‡ãƒ«ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹
 
 	const char* path = nullptr;
 
-	// í—Ş‚ÆƒtƒF[ƒY‚Åg—p‚·‚éFBX‚ğŒˆ’è
+	// ç¨®é¡ã¨ãƒ•ã‚§ãƒ¼ã‚ºã§ä½¿ç”¨ã™ã‚‹FBXã‚’æ±ºå®š
 	switch (Type)
 	{
 	case BuildingType::Glass:
@@ -229,109 +229,109 @@ void Building::LoadModelForPhase()
 		break;
 
 	default:
-		//path = "asset/build_default.fbx"; // ƒfƒtƒHƒ‹ƒgƒ‚ƒfƒ‹
+		//path = "asset/build_default.fbx"; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ¢ãƒ‡ãƒ«
 		break;
 	}
 
 	if (path)
 	{
 		char modelPath[256];
-		// asset/model/[ƒ‚ƒfƒ‹ƒtƒ@ƒCƒ‹–¼].fbx ‚ÌŒ`®‚É‘g‚İ—§‚Ä‚é
+		// asset/model/[ãƒ¢ãƒ‡ãƒ«ãƒ•ã‚¡ã‚¤ãƒ«å].fbx ã®å½¢å¼ã«çµ„ã¿ç«‹ã¦ã‚‹
 		snprintf(modelPath, sizeof(modelPath), "asset/model/%s.fbx", path);
 
-		// ƒ‚ƒfƒ‹“Ç‚İ‚İ
+		// ãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿
 		m_Model = ModelLoad(modelPath);
 	}
 }
 	
 //==============================================
-// ƒtƒF[ƒY•ÏXiNew / Damaged / Brokenj
+// ãƒ•ã‚§ãƒ¼ã‚ºå¤‰æ›´ï¼ˆNew / Damaged / Brokenï¼‰
 //==============================================
 void Building::SetPhase(BuildingPhase phase)
 {
-	if (Phase != phase) // •ÏX‚ª‚ ‚éê‡‚Ì‚İ
+	if (Phase != phase) // å¤‰æ›´ãŒã‚ã‚‹å ´åˆã®ã¿
 	{
 		Phase = phase;
-		LoadModelForPhase(); // ƒ‚ƒfƒ‹‚ğƒŠƒ[ƒh‚µ‚ÄŒ©‚½–Ú‚ğ•Ï‚¦‚é
+		LoadModelForPhase(); // ãƒ¢ãƒ‡ãƒ«ã‚’ãƒªãƒ­ãƒ¼ãƒ‰ã—ã¦è¦‹ãŸç›®ã‚’å¤‰ãˆã‚‹
 	}
 }
 
 //==============================================
-// –ˆƒtƒŒ[ƒ€XV
+// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°
 //==============================================
 void Building::Update()
 {
-	// Œ»ó‚Í‰½‚às‚í‚È‚¢
+	// ç¾çŠ¶ã¯ä½•ã‚‚è¡Œã‚ãªã„
 }
 
 //==============================================
-// •`‰æ
+// æç”»
 //==============================================
 void Building::Draw(bool s_IsKonamiCodeEntered)
 {
 	static bool input3 = false;
-	// ƒfƒoƒbƒOƒ‚[ƒh’†‚Ì‚İƒL[“ü—Í‚ğó‚¯•t‚¯‚é
+	// ãƒ‡ãƒãƒƒã‚°ãƒ¢ãƒ¼ãƒ‰ä¸­ã®ã¿ã‚­ãƒ¼å…¥åŠ›ã‚’å—ã‘ä»˜ã‘ã‚‹
 	if (s_IsKonamiCodeEntered)
 	{
 		if (Keyboard_IsKeyDownTrigger(KK_D1))
 		{
-			input3 = !input3;	// ƒtƒ‰ƒO”½“]
+			input3 = !input3;	// ãƒ•ãƒ©ã‚°åè»¢
 		}
 	}
-	// ©•ª‚Ìƒ‚ƒfƒ‹‚ªƒ[ƒh‚³‚ê‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN
+	// è‡ªåˆ†ã®ãƒ¢ãƒ‡ãƒ«ãŒãƒ­ãƒ¼ãƒ‰ã•ã‚Œã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
 	if (!m_Model) return;
 
-	//ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Öİ’è
+	//ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã¸è¨­å®š
 	Shader_Begin();
 
-	//ƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñì¬
+	//ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³è¡Œåˆ—ä½œæˆ
 	XMMATRIX	projection = GetProjectionMatrix();
-	//ƒrƒ…[s—ñì¬
+	//ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ä½œæˆ
 	XMMATRIX	view = GetViewMatrix();
-	//æ‚ÉVP•ÏŠ·s—ñ‚ğì‚Á‚Ä‚¨‚­
+	//å…ˆã«VPå¤‰æ›è¡Œåˆ—ã‚’ä½œã£ã¦ãŠã
 	XMMATRIX VP = view * projection;
 
 
-	// ƒXƒP[ƒŠƒ“ƒOE‰ñ“]E•½sˆÚ“®
+	// ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°ãƒ»å›è»¢ãƒ»å¹³è¡Œç§»å‹•
 	XMMATRIX ScalingMatrix = XMMatrixScaling(scaling.x, scaling.y, scaling.z);
 
 
-	// —vC³@///////////////////////////////////////////////////////////////////////////////////////
-	// ©•ª‚ÌÀ•W‚ÖˆÚ“®iæ‚è‚ ‚¦‚¸yÀ•W‚Éoffset‚ğ‘«‚·j
+	// è¦ä¿®æ­£ã€€///////////////////////////////////////////////////////////////////////////////////////
+	// è‡ªåˆ†ã®åº§æ¨™ã¸ç§»å‹•ï¼ˆå–ã‚Šã‚ãˆãšyåº§æ¨™ã«offsetã‚’è¶³ã™ï¼‰
 	XMMATRIX TranslationMatrix = XMMatrixTranslation(position.x, position.y + 1.0f, position.z);
 	////////////////////////////////////////////////////////////////////////////////////////////
 
-	// ƒ‚ƒfƒ‹‚ªQ‚Ä‚¢‚éê‡‚Í‹N‚±‚·i-90“x‰ñ“]‚È‚Çj
+	// ãƒ¢ãƒ‡ãƒ«ãŒå¯ã¦ã„ã‚‹å ´åˆã¯èµ·ã“ã™ï¼ˆ-90åº¦å›è»¢ãªã©ï¼‰
 	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(rotation.x + XMConvertToRadians(-90.0f), rotation.y, rotation.z);
 
-	//ƒ[ƒ‹ƒhs—ñ‚Ìì¬
+	//ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã®ä½œæˆ
 	XMMATRIX	World = ScalingMatrix * RotationMatrix * TranslationMatrix;
-	//ÅI“I‚È•ÏŠ·s—ñ‚ğì¬
+	//æœ€çµ‚çš„ãªå¤‰æ›è¡Œåˆ—ã‚’ä½œæˆ
 	XMMATRIX	WVP = World * VP;	//(VP = View * Projection)
 
-	//DirectX‚Ös—ñ‚ğƒZƒbƒg
+	//DirectXã¸è¡Œåˆ—ã‚’ã‚»ãƒƒãƒˆ
 	Shader_SetWorldMatrix(World);
 	Shader_SetMatrix(WVP);
 
 	if (!s_IsKonamiCodeEntered || input3)
 	{
-		// •`‰æÀs
+		// æç”»å®Ÿè¡Œ
 		ModelDraw(m_Model);
 	}
 
 	if (s_IsKonamiCodeEntered)
 	{
 		// ------------------------------------
-		// ƒRƒ‰ƒCƒ_[ƒtƒŒ[ƒ€iAABBj‚Ì•`‰æ
+		// ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ãƒ•ãƒ¬ãƒ¼ãƒ ï¼ˆAABBï¼‰ã®æç”»
 		// ------------------------------------
 		{
-			// ƒvƒŒƒCƒ„[‚Ì•`‰æ‚Ég‚í‚ê‚½s—ñ‚ğƒNƒŠƒA‚·‚é
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æç”»ã«ä½¿ã‚ã‚ŒãŸè¡Œåˆ—ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹
 			XMMATRIX world = XMMatrixIdentity();
-			Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVPs—ñ‚ğIdentity * View * Projection‚Éİ’è
-			//Shader_Begin(); // ƒVƒF[ƒ_[‚ğÄİ’è
+			Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVPè¡Œåˆ—ã‚’Identity * View * Projectionã«è¨­å®š
+			//Shader_Begin(); // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’å†è¨­å®š
 
-			// AABB‚ğ•`‰æ
-			// AABB‚ÌMin/Max‚ÍŠù‚Éƒ[ƒ‹ƒhÀ•W‚È‚Ì‚ÅAs—ñ‚ÍƒŠƒZƒbƒg‚µ‚½‚Ü‚Ü•`‰æ‚·‚ê‚ÎOK
+			// AABBã‚’æç”»
+			// AABBã®Min/Maxã¯æ—¢ã«ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ãªã®ã§ã€è¡Œåˆ—ã¯ãƒªã‚»ãƒƒãƒˆã—ãŸã¾ã¾æç”»ã™ã‚Œã°OK
 			Debug_DrawAABB(boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
 		}
 		//s_IsKonamiCodeEntered = false;
@@ -339,16 +339,16 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 }
 
 //======================================================
-//	ƒQƒbƒ^[
+//	ã‚²ãƒƒã‚¿ãƒ¼
 //======================================================
 
-// Œš•¨‚Ì‘”‚ğ•Ô‚·
+// å»ºç‰©ã®ç·æ•°ã‚’è¿”ã™
 int GetBuildingCount()
 {
 	return BuildingCount;
 }
 
-// Œš•¨”z—ñ‚Ìæ“ªƒ|ƒCƒ“ƒ^‚ğ•Ô‚·
+// å»ºç‰©é…åˆ—ã®å…ˆé ­ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™
 Building** GetBuildings()
 {
 	return Buildings;

@@ -1,9 +1,9 @@
-#pragma once
+ï»¿#pragma once
 
 #include "d3d11.h"
 #include "collider.h"
 
-// ƒ}ƒNƒ’è‹`
+// ãƒã‚¯ãƒ­å®šç¾©
 #define SKILL_GLASS_TIME	(10.0f)
 #define SKILL_CONCRETE_TIME	(10.0f)
 #define SKILL_PLANT_TIME	(10.0f)
@@ -24,17 +24,17 @@ struct SKILL_OBJECT
 	AABB boundingBox;
 };
 
-// Glassê—p‚ÌƒXƒLƒ‹ŠÇ—\‘¢‘Ìi5‚Â‚Ì” ‚Ìî•ñ‚ğŠi”[‚·‚éj
+// Glasså°‚ç”¨ã®ã‚¹ã‚­ãƒ«ç®¡ç†æ§‹é€ ä½“ï¼ˆ5ã¤ã®ç®±ã®æƒ…å ±ã‚’æ ¼ç´ã™ã‚‹ï¼‰
 struct SKILL_GLASS
 {
-    // GlassƒXƒLƒ‹‚ª¶¬‚·‚é5‚Â‚Ì” 
+    // Glassã‚¹ã‚­ãƒ«ãŒç”Ÿæˆã™ã‚‹5ã¤ã®ç®±
     SKILL_OBJECT boxes[5];
 
-    // ƒXƒLƒ‹‚ÌŒ»İ‚Ìó‘Ô
+    // ã‚¹ã‚­ãƒ«ã®ç¾åœ¨ã®çŠ¶æ…‹
     bool isActive = false;
     float duration = 0.0f;
 
-    // ƒXƒLƒ‹‚Ì‘S‘Ì“I‚ÈeÀ•W‚ª•K—v‚Èê‡
+    // ã‚¹ã‚­ãƒ«ã®å…¨ä½“çš„ãªè¦ªåº§æ¨™ãŒå¿…è¦ãªå ´åˆ
     XMFLOAT3 parentPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
 };
 

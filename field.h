@@ -1,4 +1,4 @@
-//field.h
+ï»¿//field.h
 #pragma once
 
 #include <d3d11.h>
@@ -12,42 +12,42 @@
 using namespace DirectX;
 
 //=========================================
-// MAP\¬ƒuƒƒbƒN‚Ìí—Ş
+// MAPæ§‹æˆãƒ–ãƒ­ãƒƒã‚¯ã®ç¨®é¡
 //=========================================
 enum FIELD
 {
-	FIELD_BOX = 0,			// ” 
+	FIELD_BOX = 0,			// ç®±
 
-	FIELD_Glass,		// ƒKƒ‰ƒXŒš•¨
-	FIELD_Concrete,		// ƒRƒ“ƒNƒŠŒš•¨
-	FIELD_Plant,		// A•¨Œš•¨
-	FIELD_Electric,		// “d‹CŒš•¨
+	FIELD_Glass,		// ã‚¬ãƒ©ã‚¹å»ºç‰©
+	FIELD_Concrete,		// ã‚³ãƒ³ã‚¯ãƒªå»ºç‰©
+	FIELD_Plant,		// æ¤ç‰©å»ºç‰©
+	FIELD_Electric,		// é›»æ°—å»ºç‰©
 
 	FIELD_MAX
 };
 
 
 //=========================================
-// MAPƒf[ƒ^\‘¢‘Ìi1ƒ}ƒX•ªj
+// MAPãƒ‡ãƒ¼ã‚¿æ§‹é€ ä½“ï¼ˆ1ãƒã‚¹åˆ†ï¼‰
 //=========================================
 class MAPDATA
 {
 public:
-	XMFLOAT3 pos;			// À•W
-	AABB boundingBox;		// “–‚½‚è”»’è
-	FIELD no;				// í—ŞiFIELD_BOX / FIELD_BUILDINGj
+	XMFLOAT3 pos;			// åº§æ¨™
+	AABB boundingBox;		// å½“ãŸã‚Šåˆ¤å®š
+	FIELD no;				// ç¨®é¡ï¼ˆFIELD_BOX / FIELD_BUILDINGï¼‰
 
 	bool isActive = true;
 
-	// --- ‚±‚±‚ğ’Ç‰ÁI ---
+	// --- ã“ã“ã‚’è¿½åŠ ï¼ ---
 	//BuildingType type = BuildingType::None;
-	float radius = 1.0f;	// ˜ZŠpŒ`‚Ì”¼Œa
-	float height = 2.25f;	// ’Œ‚Ì‚‚³
+	float radius = 1.0f;	// å…­è§’å½¢ã®åŠå¾„
+	float height = 2.25f;	// æŸ±ã®é«˜ã•
 };
 
 
 //=========================================
-// Field ŠÖ”
+// Field é–¢æ•°
 //=========================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Field_Finalize(void);
@@ -57,5 +57,5 @@ void Field_Update(void);
 MAPDATA* GetFieldObjects();
 int GetFieldObjectCount();
 
-// BOXì¬ŠÖ”
+// BOXä½œæˆé–¢æ•°
 //void	CreateBox();

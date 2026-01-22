@@ -1,4 +1,4 @@
-
+ï»¿
 //Effect.cpp
 
 #include "Effect.h"
@@ -6,8 +6,8 @@
 #include "shader.h"
 #include "color.h"
 
-//ƒOƒ[ƒoƒ‹•Ï”
-// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
+//ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
@@ -26,13 +26,13 @@ static XMFLOAT2 g_EffectSize  = { 0.0f, 0.0f };
 //static int g_EffectCount = 1;
 //static float g_EffectSpacingX = 0.0f;
 
-//ƒƒCƒ“ˆ—ŠÖ”
+//ãƒ¡ã‚¤ãƒ³å‡¦ç†é–¢æ•°
 void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	/*TexMetadata metadata;
 	ScratchImage image;
 	LoadFromWICFile(L"Asset\\Texture\\uiLightLoopBigConcrete_v1.png", WIC_FLAGS_NONE, &metadata, image);
@@ -69,7 +69,7 @@ void Effect_Update()
 
 void Effect_Draw()
 {
-	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 	Shader_Begin();
 	Shader_BeginUI();
 
@@ -87,7 +87,7 @@ void Effect_Draw()
 	DrawSpriteUV(g_EffectBasePos, g_EffectSize, color::white, uvMin, uvMax);
 	//DrawSpriteUV(g_EffectBasePos, g_EffectSize, color::white, uvMin, uvMax);
 
-	//// •¡””z’u‚É‘Î‰FX‚¾‚¯‚¸‚ç‚µ‚Ä•`‰æ
+	//// è¤‡æ•°é…ç½®ã«å¯¾å¿œï¼šXã ã‘ãšã‚‰ã—ã¦æç”»
 	//for (int i = 0; i < g_EffectCount; ++i)
 	//{
 	//	XMFLOAT2 pos = { g_EffectBasePos.x + i * g_EffectSpacingX, g_EffectBasePos.y };
@@ -102,7 +102,7 @@ void Effect_Set(ID3D11ShaderResourceView* tex, XMFLOAT2 pos, XMFLOAT2 size)
 	g_EffectBasePos = pos;
 	g_EffectSize = size;
 
-	// ŒİŠ·«‚Ì‚½‚ß’P‘Ì•\¦icount=1, spacing=0j‚ğİ’è
+	// äº’æ›æ€§ã®ãŸã‚å˜ä½“è¡¨ç¤ºï¼ˆcount=1, spacing=0ï¼‰ã‚’è¨­å®š
 	//g_EffectCount = 1;
 	//g_EffectSpacingX = 0.0f;
 
