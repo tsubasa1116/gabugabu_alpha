@@ -163,6 +163,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="Building.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="collider.cpp" />
+    <ClCompile Include="DamageText.cpp" />
     <ClCompile Include="debug_ostream.cpp" />
     <ClCompile Include="debug_render.cpp" />
     <ClCompile Include="direct3d.cpp" />
@@ -198,6 +199,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="special.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="Start.cpp" />
+    <ClCompile Include="swipe.cpp" />
     <ClCompile Include="Title.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -210,6 +212,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="Camera.h" />
     <ClInclude Include="collider.h" />
     <ClInclude Include="color.h" />
+    <ClInclude Include="DamageText.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_render.h" />
     <ClInclude Include="direct3d.h" />
@@ -245,6 +248,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="special.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="Start.h" />
+    <ClInclude Include="swipe.h" />
     <ClInclude Include="Title.h" />
   </ItemGroup>
   <ItemGroup>

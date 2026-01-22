@@ -26,6 +26,7 @@
 #include "skill.h"
 #include "special.h"
 #include "fade.h"
+#include "DamageText.h"
 #include "direct3d.h"
 
 //======================================================
@@ -102,6 +103,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Skill_Initialize(pDevice, pContext);
 	Special_Initialize(pDevice, pContext);
 	Camera_Initialize();
+	DamageText_Initialize();
 
 	//BallInitialize(pDevice, pContext);
 	//P_Initialize(pDevice, pContext);		// プレイヤーの初期化
@@ -109,8 +111,8 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//Block_Initialize(pDevice, pContext);
 	//Score_Initialize(pDevice, pContext);
 
-	g_BgmID = LoadAudio("asset\\Audio\\bgm.wav");	// サウンドロード
-	//PlayAudio(g_BgmID, true);		// 再生開始（ループあり）
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// サウンドロード
+	PlayAudio(g_BgmID, true);		// 再生開始(ループあり)
 	//PlayAudio(g_BgmID);			// 再生開始（ループなし）
 	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし）
 
@@ -150,6 +152,8 @@ void Game_Finalize()
 	//Score_Finalize();
 
 	UnloadAudio(g_BgmID);	// サウンドの解放
+	DamageText_Finalize();
+
 }
 
 //======================================================
@@ -181,8 +185,9 @@ void Game_Update()
 	//Player_Update();
 	//Block_Update();
 	//Score_Update();
-	
-	// ゲームシーンへ遷移
+	DamageText_Update();
+
+	//ゲームシーンへ遷移
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
 		// フェードアウトさせてシーンを切り替える
@@ -216,13 +221,16 @@ void Game_Draw()
 	Polygon3D_DrawEffect();
 	Effect_Draw();
 	Polygon3D_DrawHP();
-	DrawTextEx(
-		L"こんにちは世界",			// 表示する文字
-		600, 400,					// 位置
-		60.0f,						// サイズ
-		L"玉ねぎ楷書激無料版v7改",	// フォント
-		TextColor::Yellow			// 色
-	);
+	Polygon3D_DrawText();
+	DamageText_Draw();
+
+	//DrawTextEx(
+	//	L"こんにちは世界",			// 表示する文字
+	//	600, 400,					// 位置
+	//	60.0f,						// サイズ
+	//	L"玉ねぎ楷書激無料版v7改",	// フォント
+	//	TextColor::Yellow			// 色
+	//);
 	
 	//P_Draw();
 	//Block_Draw();

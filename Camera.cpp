@@ -8,6 +8,7 @@
 #include "keyboard.h"
 #include "Ball.h"
 #include "Polygon3D.h"
+#include "input.h"
 
 // グローバル変数
 static CAMERA	CameraObject;
@@ -20,7 +21,7 @@ static float	s_LerpTime = 0.0f;		// Lerpの進捗度 (0.0fから1.0fへ変化)
 const float		LERP_SPEED = 0.05f;		// Lerpの速さ (毎フレーム進む割合)
 
 void Camera_Initialize()
-{ 
+{
 	// セッターを使った初期化
 	XMFLOAT3 pos = XMFLOAT3(0.0f, 10.0f, -10.0f);
 	XMFLOAT3 at = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -72,6 +73,25 @@ void Camera_Update()
 	{
 		vec.y = -1.0f;
 	}
+
+
+	if (g_Input->Up)
+	{
+		vec.z = 1.0f;
+	}
+	if (g_Input->Down)
+	{
+		vec.z = -1.0f;
+	}
+	if (g_Input->Right)
+	{
+		vec.x = 1.0f;
+	}
+	if (g_Input->Left)
+	{
+		vec.x = -1.0f;
+	}
+
 
 	// vecの正規化
 	float len = sqrtf(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
@@ -214,7 +234,7 @@ void Camera_Update()
 	return;
 }
 
-void	Camera_Draw()
+void Camera_Draw()
 { 
 	//プロジェクション行列作成
 	CameraObject.projection = XMMatrixPerspectiveFovLH
