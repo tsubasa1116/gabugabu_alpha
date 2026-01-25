@@ -112,8 +112,8 @@ void Fade_Draw()
 	}
 }
 
-void SetFade(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene)
-{ 
+void SetFade(float fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene)
+{
 	g_Fade.frame = fadeframe;
 	g_Fade.fadecolor = color;
 	g_Fade.state = state;

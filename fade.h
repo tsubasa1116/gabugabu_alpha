@@ -27,7 +27,7 @@ void Fade_Finalize();
 void Fade_Update();
 void Fade_Draw();
 
-void SetFade(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene);
+void SetFade(float fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene);
 FADE_STATE	GetFadeState();
 
 

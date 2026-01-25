@@ -383,6 +383,33 @@ void Special_Plant_Update(int playerIndex)
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
 
+	// 半径5.0fの円形当たり判定を作成
+	const float radius = 5.0f;
+	XMFLOAT3 center = player.position;
+
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		if (p == playerIndex) continue; // 自分自身は無視
+
+		PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
+		if (otherPlayerObject == nullptr || !otherPlayerObject->active) continue;
+		PLAYEROBJECT& otherPlayer = *otherPlayerObject;
+
+		if (otherPlayer.isInvincible) continue;	// 無敵中は無視
+
+		// 他プレイヤーとの距離を計算
+		float dx = otherPlayer.position.x - center.x;
+		float dy = otherPlayer.position.y - center.y;
+		float dz = otherPlayer.position.z - center.z;
+		float distanceSquared = dx * dx + dy * dy + dz * dz;
+
+		// 距離が半径以下ならダメージを与える 防御率でダメージ軽減（ノックバックは与えない）
+		if (distanceSquared <= radius * radius)	otherPlayer.hp -= 0.05f * otherPlayer.defense;
+
+		// HPが0以下にならないように
+		if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+	}
+
 	// スペシャルの効果時間が経過したらスペシャル終了
 	if (player.specialTimer >= SPECIAL_PLANT_TIME)
 	{
@@ -434,10 +461,10 @@ void Special_Update(int playerIndex)
 		default: break;
 		}
 
-		player.form = Form::Normal;		// 変身形態を通常に戻す
-		player.type = PlayerType::None;	// スペシャル使用後にタイプをリセット
-		player.useSkill = false;		// スキル解除
-		player.useSpecial = false;		// スペシャル解除
+		//player.form = Form::Normal;		// 変身形態を通常に戻す
+		//player.type = PlayerType::None;	// スペシャル使用後にタイプをリセット
+		//player.useSkill = false;		// スキル解除
+		//player.useSpecial = false;		// スペシャル解除
 	}
 }
 

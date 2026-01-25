@@ -52,7 +52,7 @@ PLAYEROBJECT object[PLAYER_MAX];
 //======================================================
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
-static HP HPBar[PLAYER_MAX];
+static hp HPBar[PLAYER_MAX];
 
 // 頂点バッファ
 static ID3D11Buffer* g_VertexBuffer = NULL;
@@ -493,9 +493,9 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 void Polygon3D_Update()
 {
 	// 各プレイヤーに対応する発動キー
-	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER };
+	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V };
 
-	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_D9, KK_D0 };
+	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_F9, KK_F10, KK_F11 };
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
@@ -604,7 +604,7 @@ void Polygon3D_Update()
 			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
 
 			// プレイヤーの番号に応じて入力キーを分ける
-			if (p == 0) // プレイヤー1 (WASD)
+			if (p == 0) // プレイヤー0 (WASD)
 			{
 				if (g_Input[0].LStickX > 0.0f)	{object[0].moveDir.x += 1.0f; object[0].isMoving = true;}
 				if (g_Input[0].LStickX < 0.0f)	{object[0].moveDir.x -= 1.0f; object[0].isMoving = true;}
@@ -617,13 +617,21 @@ void Polygon3D_Update()
 				if (Keyboard_IsKeyDown(KK_D))	{object[0].moveDir.x += 1.0f; object[0].isMoving = true;}
 				if (object[0].moveDir.x == 0.0f && object[0].moveDir.z == 0.0f)	object[0].isMoving = false;
 			}
-			else if (p == 1) // プレイヤー2 (矢印キー)
+			else if (p == 1) // プレイヤー1 (矢印キー)
 			{
 				if (Keyboard_IsKeyDown(KK_UP))		{object[1].moveDir.z += 1.0f; object[1].isMoving = true;}
 				if (Keyboard_IsKeyDown(KK_DOWN))	{object[1].moveDir.z -= 1.0f; object[1].isMoving = true;}
 				if (Keyboard_IsKeyDown(KK_LEFT))	{object[1].moveDir.x -= 1.0f; object[1].isMoving = true;}
 				if (Keyboard_IsKeyDown(KK_RIGHT))	{object[1].moveDir.x += 1.0f; object[1].isMoving = true;}
 				if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
+			}
+			else if (p == 2) // プレイヤー2 (TFGH) 攻撃 V
+			{
+				if (Keyboard_IsKeyDown(KK_T))	{object[2].moveDir.z += 1.0f; object[2].isMoving = true;}
+				if (Keyboard_IsKeyDown(KK_G))	{object[2].moveDir.z -= 1.0f; object[2].isMoving = true;}
+				if (Keyboard_IsKeyDown(KK_F))	{object[2].moveDir.x -= 1.0f; object[2].isMoving = true;}
+				if (Keyboard_IsKeyDown(KK_H))	{object[2].moveDir.x += 1.0f; object[2].isMoving = true;}
+				if (object[2].moveDir.x == 0.0f && object[2].moveDir.z == 0.0f)	object[2].isMoving = false;
 			}
 
 			// 現在のプレイヤー p だけを動かす
@@ -886,23 +894,19 @@ void Polygon3D_Update()
 		ImGui::Text("Player %d", p + 1);
 		ImGui::Indent();
 
+		ImGui::SliderFloat("HP", &object[p].hp, 0.0f, 100.0f, "%.1f");
 		ImGui::SliderFloat("stunGauge", &object[p].stunGauge, 0.0f, 10.0f, "%.1f");
 		ImGui::SliderFloat("invincibleTimer", &object[p].invincibleTimer, 0.0f, 3.0f, "%.1f");
-		ImGui::BulletText("active            : %d", object[p].active);
-		ImGui::BulletText("rank              : %d", object[p].rank);
-		ImGui::BulletText("speed             : %.3f", object[p].speed);
-		ImGui::BulletText("defense           : %.1f", object[p].defense);
 		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
 		ImGui::BulletText("useSpecial        : %d", object[p].useSpecial);
 		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
 		ImGui::BulletText("form              : %d", object[p].form);
-		ImGui::BulletText("type              : %d", object[p].type);
 		ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
-		ImGui::BulletText("EvolutionGaugeRate: %d", object[p].evolutionGaugeRate);
-		ImGui::BulletText("1 Glass breaks    : %d", object[p].breakCount_Glass);
-		ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
-		ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
-		ImGui::BulletText("4 Electric breaks : %d", object[p].breakCount_Electric);
+		//ImGui::BulletText("EvolutionGaugeRate: %d", object[p].evolutionGaugeRate);
+		//ImGui::BulletText("1 Glass breaks    : %d", object[p].breakCount_Glass);
+		//ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
+		//ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
+		//ImGui::BulletText("4 Electric breaks : %d", object[p].breakCount_Electric);
 
 		// 履歴リストのサイズを表示
 		size_t historySize = object[p].brokenHistory.size();

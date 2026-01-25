@@ -214,13 +214,13 @@ void Game_Draw()
 	Polygon3D_DrawEffect();
 	Effect_Draw();
 	Polygon3D_DrawHP();
-	DrawTextEx(
-		L"こんにちは世界",			// 表示する文字
-		600, 400,					// 位置
-		60.0f,						// サイズ
-		L"玉ねぎ楷書激無料版v7改",	// フォント
-		TextColor::Yellow			// 色
-	);
+	//DrawTextEx(
+	//	L"こんにちは世界",			// 表示する文字
+	//	600, 400,					// 位置
+	//	60.0f,						// サイズ
+	//	L"玉ねぎ楷書激無料版v7改",	// フォント
+	//	TextColor::Yellow			// 色
+	//);
 	
 	//P_Draw();
 	//Block_Draw();

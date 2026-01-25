@@ -17,8 +17,8 @@ using namespace DirectX;
 
 struct P
 {
-	int HP;
-	int MaxHP;
+	float hp;
+	float maxHp;
 	int stock;
 	XMFLOAT3 pos;
 	XMFLOAT3 scale;

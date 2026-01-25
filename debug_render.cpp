@@ -10,6 +10,8 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 using namespace DirectX;
+#include <vector>
+#include <cmath>
 
 //======================================================
 //	グローバル変数
@@ -163,4 +165,43 @@ void Debug_DrawHex(const HexCollider& hex, XMFLOAT4 color)
 	}
 
 	DrawLines(v, 36);
+}
+
+// 円描画
+void Debug_DrawCircle(const XMFLOAT3& center, float radius, const XMFLOAT4& color)
+{
+	const int segments = 36; // 円を構成するセグメント数
+	const float angleStep = XM_2PI / segments;
+
+	std::vector<XMFLOAT3> points;
+	for (int i = 0; i <= segments; ++i)
+	{
+		float angle = i * angleStep;
+		float x = center.x + radius * cosf(angle);
+		float z = center.z + radius * sinf(angle);
+		points.push_back(XMFLOAT3(x, center.y, z));
+	}
+
+	// 線を描画
+	for (size_t i = 0; i < points.size() - 1; ++i)
+	{
+		Debug_DrawLine(points[i], points[i + 1], color);
+	}
+}
+
+// 線描画
+void Debug_DrawLine(const XMFLOAT3& start, const XMFLOAT3& end, const XMFLOAT4& color)
+{
+	// 2つの頂点を定義
+	DebugVertex vertices[2];
+	vertices[0].pos = start;
+	vertices[0].color = color;
+	vertices[0].uv = { 0.0f, 0.0f };
+
+	vertices[1].pos = end;
+	vertices[1].color = color;
+	vertices[1].uv = { 0.0f, 0.0f };
+
+	// ラインを描画
+	DrawLines(vertices, 2);
 }

@@ -387,10 +387,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 //=========================================
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	HGDIOBJ hbrWhite, hbrGray;
+	//HGDIOBJ hbrWhite, hbrGray;
 
-	HDC		hdc;	//ウィンドウ画面を表す情報（デバイスコンテキスト 入出力先）
-	PAINTSTRUCT	ps;	//ウィンドウ画面の大きさなど描画関連の情報
+	//HDC		hdc;	//ウィンドウ画面を表す情報（デバイスコンテキスト 入出力先）
+	//PAINTSTRUCT	ps;	//ウィンドウ画面の大きさなど描画関連の情報
 
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
 		return true;

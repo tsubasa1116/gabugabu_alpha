@@ -18,7 +18,7 @@
 #define HPBER_SIZE_X (180.0f)
 #define HPBER_SIZE_Y (25.0f)
 
-static HP g_HPBar[PLAYER_MAX];
+static hp g_HPBar[PLAYER_MAX];
 
 static ID3D11ShaderResourceView* g_Texture[5];
 
@@ -81,8 +81,8 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		p[i].HP    = 10.0f;
-		p[i].MaxHP = 10.0f;
+		p[i].hp = 10.0f;
+		p[i].maxHp = 10.0f;
 		p[i].stock = 3;
 		p[i].scale = { 1.0f, 1.0f, 1.0f };
 		p[i].color = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -103,7 +103,7 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 
 	// デバイスとデバイスコンテキストの保存
-	g_pDevice  = pDevice;
+	g_pDevice = pDevice;
 	g_pContext = pContext;
 
 	// 頂点バッファ生成
@@ -129,13 +129,13 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	D3D11_SUBRESOURCE_DATA initI = { cubeIndices };
 	g_pDevice->CreateBuffer(&ibd, &initI, &g_pIndexBuffer);
-    
+
 
 	TexMetadata  metadata;
 	ScratchImage image;
 
-	
-    LoadFromWICFile(L"asset\\texture\\uiStockYellow_v1.png", WIC_FLAGS_NONE, &metadata, image);
+
+	LoadFromWICFile(L"asset\\texture\\uiStockYellow_v1.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);
 
@@ -150,7 +150,7 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"asset\\texture\\uiStockGreen_v1.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
 	assert(g_Texture[3]);
-	
+
 	LoadFromWICFile(L"asset\\texture\\texture.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
 	assert(g_Texture[4]);
@@ -201,14 +201,14 @@ void P_Update()
 		Player_UpdateAABB();
 
 		// HPが0になったら残基を減らし、HPをもそす
-		if (p[i].HP <= 0 && p[i].active)
+		if (p[i].hp <= 0 && p[i].active)
 		{
 			p[i].stock--;
 
 			// 残基があれば復活
 			if (p[i].stock > 0)
 			{
-				p[i].HP = p[i].MaxHP;
+				p[i].hp = p[i].maxHp;
 
 				// リスポーン
 			}
@@ -219,7 +219,7 @@ void P_Update()
 			}
 		}
 
-		SetHPValue(&g_HPBar[i], (int)p[i].HP, (int)p[i].MaxHP);
+		SetHPValue(&g_HPBar[i], (int)p[i].hp, (int)p[i].maxHp);
 		UpdateHP(&g_HPBar[i]);
 	}
 
@@ -228,14 +228,14 @@ void P_Update()
 		ImGui::Begin("P Debug");
 
 		// HP
-		ImGui::SliderInt("1p:HP", &p[0].HP, 0.0f, p[0].MaxHP);
-		ImGui::SliderInt("2p:HP", &p[1].HP, 0.0f, p[1].MaxHP);
-		ImGui::SliderInt("3p:HP", &p[2].HP, 0.0f, p[2].MaxHP);
-		ImGui::SliderInt("4p:HP", &p[3].HP, 0.0f, p[3].MaxHP);
+		ImGui::SliderFloat("1p:HP", &p[0].hp, 0.0f, p[0].maxHp);
+		ImGui::SliderFloat("2p:HP", &p[1].hp, 0.0f, p[1].maxHp);
+		ImGui::SliderFloat("3p:HP", &p[2].hp, 0.0f, p[2].maxHp);
+		ImGui::SliderFloat("4p:HP", &p[3].hp, 0.0f, p[3].maxHp);
 
 		if (ImGui::Button("hp -1"))
 		{
-			p[0].HP -= 0.1f;
+			p[0].hp -= 0.1f;
 		}
 
 		if (ImGui::Button("fi +1"))
@@ -305,7 +305,7 @@ void P_Draw(void)
 
 		// ゲージ描画用設定
 		Gauge_Set(i, p[i].fi, p[i].wa, p[i].wi, p[i].ea,
-			      p[i].gaugeOuter, { hp.x - 120.0f , hp.y});
+			p[i].gaugeOuter, { hp.x - 120.0f , hp.y });
 
 		// ゲージ描画
 		Gauge_Draw(i);
@@ -322,8 +322,8 @@ void P_Draw(void)
 
 	// カメラ設定
 	XMVECTOR Eye = XMVectorSet(g_Eye.x, g_Eye.y, g_Eye.z, 1.0f);
-	XMVECTOR At  = XMVectorSet(g_At.x, g_At.y, g_At.z, 1.0f);
-	XMVECTOR Up  = XMVectorSet(g_Up.x, g_Up.y, g_Up.z, 0.0f);
+	XMVECTOR At = XMVectorSet(g_At.x, g_At.y, g_At.z, 1.0f);
+	XMVECTOR Up = XMVectorSet(g_Up.x, g_Up.y, g_Up.z, 0.0f);
 
 	// 頂点バッファをロックする
 	D3D11_MAPPED_SUBRESOURCE msr;
@@ -392,13 +392,19 @@ void Player_UpdateAABB()
 		float py = p[i].pos.y;
 		float pz = p[i].pos.z;
 
-
 		p[i].box.Min = { px - sx * COLL, py - sy * COLL, pz - sz * COLL };
 		p[i].box.Max = { px + sx * COLL, py + sy * COLL, pz + sz * COLL };
 	}
 }
 
-P* GetP() 
+P* GetP()
 {
-	for (int i = 0; i < PLAYER_MAX; i++) return &p[i]; 
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		if (p[i].active) // 条件を追加して、アクティブなプレイヤーを返す
+		{
+			return &p[i];
+		}
+	}
+	return nullptr; // すべてのプレイヤーが非アクティブの場合、nullptrを返す
 }

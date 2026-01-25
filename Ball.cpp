@@ -10,7 +10,7 @@
 #include "color.h"
 #include "hp.h"
 
-static HP b_HPBar;
+static hp b_HPBar;
 
 // ボールオブジェクト
 BALL g_Ball;

@@ -1,9 +1,10 @@
-﻿#pragma once
-//======================================================
+﻿//======================================================
 //	debug_render.h[]
 // 
 //	制作者：前野翼			日付：2025//
 //======================================================
+#pragma once
+
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include "collider.h" // AABBとHexColliderの定義が必要
@@ -27,3 +28,8 @@ void Debug_DrawAABB(const AABB& aabb, DirectX::XMFLOAT4 color);
 
 // 六角柱のワイヤーフレーム描画
 void Debug_DrawHex(const HexCollider& hex, DirectX::XMFLOAT4 color);
+
+// 円のワイヤーフレーム描画
+void Debug_DrawCircle(const XMFLOAT3& center, float radius, const XMFLOAT4& color);
+
+void Debug_DrawLine(const XMFLOAT3& start, const XMFLOAT3& end, const XMFLOAT4& color);

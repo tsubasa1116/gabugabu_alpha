@@ -10,6 +10,7 @@
 #include "debug_render.h"
 #include "model.h"
 #include "Building.h"
+#include "Polygon3D.h"
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
@@ -456,6 +457,26 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	///////////////////////////////////////////////////////
 	Building_DrawAll(s_IsKonamiCodeEntered);
+
+	if (s_IsKonamiCodeEntered)
+	{
+		// PlantのSpecialが使用されている場合、円のフレームを赤色で表示
+		for (int p = 0; p < PLAYER_MAX; ++p)
+		{
+			PLAYEROBJECT* playerObject = GetPlayer(p);
+			if (playerObject == nullptr || !playerObject->useSpecial || playerObject->type != PlayerType::Plant)
+			{
+				continue; // PlantのSpecialを使用していない場合はスキップ
+			}
+
+			// 円の中心と半径を設定
+			XMFLOAT3 center = playerObject->position;
+			float radius = 5.0f;
+
+			// 赤色で円を描画
+			Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+		}
+	}
 }
 
 //======================================================

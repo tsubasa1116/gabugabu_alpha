@@ -426,44 +426,42 @@ void Skill_Glass_Update(int playerIndex)
 	{
 		SKILL_OBJECT& box = skillGlass.boxes[b];
 
-		for (int def = 0; def < PLAYER_MAX; ++def)
+		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
-			if (def == playerIndex) continue; // 自分は無視
+			if (p == playerIndex) continue; // 自分は無視
 
-			PLAYEROBJECT* defender = GetPlayer(def);
-			if (defender == nullptr) continue;
+			PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
+			if (otherPlayerObject == nullptr) continue;
+			PLAYEROBJECT& otherPlayer = *otherPlayerObject;
 
-			if (!defender->active) continue;      // 非アクティブは無視
-			if (defender->isInvincible) continue; // 無敵中は無視
+			if (!otherPlayer.active) continue;		// 非アクティブは無視
+			if (otherPlayer.isInvincible) continue;	// 無敵中は無視
 
-			// defender 用のヒットボックススケールを攻撃判定と合わせて計算して AABB を作る
-			XMFLOAT3 defenderHitboxScaling =
+			// otherPlayer 用のヒットボックススケールを攻撃判定と合わせて計算して AABB を作る
+			XMFLOAT3 otherPlayerHitboxScaling =
 			{
-				defender->scaling.x * RENDER_SCALE * HITBOX_WIDTH_SCALE,
-				defender->scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
-				defender->scaling.z * RENDER_SCALE * HITBOX_DEPTH_SCALE
+				otherPlayer.scaling.x * RENDER_SCALE * HITBOX_WIDTH_SCALE,
+				otherPlayer.scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
+				otherPlayer.scaling.z * RENDER_SCALE * HITBOX_DEPTH_SCALE
 			};
-			CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+			CalculateAABB(otherPlayer.boundingBox, otherPlayer.position, otherPlayerHitboxScaling);
 
 			// box の AABB 再更新
 			CalculateAABB(box.boundingBox, box.position, box.scaling);
 
-			// 判定（defender AABB と 箱 AABB）
-			MTV col = CalculateAABBMTV(defender->boundingBox, box.boundingBox);
+			// 判定（otherPlayer AABB と 箱 AABB）
+			MTV col = CalculateAABBMTV(otherPlayer.boundingBox, box.boundingBox);
 
 			// 当たってもアニメーションはなし
 			if (col.isColliding)
 			{
-				// ダメージのみ（ノックバックは与えない）
-				float damage = 0.01f;
-
-				// 防御率でダメージ軽減
-				defender->hp -= damage * defender->defense;
+				// ダメージのみ（ノックバックは与えない） 防御率でダメージ軽減
+				otherPlayer.hp -= 0.01f * otherPlayer.defense;
 				// HPが0以下にならないように
-				if (defender->hp < 0.0f) defender->hp = 0.0f;
+				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
 
 				// スタンゲージ増加
-				defender->stunGauge += 0.01f;
+				otherPlayer.stunGauge += 0.01f;
 			}
 		}
 	}
