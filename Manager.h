@@ -1,5 +1,4 @@
-﻿
-//Manager.h
+﻿// Manager.h
 #pragma once
 
 enum SCENE
@@ -14,9 +13,9 @@ enum SCENE
 
 };
 
-void	Manager_Initialize();
-void	Manager_Finalize();
-void	Manager_Update();
-void	Manager_Draw();
+void Manager_Initialize();
+void Manager_Finalize();
+void Manager_Update();
+void Manager_Draw();
 
-void	SetScene(SCENE scene);
+void SetScene(SCENE scene);

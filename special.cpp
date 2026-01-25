@@ -1,9 +1,8 @@
 ﻿// special.cpp
 
-#include "DirectXMath.h"
-#include "d3d11.h"
+#include <DirectXMath.h>
+#include <d3d11.h>
 using namespace DirectX;
-
 #include "special.h"
 #include "sprite.h"
 #include "shader.h"
@@ -30,8 +29,6 @@ static ID3D11ShaderResourceView* g_Special_Texture[10];
 
 // オブジェクト
 static SPECIAL_OBJECT Special[PLAYER_MAX];
-
-static SPECIAL_GLASS g_SpecialGlass[PLAYER_MAX];
 
 // マクロ定義
 #define NUM_VERTEX (24)
@@ -211,32 +208,6 @@ void Special_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pConte
 	// 構造体のインスタンス
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		for (int i = 0; i < 5; ++i)
-		{
-			// 各箱の初期座標を設定
-			// 例えば、プレイヤーの前にオフセットを持たせるなど
-			g_SpecialGlass[p].boxes[i].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_SpecialGlass[p].boxes[i].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_SpecialGlass[p].boxes[i].scaling = XMFLOAT3(0.3f, 0.3f, 0.3f);
-			// ミサイル初期化
-			g_SpecialGlass[p].missiles[i].active = false;
-			g_SpecialGlass[p].missiles[i].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_SpecialGlass[p].missiles[i].vel = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_SpecialGlass[p].missiles[i].target = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_SpecialGlass[p].missiles[i].speed = 0.25f;
-
-			// BoundingBoxの初期化などもここで行う
-		}
-		// その他の初期状態を設定
-		g_SpecialGlass[p].isActive = false;
-		g_SpecialGlass[p].lockedTargets.clear();
-		g_SpecialGlass[p].locked = false;
-		g_SpecialGlass[p].hasSpawned = false;
-		g_SpecialGlass[p].duration = 0.0f;
-		g_SpecialGlass[p].parentPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
-
-		// 他プレイヤー位置格納用ベクターの初期化
-		g_SpecialGlass[p].lockedTargets.reserve(PLAYER_MAX - 1);
 	}
 
 	// テクスチャ読み込み
@@ -251,7 +222,6 @@ void Special_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pConte
 	LoadFromWICFile(L"Asset\\Texture\\TileA3.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[1]);
 	assert(g_Special_Texture[1]);
-
 }
 
 void Special_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -267,7 +237,6 @@ void Special_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[2]);
 	assert(g_Special_Texture[2]);
-
 }
 
 void Special_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -291,7 +260,6 @@ void Special_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[4]);
 	assert(g_Special_Texture[4]);
-
 }
 
 void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -367,166 +335,15 @@ void Special_Glass_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	SPECIAL_GLASS& glass = g_SpecialGlass[playerIndex];
-
-	// スペシャルの初期位置をプレイヤーの位置に設定（表示用）
-	Special[playerIndex].position = player.position;
-
-	// -------- ロックオン情報を一度だけ保存する --------
-	if (!glass.locked)
-	{
-		// 保存はスペシャル発動直後の一度だけ行う
-		// 他プレイヤーの位置（ワールド座標）を lockedTargets に格納
-		glass.lockedTargets.clear();
-		for (int p = 0; p < PLAYER_MAX; ++p)
-		{
-			if (p == playerIndex) continue; // 自分は除外
-			PLAYEROBJECT* other = GetPlayer(p);
-			if (other)
-			{
-				glass.lockedTargets.push_back(other->position);
-			}
-		}
-		glass.locked = true;
-		glass.duration = 0.0f;
-		glass.hasSpawned = false;
-		// (locks saved) ? 発射はロックオン時間後に行う
-	}
-
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
-	glass.duration += 1.0f / 60.0f;
 
-	// ロックオン時間を過ぎたらミサイルを飛ばす（1回だけ）
-	if (!glass.hasSpawned && glass.duration >= SPECIAL_GLASS_LOCKON_TIME)
-	{
-		// 発射元は「発動したプレイヤーの位置」
-		XMFLOAT3 spawnPos = player.position;
-
-		// 各ロックオン先に対してミサイルを初期化
-		size_t targetCount = glass.lockedTargets.size();
-		for (size_t t = 0; t < targetCount && t < 5; ++t)
-		{
-			GLASS_MISSILE& m = glass.missiles[t];
-			m.active = true;
-			m.pos = spawnPos;
-			m.target = glass.lockedTargets[t];
-
-			// 速度ベクトルを計算（正規化して speed を掛ける）
-			float dx = m.target.x - m.pos.x;
-			float dy = m.target.y - m.pos.y;
-			float dz = m.target.z - m.pos.z;
-			float len = sqrtf(dx * dx + dy * dy + dz * dz);
-			if (len > 0.0001f)
-			{
-				float s = 0.40f; // ミサイル速度（単位 / 秒）調整可
-				m.vel.x = dx / len * s;
-				m.vel.y = dy / len * s;
-				m.vel.z = dz / len * s;
-				m.speed = s;
-			}
-			else
-			{
-				// ターゲットが同位置なら小さく飛ばす
-				m.vel = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				m.speed = 0.0f;
-			}
-
-			// 使う描画箱をミサイルに合わせる（任意）
-			glass.boxes[t].scaling = XMFLOAT3(0.12f, 0.12f, 0.12f);
-			glass.boxes[t].position = m.pos;
-		}
-
-		// 発射済みフラグを立てる
-		glass.hasSpawned = true;
-	}
-
-	// ミサイルの更新（移動・到達判定）
-	for (int mIdx = 0; mIdx < 5; ++mIdx)
-	{
-		GLASS_MISSILE& m = glass.missiles[mIdx];
-		if (!m.active) continue;
-
-		// 移動（フレーム毎）
-		m.pos.x += m.vel.x * (1.0f); // vel already per-frame approx if speed tuned; otherwise multiply by delta
-		m.pos.y += m.vel.y * (1.0f);
-		m.pos.z += m.vel.z * (1.0f);
-
-		// 更新した位置を描画箱に反映
-		glass.boxes[mIdx].position = m.pos;
-
-		// 到達チェック（ターゲット到達or近接）
-		float dx = m.target.x - m.pos.x;
-		float dy = m.target.y - m.pos.y;
-		float dz = m.target.z - m.pos.z;
-		float dist2 = dx * dx + dy * dy + dz * dz;
-		const float arriveDist = 0.25f; // 到達判定距離（調整可）
-		if (dist2 <= arriveDist * arriveDist)
-		{
-			// ヒット処理（必要ならダメージやエフェクトを追加）
-			m.active = false;
-
-			// ミサイルが消えたら描画箱も隠す（スケール0）
-			glass.boxes[mIdx].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
-
-			// TODO: ダメージや当たり判定処理をここに追加
-		}
-	}
-
-	// スペシャルの効果時間が経過したらリセット（ミサイルも無効化）
+	// スペシャルの効果時間が経過したらリセット
 	if (player.specialTimer >= SPECIAL_GLASS_TIME)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
-
-		// リセット
-		glass.locked = false;
-		glass.hasSpawned = false;
-		glass.duration = 0.0f;
-		glass.lockedTargets.clear();
-		for (int i = 0; i < 5; ++i)
-		{
-			glass.missiles[i].active = false;
-			glass.boxes[i].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		}
 	}
-
-	//// ここで Radius の値を動的に計算する
-	//float dynamicRadius = playerObject->scaling.x; // scalingは等しいのでy,zでも可
-
-	//// 5つの箱に対応する相対角度 (度)
-	//const float RelativeAngles[5] = { 20.0f, 130.0f, 180.0f, 220.0f, 290.0f };
-
-	//// 5つの箱のプレイヤーからの高さオフセット
-	//const float High[5] = { 0.0f, 0.5f, -0.1f, 0.2f, 0.3f };
-
-	//// 5つの箱の回転角度 (度)
-	//const float Rot[5] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-
-	//// 5つの箱のスケーリング値
-	//const float Scal[5] = { 0.0f, 0.15f, 0.075f, 0.2f, 0.25f };
-
-	//// プレイヤーの現在の回転角度 (ラジアン)
-	//float playerYaw = XMConvertToRadians(playerObject->rotation.y);
-
-	//SPECIAL_GLASS& glassObject = g_SpecialGlass[playerIndex]; 
-
-	//for (int i = 0; i < 5; ++i)
-	//{
-	//	float relativeRad = XMConvertToRadians(RelativeAngles[i]);
-	//	float finalAngle = playerYaw + relativeRad;
-
-	//	// 座標オフセットの計算
-	//	float offsetX = dynamicRadius * cosf(finalAngle);
-	//	float offsetZ = dynamicRadius * sinf(finalAngle);
-
-	//	// 箱の座標を設定
-	//	glassObject.boxes[i].position.x = playerObject->position.x + offsetX;
-	//	glassObject.boxes[i].position.y = playerObject->position.y + High[i];
-	//	glassObject.boxes[i].position.z = playerObject->position.z + offsetZ;
-	//	glassObject.boxes[i].rotation = XMFLOAT3(Rot[i], Rot[i], Rot[i]);
-	//	glassObject.boxes[i].scaling = XMFLOAT3(Scal[i], Scal[i], Scal[i]);
-	//}
 }
 
 void Special_Concrete_Update(int playerIndex)
@@ -538,10 +355,10 @@ void Special_Concrete_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	SPECIAL_OBJECT& sk = Special[playerIndex];
+	SPECIAL_OBJECT& specialConcrete = Special[playerIndex];
 
 	// スペシャルの初期位置をプレイヤーの位置に設定
-	sk.position = player.position;
+	specialConcrete.position = player.position;
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
@@ -631,30 +448,19 @@ void Special_Glass_Draw(int playerIndex)
 	ID3D11ShaderResourceView* tex = g_Special_Texture[0];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	SPECIAL_GLASS& glassObject = g_SpecialGlass[playerIndex];
+	// Glass用の座標計算
+	SPECIAL_OBJECT& specialGlass = Special[playerIndex];
 
-	// GlassSpecial構造体（5つの箱 or ミサイル）を使ってループ描画
-	for (int i = 0; i < 5; ++i)
-	{
-		SPECIAL_OBJECT& box = glassObject.boxes[i];
+	XMMATRIX WorldMatrix =
+		XMMatrixScaling(specialGlass.scaling.x, specialGlass.scaling.y, specialGlass.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(specialGlass.rotation.x), XMConvertToRadians(specialGlass.rotation.y), XMConvertToRadians(specialGlass.rotation.z)) *
+		XMMatrixTranslation(specialGlass.position.x, specialGlass.position.y, specialGlass.position.z);
 
-		// もしスケールがゼロなら描画スキップ
-		if (box.scaling.x <= 0.0001f && box.scaling.y <= 0.0001f && box.scaling.z <= 0.0001f)
-			continue;
+	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+	Shader_SetMatrix(WVP);
 
-		// --- ワールド行列計算 ---
-		XMMATRIX WorldMatrix =
-			XMMatrixScaling(box.scaling.x, box.scaling.y, box.scaling.z) *
-			XMMatrixRotationRollPitchYaw(XMConvertToRadians(box.rotation.x), XMConvertToRadians(box.rotation.y), XMConvertToRadians(box.rotation.z)) *
-			XMMatrixTranslation(box.position.x, box.position.y, box.position.z);
-
-		// 行列セット
-		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-		Shader_SetMatrix(WVP);
-
-		// 描画実行
-		g_pContext->DrawIndexed(6 * 6, 0, 0);
-	}
+	// 描画実行
+	g_pContext->DrawIndexed(6 * 6, 0, 0);
 }
 
 // Concrete専用描画
@@ -665,12 +471,12 @@ void Special_Concrete_Draw(int playerIndex)
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// Concrete用の座標計算
-	SPECIAL_OBJECT& sk = Special[playerIndex];
+	SPECIAL_OBJECT& specialConcrete = Special[playerIndex];
 
 	XMMATRIX WorldMatrix =
-		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
-		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
-		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+		XMMatrixScaling(specialConcrete.scaling.x, specialConcrete.scaling.y, specialConcrete.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(specialConcrete.rotation.x), XMConvertToRadians(specialConcrete.rotation.y), XMConvertToRadians(specialConcrete.rotation.z)) *
+		XMMatrixTranslation(specialConcrete.position.x, specialConcrete.position.y, specialConcrete.position.z);
 
 	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(WVP);
@@ -686,19 +492,18 @@ void Special_Plant_Draw(int playerIndex)
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// Plant用の座標計算
-	SPECIAL_OBJECT& sk = Special[playerIndex];
+	SPECIAL_OBJECT& specialPlant = Special[playerIndex];
 
 	XMMATRIX WorldMatrix =
-		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
-		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
-		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+		XMMatrixScaling(specialPlant.scaling.x, specialPlant.scaling.y, specialPlant.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(specialPlant.rotation.x), XMConvertToRadians(specialPlant.rotation.y), XMConvertToRadians(specialPlant.rotation.z)) *
+		XMMatrixTranslation(specialPlant.position.x, specialPlant.position.y, specialPlant.position.z);
 
 	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(WVP);
 
 	// 描画実行
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
-
 }
 
 void Special_Electric_Draw(int playerIndex)
@@ -708,12 +513,12 @@ void Special_Electric_Draw(int playerIndex)
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// Electric用の座標計算
-	SPECIAL_OBJECT& sk = Special[playerIndex];
+	SPECIAL_OBJECT& specialElectric = Special[playerIndex];
 
 	XMMATRIX WorldMatrix =
-		XMMatrixScaling(sk.scaling.x, sk.scaling.y, sk.scaling.z) *
-		XMMatrixRotationRollPitchYaw(XMConvertToRadians(sk.rotation.x), XMConvertToRadians(sk.rotation.y), XMConvertToRadians(sk.rotation.z)) *
-		XMMatrixTranslation(sk.position.x, sk.position.y, sk.position.z);
+		XMMatrixScaling(specialElectric.scaling.x, specialElectric.scaling.y, specialElectric.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(specialElectric.rotation.x), XMConvertToRadians(specialElectric.rotation.y), XMConvertToRadians(specialElectric.rotation.z)) *
+		XMMatrixTranslation(specialElectric.position.x, specialElectric.position.y, specialElectric.position.z);
 
 	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(WVP);
@@ -783,11 +588,8 @@ void Special_Draw()
 
 SPECIAL_OBJECT* GetSpecial(int playerIndex)
 {
-	// 範囲チェック 0未満 または 4以上なら nullptr を返す
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
-	{
-		return nullptr;
-	}
+	// 範囲チェック 0 1 2 3 以外なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
 	return &Special[playerIndex];
 }

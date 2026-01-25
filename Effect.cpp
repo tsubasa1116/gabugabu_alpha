@@ -1,5 +1,4 @@
-﻿
-//Effect.cpp
+﻿// Effect.cpp
 
 #include "Effect.h"
 #include "sprite.h"
@@ -10,7 +9,6 @@
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
-
 static ID3D11ShaderResourceView* g_Texture;
 
 #define EFFECT_SPLIT_X (8)

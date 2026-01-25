@@ -4,9 +4,8 @@
 // 
 //	制作者：前野翼			日付：2025//
 //======================================================
-#pragma once
-#include "d3d11.h"
-#include "DirectXMath.h"
+#include <d3d11.h>
+#include <DirectXMath.h>
 #include "collider.h" // AABBとHexColliderの定義が必要
 
 // 描画で使用する頂点構造体

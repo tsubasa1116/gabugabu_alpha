@@ -6,13 +6,11 @@
 #include "debug_render.h"
 #include "direct3d.h"
 #include "shader.h"
-
-
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-
 using namespace DirectX;
+
 //======================================================
 //	グローバル変数
 //======================================================

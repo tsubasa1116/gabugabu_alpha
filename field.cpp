@@ -6,17 +6,10 @@
 #include "field.h"
 #include "Camera.h"
 #include "keyboard.h"
-
-///////////////////////////////////////
 #include "collider.h"
 #include "debug_render.h"
-///////////////////////////////////////
-
 #include "model.h"
-
 #include "Building.h"
-
-
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
@@ -51,7 +44,6 @@ static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"Asset\\Texture\\fade.bmp"
 };
 
-
 static const char* g_ModelName[] = { 
 	"field",
 	"field_v2",
@@ -64,7 +56,7 @@ static const char* g_ModelName[] = {
 	"build_glass_new"			// 変な建物
 };
 //マップデータ配列
-MAPDATA		Map[] =
+MAPDATA Map[] =
 {
 	// 地面
 	{ {},{}, FIELD::FIELD_Glass },	// 配列番号[0]の確認
@@ -202,8 +194,6 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	
 	Test = ModelLoad(modelPath);//デバッグ
 
-
-
 	const int NUM = 10;		// 1行/列あたりのfieldの個数
 	//int count = sizeof(Map) / sizeof(Map[0]);	// 配列の要素数
 	int count = GetFieldObjectCount();
@@ -254,15 +244,10 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		Map[i].pos.x -= offset_x;
 		Map[i].pos.z -= offset_z;
 
-
-
 		// 穴デバッグ
 		if (i % 7 == 0)
 			Map[i].isActive = false;
-
 	}
-
-
 
 	//g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -305,14 +290,11 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 //======================================================
 void Field_Finalize(void)
 {
-
 	ModelRelease(Test);
 
 	//SAFE_RELEASE(g_VertexBuffer);
 	//SAFE_RELEASE(g_IndexBuffer);
-	for (int i = 0; i < FIELD_TEX_MAX; ++i) {
-		SAFE_RELEASE(g_Texture[i]);
-	}
+	for (int i = 0; i < FIELD_TEX_MAX; ++i) SAFE_RELEASE(g_Texture[i]);
 
 	Building_Finalize();
 }
@@ -483,6 +465,7 @@ void Field_Update(void)
 {
 
 }
+
 // ======================================================
 //	ゲッター
 // ------------------------------------------------------
@@ -492,9 +475,6 @@ MAPDATA* GetFieldObjects()
 {
 	return Map;
 }
-
-
-
 
 // フィールドオブジェクトの総数を返す
 int GetFieldObjectCount()

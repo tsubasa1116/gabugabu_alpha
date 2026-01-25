@@ -1,14 +1,11 @@
-﻿#include "d3d11.h"
-#include "DirectXMath.h"
-
+﻿#include <d3d11.h>
+#include <DirectXMath.h>
 using namespace DirectX;
-
 #include "collider.h"
-
-
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+
 // ==============================================================================
 // AABB
 // ------------------------------------------------------------------------------
@@ -315,4 +312,27 @@ bool CheckAABBHexCollision(const AABB& box, const HexCollider& hex)
 	}
 
 	return false;
+}
+
+// ==============================================================================
+// 円とAABBの衝突判定
+// ------------------------------------------------------------------------------
+// 入力: circle (円の中心座標と半径), box (AABBデータ)
+// 出力: true = 衝突している, false = 衝突していない
+// ==============================================================================
+bool CheckCircleAABBCollision(const Circle& circle, const AABB& box)
+{
+	// 円の中心とAABBの最も近い点を計算
+	float closestX = max(box.Min.x, min(circle.center.x, box.Max.x));
+	float closestY = max(box.Min.y, min(circle.center.y, box.Max.y));
+	float closestZ = max(box.Min.z, min(circle.center.z, box.Max.z));
+	
+	// 円の中心と最も近い点との距離を計算
+	float dx = circle.center.x - closestX;
+	float dy = circle.center.y - closestY;
+	float dz = circle.center.z - closestZ;
+	
+	// 衝突判定: 距離が円の半径以下であれば衝突
+	float distanceSquared = dx * dx + dy * dy + dz * dz;
+	return distanceSquared <= (circle.radius * circle.radius);
 }

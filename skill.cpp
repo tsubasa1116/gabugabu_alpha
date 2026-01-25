@@ -777,11 +777,8 @@ void Skill_Draw()
 
 SKILL_OBJECT* GetSkill(int playerIndex)
 {
-	// 範囲チェック 0未満 または 4以上なら nullptr を返す
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
-	{
-		return nullptr;
-	}
+	// 範囲チェック 0 1 2 3 以外なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
 	return &Skill[playerIndex];
 }

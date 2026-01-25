@@ -155,17 +155,12 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
 	assert(g_Texture[4]);
 
-	
-
 	// HPバー初期化
 	InitializeHP(pDevice, pContext, &g_HPBar[0], { 200.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
 	InitializeHP(pDevice, pContext, &g_HPBar[1], { 500.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
 	InitializeHP(pDevice, pContext, &g_HPBar[2], { 800.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
 	InitializeHP(pDevice, pContext, &g_HPBar[3], { 1100.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
-
 }
-
-
 
 //====================================================================================
 // 終了
@@ -178,7 +173,6 @@ void P_Finalize(void)
 
 	//g_Texture->Release();
 }
-
 
 //====================================================================================
 // 描画
@@ -217,7 +211,6 @@ void P_Update()
 				p[i].HP = p[i].MaxHP;
 
 				// リスポーン
-
 			}
 			else
 			{
@@ -228,7 +221,6 @@ void P_Update()
 
 		SetHPValue(&g_HPBar[i], (int)p[i].HP, (int)p[i].MaxHP);
 		UpdateHP(&g_HPBar[i]);
-
 	}
 
 	//==================== ImGui デバッグ表示 ====================//
@@ -268,10 +260,7 @@ void P_Update()
 		ImGui::End();
 	}
 	//============================================================//
-
 }
-
-
 
 //====================================================================================
 // 残基描画
@@ -298,9 +287,6 @@ void PStock_Draw(int i)
 		DrawSprite(pos, size, color::white);
 	}
 }
-
-
-
 
 //====================================================================================
 // 描画
@@ -389,13 +375,8 @@ void P_Draw(void)
 			// 頂点シェーダーに変換行列を設定
 			//Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 1.0f));
 		}
-
 	}
-   
-
 }
-
-
 
 //====================================================================================
 // プレイヤー判定
@@ -416,7 +397,6 @@ void Player_UpdateAABB()
 		p[i].box.Max = { px + sx * COLL, py + sy * COLL, pz + sz * COLL };
 	}
 }
-
 
 P* GetP() 
 {

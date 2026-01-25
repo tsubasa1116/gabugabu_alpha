@@ -1,4 +1,3 @@
-
 #include <d3d11.h>
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -6,18 +5,10 @@ using namespace DirectX;
 #include "shader.h"
 #include "sprite.h"
 #include "keyboard.h"
-
 #include "audio.h"
-
-
-//ohayogozaimasu
-//konnichiwa
-//konbanwa
-
 
 static IXAudio2* g_Xaudio{};
 static IXAudio2MasteringVoice* g_MasteringVoice{};
-
 
 void InitAudio()
 {
@@ -27,7 +18,6 @@ void InitAudio()
 	// マスタリングボイス生成
 	g_Xaudio->CreateMasteringVoice(&g_MasteringVoice);
 }
-
 
 void UninitAudio()
 {

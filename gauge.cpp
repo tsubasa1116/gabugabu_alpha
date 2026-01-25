@@ -19,7 +19,6 @@ static ID3D11ShaderResourceView* g_Texture = NULL;
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
-
 //====================================================================================
 // 初期化
 //====================================================================================
@@ -50,7 +49,6 @@ void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 	assert(g_Texture);//読み込み失敗時にダイアログを表示
-
 }
 
 
@@ -75,8 +73,7 @@ void Gauge_Update(void)
 //====================================================================================
 // 他のファイルでゲージをセットする関数
 //====================================================================================
-void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricity,
-	           float outer, const XMFLOAT2& pos)
+void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricity, float outer, const XMFLOAT2& pos)
 {
 	if (i < 0 || i >= GAUGE_PLAYER_MAX) return;
 
@@ -87,7 +84,6 @@ void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricit
 	g_Gauge[i].outer = outer;
 	g_Gauge[i].pos   = pos;
 }
-
 
 //====================================================================================
 // 描画

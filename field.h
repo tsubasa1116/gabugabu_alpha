@@ -1,4 +1,4 @@
-﻿//field.h
+﻿// field.h
 #pragma once
 
 #include <d3d11.h>
@@ -8,7 +8,6 @@
 #include "shader.h"
 #include "collider.h"
 #include "Building.h"
-
 using namespace DirectX;
 
 //=========================================
@@ -25,7 +24,6 @@ enum FIELD
 
 	FIELD_MAX
 };
-
 
 //=========================================
 // MAPデータ構造体（1マス分）

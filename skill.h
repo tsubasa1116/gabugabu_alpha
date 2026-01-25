@@ -27,15 +27,15 @@ struct SKILL_OBJECT
 // Glass専用のスキル管理構造体（5つの箱の情報を格納する）
 struct SKILL_GLASS
 {
-    // Glassスキルが生成する5つの箱
-    SKILL_OBJECT boxes[5];
+	// Glassスキルが生成する5つの箱
+	SKILL_OBJECT boxes[5];
 
-    // スキルの現在の状態
-    bool isActive = false;
-    float duration = 0.0f;
+	// スキルの現在の状態
+	bool isActive = false;
+	float duration = 0.0f;
 
-    // スキルの全体的な親座標が必要な場合
-    XMFLOAT3 parentPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	// スキルの全体的な親座標が必要な場合
+	XMFLOAT3 parentPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
 };
 
 void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

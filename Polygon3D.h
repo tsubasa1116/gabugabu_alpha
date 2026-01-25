@@ -3,7 +3,7 @@
 #pragma once
 
 #include <vector>
-#include "d3d11.h"
+#include <d3d11.h>
 #include "collider.h" // AABB を使うためにインクルード
 #include "Building.h" 
 

@@ -5,7 +5,6 @@
 void InitAudio();		//サウンドの初期化
 void UninitAudio();		//サウンドの終了
 
-
 int LoadAudio(const char* FileName);		//サウンドデータ読み込み
 void UnloadAudio(int Index);				//サウンドデータ解放（停止）
 void PlayAudio(int Index, bool Loop = false);//サウンドデータ再生

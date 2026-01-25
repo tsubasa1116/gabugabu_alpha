@@ -1,7 +1,7 @@
 ﻿// attack.cpp
 
-#include "DirectXMath.h"
-#include "d3d11.h"
+#include <DirectXMath.h>
+#include <d3d11.h>
 using namespace DirectX;
 
 #include "attack.h"
@@ -733,11 +733,8 @@ void AttackPlayerCollisions()
 
 ATTACK_OBJECT* GetAttack(int playerIndex)
 {
-	// 範囲チェック 0未満 または 4以上なら nullptr を返す
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
-	{
-		return nullptr;
-	}
+	// 範囲チェック 0 1 2 3 以外なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
 	return &Attack[playerIndex];
 }

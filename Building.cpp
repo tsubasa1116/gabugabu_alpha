@@ -20,17 +20,12 @@
 //Building.cpp
 //#include "field.h"
 #include "Camera.h"
-
 #include "Building.h"
 #include "field.h"
-#include "model.h"   // ModelLoad / ModelRelease / ModelDraw
-
+#include "model.h"
 #include "keyboard.h"
-
-///////////////////////////////////////
 #include "collider.h"
 #include "debug_render.h"
-///////////////////////////////////////
 
 //======================================================
 //	マクロ定義
@@ -41,7 +36,6 @@
 //	グローバル変数
 //======================================================
 //MODEL* Test = NULL;//デバッグ
-
 
 ////グローバル変数
 //static	ID3D11Device* g_pDevice = NULL;

@@ -1,11 +1,13 @@
-﻿#pragma once
-//======================================================
+﻿//======================================================
 //	collider.h
 // -----------------------------------------------------
 //	制作者：前野翼			日付：2024//
 //======================================================
-#include <DirectXMath.h>   // ← これが必須！ XMFLOAT3 の定義
+#pragma once
+
+#include <DirectXMath.h>
 using namespace DirectX;
+
 //======================================================
 //	コライダー
 //======================================================
@@ -14,7 +16,6 @@ struct AABB
 	XMFLOAT3 Min;	// 最小点
 	XMFLOAT3 Max;	// 最大点
 };
-
 
 //======================================================
 // 最小重なり量 (MTV) を返す構造体
@@ -67,3 +68,20 @@ struct HexCollider
 bool CheckPointHexCollision(const XMFLOAT3& point, const HexCollider& hex);
 
 bool CheckAABBHexCollision(const AABB& box, const HexCollider& hex);
+
+// ==============================================================================
+// 円コライダー (Circle Collider)
+// ==============================================================================
+struct Circle
+{
+	XMFLOAT3 center;	// 中心座標
+	float radius;		// 半径
+};
+
+/**
+ * @brief 円とAABBの衝突判定
+ * @param circle 円の中心座標と半径
+ * @param box AABBデータ
+ * @return 衝突していれば true
+ */
+bool CheckCircleAABBCollision(const Circle& circle, const AABB& box);

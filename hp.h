@@ -7,15 +7,14 @@ using namespace DirectX;
 #include "sprite.h"
 #include "shader.h"
 
-
 struct HP {
-	XMFLOAT2 pos;      // 位置
-	XMFLOAT2 size;     // サイズ
-	float current;     // 現在のHPバー幅
-	float target;      // 目標HPバー幅
-	bool use;          // 使用中かどうか
-	XMFLOAT4 backColor;  // 背景色
-	XMFLOAT4 fillColor;  // 残量色
+	XMFLOAT2 pos;		// 位置
+	XMFLOAT2 size;		// サイズ
+	float current;		// 現在のHPバー幅
+	float target;		// 目標HPバー幅
+	bool use;			// 使用中かどうか
+	XMFLOAT4 backColor;	// 背景色
+	XMFLOAT4 fillColor;	// 残量色
 };
 
 //=============================================

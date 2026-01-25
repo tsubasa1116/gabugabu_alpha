@@ -1,21 +1,19 @@
-﻿#pragma once
+﻿// Ball.h
 
-//Ball.h
+#pragma once
 
-#include	<d3d11.h>
-#include	<DirectXMath.h>
-#include	"direct3d.h"
+#include <d3d11.h>
+#include <DirectXMath.h>
+#include "direct3d.h"
 using namespace DirectX;
+#include "model.h"
 
-#include	"model.h"
-
-void	BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-void	BallFinalize();
-void	BallUpdate();
-void	BallDraw();
+void BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+void BallFinalize();
+void BallUpdate();
+void BallDraw();
 
 XMFLOAT3 GetBallPosition();
-
 
 //ボールの状態
 enum BALL_STATE
@@ -29,15 +27,14 @@ enum BALL_STATE
 //ボール構造体
 class BALL
 {
-	public:
-		XMFLOAT3	position;	//表示座標
-		XMFLOAT3	Rotation;	//回転角
-		XMFLOAT3	Scaling;	//拡大率
-		XMFLOAT3	Velocity;	//速度
+public:
+	XMFLOAT3	position;	//表示座標
+	XMFLOAT3	Rotation;	//回転角
+	XMFLOAT3	Scaling;	//拡大率
+	XMFLOAT3	Velocity;	//速度
 
-		BALL_STATE	State;		//状態
-		MODEL*		Model;		//モデルデータ]
-
+	BALL_STATE	State;		//状態
+	MODEL*		Model;		//モデルデータ
 };
 
 

@@ -31,7 +31,6 @@ struct P
 	AABB box;
 };
 
-
 void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void P_Finalize(void);
 void P_Update();
@@ -41,4 +40,5 @@ void PStock_Draw(int i);
 P* GetP();
 
 void Player_UpdateAABB();
+
 #endif // PLAYER_H

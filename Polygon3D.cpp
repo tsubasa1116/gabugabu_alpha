@@ -6,9 +6,8 @@
 
 #include <d3d11.h>
 #include <iostream>
-#include "DirectXMath.h"
+#include <DirectXMath.h>
 using namespace DirectX;
-
 #include "direct3d.h"
 #include "shader.h"
 #include "keyboard.h"
@@ -27,11 +26,9 @@ using namespace DirectX;
 #include "debug_render.h"
 #include "debug_ostream.h"
 #include "attack.h" 
-
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-
 #include <vector>
 #include <algorithm>
 
@@ -89,10 +86,10 @@ static std::vector<int> g_deathOrder;	// 死亡したプレイヤーのインデ
 static Vertex2 vdata[NUM_VERTEX] =
 {
 	{// 頂点0 LEFT-TOP
-		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),// 座標
-		XMFLOAT3(0.0f, 0.0f, -1.0f),			// 法線ベクトル
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),		// カラー
-		XMFLOAT2(0.0f, 0.0f)					// テクスチャ座標
+		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),	// 座標
+		XMFLOAT3(0.0f, 0.0f, -1.0f),				// 法線ベクトル
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),			// カラー
+		XMFLOAT2(0.0f, 0.0f)						// テクスチャ座標
 	},
 	{// 頂点1 RIGHT-TOP
 		XMFLOAT3(COORDINATE, COORDINATE, 0.0f),
@@ -567,14 +564,11 @@ void Polygon3D_Update()
 			object[p].stunGauge -= 0.1f / 60.0f;
 
 			// スタンゲージが0未満にならないようにクランプ
-			if (object[p].stunGauge < 0.0f)
-			{
-				object[p].stunGauge = 0.0f;
-			}
+			if (object[p].stunGauge < 0.0f)	object[p].stunGauge = 0.0f;
 		}
 
-		// スタン中・ダウン中でなければ通常行動
-		if(!object[p].isStunning && !object[p].isDown)
+		// スタン中・ダウン中でなければ通常行動 1位確定後はアニメーションのみ
+		if(!object[p].isStunning && !object[p].isDown && object[p].rank != 1)
 		{
 			// 発動トリガー入力をチェックして攻撃フラグを立てる
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
@@ -582,27 +576,18 @@ void Polygon3D_Update()
 				object[p].isAttacking = true;
 
 				// 第2・第3形態の場合、スキル使用フラグも立てる
-				if (object[p].type != PlayerType::None)
-				{
-					object[p].useSkill = true;
-				}
+				if (object[p].type != PlayerType::None)		object[p].useSkill = true;
 			}
 			if (g_Input[0].A)
 			{
 				object[0].isAttacking = true;
 
 				// 第2・第3形態の場合、スキル使用フラグも立てる
-				if (object[0].type != PlayerType::None)
-				{
-					object[0].useSkill = true;
-				}
+				if (object[0].type != PlayerType::None)		object[0].useSkill = true;
 			}
 
 			// 発動トリガー入力をチェックしてスペシャル使用フラグを立てる
-			if (Keyboard_IsKeyDownTrigger(specialKeys[p]))
-			{
-				object[p].useSpecial = true;
-			}
+			if (Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
 
 			// フラグが立ったら更新処理を呼び出す
 			if (object[p].useSkill)		Skill_Update(p);	// スキル
@@ -744,10 +729,10 @@ void Polygon3D_Update()
 			g_animTimer[p] -= advance * ANIM_FRAME_TIME;
 
 			// 勝利 第1形態 13コマ(ラスト5コマ ループ) 第2形態 20コマ(ラスト9コマ ループ) 第3形態 21コマ(ラストコマ ループ)
-			if (Keyboard_IsKeyDown(KK_TAB) || g_victoryState[p] != 0)
+			if (object[p].rank == 1 || g_victoryState[p] != 0)
 			{
 				// 押下で開始
-				if (Keyboard_IsKeyDown(KK_TAB) && g_victoryState[p] == 0)
+				if (object[p].rank == 1 && g_victoryState[p] == 0)
 				{
 					g_victoryState[p] = 1;
 					g_animFrame[p] = 208; // 初回再生開始フレーム
@@ -1558,11 +1543,8 @@ void Polygon3D_DrawStock(int i)
 
 PLAYEROBJECT* GetPlayer(int playerIndex)
 {
-	// 範囲チェック 0未満 または 4以上なら nullptr を返す
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
-	{
-		return nullptr;
-	}
+	// 範囲チェック 0 1 2 3 以外なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
 	return &object[playerIndex];
 }
@@ -1596,6 +1578,8 @@ static void Ranking(int playerIndex)
 
 int GetPlayerRank(int playerIndex)
 {
+	// 範囲チェック 0 1 2 3 以外なら 0 を返す
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return 0;
+
 	return object[playerIndex].rank;
 }
