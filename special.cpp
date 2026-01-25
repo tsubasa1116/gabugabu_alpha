@@ -248,7 +248,6 @@ void Special_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pConte
 	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[3]);
 	assert(g_Special_Texture[3]);
-
 }
 
 void Special_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -355,13 +354,52 @@ void Special_Concrete_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	SPECIAL_OBJECT& specialConcrete = Special[playerIndex];
+	static XMFLOAT3 playerPastPosition = { 0.0f, 0.0f, 0.0f }; // 初期化
 
 	// スペシャルの初期位置をプレイヤーの位置に設定
-	specialConcrete.position = player.position;
+	if (player.specialTimer == 0.0f) playerPastPosition = player.position;
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
+
+	// ジャンプ処理
+	if (player.specialTimer <= 0.75f)
+	{
+		player.position.y = playerPastPosition.y + 3.0f * player.specialTimer / 0.75f; // 線形補間でY座標を上げる
+	}
+	else if (player.specialTimer > 0.75f && player.specialTimer <= 1.5f)
+	{
+		// 着地処理
+		player.position = playerPastPosition;
+
+		// ダメージ処理（1回だけ実行）
+		if (player.specialTimer - DELTA_TIME < 0.75f) // 0.75秒を超えた瞬間に実行
+		{
+			const float radius = 5.0f;
+			Circle circle = { player.position, radius }; // 円の中心と半径を設定
+
+			for (int p = 0; p < PLAYER_MAX; ++p)
+			{
+				if (p == playerIndex) continue; // 自分自身は無視
+
+				PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
+				if (otherPlayerObject == nullptr || !otherPlayerObject->active) continue;
+				PLAYEROBJECT& otherPlayer = *otherPlayerObject;
+
+				if (otherPlayer.isInvincible) continue; // 無敵中は無視
+
+				// 円とAABBの衝突判定
+				if (CheckCircleAABBCollision(circle, otherPlayer.boundingBox))
+				{
+					// 衝突している場合、ダメージを与える
+					otherPlayer.hp -= 30.0f * otherPlayer.defense;
+
+					// HPが0以下にならないように
+					if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+				}
+			}
+		}
+	}
 
 	// スペシャルの効果時間が経過したらスペシャル終了
 	if (player.specialTimer >= SPECIAL_CONCRETE_TIME)
@@ -385,7 +423,7 @@ void Special_Plant_Update(int playerIndex)
 
 	// 半径5.0fの円形当たり判定を作成
 	const float radius = 5.0f;
-	XMFLOAT3 center = player.position;
+	Circle circle = { player.position, radius }; // 円の中心と半径を設定
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
@@ -395,19 +433,17 @@ void Special_Plant_Update(int playerIndex)
 		if (otherPlayerObject == nullptr || !otherPlayerObject->active) continue;
 		PLAYEROBJECT& otherPlayer = *otherPlayerObject;
 
-		if (otherPlayer.isInvincible) continue;	// 無敵中は無視
+		if (otherPlayer.isInvincible) continue; // 無敵中は無視
 
-		// 他プレイヤーとの距離を計算
-		float dx = otherPlayer.position.x - center.x;
-		float dy = otherPlayer.position.y - center.y;
-		float dz = otherPlayer.position.z - center.z;
-		float distanceSquared = dx * dx + dy * dy + dz * dz;
+		// 円とAABBの衝突判定
+		if (CheckCircleAABBCollision(circle, otherPlayer.boundingBox))
+		{
+			// 衝突している場合、防御率でダメージ軽減（ノックバックは与えない）
+			otherPlayer.hp -= 0.05f * otherPlayer.defense;
 
-		// 距離が半径以下ならダメージを与える 防御率でダメージ軽減（ノックバックは与えない）
-		if (distanceSquared <= radius * radius)	otherPlayer.hp -= 0.05f * otherPlayer.defense;
-
-		// HPが0以下にならないように
-		if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+			// HPが0以下にならないように
+			if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+		}
 	}
 
 	// スペシャルの効果時間が経過したらスペシャル終了
@@ -471,9 +507,9 @@ void Special_Update(int playerIndex)
 // Glass専用描画
 void Special_Glass_Draw(int playerIndex)
 {
-	// Glass専用のテクスチャをセット
-	ID3D11ShaderResourceView* tex = g_Special_Texture[0];
-	g_pContext->PSSetShaderResources(0, 1, &tex);
+	//// Glass専用のテクスチャをセット
+	//ID3D11ShaderResourceView* tex = g_Special_Texture[0];
+	//g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// Glass用の座標計算
 	SPECIAL_OBJECT& specialGlass = Special[playerIndex];
@@ -493,9 +529,9 @@ void Special_Glass_Draw(int playerIndex)
 // Concrete専用描画
 void Special_Concrete_Draw(int playerIndex)
 {
-	// Concrete専用のテクスチャをセット
-	ID3D11ShaderResourceView* tex = g_Special_Texture[1];
-	g_pContext->PSSetShaderResources(0, 1, &tex);
+	//// Concrete専用のテクスチャをセット
+	//ID3D11ShaderResourceView* tex = g_Special_Texture[1];
+	//g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// Concrete用の座標計算
 	SPECIAL_OBJECT& specialConcrete = Special[playerIndex];
@@ -514,9 +550,9 @@ void Special_Concrete_Draw(int playerIndex)
 
 void Special_Plant_Draw(int playerIndex)
 {
-	// Plant専用のテクスチャをセット
-	ID3D11ShaderResourceView* tex = g_Special_Texture[1];
-	g_pContext->PSSetShaderResources(0, 1, &tex);
+	//// Plant専用のテクスチャをセット
+	//ID3D11ShaderResourceView* tex = g_Special_Texture[1];
+	//g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// Plant用の座標計算
 	SPECIAL_OBJECT& specialPlant = Special[playerIndex];
@@ -535,9 +571,9 @@ void Special_Plant_Draw(int playerIndex)
 
 void Special_Electric_Draw(int playerIndex)
 {
-	// Electric専用のテクスチャをセット
-	ID3D11ShaderResourceView* tex = g_Special_Texture[1];
-	g_pContext->PSSetShaderResources(0, 1, &tex);
+	//// Electric専用のテクスチャをセット
+	//ID3D11ShaderResourceView* tex = g_Special_Texture[1];
+	//g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// Electric用の座標計算
 	SPECIAL_OBJECT& specialElectric = Special[playerIndex];
@@ -600,10 +636,10 @@ void Special_Draw()
 			// プレイヤーのタイプに合わせて子関数を呼ぶ
 			switch (player.type)
 			{
-			case PlayerType::Glass:		Special_Glass_Draw(p);		break;
-			case PlayerType::Concrete:	Special_Concrete_Draw(p);	break;
-			case PlayerType::Plant:		Special_Plant_Draw(p);		break;
-			case PlayerType::Electric:	Special_Electric_Draw(p);	break;
+			case PlayerType::Glass:		//Special_Glass_Draw(p);		break;
+			case PlayerType::Concrete:	//Special_Concrete_Draw(p);	break;
+			case PlayerType::Plant:		//Special_Plant_Draw(p);		break;
+			case PlayerType::Electric:	//Special_Electric_Draw(p);	break;
 			default: break;
 			}
 		}

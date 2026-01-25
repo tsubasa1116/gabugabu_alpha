@@ -156,8 +156,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].downTimer = 0.0f;
 	object[0].lastDir = PlayerDir::Down; // 正面
 	object[0].isMoving = false;
-	object[0].form = Form::Normal;
-	object[0].type = PlayerType::None;
+	object[0].form = Form::SecondEvolution;
+	object[0].type = PlayerType::Concrete;
 	object[0].evolutionGauge = 0;
 	object[0].evolutionGaugeRate = 1;
 	object[0].breakCount_Glass = 0;
@@ -541,8 +541,7 @@ void Polygon3D_Update()
 			object[p].stunGauge = STUNGAUGE_MAX;
 		}
 
-		// スタン中の処理
-		if (object[p].isStunning)
+		else if (object[p].isStunning)
 		{
 			// スタンタイマーを進める
 			object[p].stunTimer += DELTA_TIME;
@@ -603,37 +602,45 @@ void Polygon3D_Update()
 			// 現在のプレイヤー p の移動ベクトルだけをリセット
 			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
 
-			// プレイヤーの番号に応じて入力キーを分ける
-			if (p == 0) // プレイヤー0 (WASD)
+			// スペシャル コンクリート使用中は移動不可
+			if (object[p].useSpecial && object[p].type == PlayerType::Concrete)
 			{
-				if (g_Input[0].LStickX > 0.0f)	{object[0].moveDir.x += 1.0f; object[0].isMoving = true;}
-				if (g_Input[0].LStickX < 0.0f)	{object[0].moveDir.x -= 1.0f; object[0].isMoving = true;}
-				if (g_Input[0].LStickY > 0.0f)	{object[0].moveDir.z -= 1.0f; object[0].isMoving = true;}
-				if (g_Input[0].LStickY < 0.0f)	{object[0].moveDir.z += 1.0f; object[0].isMoving = true;}
+				object[p].moveDir = { 0.0f, 0.0f, 0.0f };
+				object[p].isMoving = false;
+			}
+			// スペシャル コンクリート使用中でなければ移動処理
+			else
+			{
+				if (p == 0) // プレイヤー0 (WASD)
+				{
+					if (g_Input[0].LStickX > 0.0f) { object[0].moveDir.x += 1.0f; object[0].isMoving = true; }
+					if (g_Input[0].LStickX < 0.0f) { object[0].moveDir.x -= 1.0f; object[0].isMoving = true; }
+					if (g_Input[0].LStickY > 0.0f) { object[0].moveDir.z -= 1.0f; object[0].isMoving = true; }
+					if (g_Input[0].LStickY < 0.0f) { object[0].moveDir.z += 1.0f; object[0].isMoving = true; }
 
-				if (Keyboard_IsKeyDown(KK_W))	{object[0].moveDir.z += 1.0f; object[0].isMoving = true;}
-				if (Keyboard_IsKeyDown(KK_S))	{object[0].moveDir.z -= 1.0f; object[0].isMoving = true;}
-				if (Keyboard_IsKeyDown(KK_A))	{object[0].moveDir.x -= 1.0f; object[0].isMoving = true;}
-				if (Keyboard_IsKeyDown(KK_D))	{object[0].moveDir.x += 1.0f; object[0].isMoving = true;}
-				if (object[0].moveDir.x == 0.0f && object[0].moveDir.z == 0.0f)	object[0].isMoving = false;
+					if (Keyboard_IsKeyDown(KK_W)) { object[0].moveDir.z += 1.0f; object[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_S)) { object[0].moveDir.z -= 1.0f; object[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_A)) { object[0].moveDir.x -= 1.0f; object[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_D)) { object[0].moveDir.x += 1.0f; object[0].isMoving = true; }
+					if (object[0].moveDir.x == 0.0f && object[0].moveDir.z == 0.0f)	object[0].isMoving = false;
+				}
+				else if (p == 1) // プレイヤー1 (矢印キー)
+				{
+					if (Keyboard_IsKeyDown(KK_UP)) { object[1].moveDir.z += 1.0f; object[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_DOWN)) { object[1].moveDir.z -= 1.0f; object[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_LEFT)) { object[1].moveDir.x -= 1.0f; object[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_RIGHT)) { object[1].moveDir.x += 1.0f; object[1].isMoving = true; }
+					if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
+				}
+				else if (p == 2) // プレイヤー2 (TFGH) 攻撃 V
+				{
+					if (Keyboard_IsKeyDown(KK_T)) { object[2].moveDir.z += 1.0f; object[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_G)) { object[2].moveDir.z -= 1.0f; object[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_F)) { object[2].moveDir.x -= 1.0f; object[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_H)) { object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
+					if (object[2].moveDir.x == 0.0f && object[2].moveDir.z == 0.0f)	object[2].isMoving = false;
+				}
 			}
-			else if (p == 1) // プレイヤー1 (矢印キー)
-			{
-				if (Keyboard_IsKeyDown(KK_UP))		{object[1].moveDir.z += 1.0f; object[1].isMoving = true;}
-				if (Keyboard_IsKeyDown(KK_DOWN))	{object[1].moveDir.z -= 1.0f; object[1].isMoving = true;}
-				if (Keyboard_IsKeyDown(KK_LEFT))	{object[1].moveDir.x -= 1.0f; object[1].isMoving = true;}
-				if (Keyboard_IsKeyDown(KK_RIGHT))	{object[1].moveDir.x += 1.0f; object[1].isMoving = true;}
-				if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
-			}
-			else if (p == 2) // プレイヤー2 (TFGH) 攻撃 V
-			{
-				if (Keyboard_IsKeyDown(KK_T))	{object[2].moveDir.z += 1.0f; object[2].isMoving = true;}
-				if (Keyboard_IsKeyDown(KK_G))	{object[2].moveDir.z -= 1.0f; object[2].isMoving = true;}
-				if (Keyboard_IsKeyDown(KK_F))	{object[2].moveDir.x -= 1.0f; object[2].isMoving = true;}
-				if (Keyboard_IsKeyDown(KK_H))	{object[2].moveDir.x += 1.0f; object[2].isMoving = true;}
-				if (object[2].moveDir.x == 0.0f && object[2].moveDir.z == 0.0f)	object[2].isMoving = false;
-			}
-
 			// 現在のプレイヤー p だけを動かす
 			Move(object[p], object[p].moveDir);
 		}
@@ -899,9 +906,9 @@ void Polygon3D_Update()
 		ImGui::SliderFloat("invincibleTimer", &object[p].invincibleTimer, 0.0f, 3.0f, "%.1f");
 		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
 		ImGui::BulletText("useSpecial        : %d", object[p].useSpecial);
-		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
-		ImGui::BulletText("form              : %d", object[p].form);
-		ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
+		ImGui::BulletText("position.y        : %.2f", object[p].position.y);
+		//ImGui::BulletText("form              : %d", object[p].form);
+		//ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
 		//ImGui::BulletText("EvolutionGaugeRate: %d", object[p].evolutionGaugeRate);
 		//ImGui::BulletText("1 Glass breaks    : %d", object[p].breakCount_Glass);
 		//ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);

@@ -460,13 +460,14 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 
 	if (s_IsKonamiCodeEntered)
 	{
-		// PlantのSpecialが使用されている場合、円のフレームを赤色で表示
+		// 植物・コンクリートのスペシャルが使用されている場合、円のフレームを赤色で表示
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
 			PLAYEROBJECT* playerObject = GetPlayer(p);
-			if (playerObject == nullptr || !playerObject->useSpecial || playerObject->type != PlayerType::Plant)
+			PLAYEROBJECT& player = *playerObject;
+			if (!player.useSpecial || player.type == PlayerType::Glass || player.type == PlayerType::Electric)
 			{
-				continue; // PlantのSpecialを使用していない場合はスキップ
+				continue; // 植物・コンクリートのスペシャルを使用していない場合はスキップ
 			}
 
 			// 円の中心と半径を設定

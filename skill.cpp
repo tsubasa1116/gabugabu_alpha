@@ -761,9 +761,9 @@ void Skill_Draw()
 			switch (player.type)
 			{
 		case PlayerType::Glass:		Skill_Glass_Draw(p);	break;
-		case PlayerType::Concrete:	//Skill_Concrete_Draw(p);	break;
-		case PlayerType::Plant:		//Skill_Plant_Draw(p);		break;
-		case PlayerType::Electric:	//Skill_Electric_Draw(p);	break;
+		case PlayerType::Concrete:	Skill_Concrete_Draw(p);	break;
+		case PlayerType::Plant:		Skill_Plant_Draw(p);		break;
+		case PlayerType::Electric:	Skill_Electric_Draw(p);	break;
 		default: break;
 			}
 		}

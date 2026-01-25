@@ -8,7 +8,7 @@
 // マクロ定義
 #define SPECIAL_GLASS_TIME			(10.0f)	// 
 #define SPECIAL_GLASS_LOCKON_TIME	(3.0f)	// スペシャル ガラス ロックオン時間
-#define SPECIAL_CONCRETE_TIME		(10.0f)	// 
+#define SPECIAL_CONCRETE_TIME		(1.5f)	// 
 #define SPECIAL_PLANT_TIME			(10.0f)	// 
 #define SPECIAL_ELECTRIC_TIME		(10.0f)	// 
 
