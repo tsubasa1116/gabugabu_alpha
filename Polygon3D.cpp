@@ -156,8 +156,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].downTimer = 0.0f;
 	object[0].lastDir = PlayerDir::Down; // 正面
 	object[0].isMoving = false;
-	object[0].form = Form::SecondEvolution;
-	object[0].type = PlayerType::Electric;
+	object[0].form = Form::Normal;
+	object[0].type = PlayerType::None;
 	object[0].evolutionGauge = 0;
 	object[0].evolutionGaugeRate = 1;
 	object[0].breakCount_Glass = 0;

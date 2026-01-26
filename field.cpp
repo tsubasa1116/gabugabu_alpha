@@ -478,7 +478,6 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 				// 赤色で円を描画
 				Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
 			}
-
 			// 電気のスペシャル
 			if (player.type == PlayerType::Electric)
 			{
@@ -487,6 +486,19 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 					// 電気の円の中心と半径を取得
 					XMFLOAT3 center = electricCircles[i].center;
 					float radius = electricCircles[i].radius;
+
+					// 赤色で円を描画
+					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+				}
+			}
+			// ガラスのスペシャル
+			if (player.type == PlayerType::Glass)
+			{
+				for (const auto& box : glassBoxes)
+				{
+					// ガラスの円の中心と半径を設定
+					XMFLOAT3 center = box.position;
+					float radius = 0.3f; // 半径0.3の円
 
 					// 赤色で円を描画
 					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
