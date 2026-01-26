@@ -61,7 +61,7 @@ public:
 	BuildingType type = BuildingType::Plant;
 };
 
-class ELECTRIC
+class ELECTRICITY
 {
 public:
 	XMFLOAT3 pos;		// 座標
@@ -69,7 +69,7 @@ public:
 	FIELD El;
 	bool isActive = true;
 	// --- ここを追加！ ---
-	BuildingType type = BuildingType::Electric;
+	BuildingType type = BuildingType::Electricity;
 };
 
 

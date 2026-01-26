@@ -64,7 +64,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Glass },	// 配列番号[0]の確認
 	{ {},{}, FIELD::FIELD_Concrete },
 	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_Electric },
+	{ {},{}, FIELD::FIELD_Electricity },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -479,13 +479,13 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 				Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
 			}
 			// 電気のスペシャル
-			if (player.type == PlayerType::Electric)
+			if (player.type == PlayerType::Electricity)
 			{
-				for (int i = 0; i < SPECIAL_ELECTRIC_QUANTITY; ++i)
+				for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 				{
 					// 電気の円の中心と半径を取得
-					XMFLOAT3 center = electricCircles[i].center;
-					float radius = electricCircles[i].radius;
+					XMFLOAT3 center = electricityCircles[i].center;
+					float radius = electricityCircles[i].radius;
 
 					// 赤色で円を描画
 					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));

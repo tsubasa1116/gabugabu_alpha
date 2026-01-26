@@ -1,9 +1,8 @@
 ﻿// =====================================================
-//	polygon3D.cpp[]
+//	polygon3D.cpp
 // 
-//	制作者：平岡颯馬			日付：2025/01/13
+//	制作者：平岡颯馬			日付：2026/01/27
 //======================================================
-
 #include <d3d11.h>
 #include <iostream>
 #include <DirectXMath.h>
@@ -35,21 +34,18 @@ using namespace DirectX;
 //======================================================
 //	マクロ定義
 //======================================================
-#define	NUM_VERTEX		(6)
+#define	NUM_VERTEX		(6)			// 一面のみの頂点数
 #define HPBER_SIZE_X	(270.0f)	// HPバーのサイズ
 #define HPBER_SIZE_Y	(270.0f)	// 〃
 #define GAUGE_POS_X		(77.0f)		// HPバーを基準としたゲージの位置調整
 #define GAUGE_POS_Y		(36.0f)		// 〃
 
 //======================================================
-//	構造体宣言
+//	グローバル変数
 //======================================================
 // オブジェクト
 PLAYEROBJECT object[PLAYER_MAX];
 
-//======================================================
-//	グローバル変数
-//======================================================
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
 static hp HPBar[PLAYER_MAX];
@@ -73,7 +69,7 @@ static const float ANIM_FRAME_TIME = 0.15f; // 1フレームあたりの秒数
 static const int   SHEET_COLS = 16;
 static const int   SHEET_ROWS = 16;
 
-static int g_victoryState[PLAYER_MAX] = { 0 };			// 0=なし, 1=初回 再生中, 2=ループ
+static int g_victoryState[PLAYER_MAX] = { 0 };			// 0 = なし, 1 = 初回 再生中, 2 = ループ
 static float g_downHoldTimer[PLAYER_MAX] = { 0.0f };	// 最終フレームホールド用タイマー（プレイヤー毎）
 
 // 順位・死亡順の管理
@@ -156,14 +152,14 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].downTimer = 0.0f;
 	object[0].lastDir = PlayerDir::Down; // 正面
 	object[0].isMoving = false;
-	object[0].form = Form::Normal;
+	object[0].form = Form::First;
 	object[0].type = PlayerType::None;
 	object[0].evolutionGauge = 0;
 	object[0].evolutionGaugeRate = 1;
 	object[0].breakCount_Glass = 0;
 	object[0].breakCount_Concrete = 0;
 	object[0].breakCount_Plant = 0;
-	object[0].breakCount_Electric = 0;
+	object[0].breakCount_Electricity = 0;
 	object[0].gl = 1.0f;
 	object[0].pl = 1.0f;
 	object[0].co = 1.0f;
@@ -201,14 +197,14 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].downTimer = 0.0f;
 	object[1].lastDir = PlayerDir::Down; // 正面
 	object[1].isMoving = false;
-	object[1].form = Form::Normal;
+	object[1].form = Form::First;
 	object[1].type = PlayerType::None;
 	object[1].evolutionGauge = 0;
 	object[1].evolutionGaugeRate = 1;
 	object[1].breakCount_Glass = 0;
 	object[1].breakCount_Concrete = 0;
 	object[1].breakCount_Plant = 0;
-	object[1].breakCount_Electric = 0;
+	object[1].breakCount_Electricity = 0;
 	object[1].gl = 1.0f;
 	object[1].pl = 1.0f;
 	object[1].co = 1.0f;
@@ -246,14 +242,14 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].downTimer = 0.0f;
 	object[2].lastDir = PlayerDir::Down; // 正面
 	object[2].isMoving = false;
-	object[2].form = Form::Normal;
+	object[2].form = Form::First;
 	object[2].type = PlayerType::None;
 	object[2].evolutionGauge = 0;
 	object[2].evolutionGaugeRate = 1;
 	object[2].breakCount_Glass = 0;
 	object[2].breakCount_Concrete = 0;
 	object[2].breakCount_Plant = 0;
-	object[2].breakCount_Electric = 0;
+	object[2].breakCount_Electricity = 0;
 	object[2].gl = 1.0f;
 	object[2].pl = 1.0f;
 	object[2].co = 1.0f;
@@ -291,14 +287,14 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].downTimer = 0.0f;
 	object[3].lastDir = PlayerDir::Down; // 正面
 	object[3].isMoving = false;
-	object[3].form = Form::Normal;
+	object[3].form = Form::First;
 	object[3].type = PlayerType::None;
 	object[3].evolutionGauge = 0;
 	object[3].evolutionGaugeRate = 1;
 	object[3].breakCount_Glass = 0;
 	object[3].breakCount_Concrete = 0;
 	object[3].breakCount_Plant = 0;
-	object[3].breakCount_Electric = 0;
+	object[3].breakCount_Electricity = 0;
 	object[3].gl = 1.0f;
 	object[3].pl = 1.0f;
 	object[3].co = 1.0f;
@@ -504,7 +500,7 @@ void Polygon3D_Update()
 		// -------------------------------------------------------------
 		switch (object[p].form)
 		{
-		case Form::Normal: // 通常
+		case Form::First: // 第1形態
 			object[p].scaling.x = 0.5f;
 			object[p].scaling.y = 0.5f;
 			object[p].scaling.z = 0.5f;
@@ -513,7 +509,7 @@ void Polygon3D_Update()
 			object[p].speed = 0.06f;
 			break;
 
-		case Form::FirstEvolution: // 1進化
+		case Form::Second: // 第2形態
 			object[p].scaling.x = 0.8f;
 			object[p].scaling.y = 0.8f;
 			object[p].scaling.z = 0.8f;
@@ -522,7 +518,7 @@ void Polygon3D_Update()
 			object[p].speed = 0.05f;
 			break;
 
-		case Form::SecondEvolution: // 2進化
+		case Form::Third: // 第3形態
 			object[p].scaling.x = 1.2f;
 			object[p].scaling.y = 1.2f;
 			object[p].scaling.z = 1.2f;
@@ -565,8 +561,8 @@ void Polygon3D_Update()
 			if (object[p].stunGauge < 0.0f)	object[p].stunGauge = 0.0f;
 		}
 
-		// スタン中・ダウン中でなければ通常行動 1位確定後はアニメーションのみ
-		if(!object[p].isStunning && !object[p].isDown && object[p].rank != 1)
+		// スタン中・ダウン中でなければ第1形態行動 1位確定後はアニメーションのみ
+		if(!object[p].isStunning && !object[p].isDown && object[p].rank != 1 && object[p].active)
 		{
 			// 発動トリガー入力をチェックして攻撃フラグを立てる
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
@@ -749,7 +745,7 @@ void Polygon3D_Update()
 				if (object[p].rank == 1 && g_victoryState[p] == 0)
 				{
 					g_victoryState[p] = 1;
-					g_animFrame[p] = 208; // 初回再生開始フレーム
+					g_animFrame[p] = 208;	// 初回再生開始フレーム
 				}
 
 				if (g_victoryState[p] == 1)
@@ -758,33 +754,33 @@ void Polygon3D_Update()
 					g_animFrame[p] += advance;
 
 					// 第1形態 220 を表示した後にループ領域へ移行する
-					if (g_animFrame[p] > 220 && object[p].form == Form::Normal)
+					if (g_animFrame[p] > 220 && object[p].form == Form::First)
 					{
 						g_victoryState[p] = 2;
-						g_animFrame[p] = 216; // ループ開始フレーム
+						g_animFrame[p] = 216;	// ループ開始フレーム
 					}
 					// 第2形態 227 を表示した後にループ領域へ移行する
-					if (g_animFrame[p] > 227 && object[p].form == Form::FirstEvolution)
+					if (g_animFrame[p] > 227 && object[p].form == Form::Second)
 					{
 						g_victoryState[p] = 2;
-						g_animFrame[p] = 219; // ループ開始フレーム
+						g_animFrame[p] = 219;	// ループ開始フレーム
 					}
 					// 第3形態 229 を表示した後にループ領域へ移行する
-					if (g_animFrame[p] > 229 && object[p].form == Form::SecondEvolution)
+					if (g_animFrame[p] > 229 && object[p].form == Form::Third)
 					{
 						g_victoryState[p] = 2;
-						g_animFrame[p] = 219; // ループ開始フレーム
+						g_animFrame[p] = 219;	// ループ開始フレーム
 					}
 				}
 				else if (g_victoryState[p] == 2)
 				{
 					switch (object[p].form)
 					{
-					case Form::Normal:			LoopRange(g_animFrame[p], 216, 5, advance);	// 第1形態 216～220をループ
+					case Form::First:	LoopRange(g_animFrame[p], 216, 5, advance);	// 第1形態 216～220をループ
 						break;
-					case Form::FirstEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// 第2形態 219～227をループ
+					case Form::Second:	LoopRange(g_animFrame[p], 219, 9, advance);	// 第2形態 219～227をループ
 						break;
-					case Form::SecondEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// 第3形態 219～229をループ
+					case Form::Third:	LoopRange(g_animFrame[p], 219, 9, advance);	// 第3形態 219～229をループ
 						break;
 					}
 				}
@@ -816,7 +812,7 @@ void Polygon3D_Update()
 					g_downHoldTimer[p] = 0.0f;
 				}
 
-				// 最終フレーム以外なら通常進行（ループ）
+				// 最終フレーム以外なら第1形態進行（ループ）
 				if (g_animFrame[p] != lastFrame)
 				{
 					LoopRange(g_animFrame[p], start, count, advance);
@@ -912,7 +908,7 @@ void Polygon3D_Update()
 		//ImGui::BulletText("1 Glass breaks    : %d", object[p].breakCount_Glass);
 		//ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
 		//ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
-		//ImGui::BulletText("4 Electric breaks : %d", object[p].breakCount_Electric);
+		//ImGui::BulletText("4 Electricity breaks : %d", object[p].breakCount_Electricity);
 
 		// 履歴リストのサイズを表示
 		size_t historySize = object[p].brokenHistory.size();
@@ -975,7 +971,7 @@ void Polygon3D_Update()
 		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT; // Z方向スケール
 
 		// 第2形態 第3形態はXとZ同じにする
-		if (object[p].form == Form::FirstEvolution || object[p].form == Form::SecondEvolution)
+		if (object[p].form == Form::Second || object[p].form == Form::Third)
 		{
 			widthScale = 0.25f;
 			depthScale = 0.25f;
@@ -1137,7 +1133,7 @@ void Polygon3D_Update()
 				float otherDepthScale = otherFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;
 
 				// 第2形態 第3形態はXとZ同じにする
-				if (object[otherIndex].form == Form::FirstEvolution || object[otherIndex].form == Form::SecondEvolution)
+				if (object[otherIndex].form == Form::Second || object[otherIndex].form == Form::Third)
 				{
 					widthScale = 0.25f;
 					depthScale = 0.25f;
@@ -1229,7 +1225,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	// 攻撃描画
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		if (object[p].isAttacking)
+		if (object[p].active && object[p].isAttacking)
 		{
 			Attack_Draw(p);
 		}
@@ -1254,120 +1250,124 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 	// プレイヤーを描画するラムダ（Projection, View をキャプチャ）
 	auto DrawPlayerInternal = [&](int idx)
+	{
+		if (!object[idx].active) return;
+
+		const float spriteScale = 2.0f;	// 表示倍率
+
+		// ワールド行列（ビルボード風の既存ロジックを踏襲）
+		XMMATRIX ScalingMatrix = XMMatrixScaling(
+			object[idx].scaling.x * spriteScale,
+			object[idx].scaling.y * spriteScale,
+			object[idx].scaling.z * spriteScale
+		);
+
+		XMMATRIX vm = GetViewMatrix();	// カメラの行列
+		vm.r[3].m128_f32[0] = 0.0f;
+		vm.r[3].m128_f32[1] = 0.0f;
+		vm.r[3].m128_f32[2] = 0.0f;
+		vm.r[3].m128_f32[3] = 1.0f;
+		vm = XMMatrixTranspose(vm);
+		vm.r[3].m128_f32[0] = object[idx].position.x;
+		vm.r[3].m128_f32[1] = object[idx].position.y;
+		vm.r[3].m128_f32[2] = object[idx].position.z;
+		vm.r[3].m128_f32[3] = 1.0f;
+
+		// World 行列（ビルボード用）をシェーダーに渡す
+		XMMATRIX WorldMatrix = ScalingMatrix * vm;
+		Shader_SetWorldMatrix(WorldMatrix);
+
+		XMMATRIX WVP = ScalingMatrix * vm * view * projection;
+
+		Shader_SetMatrix(WVP);
+		Shader_Begin();
+		SetBlendState(BLENDSTATE_ALPHA);
+
+		// 頂点バッファにデータコピー（フレームに応じてUVを書き換える）
+		D3D11_MAPPED_SUBRESOURCE msr;
+
+		// コピー元のvdata をローカル配列にコピーして UV を調整
+		Vertex2 localV[NUM_VERTEX];
+		CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+
+		// 現在のフレームから UV を計算
+		int frame = g_animFrame[idx];
+		int col = frame % SHEET_COLS;
+		int row = frame / SHEET_COLS;
+		float u0 = (float)col / (float)SHEET_COLS;
+		float v0 = (float)row / (float)SHEET_ROWS;
+		float u1 = u0 + 1.0f / (float)SHEET_COLS;
+		float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+		// 頂点のテクスチャ座標を上書き
+		localV[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+		localV[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+		localV[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+		localV[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
+
+		// バッファへ書き込み
+		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		Vertex2* vertex = (Vertex2*)msr.pData;
+		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * NUM_VERTEX);
+		g_pContext->Unmap(g_VertexBuffer, 0);
+
+		ID3D11ShaderResourceView* srv = nullptr;
+
+		// 形態とタイプに応じたテクスチャを設定
+		switch (object[idx].form)
 		{
-			const float spriteScale = 2.0f; // 表示倍率
-
-			// ワールド行列（ビルボード風の既存ロジックを踏襲）
-			XMMATRIX ScalingMatrix = XMMatrixScaling(
-				object[idx].scaling.x * spriteScale,
-				object[idx].scaling.y * spriteScale,
-				object[idx].scaling.z * spriteScale
-			);
-
-			XMMATRIX vm = GetViewMatrix();	// カメラの行列
-			vm.r[3].m128_f32[0] = 0.0f;
-			vm.r[3].m128_f32[1] = 0.0f;
-			vm.r[3].m128_f32[2] = 0.0f;
-			vm.r[3].m128_f32[3] = 1.0f;
-			vm = XMMatrixTranspose(vm);
-			vm.r[3].m128_f32[0] = object[idx].position.x;
-			vm.r[3].m128_f32[1] = object[idx].position.y;
-			vm.r[3].m128_f32[2] = object[idx].position.z;
-			vm.r[3].m128_f32[3] = 1.0f;
-
-			// World 行列（ビルボード用）をシェーダーに渡す
-			XMMATRIX WorldMatrix = ScalingMatrix * vm;
-			Shader_SetWorldMatrix(WorldMatrix);
-
-			XMMATRIX WVP = ScalingMatrix * vm * view * projection;
-
-			Shader_SetMatrix(WVP);
-			Shader_Begin();
-			SetBlendState(BLENDSTATE_ALPHA);
-
-			// 頂点バッファにデータコピー（フレームに応じてUVを書き換える）
-			D3D11_MAPPED_SUBRESOURCE msr;
-
-			// コピー元のvdata をローカル配列にコピーして UV を調整
-			Vertex2 localV[NUM_VERTEX];
-			CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
-
-			// 現在のフレームから UV を計算
-			int frame = g_animFrame[idx];
-			int col = frame % SHEET_COLS;
-			int row = frame / SHEET_COLS;
-			float u0 = (float)col / (float)SHEET_COLS;
-			float v0 = (float)row / (float)SHEET_ROWS;
-			float u1 = u0 + 1.0f / (float)SHEET_COLS;
-			float v1 = v0 + 1.0f / (float)SHEET_ROWS;
-
-			// 頂点のテクスチャ座標を上書き
-			localV[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
-			localV[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
-			localV[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
-			localV[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
-
-			// バッファへ書き込み
-			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-			Vertex2* vertex = (Vertex2*)msr.pData;
-			CopyMemory(vertex, &localV[0], sizeof(Vertex2) * NUM_VERTEX);
-			g_pContext->Unmap(g_VertexBuffer, 0);
-
-			ID3D11ShaderResourceView* srv = nullptr;
-
-			// 形態とタイプに応じたテクスチャを設定
-			switch (object[idx].form)
+		// 第1形態
+		case Form::First:					srv = g_Texture[0];	break;
+		// 第2形態
+		case Form::Second:
+			switch (object[idx].type)
 			{
-			// 第1形態
-			case Form::Normal:				srv = g_Texture[0];	break;
-			// 第2形態
-			case Form::FirstEvolution:
-				switch (object[idx].type)
-				{
-				case PlayerType::Glass:		srv = g_Texture[1];	break;				
-				case PlayerType::Concrete:	srv = g_Texture[2];	break;
-				case PlayerType::Plant:		srv = g_Texture[3];	break;
-				case PlayerType::Electric:	srv = g_Texture[4];	break;
-				default: break;
-				}
-				break;
-			// 第3形態
-			case Form::SecondEvolution:
-				switch (object[idx].type)
-				{
-				case PlayerType::Glass:		srv = g_Texture[1];	break;
-				case PlayerType::Concrete:	srv = g_Texture[2];	break;
-				case PlayerType::Plant:		srv = g_Texture[3];	break;
-				case PlayerType::Electric:	srv = g_Texture[4];	break;
-				//case PlayerType::Glass:		srv = g_Texture[5];	break;
-				//case PlayerType::Concrete:	srv = g_Texture[6];	break;
-				//case PlayerType::Plant:		srv = g_Texture[7];	break;
-				//case PlayerType::Electric:	srv = g_Texture[8];	break;
-				default: break;
-				}
-				break;
+			case PlayerType::Glass:			srv = g_Texture[1];	break;				
+			case PlayerType::Concrete:		srv = g_Texture[2];	break;
+			case PlayerType::Plant:			srv = g_Texture[3];	break;
+			case PlayerType::Electricity:	srv = g_Texture[4];	break;
+			default: break;
 			}
-			g_pContext->PSSetShaderResources(0, 1, &srv);
+			break;
+		// 第3形態
+		case Form::Third:
+			switch (object[idx].type)
+			{
+			case PlayerType::Glass:			srv = g_Texture[1];	break;
+			case PlayerType::Concrete:		srv = g_Texture[2];	break;
+			case PlayerType::Plant:			srv = g_Texture[3];	break;
+			case PlayerType::Electricity:	srv = g_Texture[4];	break;
+			//case PlayerType::Glass:		srv = g_Texture[5];	break;
+			//case PlayerType::Concrete:	srv = g_Texture[6];	break;
+			//case PlayerType::Plant:		srv = g_Texture[7];	break;
+			//case PlayerType::Electricity:	srv = g_Texture[8];	break;
+			default: break;
+			}
+			break;
+		}
+		g_pContext->PSSetShaderResources(0, 1, &srv);
 
-			Shader_SetColor({ 1,1,1,1 });
+		Shader_SetColor({ 1,1,1,1 });
 
-			// バッファセット & 描画
-			UINT stride = sizeof(Vertex2);
-			UINT offset = 0;
-			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-			g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			g_pContext->DrawIndexed(6, 0, 0);
-		};
+		// バッファセット & 描画
+		UINT stride = sizeof(Vertex2);
+		UINT offset = 0;
+		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		g_pContext->DrawIndexed(6, 0, 0);
+	};
 
 	// -----------------------------------
 	// 透明描画のためのソート（遠い順）
 	// -----------------------------------
-	std::vector<std::pair<float, int>> list; // (距離二乗, index)
+	std::vector<std::pair<float, int>> list;	// (距離二乗, index)
 	list.reserve(PLAYER_MAX);
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
+		if (!object[p].active) continue;
+
 		float dx = object[p].position.x - camPos.x;
 		float dy = object[p].position.y - camPos.y;
 		float dz = object[p].position.z - camPos.z;
@@ -1383,7 +1383,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 	// 透過レンダリング：深度テストは有効、深度書き込みは無効（SetDepthReadOnly を使用）
 	SetDepthTest(true);
-	SetDepthReadOnly(); // 深度テストはするが深度バッファへの書き込みはしない
+	SetDepthReadOnly();	// 深度テストはするが深度バッファへの書き込みはしない
 
 	// ソート順（遠いものから描画）
 	for (auto& p : list)
@@ -1407,6 +1407,8 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 			for (int i = 0; i < PLAYER_MAX; i++)
 			{
+				if (!object[i].active) continue;
+
 				// AABBを描画
 				// AABBのMin/Maxは既にワールド座標なので、行列はリセットしたまま描画すればOK
 				Debug_DrawAABB(object[i].boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
@@ -1492,14 +1494,14 @@ void Polygon3D_Respawn(int playerIndex)
 		object[playerIndex].downTimer = 0.0f;
 		object[playerIndex].lastDir = PlayerDir::Down; // 正面
 		object[playerIndex].isMoving = false;
-		object[playerIndex].form = Form::Normal;
+		object[playerIndex].form = Form::First;
 		object[playerIndex].type = PlayerType::None;
 		object[playerIndex].evolutionGauge = 0;
 		object[playerIndex].evolutionGaugeRate = 1;
 		object[playerIndex].breakCount_Glass = 0;
 		object[playerIndex].breakCount_Concrete = 0;
 		object[playerIndex].breakCount_Plant = 0;
-		object[playerIndex].breakCount_Electric = 0;
+		object[playerIndex].breakCount_Electricity = 0;
 		object[playerIndex].brokenHistory.clear();
 		object[playerIndex].gl = 1.0f;
 		object[playerIndex].pl = 1.0f;
@@ -1514,7 +1516,7 @@ void Polygon3D_Respawn(int playerIndex)
 
 	if (playerIndex == 0) object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 	if (playerIndex == 1) object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
-	if (playerIndex == 2) object[2].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
+	if (playerIndex == 2) object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	if (playerIndex == 3) object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
 }
 

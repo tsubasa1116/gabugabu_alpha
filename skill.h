@@ -7,12 +7,12 @@
 #define SKILL_GLASS_TIME	(10.0f)
 #define SKILL_CONCRETE_TIME	(10.0f)
 #define SKILL_PLANT_TIME	(10.0f)
-#define SKILL_ELECTRIC_TIME	(10.0f)
+#define SKILL_ELECTRICITY_TIME	(10.0f)
 
 #define SKILL_GLASS_COOLTIME	(10.0f)
 #define SKILL_CONCRETE_COOLTIME	(10.0f)
 #define SKILL_PLANT_COOLTIME	(10.0f)
-#define SKILL_ELECTRIC_COOLTIME	(10.0f)
+#define SKILL_ELECTRICITY_COOLTIME	(10.0f)
 
 struct SKILL_OBJECT
 {
@@ -46,16 +46,16 @@ void Skill_Draw();
 void Skill_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Skill_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Skill_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-void Skill_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+void Skill_Electricity_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
 void Skill_Glass_Update(int playerIndex);
 void Skill_Concrete_Update(int playerIndex);
 void Skill_Plant_Update(int playerIndex);
-void Skill_Electric_Update(int playerIndex);
+void Skill_Electricity_Update(int playerIndex);
 
 void Skill_Glass_Draw(int playerIndex);
 void Skill_Concrete_Draw(int playerIndex);
 void Skill_Plant_Draw(int playerIndex);
-void Skill_Electric_Draw(int playerIndex);
+void Skill_Electricity_Draw(int playerIndex);
 
 SKILL_OBJECT* GetSkill(int playerIndex);

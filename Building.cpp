@@ -1,12 +1,12 @@
 ﻿//1. 10×10マップに4種類の建物を置く
 //MapGrid を使って 10×10 の二次元配列に Building を配置
-//初期化時にランダムで Glass / Concrete / Plant / Electric を割り当て可能
+//初期化時にランダムで Glass / Concrete / Plant / Electricity を割り当て可能
 //
 //2. 新たに建物クラスを作って管理
 //Building クラスで種類（BuildingType）と状態（BuildingPhase）を管理
 //
 //3. 種類はスキルに合わせた 4 種類（列挙体で管理）
-//enum class BuildingType { Glass, Concrete, Plant, Electric };
+//enum class BuildingType { Glass, Concrete, Plant, Electricity };
 //列挙体で管理しているので後でスイッチや配列で扱いやすい
 //
 //4. 新品→壊れかけ→壊れた（フェーズ）
@@ -129,10 +129,10 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 		switch (fieldMap[i].no)
 		{
-		case FIELD::FIELD_Glass:	type = BuildingType::Glass;		break;
-		case FIELD::FIELD_Concrete:	type = BuildingType::Concrete;	break;
-		case FIELD::FIELD_Plant:	type = BuildingType::Plant;		break;
-		case FIELD::FIELD_Electric:	type = BuildingType::Electric;	break;
+		case FIELD::FIELD_Glass:		type = BuildingType::Glass;			break;
+		case FIELD::FIELD_Concrete:		type = BuildingType::Concrete;		break;
+		case FIELD::FIELD_Plant:		type = BuildingType::Plant;			break;
+		case FIELD::FIELD_Electricity:	type = BuildingType::Electricity;	break;
 
 		// FIELD_BOX（ただの地面）の場合は建物を作らない
 		case FIELD::FIELD_BOX:		type = BuildingType::None;		break;
@@ -216,7 +216,7 @@ void Building::LoadModelForPhase()
 		else										path = g_ModelName[4];
 		break;
 
-	case BuildingType::Electric:
+	case BuildingType::Electricity:
 		if		(Phase == BuildingPhase::New)		path = g_ModelName[2];
 		else if (Phase == BuildingPhase::Damaged)	path = g_ModelName[2];
 		else										path = g_ModelName[2];

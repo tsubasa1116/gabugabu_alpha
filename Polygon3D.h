@@ -34,9 +34,9 @@ enum class PlayerDir
 
 enum class Form
 {
-	Normal = 0,			// 通常
-	FirstEvolution,		// 1進化
-	SecondEvolution		// 2進化
+	First = 0,	// 第1形態
+	Second,		// 第2形態
+	Third		// 第3形態
 };
 
 enum class PlayerType
@@ -45,7 +45,7 @@ enum class PlayerType
 	Glass,		// ガラス
 	Concrete,	// コンクリ
 	Plant,		// 植物
-	Electric,	// 電気
+	Electricity,// 電気
 	Max
 };
 
@@ -102,7 +102,7 @@ struct PLAYEROBJECT
 	int breakCount_Glass;						// 破壊した数 ガラス
 	int breakCount_Concrete;					// 破壊した数 コンクリート
 	int breakCount_Plant;						// 破壊した数 植物
-	int breakCount_Electric;					// 破壊した数 電気
+	int breakCount_Electricity;					// 破壊した数 電気
 	std::vector<BuildingType> brokenHistory;	// 破壊した建物のリスト
 
 	float gl, pl, co, el;

@@ -132,7 +132,7 @@ void Camera_Update()
 		s_IsLerping = true;
 		s_LerpTime = 0.0f;
 
-		// カメラ移動による注視点の保存 (注視点(AtPosition)は通常プレイヤー位置)
+		// カメラ移動による注視点の保存 (注視点(AtPosition)は第1形態プレイヤー位置)
 		float current_at_x = CameraObject.atPosition.x;
 		float current_at_y = CameraObject.atPosition.y;
 		float current_at_z = CameraObject.atPosition.z;
@@ -140,7 +140,7 @@ void Camera_Update()
 		// --- 目標視点の設定 ---
 		switch (s_CurrentViewIndex)
 		{
-		case 0: // 通常視点 (Normal View)
+		case 0: // 第1形態視点 (Normal View)
 			s_TargetPos = XMFLOAT3(current_at_x, current_at_y + 10.0f, current_at_z - 10.0f);
 			s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z);
 			break;

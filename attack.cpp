@@ -401,9 +401,9 @@ void Attack_Update(int playerIndex)
 					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
-				case BuildingType::Electric:
+				case BuildingType::Electricity:
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
-					player.breakCount_Electric += 1;					// 電気を壊した数をプラス
+					player.breakCount_Electricity += 1;					// 電気を壊した数をプラス
 					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
@@ -451,15 +451,15 @@ void Attack_Update(int playerIndex)
 		// 1. 進化段階を1つ進める
 		player.form = static_cast<Form>(static_cast<int>(player.form) + 1);
 
-		// 2. 2進化までしか進化しないように制限
-		if (player.form >= Form::SecondEvolution)
+		// 2. 第3形態までしか進化しないように制限
+		if (player.form >= Form::Third)
 		{
-			player.form = Form::SecondEvolution;
+			player.form = Form::Third;
 		}
 
 		// 3. タイプ決定ロジック
 		//    Typeの決定は、Normalから FirstEvolutionに進化する場合のみ実行
-		if (currentForm == Form::Normal)
+		if (currentForm == Form::First)
 		{
 			// 4種類の破壊した建物数を配列に格納
 			const int counts[4] =
@@ -467,7 +467,7 @@ void Attack_Update(int playerIndex)
 				player.breakCount_Glass,		// idx 0
 				player.breakCount_Concrete,	// idx 1
 				player.breakCount_Plant,		// idx 2
-				player.breakCount_Electric	// idx 3
+				player.breakCount_Electricity	// idx 3
 			};
 
 			// 対応するタイプ定義
@@ -476,7 +476,7 @@ void Attack_Update(int playerIndex)
 				BuildingType::Glass,
 				BuildingType::Concrete,
 				BuildingType::Plant,
-				BuildingType::Electric
+				BuildingType::Electricity
 			};
 
 			// --- Step 1: 最大カウント数(maxCount)を求める ---
@@ -522,7 +522,7 @@ void Attack_Update(int playerIndex)
 			case 0: player.type = PlayerType::Glass;    break;
 			case 1: player.type = PlayerType::Concrete; break;
 			case 2: player.type = PlayerType::Plant;    break;
-			case 3: player.type = PlayerType::Electric; break;
+			case 3: player.type = PlayerType::Electricity; break;
 			}
 		}
 
@@ -532,7 +532,7 @@ void Attack_Update(int playerIndex)
 		player.breakCount_Glass = 0;
 		player.breakCount_Concrete = 0;
 		player.breakCount_Plant = 0;
-		player.breakCount_Electric = 0;
+		player.breakCount_Electricity = 0;
 	}
 }
 
@@ -687,7 +687,7 @@ void AttackPlayerCollisions()
 			float depthScale  = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
 
 			// 第2形態 第3形態はXとZ同じにする
-			if (defender->form == Form::FirstEvolution || defender->form == Form::SecondEvolution)
+			if (defender->form == Form::Second || defender->form == Form::Third)
 			{
 				widthScale = 0.25f;
 				depthScale = 0.25f;

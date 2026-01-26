@@ -8,7 +8,6 @@
 //#include "directx.h"
 //#include "texture.h"
 #include "model.h"
-
 //#include "renderer.h"
 
 //======================================================
@@ -58,7 +57,6 @@ MODEL* ModelLoad( const char *FileName )
 			delete[] vertex;
 		}
 
-
 		// インデックスバッファ生成
 		{
 			unsigned int* index = new unsigned int[mesh->mNumFaces * 3];	// ポリゴン数*3
@@ -89,7 +87,6 @@ MODEL* ModelLoad( const char *FileName )
 
 			delete[] index;
 		}
-
 	}
 
 	// テクスチャ読み込み
@@ -124,15 +121,12 @@ void ModelRelease(MODEL* model)
 	delete[] model->VertexBuffer;
 	delete[] model->IndexBuffer;
 
-
 	for (std::pair<const std::string, ID3D11ShaderResourceView*> pair : model->Texture)
 	{
 		pair.second->Release();
 	}
 
-
 	aiReleaseImport(model->AiScene);
-
 
 	delete model;
 }

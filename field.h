@@ -20,7 +20,7 @@ enum FIELD
 	FIELD_Glass,		// ガラス建物
 	FIELD_Concrete,		// コンクリ建物
 	FIELD_Plant,		// 植物建物
-	FIELD_Electric,		// 電気建物
+	FIELD_Electricity,		// 電気建物
 
 	FIELD_MAX
 };

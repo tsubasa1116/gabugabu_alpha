@@ -31,7 +31,7 @@ static ID3D11ShaderResourceView* g_Special_Texture[10];
 static SPECIAL_OBJECT Special[PLAYER_MAX];
 
 // スペシャル 電気 オブジェクト
-Circle electricCircles[SPECIAL_ELECTRIC_QUANTITY];
+Circle electricityCircles[SPECIAL_ELECTRICITY_QUANTITY];
 
 // ガラススペシャル ミサイル リスト
 std::vector<GLASS_BOX> glassBoxes;
@@ -247,7 +247,7 @@ void Special_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pConte
 	assert(g_Special_Texture[3]);
 }
 
-void Special_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void Special_Electricity_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	// テクスチャ読み込み
 	TexMetadata metadata;
@@ -296,7 +296,7 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Special_Glass_Initialize(pDevice, pContext);
 	Special_Concrete_Initialize(pDevice, pContext);
 	Special_Plant_Initialize(pDevice, pContext);
-	Special_Electric_Initialize(pDevice, pContext);
+	Special_Electricity_Initialize(pDevice, pContext);
 }
 
 void Special_Finalize()
@@ -465,7 +465,7 @@ void Special_Glass_Update(int playerIndex)
 		player.specialTimer = 0.0f;
 		initialized = false;			// 次回のスペシャル使用時に再初期化するため
 		missileRain = false;			// フラグをリセット
-		player.form = Form::Normal;		// 変身形態を通常に戻す
+		player.form = Form::First;		// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;	// タイプをリセット
 		player.useSkill = false;		// スキル解除
 		player.useSpecial = false;		// スペシャル解除
@@ -535,7 +535,7 @@ void Special_Concrete_Update(int playerIndex)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
-		player.form = Form::Normal;		// 変身形態を通常に戻す
+		player.form = Form::First;		// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;	// タイプをリセット
 		player.useSkill = false;		// スキル解除
 		player.useSpecial = false;		// スペシャル解除
@@ -584,14 +584,14 @@ void Special_Plant_Update(int playerIndex)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
-		player.form = Form::Normal;		// 変身形態を通常に戻す
+		player.form = Form::First;		// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;	// タイプをリセット
 		player.useSkill = false;		// スキル解除
 		player.useSpecial = false;		// スペシャル解除
 	}
 }
 
-void Special_Electric_Update(int playerIndex)
+void Special_Electricity_Update(int playerIndex)
 {
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
@@ -607,12 +607,12 @@ void Special_Electric_Update(int playerIndex)
 	static bool initialized = false;
 	if (!initialized)
 	{
-		for (int i = 0; i < SPECIAL_ELECTRIC_QUANTITY; ++i)
+		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 		{
 			// ランダムな位置に円を生成 (-5から5の範囲)
 			float randomX = static_cast<float>(rand() % 10 - 5);
 			float randomZ = static_cast<float>(rand() % 10 - 5);
-			electricCircles[i] = { XMFLOAT3(randomX, 0.0f, randomZ), 0.3f };	// 半径0.3の円
+			electricityCircles[i] = { XMFLOAT3(randomX, 0.0f, randomZ), 0.3f };	// 半径0.3の円
 		}
 		initialized = true;
 	}
@@ -628,20 +628,20 @@ void Special_Electric_Update(int playerIndex)
 
 		if (otherPlayer.isInvincible) continue;	// 無敵中は無視
 
-		for (int i = 0; i < SPECIAL_ELECTRIC_QUANTITY; ++i)
+		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 		{
 			// 円とAABBの衝突判定 スタンさせる
-			if (CheckCircleAABBCollision(electricCircles[i], otherPlayer.boundingBox))	otherPlayer.stunGauge = 10.0f;
+			if (CheckCircleAABBCollision(electricityCircles[i], otherPlayer.boundingBox))	otherPlayer.stunGauge = 10.0f;
 		}
 	}
 
 	// スペシャルの効果時間が経過したらスペシャル終了
-	if (player.specialTimer >= SPECIAL_ELECTRIC_TIME)
+	if (player.specialTimer >= SPECIAL_ELECTRICITY_TIME)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
 		initialized = false;			// 次回のスペシャル使用時に再初期化するため
-		player.form = Form::Normal;		// 変身形態を通常に戻す
+		player.form = Form::First;		// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;	// タイプをリセット
 		player.useSkill = false;		// スキル解除
 		player.useSpecial = false;		// スペシャル解除
@@ -665,7 +665,7 @@ void Special_Update(int playerIndex)
 		case PlayerType::Glass:		Special_Glass_Update(playerIndex);		break;
 		case PlayerType::Concrete:	Special_Concrete_Update(playerIndex);	break;
 		case PlayerType::Plant:		Special_Plant_Update(playerIndex);		break;
-		case PlayerType::Electric:	Special_Electric_Update(playerIndex);	break;
+		case PlayerType::Electricity:	Special_Electricity_Update(playerIndex);	break;
 		default: break;
 		}
 	}
@@ -761,20 +761,20 @@ void Special_Plant_Draw(int playerIndex)
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 }
 
-void Special_Electric_Draw(int playerIndex)
+void Special_Electricity_Draw(int playerIndex)
 {
-	// Electric専用のテクスチャをセット
+	// Electricity専用のテクスチャをセット
 	ID3D11ShaderResourceView* tex = g_Special_Texture[4]; // uiAim.png のテクスチャ
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// デバッグ用に円の中心に uiAim.png を地面に表示
-	for (int i = 0; i < SPECIAL_ELECTRIC_QUANTITY; ++i)
+	for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 	{
 		// 各円の中心にテクスチャを描画
 		XMMATRIX debugWorldMatrix =
 			XMMatrixScaling(1.0f, 1.0f, 1.0f) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			XMMatrixTranslation(electricCircles[i].center.x, electricCircles[i].center.y + 0.1f, electricCircles[i].center.z); // Y座標を少し上げて地面と重ならないようにする
+			XMMatrixTranslation(electricityCircles[i].center.x, electricityCircles[i].center.y + 0.1f, electricityCircles[i].center.z); // Y座標を少し上げて地面と重ならないようにする
 
 		XMMATRIX debugWVP = debugWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 		Shader_SetMatrix(debugWVP);
@@ -836,7 +836,7 @@ void Special_Draw()
 			case PlayerType::Glass:		Special_Glass_Draw(p);		break;
 			case PlayerType::Concrete:	Special_Concrete_Draw(p);	break;
 			case PlayerType::Plant:		Special_Plant_Draw(p);		break;
-			case PlayerType::Electric:	Special_Electric_Draw(p);	break;
+			case PlayerType::Electricity:	Special_Electricity_Draw(p);	break;
 			default: break;
 			}
 		}

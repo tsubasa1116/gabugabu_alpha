@@ -21,7 +21,7 @@ enum class BuildingType {
 	Glass,		// ガラス建物
 	Concrete,	// コンクリ建物
 	Plant,		// 植物建物
-	Electric,	// 電気建物
+	Electricity,// 電気建物
 	Max
 };
 
