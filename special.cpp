@@ -30,6 +30,9 @@ static ID3D11ShaderResourceView* g_Special_Texture[10];
 // オブジェクト
 static SPECIAL_OBJECT Special[PLAYER_MAX];
 
+// スペシャル 電気 オブジェクト
+Circle electricCircles[SPECIAL_ELECTRIC_QUANTITY];
+
 // マクロ定義
 #define NUM_VERTEX (24)
 
@@ -256,7 +259,7 @@ void Special_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 	TexMetadata metadata;
 	ScratchImage image;
 
-	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\uiAim.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[4]);
 	assert(g_Special_Texture[4]);
 }
@@ -466,11 +469,44 @@ void Special_Electric_Update(int playerIndex)
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
 
+	// スペシャルの初期化処理
+	static bool initialized = false;
+	if (!initialized)
+	{
+		for (int i = 0; i < SPECIAL_ELECTRIC_QUANTITY; ++i)
+		{
+			// ランダムな位置に円を生成 (-5から5の範囲)
+			float randomX = static_cast<float>(rand() % 10 - 5);
+			float randomZ = static_cast<float>(rand() % 10 - 5);
+			electricCircles[i] = { XMFLOAT3(randomX, 0.0f, randomZ), 0.3f };	// 半径0.3の円
+		}
+		initialized = true;
+	}
+
+	// 他のプレイヤーとの衝突判定
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		if (p == playerIndex) continue;	// 自分自身は無視
+
+		PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
+		if (otherPlayerObject == nullptr || !otherPlayerObject->active) continue;
+		PLAYEROBJECT& otherPlayer = *otherPlayerObject;
+
+		if (otherPlayer.isInvincible) continue;	// 無敵中は無視
+
+		for (int i = 0; i < SPECIAL_ELECTRIC_QUANTITY; ++i)
+		{
+			// 円とAABBの衝突判定 スタンさせる
+			if (CheckCircleAABBCollision(electricCircles[i], otherPlayer.boundingBox))	otherPlayer.stunGauge = 10.0f;
+		}
+	}
+
 	// スペシャルの効果時間が経過したらスペシャル終了
 	if (player.specialTimer >= SPECIAL_ELECTRIC_TIME)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
+		initialized = false; // 次回のスペシャル使用時に再初期化するため
 	}
 }
 
@@ -486,7 +522,6 @@ void Special_Update(int playerIndex)
 	// スペシャル使用中かつスタン中でない場合に更新処理を行う
 	if (player.useSpecial && !player.isStunning)
 	{
-		//SetCameraAtPosition(player.position);
 
 		switch (player.type)
 		{
@@ -571,24 +606,29 @@ void Special_Plant_Draw(int playerIndex)
 
 void Special_Electric_Draw(int playerIndex)
 {
-	//// Electric専用のテクスチャをセット
-	//ID3D11ShaderResourceView* tex = g_Special_Texture[1];
-	//g_pContext->PSSetShaderResources(0, 1, &tex);
+	// Electric専用のテクスチャをセット
+	ID3D11ShaderResourceView* tex = g_Special_Texture[4]; // uiAim.png のテクスチャ
+	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// Electric用の座標計算
-	SPECIAL_OBJECT& specialElectric = Special[playerIndex];
+	// デバッグ用に円の中心に uiAim.png を地面に表示
+	for (int i = 0; i < SPECIAL_ELECTRIC_QUANTITY; ++i)
+	{
+		// 各円の中心にテクスチャを描画
+		XMMATRIX debugWorldMatrix =
+			XMMatrixScaling(1.0f, 1.0f, 1.0f) *
+			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+			XMMatrixTranslation(electricCircles[i].center.x, electricCircles[i].center.y + 0.1f, electricCircles[i].center.z); // Y座標を少し上げて地面と重ならないようにする
 
-	XMMATRIX WorldMatrix =
-		XMMatrixScaling(specialElectric.scaling.x, specialElectric.scaling.y, specialElectric.scaling.z) *
-		XMMatrixRotationRollPitchYaw(XMConvertToRadians(specialElectric.rotation.x), XMConvertToRadians(specialElectric.rotation.y), XMConvertToRadians(specialElectric.rotation.z)) *
-		XMMatrixTranslation(specialElectric.position.x, specialElectric.position.y, specialElectric.position.z);
+		XMMATRIX debugWVP = debugWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(debugWVP);
 
-	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-	Shader_SetMatrix(WVP);
+		// アルファブレンディングを有効化
+		SetBlendState(BLENDSTATE_ALPHA);
 
-	// 描画実行
-	g_pContext->DrawIndexed(6 * 6, 0, 0);
-
+		// 描画実行 (+Y面の一枚だけ描画)
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP); // トポロジーを三角形ストリップに設定
+		g_pContext->Draw(4, 16); // +Y面の4頂点 (16, 17, 18, 19) を描画
+	}
 }
 
 void Special_Draw()
@@ -639,7 +679,7 @@ void Special_Draw()
 			case PlayerType::Glass:		//Special_Glass_Draw(p);		break;
 			case PlayerType::Concrete:	//Special_Concrete_Draw(p);	break;
 			case PlayerType::Plant:		//Special_Plant_Draw(p);		break;
-			case PlayerType::Electric:	//Special_Electric_Draw(p);	break;
+			case PlayerType::Electric:	Special_Electric_Draw(p);	break;
 			default: break;
 			}
 		}

@@ -11,6 +11,7 @@
 #include "model.h"
 #include "Building.h"
 #include "Polygon3D.h"
+#include "special.h"
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
@@ -465,17 +466,32 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		{
 			PLAYEROBJECT* playerObject = GetPlayer(p);
 			PLAYEROBJECT& player = *playerObject;
-			if (!player.useSpecial || player.type == PlayerType::Glass || player.type == PlayerType::Electric)
+			if (!player.useSpecial) continue;
+
+			// 植物・コンクリートのスペシャル
+			if (player.type == PlayerType::Plant || player.type == PlayerType::Concrete)
 			{
-				continue; // 植物・コンクリートのスペシャルを使用していない場合はスキップ
+				// 円の中心と半径を設定
+				XMFLOAT3 center = playerObject->position;
+				float radius = 5.0f;
+
+				// 赤色で円を描画
+				Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
 			}
 
-			// 円の中心と半径を設定
-			XMFLOAT3 center = playerObject->position;
-			float radius = 5.0f;
+			// 電気のスペシャル
+			if (player.type == PlayerType::Electric)
+			{
+				for (int i = 0; i < SPECIAL_ELECTRIC_QUANTITY; ++i)
+				{
+					// 電気の円の中心と半径を取得
+					XMFLOAT3 center = electricCircles[i].center;
+					float radius = electricCircles[i].radius;
 
-			// 赤色で円を描画
-			Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+					// 赤色で円を描画
+					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+				}
+			}
 		}
 	}
 }

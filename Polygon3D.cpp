@@ -157,7 +157,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].lastDir = PlayerDir::Down; // 正面
 	object[0].isMoving = false;
 	object[0].form = Form::SecondEvolution;
-	object[0].type = PlayerType::Concrete;
+	object[0].type = PlayerType::Electric;
 	object[0].evolutionGauge = 0;
 	object[0].evolutionGaugeRate = 1;
 	object[0].breakCount_Glass = 0;
@@ -540,8 +540,7 @@ void Polygon3D_Update()
 			object[p].isStunning = true;
 			object[p].stunGauge = STUNGAUGE_MAX;
 		}
-
-		else if (object[p].isStunning)
+		if (object[p].isStunning)
 		{
 			// スタンタイマーを進める
 			object[p].stunTimer += DELTA_TIME;
@@ -560,7 +559,7 @@ void Polygon3D_Update()
 		else // スタンしていない場合の処理
 		{
 			// スタンしていない間はスタンゲージを減少させる
-			object[p].stunGauge -= 0.1f / 60.0f;
+			object[p].stunGauge -= DELTA_TIME;
 
 			// スタンゲージが0未満にならないようにクランプ
 			if (object[p].stunGauge < 0.0f)	object[p].stunGauge = 0.0f;
@@ -1552,14 +1551,6 @@ void Polygon3D_DrawStock(int i)
 	}
 }
 
-PLAYEROBJECT* GetPlayer(int playerIndex)
-{
-	// 範囲チェック 0 1 2 3 以外なら nullptr を返す
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
-
-	return &object[playerIndex];
-}
-
 static void Ranking(int playerIndex)
 {
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
@@ -1587,10 +1578,10 @@ static void Ranking(int playerIndex)
 	}
 }
 
-int GetPlayerRank(int playerIndex)
+PLAYEROBJECT* GetPlayer(int playerIndex)
 {
-	// 範囲チェック 0 1 2 3 以外なら 0 を返す
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return 0;
+	// 範囲チェック 0 1 2 3 以外なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
-	return object[playerIndex].rank;
+	return &object[playerIndex];
 }
