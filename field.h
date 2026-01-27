@@ -1,4 +1,6 @@
-//field.h
+//======================================================
+// field.h
+//======================================================
 #pragma once
 
 #include <d3d11.h>
@@ -7,51 +9,52 @@
 #include "sprite.h"
 #include "shader.h"
 #include "collider.h"
-#include "Building.h"
 
 using namespace DirectX;
 
-//=========================================
-// MAP構成ブロックの種類
-//=========================================
+//======================================================
+// フィールドの種類（カテゴリのみ）
+//======================================================
 enum FIELD
 {
-	FIELD_BOX = 0,			// 箱
+	FIELD_BOX = 0,		// 何も置かないマス
 
-	FIELD_Glass,		// ガラス建物
-	FIELD_Concrete,		// コンクリ建物
-	FIELD_Concrete1,
-	FIELD_Plant,		// 植物建物
-	FIELD_Electric,		// 電気建物
-	FIELD_Tower,        //東京タワー
-	FIELD_a,
+	FIELD_Glass,		// ガラス建物（複数モデル対応）
+	FIELD_Concrete,		// コンクリ建物（複数モデル対応）
+	FIELD_Plant,		// 植物（複数モデル対応）
+	FIELD_Electric,		// 電気設備（複数モデル対応）
 
-	FIELD_MAX
+	FIELD_None,
+	FIELD_MAX			// 終端マーカー
 };
 
-
-//=========================================
-// MAPデータ構造体（1マス分）
-//=========================================
-class MAPDATA
+//======================================================
+// MAPデータ（1マス分）
+//======================================================
+struct MAPDATA
 {
-public:
-	XMFLOAT3 pos;			// 座標
-	AABB boundingBox;		// 当たり判定
-	FIELD no;				// 種類（FIELD_BOX / FIELD_BUILDING）
+	XMFLOAT3 pos{};			// 座標
+	AABB boundingBox{};		// 当たり判定
+	FIELD no;				// フィールド種別
+
+	//==================================================
+	// ★超重要★
+	// 同じ FIELD 種別の中で、どのモデルを使うか
+	// 0 = 1つ目のモデル
+	// 1 = 2つ目のモデル …
+	//==================================================
+	int variant = 0;
 
 	bool isActive = true;
 
-	// --- ここを追加！ ---
-	//BuildingType type = BuildingType::None;
-	float radius = 1.0f;	// 六角形の半径
-	float height = 2.25f;	// 柱の高さ
+	// 六角形当たり判定用
+	float radius = 1.0f;
+	float height = 2.25f;
 };
 
-
-//=========================================
+//======================================================
 // Field 関数
-//=========================================
+//======================================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Field_Finalize(void);
 void Field_Draw(bool s_IsKonamiCodeEntered);
@@ -59,6 +62,3 @@ void Field_Update(void);
 
 MAPDATA* GetFieldObjects();
 int GetFieldObjectCount();
-
-// BOX作成関数
-//void	CreateBox();

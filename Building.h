@@ -1,37 +1,33 @@
-//Building.h
 #pragma once
-#include <string>
-
 #include <d3d11.h>
 #include <DirectXMath.h>
-#include "direct3d.h"
-#include "sprite.h"
 #include "shader.h"
 #include "collider.h"
-#include "Building.h"
 #include "model.h"
 
 using namespace DirectX;
 
 //=========================================
-// 列挙型定義
+// 建物の種類
 //=========================================
-enum class BuildingType {
-
-	Glass,		// ガラス建物
-	Concrete,	// コンクリ建物
-	Plant,		// 植物建物
-	Electric,	// 電気建物
-	Tower,      //東京タワー
-	a,
-	None,		// 未設定
+enum class BuildingType
+{
+	Glass,      // ガラス建物
+	Concrete,   // コンクリート建物
+	Plant,      // 植物建物
+	Electric,   // 電気建物
+	None,
 	Max
 };
 
-enum class BuildingPhase {
-	New,		// 新品
-	Damaged,	// 壊れかけ
-	Broken		// 壊れた
+//=========================================
+// 建物の状態（将来拡張用）
+//=========================================
+enum class BuildingPhase
+{
+	New,        // 新品
+	Damaged,    // 破損
+	Broken      // 破壊
 };
 
 //=========================================
@@ -40,26 +36,37 @@ enum class BuildingPhase {
 class Building
 {
 private:
-public:
-	XMFLOAT3 position;		// 座標
-	XMFLOAT3 rotation;		// 回転
-	XMFLOAT3 scaling;		// スケール
+	// モデル＆テクスチャの番号
+	// （同じ番号で両方を管理）
+	int m_ModelIndex;
 
-	BuildingType Type;		// 建物の種類
-	BuildingPhase Phase;	// 現在のフェーズ（状態）
-
-	AABB boundingBox;
-
-	MODEL* m_Model;			// 現在のフェーズ用モデル
-
-	bool isActive;
-
-	// フェーズや種類に応じたモデルを読み込む内部関数
+	// 種類・フェーズに応じて
+	// モデルとテクスチャを読み込む
 	void LoadModelForPhase();
 
+public:
+	// トランスフォーム
+	XMFLOAT3 position;
+	XMFLOAT3 rotation;
+	XMFLOAT3 scaling;
 
-	// コンストラクタ（種類と座標を指定して生成）
-	Building(BuildingType type, XMFLOAT3 pos);
+	// 種類・状態
+	BuildingType  Type;
+	BuildingPhase Phase;
+
+	// 当たり判定（未使用）
+	AABB boundingBox;
+
+	// モデル
+	MODEL* m_Model;
+
+	// 有効フラグ
+	bool isActive;
+
+	//=================================
+	// コンストラクタ
+	//=================================
+	Building(BuildingType type, XMFLOAT3 pos, int modelIndex = 0);
 
 	// デストラクタ
 	~Building();
@@ -70,25 +77,22 @@ public:
 	// 描画
 	void Draw(bool s_IsKonamiCodeEntered);
 
-	// フェーズ変更（New → Damaged → Broken）
+	// 状態変更
 	void SetPhase(BuildingPhase phase);
 
 	// ゲッター
+	BuildingType  GetType()  const { return Type; }
 	BuildingPhase GetPhase() const { return Phase; }
-	BuildingType GetType() const { return Type; }
-	XMFLOAT3 GetPosition() const { return position; }
 };
 
 //=========================================
-// 管理用関数（Building.cpp で実装）
+// Building 管理用関数
 //=========================================
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Building_Finalize();
 void Building_DrawAll(bool s_IsKonamiCodeEntered);
 
-// 建物の総数を取得
 int GetBuildingCount();
-
-// 建物のリスト（ポインタ配列）の先頭アドレスを取得
-// g_Buildings は Building* の配列なので、戻り値は Building** 
 Building** GetBuildings();
+
+
