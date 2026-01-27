@@ -19,10 +19,10 @@ enum FIELD
 {
 	FIELD_BOX = 0,		// 何も置かないマス
 
-	FIELD_Glass,		// ガラス建物（複数モデル対応）
-	FIELD_Concrete,		// コンクリ建物（複数モデル対応）
-	FIELD_Plant,		// 植物（複数モデル対応）
-	FIELD_Electric,		// 電気設備（複数モデル対応）
+	FIELD_Glass,		// ガラス建物
+	FIELD_Concrete,		// コンクリ建物
+	FIELD_Plant,		// 植物建物
+	FIELD_Electricity,	// 電気建物
 
 	FIELD_None,
 	FIELD_MAX			// 終端マーカー

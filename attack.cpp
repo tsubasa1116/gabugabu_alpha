@@ -1,7 +1,7 @@
 ﻿// attack.cpp
 
-#include "DirectXMath.h"
-#include "d3d11.h"
+#include <DirectXMath.h>
+#include <d3d11.h>
 using namespace DirectX;
 
 #include "attack.h"
@@ -347,7 +347,7 @@ void Attack_Update(int playerIndex)
 		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
 		MTV collision = CalculateAABBMTV(atttackObject.boundingBox, pStaticObjectAABB);
 
-		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V, /*KK_ */};
+		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V,};
 
 		// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
 		if (collision.isColliding)
@@ -407,10 +407,10 @@ void Attack_Update(int playerIndex)
 					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
-				case BuildingType::Electric:
+				case BuildingType::Electricity:
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
-					player.breakCount_Electric += 1;					// 電気を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
+					player.breakCount_Electricity += 1;					// 電気を壊した数をプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -459,23 +459,23 @@ void Attack_Update(int playerIndex)
 		// 1. 進化段階を1つ進める
 		player.form = static_cast<Form>(static_cast<int>(player.form) + 1);
 
-		// 2. 2進化までしか進化しないように制限
-		if (player.form >= Form::SecondEvolution)
+		// 2. 第3形態までしか進化しないように制限
+		if (player.form >= Form::Third)
 		{
-			player.form = Form::SecondEvolution;
+			player.form = Form::Third;
 		}
 
 		// 3. タイプ決定ロジック
 		//    Typeの決定は、Normalから FirstEvolutionに進化する場合のみ実行
-		if (currentForm == Form::Normal)
+		if (currentForm == Form::First)
 		{
 			// 4種類の破壊した建物数を配列に格納
 			const int counts[4] =
 			{
 				player.breakCount_Glass,	// idx 0
 				player.breakCount_Concrete,	// idx 1
-				player.breakCount_Plant,	// idx 2
-				player.breakCount_Electric	// idx 3
+				player.breakCount_Plant,		// idx 2
+				player.breakCount_Electricity	// idx 3
 			};
 
 			// 対応するタイプ定義
@@ -484,7 +484,7 @@ void Attack_Update(int playerIndex)
 				BuildingType::Glass,
 				BuildingType::Concrete,
 				BuildingType::Plant,
-				BuildingType::Electric
+				BuildingType::Electricity
 			};
 
 			// --- Step 1: 最大カウント数(maxCount)を求める ---
@@ -526,10 +526,10 @@ void Attack_Update(int playerIndex)
 			// --- Step 3: 最終タイプ反映 ---
 			switch (maxIdx)
 			{
-			case 0: playerObject->type = PlayerType::Glass;    break;
-			case 1: playerObject->type = PlayerType::Concrete; break;
-			case 2: playerObject->type = PlayerType::Plant;    break;
-			case 3: playerObject->type = PlayerType::Electric; break;
+			case 0: playerObject->type = PlayerType::Glass;			break;
+			case 1: playerObject->type = PlayerType::Concrete;		break;
+			case 2: playerObject->type = PlayerType::Plant;			break;
+			case 3: playerObject->type = PlayerType::Electricity;	break;
 			}
 		}
 
@@ -537,16 +537,16 @@ void Attack_Update(int playerIndex)
 		//    タイプ決定の if ブロックの外に出すことで、どのフォーム段階からの進化でもリセットされる
 
 
-		// 2進化に到達した直後ならエフェクトをセット
-		/*if (playerObject->form == Form::SecondEvolution && currentForm != Form::SecondEvolution)
+		// 第3形態に到達した直後ならエフェクトをセット
+		/*if (playerObject->form == Form::Third && currentForm != Form::Third)
 		{
 			XMFLOAT2 pos = { 170.0f, 600.0f };
 			XMFLOAT2 size = { 300.0f, 300.0f };
 			Effect_Set(0, pos, size);
 		}*/
 
-		// 2進化に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
-		if (playerObject->form == Form::SecondEvolution && currentForm != Form::SecondEvolution)
+		// 第3形態に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
+		if (playerObject->form == Form::Third && currentForm != Form::Third)
 		{
 			// プレイヤーごとの画面上のエフェクト位置
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
@@ -564,7 +564,7 @@ void Attack_Update(int playerIndex)
 			case PlayerType::Glass:		effectTexNo = 0; break;
 			case PlayerType::Concrete:	effectTexNo = 1; break;
 			case PlayerType::Plant:		effectTexNo = 2; break;
-			case PlayerType::Electric:	effectTexNo = 3; break;
+			case PlayerType::Electricity:	effectTexNo = 3; break;
 			default:					effectTexNo = 0; break;
 			}
 
@@ -580,7 +580,7 @@ void Attack_Update(int playerIndex)
 		player.breakCount_Glass = 0;
 		player.breakCount_Concrete = 0;
 		player.breakCount_Plant = 0;
-		player.breakCount_Electric = 0;
+		player.breakCount_Electricity = 0;
 	}
 }
 
@@ -736,7 +736,7 @@ void AttackPlayerCollisions()
 			float depthScale  = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
 
 			// 第2形態 第3形態はXとZ同じにする
-			if (defender->form == Form::FirstEvolution || defender->form == Form::SecondEvolution)
+			if (defender->form == Form::Second || defender->form == Form::Third)
 			{
 				widthScale = 0.25f;
 				depthScale = 0.25f;
@@ -769,7 +769,7 @@ void AttackPlayerCollisions()
 				if (defender->hp < 0.0f) defender->hp = 0.0f;
 
 				// スタンゲージ増加
-				defender->stunGauge += 0.5f;
+				defender->stunGauge += 2.0f;
 
 				// ダメージ数字を表示（頭上にオフセット）
 				int dmgInt = static_cast<int>(rawDamage + 0.5f);
@@ -791,11 +791,8 @@ void AttackPlayerCollisions()
 
 ATTACK_OBJECT* GetAttack(int playerIndex)
 {
-	// 範囲チェック 0未満 または 4以上なら nullptr を返す
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
-	{
-		return nullptr;
-	}
+	// 範囲チェック 0 1 2 3 以外なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
 	return &Attack[playerIndex];
 }

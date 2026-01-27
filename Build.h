@@ -16,9 +16,9 @@ using namespace DirectX;
 
 enum FIELD
 {
-    FIELD_BOX = 0,        // 箱
-    FIELD_BUILDING,       // 建物（Building）
-    FIELD_MAX
+	FIELD_BOX = 0,	// 箱
+	FIELD_BUILDING,	// 建物（Building）
+	FIELD_MAX
 };
 
 //=========================================
@@ -28,52 +28,48 @@ enum FIELD
 class Glass
 {
 public:
-    XMFLOAT3 pos;         // 座標
-    AABB boundingBox;     // 当たり判定
-    FIELD GL;
+	XMFLOAT3 pos;		// 座標
+	AABB boundingBox;	// 当たり判定
+	FIELD GL;
 
-    bool isActive = true;
-    // --- ここを追加！ ---
-    BuildingType type = BuildingType::Glass;
-
+	bool isActive = true;
+	// --- ここを追加！ ---
+	BuildingType type = BuildingType::Glass;
 };
 
 class Concrete
 {
 public:
-    XMFLOAT3 pos;         // 座標
-    AABB boundingBox;     // 当たり判定
-    FIELD Co;
+	XMFLOAT3 pos;		// 座標
+	AABB boundingBox;	// 当たり判定
+	FIELD Co;
 
-    bool isActive = true;
-    // --- ここを追加！ ---
-    BuildingType type = BuildingType::Concrete;
-
+	bool isActive = true;
+	// --- ここを追加！ ---
+	BuildingType type = BuildingType::Concrete;
 };
 
 class Plant
 {
 public:
-    XMFLOAT3 pos;         // 座標
-    AABB boundingBox;     // 当たり判定
-    FIELD Pl;
+	XMFLOAT3 pos;		// 座標
+	AABB boundingBox;	// 当たり判定
+	FIELD Pl;
 
-    bool isActive = true;
-    // --- ここを追加！ ---
-    BuildingType type = BuildingType::Plant;
-
+	bool isActive = true;
+	// --- ここを追加！ ---
+	BuildingType type = BuildingType::Plant;
 };
 
-class ELECTRIC
+class ELECTRICITY
 {
 public:
-    XMFLOAT3 pos;         // 座標
-    AABB boundingBox;     // 当たり判定
-    FIELD El;
-    bool isActive = true;
-    // --- ここを追加！ ---
-    BuildingType type = BuildingType::Electric;
-
+	XMFLOAT3 pos;		// 座標
+	AABB boundingBox;	// 当たり判定
+	FIELD El;
+	bool isActive = true;
+	// --- ここを追加！ ---
+	BuildingType type = BuildingType::Electricity;
 };
 
 

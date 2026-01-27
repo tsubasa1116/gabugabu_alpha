@@ -4,17 +4,12 @@
 #include "field.h"
 #include "Camera.h"
 #include "keyboard.h"
-
-///////////////////////////////////////
 #include "collider.h"
 #include "debug_render.h"
-///////////////////////////////////////
-
 #include "model.h"
-
 #include "Building.h"
-
-
+#include "Polygon3D.h"
+#include "special.h"
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
@@ -68,7 +63,7 @@ static const char* g_ModelName1[] = {
 };
 
 //マップデータ配列
-MAPDATA		Map[] =
+MAPDATA Map[] =
 {
 	// 地面
 	{ {},{}, FIELD::FIELD_Plant,0 },	// 配列番号[0]の確認
@@ -104,7 +99,7 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },	// 30
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electric,4},
+	{ {},{}, FIELD::FIELD_Electricity,4},
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -136,7 +131,7 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electric,0 },
+	{ {},{}, FIELD::FIELD_Electricity,0 },
 	{ {},{}, FIELD::FIELD_Glass },
 	{ {},{}, FIELD::FIELD_Concrete,1 },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -145,7 +140,7 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_Electric,1},//
+	{ {},{}, FIELD::FIELD_Electricity,1},//
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX},
@@ -155,7 +150,7 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electric,0 },
+	{ {},{}, FIELD::FIELD_Electricity,0 },
 	{ {},{}, FIELD::FIELD_BOX},
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -167,8 +162,8 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX},//
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electric,0 },
-	{ {},{}, FIELD::FIELD_Electric,0 },
+	{ {},{}, FIELD::FIELD_Electricity,0 },
+	{ {},{}, FIELD::FIELD_Electricity,0 },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },	// 100
@@ -198,7 +193,7 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_Glass, },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_Plant,2 },//
-	{ {},{}, FIELD::FIELD_Electric ,2},//
+	{ {},{}, FIELD::FIELD_Electricity ,2},//
 	{ {},{}, FIELD::FIELD_Plant,2 },//
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -258,8 +253,6 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	Test = ModelLoad(modelPath);//デバッグ
 
-
-
 	const int NUM = 10;		// 1行/列あたりのfieldの個数
 	//int count = sizeof(Map) / sizeof(Map[0]);	// 配列の要素数
 	int count = GetFieldObjectCount();
@@ -318,8 +311,6 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		//
 	}
 
-
-
 	//g_pDevice = pDevice;
 	g_pContext = pContext;
 
@@ -361,14 +352,11 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 //======================================================
 void Field_Finalize(void)
 {
-
 	ModelRelease(Test);
 
 	//SAFE_RELEASE(g_VertexBuffer);
 	//SAFE_RELEASE(g_IndexBuffer);
-	for (int i = 0; i < FIELD_TEX_MAX; ++i) {
-		SAFE_RELEASE(g_Texture[i]);
-	}
+	for (int i = 0; i < FIELD_TEX_MAX; ++i) SAFE_RELEASE(g_Texture[i]);
 
 	Building_Finalize();
 }
@@ -530,6 +518,54 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	///////////////////////////////////////////////////////
 	Building_DrawAll(s_IsKonamiCodeEntered);
+
+	if (s_IsKonamiCodeEntered)
+	{
+		// 植物・コンクリートのスペシャルが使用されている場合、円のフレームを赤色で表示
+		for (int p = 0; p < PLAYER_MAX; ++p)
+		{
+			PLAYEROBJECT* playerObject = GetPlayer(p);
+			PLAYEROBJECT& player = *playerObject;
+			if (!player.useSpecial) continue;
+
+			// 植物・コンクリートのスペシャル
+			if (player.type == PlayerType::Plant || player.type == PlayerType::Concrete)
+			{
+				// 円の中心と半径を設定
+				XMFLOAT3 center = playerObject->position;
+				float radius = 5.0f;
+
+				// 赤色で円を描画
+				Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+			}
+			// 電気のスペシャル
+			if (player.type == PlayerType::Electricity)
+			{
+				for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
+				{
+					// 電気の円の中心と半径を取得
+					XMFLOAT3 center = electricityCircles[i].center;
+					float radius = electricityCircles[i].radius;
+
+					// 赤色で円を描画
+					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+				}
+			}
+			// ガラスのスペシャル
+			if (player.type == PlayerType::Glass)
+			{
+				for (const auto& box : glassBoxes)
+				{
+					// ガラスの円の中心と半径を設定
+					XMFLOAT3 center = box.position;
+					float radius = 0.3f; // 半径0.3の円
+
+					// 赤色で円を描画
+					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+				}
+			}
+		}
+	}
 }
 
 //======================================================
@@ -539,6 +575,7 @@ void Field_Update(void)
 {
 
 }
+
 // ======================================================
 //	ゲッター
 // ------------------------------------------------------
@@ -548,9 +585,6 @@ MAPDATA* GetFieldObjects()
 {
 	return Map;
 }
-
-
-
 
 // フィールドオブジェクトの総数を返す
 int GetFieldObjectCount()

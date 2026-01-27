@@ -1,5 +1,4 @@
-﻿#pragma once
-/*==============================================================================
+﻿/*==============================================================================
 
    ポリゴン描画 [gauge.h]
 --------------------------------------------------------------------------------
@@ -15,14 +14,14 @@ using namespace DirectX;
 #include "shader.h"
 #include "debug_ostream.h"
 
-#define GAUGE_PLAYER_MAX 4
+#define GAUGE_PLAYER_MAX (4)
 
 struct GaugeData
 {
-    float fire, water, wind, earth;
-    float outer;
-    XMFLOAT2 pos;
-    XMFLOAT4 outercolor;
+	float fire, water, wind, earth;
+	float outer;
+	XMFLOAT2 pos;
+	XMFLOAT4 outercolor;
 };
 
 extern GaugeData g_Gauge[GAUGE_PLAYER_MAX];
@@ -34,9 +33,7 @@ void Gauge_Update(void);
 //==========================================
 // 描画セット（Setで設定しDrawで描画する）
 //==========================================
-void Gauge_Set(int i, float fire, float water, float wind, float earth,
-               float outer, const XMFLOAT2& pos);
+void Gauge_Set(int i, float fire, float water, float wind, float earth, float outer, const XMFLOAT2& pos);
 void Gauge_Draw(int i);
-
 
 #endif // gauge_H

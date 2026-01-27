@@ -152,7 +152,7 @@ void Camera_Update()
 		s_IsLerping = true;
 		s_LerpTime = 0.0f;
 
-		// カメラ移動による注視点の保存 (注視点(AtPosition)は通常プレイヤー位置)
+		// カメラ移動による注視点の保存 (注視点(AtPosition)は第1形態プレイヤー位置)
 		float current_at_x = CameraObject.atPosition.x;
 		float current_at_y = CameraObject.atPosition.y;
 		float current_at_z = CameraObject.atPosition.z;
@@ -160,7 +160,7 @@ void Camera_Update()
 		// --- 目標視点の設定 ---
 		switch (s_CurrentViewIndex)
 		{
-		case 0: // 通常視点 (Normal View)
+		case 0: // 第1形態視点 (Normal View)
 			s_TargetPos = XMFLOAT3(current_at_x, current_at_y + 10.0f, current_at_z - 10.0f);
 			s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z);
 			break;
@@ -244,6 +244,24 @@ void Camera_Draw()
 		CameraObject.nearClip,
 		CameraObject.farClip
 	);
+
+	// ★★★ 平行投影行列を作成する ★★★
+	// プロジェクション行列作成
+	// XMMatrixOrthographicLH(幅, 高さ, nearClip, farClip) を使用する
+	// ※幅と高さは、画面サイズをそのまま使うのが一般的です
+	//float width = (float)Direct3D_GetBackBufferWidth();
+	//width = 12.80f;
+	//float height = (float)Direct3D_GetBackBufferHeight();
+	//height = 7.20f;
+
+	//CameraObject.projection = XMMatrixOrthographicLH
+	//(
+	//	// 幅と高さ。この値がそのまま描画範囲（スクリーンサイズ）になる
+	//	width / CameraObject.aspect, // 幅 (アスペクト比で補正)
+	//	height / CameraObject.aspect, // 高さ (アスペクト比で補正)
+	//	CameraObject.nearClip,
+	//	CameraObject.farClip
+	//);
 
 	//ビュー行列作成
 	XMVECTOR	vpos = XMVectorSet(

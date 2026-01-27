@@ -271,7 +271,7 @@ void Skill_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext
 
 }
 
-void Skill_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void Skill_Electricity_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
@@ -327,7 +327,7 @@ void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Skill_Glass_Initialize(pDevice, pContext);
 	Skill_Concrete_Initialize(pDevice, pContext);
 	Skill_Plant_Initialize(pDevice, pContext);
-	Skill_Electric_Initialize(pDevice, pContext);
+	Skill_Electricity_Initialize(pDevice, pContext);
 }
 
 void Skill_Finalize()
@@ -426,44 +426,42 @@ void Skill_Glass_Update(int playerIndex)
 	{
 		SKILL_OBJECT& box = skillGlass.boxes[b];
 
-		for (int def = 0; def < PLAYER_MAX; ++def)
+		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
-			if (def == playerIndex) continue; // 自分は無視
+			if (p == playerIndex) continue; // 自分は無視
 
-			PLAYEROBJECT* defender = GetPlayer(def);
-			if (defender == nullptr) continue;
+			PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
+			if (otherPlayerObject == nullptr) continue;
+			PLAYEROBJECT& otherPlayer = *otherPlayerObject;
 
-			if (!defender->active) continue;      // 非アクティブは無視
-			if (defender->isInvincible) continue; // 無敵中は無視
+			if (!otherPlayer.active) continue;		// 非アクティブは無視
+			if (otherPlayer.isInvincible) continue;	// 無敵中は無視
 
-			// defender 用のヒットボックススケールを攻撃判定と合わせて計算して AABB を作る
-			XMFLOAT3 defenderHitboxScaling =
+			// otherPlayer 用のヒットボックススケールを攻撃判定と合わせて計算して AABB を作る
+			XMFLOAT3 otherPlayerHitboxScaling =
 			{
-				defender->scaling.x * RENDER_SCALE * HITBOX_WIDTH_SCALE,
-				defender->scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
-				defender->scaling.z * RENDER_SCALE * HITBOX_DEPTH_SCALE
+				otherPlayer.scaling.x * RENDER_SCALE * HITBOX_WIDTH_SCALE,
+				otherPlayer.scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
+				otherPlayer.scaling.z * RENDER_SCALE * HITBOX_DEPTH_SCALE
 			};
-			CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+			CalculateAABB(otherPlayer.boundingBox, otherPlayer.position, otherPlayerHitboxScaling);
 
 			// box の AABB 再更新
 			CalculateAABB(box.boundingBox, box.position, box.scaling);
 
-			// 判定（defender AABB と 箱 AABB）
-			MTV col = CalculateAABBMTV(defender->boundingBox, box.boundingBox);
+			// 判定（otherPlayer AABB と 箱 AABB）
+			MTV col = CalculateAABBMTV(otherPlayer.boundingBox, box.boundingBox);
 
 			// 当たってもアニメーションはなし
 			if (col.isColliding)
 			{
-				// ダメージのみ（ノックバックは与えない）
-				float damage = 0.01f;
-
-				// 防御率でダメージ軽減
-				defender->hp -= damage * defender->defense;
+				// ダメージのみ（ノックバックは与えない） 防御率でダメージ軽減
+				otherPlayer.hp -= 0.01f * otherPlayer.defense;
 				// HPが0以下にならないように
-				if (defender->hp < 0.0f) defender->hp = 0.0f;
+				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
 
 				// スタンゲージ増加
-				defender->stunGauge += 0.01f;
+				otherPlayer.stunGauge += 0.01f;
 			}
 		}
 	}
@@ -556,7 +554,7 @@ void Skill_Plant_Update(int playerIndex)
 	}
 }
 
-void Skill_Electric_Update(int playerIndex)
+void Skill_Electricity_Update(int playerIndex)
 {
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
@@ -574,8 +572,8 @@ void Skill_Electric_Update(int playerIndex)
 	}
 
 	float baseSpeed = 0.06f; // Normal
-	if (player.form == Form::FirstEvolution) baseSpeed = 0.05f;
-	else if (player.form == Form::SecondEvolution) baseSpeed = 0.04f;
+	if (player.form == Form::Second) baseSpeed = 0.05f;
+	else if (player.form == Form::Third) baseSpeed = 0.04f;
 
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;
@@ -584,12 +582,12 @@ void Skill_Electric_Update(int playerIndex)
 	player.speed = baseSpeed * 1.5f;
 	
 	// スキルの効果時間が経過したらスキル終了
-	if (player.skillTimer >= SKILL_ELECTRIC_TIME)
+	if (player.skillTimer >= SKILL_ELECTRICITY_TIME)
 	{
 		player.speed = baseSpeed * 1.0f;
 		player.useSkill = false;
 		player.skillTimer = 0.0f;
-		player.skillCoolTimer = SKILL_ELECTRIC_COOLTIME;
+		player.skillCoolTimer = SKILL_ELECTRICITY_COOLTIME;
 	}
 }
 
@@ -610,7 +608,7 @@ void Skill_Update(int playerIndex)
 		case PlayerType::Glass:		Skill_Glass_Update(playerIndex);	break;
 		case PlayerType::Concrete:	Skill_Concrete_Update(playerIndex);	break;
 		case PlayerType::Plant:		Skill_Plant_Update(playerIndex);	break;
-		case PlayerType::Electric:	Skill_Electric_Update(playerIndex);	break;
+		case PlayerType::Electricity:	Skill_Electricity_Update(playerIndex);	break;
 		default: break;
 		}
 	}
@@ -690,19 +688,19 @@ void Skill_Plant_Draw(int playerIndex)
 }
 
 // Electirc専用描画
-void Skill_Electric_Draw(int playerIndex)
+void Skill_Electricity_Draw(int playerIndex)
 {
 	// Electirc専用のテクスチャをセット
 	ID3D11ShaderResourceView* tex = g_Skill_Texture[1];
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// Electirc用の座標計算
-	SKILL_OBJECT& skillElectric = Skill[playerIndex];
+	SKILL_OBJECT& skillElectricity = Skill[playerIndex];
 
 	XMMATRIX WorldMatrix =
-		XMMatrixScaling(skillElectric.scaling.x, skillElectric.scaling.y, skillElectric.scaling.z) *
-		XMMatrixRotationRollPitchYaw(XMConvertToRadians(skillElectric.rotation.x), XMConvertToRadians(skillElectric.rotation.y), XMConvertToRadians(skillElectric.rotation.z)) *
-		XMMatrixTranslation(skillElectric.position.x, skillElectric.position.y, skillElectric.position.z);
+		XMMatrixScaling(skillElectricity.scaling.x, skillElectricity.scaling.y, skillElectricity.scaling.z) *
+		XMMatrixRotationRollPitchYaw(XMConvertToRadians(skillElectricity.rotation.x), XMConvertToRadians(skillElectricity.rotation.y), XMConvertToRadians(skillElectricity.rotation.z)) *
+		XMMatrixTranslation(skillElectricity.position.x, skillElectricity.position.y, skillElectricity.position.z);
 
 	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(WVP);
@@ -763,9 +761,9 @@ void Skill_Draw()
 			switch (player.type)
 			{
 		case PlayerType::Glass:		Skill_Glass_Draw(p);	break;
-		case PlayerType::Concrete:	//Skill_Concrete_Draw(p);	break;
-		case PlayerType::Plant:		//Skill_Plant_Draw(p);		break;
-		case PlayerType::Electric:	//Skill_Electric_Draw(p);	break;
+		case PlayerType::Concrete:	Skill_Concrete_Draw(p);	break;
+		case PlayerType::Plant:		Skill_Plant_Draw(p);		break;
+		case PlayerType::Electricity:	Skill_Electricity_Draw(p);	break;
 		default: break;
 			}
 		}
@@ -777,11 +775,8 @@ void Skill_Draw()
 
 SKILL_OBJECT* GetSkill(int playerIndex)
 {
-	// 範囲チェック 0未満 または 4以上なら nullptr を返す
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
-	{
-		return nullptr;
-	}
+	// 範囲チェック 0 1 2 3 以外なら nullptr を返す
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
 	return &Skill[playerIndex];
 }

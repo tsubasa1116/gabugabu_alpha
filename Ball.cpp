@@ -1,27 +1,24 @@
 ﻿//======================================================
-//	ball.cpp[]
+//	Ball.cpp[]
 // 
 //	制作者：前野翼			日付：2024//
 //======================================================
-//Ball.cpp
+#include "keyboard.h"
+#include "Ball.h"
+#include "Camera.h"
+#include "shader.h"
+#include "color.h"
+#include "hp.h"
 
-#include	"keyboard.h"
-#include	"Ball.h"
-#include	"Camera.h"
-#include	"shader.h"
-#include	"color.h"
-#include    "hp.h"
-
-static HP b_HPBar;
+static hp b_HPBar;
 
 // ボールオブジェクト
-BALL	g_Ball;
+BALL g_Ball;
 
 ID3D11Device* g_pDevice;
 ID3D11DeviceContext* g_pContext;
 
-
-void	BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -37,14 +34,13 @@ void	BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_Ball.State = BALL_STATE::BALL_STATE_MOVE;
 
 }
-void	BallFinalize()
+void BallFinalize()
 {
 	ModelRelease(g_Ball.Model);
-
 }
-void	BallUpdate()
-{
 
+void BallUpdate()
+{
 	switch (g_Ball.State)
 	{
 	case BALL_STATE::BALL_STATE_IDLE:
@@ -57,7 +53,7 @@ void	BallUpdate()
 		break;
 	}
 
-	//デバッグ
+	// デバッグ
 	g_Ball.Velocity = XMFLOAT3(0, 0, 0);
 	if (Keyboard_IsKeyDown(KK_UP))
 	{
@@ -78,12 +74,10 @@ void	BallUpdate()
 	g_Ball.position.x += g_Ball.Velocity.x;
 	g_Ball.position.y += g_Ball.Velocity.y;
 	g_Ball.position.z += g_Ball.Velocity.z;
-
-
 }
-void	BallDraw() 
-{
 
+void BallDraw() 
+{
 	//ワールド行列作成
 	XMMATRIX	scale = XMMatrixScaling(
 		g_Ball.Scaling.x,
@@ -111,7 +105,6 @@ void	BallDraw()
 	//モデルの描画リクエスト
 	ModelDraw(g_Ball.Model);
 }
-
 
 XMFLOAT3 GetBallPosition()
 {

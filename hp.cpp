@@ -11,11 +11,10 @@ static	ID3D11ShaderResourceView* g_Texture[6];
 // HPバーのスムーズ減少速度
 #define HPBAR_SPEED 3.0f
 
-
 // -------------------------------------------------------------
 // 初期化
 // -------------------------------------------------------------
-void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HP* bar, XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 backColor, XMFLOAT4 fillColor)
+void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar, XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 backColor, XMFLOAT4 fillColor)
 {
 	bar->pos = pos;
 	bar->size = size;
@@ -56,11 +55,10 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HP* bar,
 	assert(g_Texture[5]);//読み込み失敗時にダイアログを表示
 }
 
-
 // -------------------------------------------------------------
 // 更新
 // -------------------------------------------------------------
-void UpdateHP(HP* bar)
+void UpdateHP(hp* bar)
 {
 	if (!bar->use) return;
 
@@ -85,7 +83,6 @@ void UpdateHP(HP* bar)
 		}
 	}
 }
-
 
 // -------------------------------------------------------------
 // 描画
@@ -121,7 +118,7 @@ void UpdateHP(HP* bar)
 //
 //}
 
-void DrawHP(const HP* bar, int texNum)
+void DrawHP(const hp* bar, int texNum)
 {
 	if (!bar->use) return;
 
@@ -162,12 +159,10 @@ void DrawHP(const HP* bar, int texNum)
 	DrawSprite({ 74, 647 }, {110, 110}, XMFLOAT4(1, 1, 1, 0.6));*/
 }
 
-
-
 // -------------------------------------------------------------
 // HP設定
 // -------------------------------------------------------------
-void SetHPValue(HP* bar, int currentHP, int maxHP)
+void SetHPValue(hp* bar, int currentHP, int maxHP)
 {
 	float ratio = (float)currentHP / (float)maxHP;
 	if (ratio < 0.0f) ratio = 0.0f;
@@ -176,14 +171,10 @@ void SetHPValue(HP* bar, int currentHP, int maxHP)
 	bar->target = bar->size.x * ratio;
 }
 
-
-
 // -------------------------------------------------------------
 // 終了
 // -------------------------------------------------------------
-void FinalizeHP(HP* bar)
+void FinalizeHP(hp* bar)
 {
 	bar->use = false;
 }
-
-

@@ -9,41 +9,36 @@
 #ifndef DIRECT3D_H
 #define DIRECT3D_H
 
-
 #include <Windows.h>
 #include <d3d11.h>
 #include <mmsystem.h>
+#include <DirectXMath.h>
+using namespace DirectX;
 
-#include "DirectXTex.h"/////////////0602
+#include "DirectXTex.h"
 #if _DEBUG
-#pragma comment(lib, "DirectXTex_Debug.lib");
+ #pragma comment(lib, "DirectXTex_Debug.lib")
 #else
-#pragma comment(lib, "DirectXTex_Release.lib");
+ #pragma comment(lib, "DirectXTex_Release.lib")
 #endif
-
-
-
 
 // セーフリリースマクロ
 #define SAFE_RELEASE(o) if (o) { (o)->Release(); o = NULL; }
 
+bool Direct3D_Initialize(HWND hWnd);	// Direct3Dの初期化
+void Direct3D_Finalize();	// Direct3Dの終了処理
 
-bool Direct3D_Initialize(HWND hWnd); // Direct3Dの初期化
-void Direct3D_Finalize(); // Direct3Dの終了処理
+void Direct3D_Clear();		// バックバッファのクリア
+void Direct3D_Present();	// バックバッファの表示
 
-void Direct3D_Clear(); // バックバッファのクリア
-void Direct3D_Present(); // バックバッファの表示
-
-////////////////////////////////////////////////追加
 ID3D11Device* Direct3D_GetDevice(); // デバイスの取得
-ID3D11DeviceContext* Direct3D_GetDeviceContext(); // デバイスコンテキストの取得
-IDXGISwapChain* Direct3D_GetSwapChain(); // スワップチェインの取得
+ID3D11DeviceContext* Direct3D_GetDeviceContext();	// デバイスコンテキストの取得
+IDXGISwapChain* Direct3D_GetSwapChain();			// スワップチェインの取得
 
-unsigned int Direct3D_GetBackBufferWidth(); // バックバッファの幅を取得
-unsigned int Direct3D_GetBackBufferHeight(); // バックバッファの高さを取得
+unsigned int Direct3D_GetBackBufferWidth();		// バックバッファの幅を取得
+unsigned int Direct3D_GetBackBufferHeight();	// バックバッファの高さを取得
 
-
-void SetDepthTest(bool flg);	//深度テスト切り替え
+void SetDepthTest(bool flg);	// 深度テスト切り替え
 void SetDepthReadOnly();		// 深度テストは有効だが深度バッファへの書き込みを無効にする
 
 enum	BLENDSTATE
@@ -55,8 +50,8 @@ enum	BLENDSTATE
 
 	BLENDSTATE_MAX
 };
-void SetBlendState(BLENDSTATE blend);
 
+void SetBlendState(BLENDSTATE blend);
 
 //ブロック縦横配列サイズ
 #define BLOCK_COLS		(6)	//ブロックスタック横の数
@@ -70,11 +65,6 @@ void SetBlendState(BLENDSTATE blend);
 #define		POSITION_OFFSET_X	(490.0f)
 #define		POSITION_OFFSET_Y	(34.0f)
 
-
-////////////////////////////////////////////////////
-
-
-using namespace DirectX;
 struct Vertex3D
 {
 	XMFLOAT3 position; // 頂点座標  //XMFLOAT3へ変更
@@ -101,9 +91,5 @@ class LIGHTOBJECT
 		void	SetDiffuse(XMFLOAT4 d) { Light.Diffuse = d; }
 		void	SetAmbient(XMFLOAT4 a) { Light.Ambient = a; }
 };
-
-
-
-
 
 #endif // DIRECT3D_H

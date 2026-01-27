@@ -598,4 +598,7 @@ void Shader_BeginDebugColor()
 	// カラーバッファ (b1)
 	// ※デバッグシェーダーが register(b1) の COLORBUFFER を参照する場合に必要
 	g_pContext->PSSetConstantBuffers(1, 1, &g_pColorBuffer);
+
+	Shader_SetColor({ 1.0f, 0.0f, 0.0f, 1.0f }); // 赤色
+
 }

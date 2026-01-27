@@ -158,7 +158,6 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="attack.cpp" />
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Ball.cpp" />
-    <ClCompile Include="Block.cpp" />
     <ClCompile Include="Build.cpp" />
     <ClCompile Include="Building.cpp" />
     <ClCompile Include="Camera.cpp" />
@@ -187,7 +186,6 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="Manager.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="p.cpp" />
-    <ClCompile Include="player.cpp" />
     <ClCompile Include="polygon.cpp" />
     <ClCompile Include="Polygon3D.cpp" />
     <ClCompile Include="Result.cpp" />
@@ -206,7 +204,6 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="attack.h" />
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Ball.h" />
-    <ClInclude Include="Block.h" />
     <ClInclude Include="Build.h" />
     <ClInclude Include="Building.h" />
     <ClInclude Include="Camera.h" />
@@ -236,7 +233,6 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="Manager.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="p.h" />
-    <ClInclude Include="player.h" />
     <ClInclude Include="polygon.h" />
     <ClInclude Include="Polygon3D.h" />
     <ClInclude Include="Result.h" />
@@ -261,6 +257,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="ps_gauge.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

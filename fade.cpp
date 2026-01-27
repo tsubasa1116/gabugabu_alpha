@@ -3,38 +3,33 @@
 // 
 //	制作者：前野翼			日付：2024//
 //======================================================
-//fade.cpp
 
-#include	"fade.h"
-#include	"shader.h"
+#include "fade.h"
+#include "shader.h"
+FadeObject g_Fade;	// フェード処理構造体
 
-FadeObject	g_Fade;		//フェード処理構造体
-
-static	ID3D11ShaderResourceView* g_Texture = NULL;	//テクスチャ１枚を表すオブジェクト
+static ID3D11ShaderResourceView* g_Texture = NULL;	// テクスチャ１枚を表すオブジェクト
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
-
-
 
 void Fade_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	//テクスチャ読み込み
+	// テクスチャ読み込み
 	TexMetadata		metadata;
 	ScratchImage	image;
 	LoadFromWICFile(L"asset\\texture\\fade.bmp", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-	assert(g_Texture);//読み込み失敗時にダイアログを表示
+	assert(g_Texture);	// 読み込み失敗時にダイアログを表示
 
 	g_Fade.fadecolor.x = 0.0f;
 	g_Fade.fadecolor.y = 0.0f;
 	g_Fade.fadecolor.z = 0.0f;
 	g_Fade.fadecolor.w = 1.0f;
-	g_Fade.frame = 60.0f;	//60フレームでフェード完了
+	g_Fade.frame = 60.0f;	// 60フレームでフェード完了
 	g_Fade.state = FADE_STATE::FADE_NONE;
-
 }
 
 void Fade_Finalize()
@@ -52,25 +47,25 @@ void Fade_Update()
 
 void Fade_Draw()
 { 
-	//現在の状況
+	// 現在の状況
 	switch (g_Fade.state)
 	{
 		case FADE_STATE::FADE_NONE:
 			return;
 		case FADE_STATE::FADE_IN:
 			if (g_Fade.fadecolor.w < 0.0)
-			{//フェードイン終了
+			{// フェードイン終了
 				g_Fade.fadecolor.w = 0.0f;
 				g_Fade.state = FADE_STATE::FADE_NONE;
 			}
 			break;
 		case FADE_STATE::FADE_OUT:
 			if (g_Fade.fadecolor.w > 1.0f)
-			{//フェードアウト終了
+			{// フェードアウト終了
 				g_Fade.fadecolor.w = 1.0;
-				//フェードイン初期化
+				// フェードイン初期化
 				SetFade(g_Fade.frame, g_Fade.fadecolor, FADE_STATE::FADE_IN, g_Fade.scene);
-				//シーン切り替え
+				// シーン切り替え
 				SetScene(g_Fade.scene);
 			}
 			break;
@@ -93,31 +88,29 @@ void Fade_Draw()
 		0.0f,
 		1.0f));
 
-	//テクスチャをセット
+	// テクスチャをセット
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
 
-	//スプライト描画
+	// スプライト描画
 	SetBlendState(BLENDSTATE_ALPHA);//αブレンド
 	XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 	XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
 	DrawSprite(pos, size, g_Fade.fadecolor);
 
-	//フェード処理
+	// フェード処理
 	switch (g_Fade.state)
 	{
 		case FADE_STATE::FADE_IN:
-			g_Fade.fadecolor.w -= (1.0f / g_Fade.frame);//透明にしていく
+			g_Fade.fadecolor.w -= (1.0f / g_Fade.frame);	// 透明にしていく
 			break;
 		case FADE_STATE::FADE_OUT:
-			g_Fade.fadecolor.w += (1.0f / g_Fade.frame);//不透明にしていく
+			g_Fade.fadecolor.w += (1.0f / g_Fade.frame);	// 不透明にしていく
 			break;
 	}
-
-
 }
 
-void	SetFade(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene)
-{ 
+void SetFade(float fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene)
+{
 	g_Fade.frame = fadeframe;
 	g_Fade.fadecolor = color;
 	g_Fade.state = state;
@@ -125,19 +118,17 @@ void	SetFade(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene)
 
 	if (g_Fade.state == FADE_IN)
 	{
-		g_Fade.fadecolor.w = 1.0f;	//不透明にする
+		g_Fade.fadecolor.w = 1.0f;	// 不透明にする
 	}
 	else
 	{
-		g_Fade.fadecolor.w = 0.0f;	//透明にする
+		g_Fade.fadecolor.w = 0.0f;	// 透明にする
 	}
-
-
 }
 
 FADE_STATE	GetFadeState()
 {
-	return	g_Fade.state;	//現在の状態
+	return	g_Fade.state;	// 現在の状態
 }
 
 

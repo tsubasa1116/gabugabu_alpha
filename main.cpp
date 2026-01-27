@@ -4,8 +4,8 @@
 //	制作者：前野翼			日付：2024//
 //======================================================
 //ウィンドウの表示
-#include <SDKDDKVer.h>	//利用できる最も上位の Windows プラットフォームが定義される
-#define WIN32_LEAN_AND_MEAN	//32bitアプリには不要な情報を抑止してコンパイル時間を短縮
+#include <SDKDDKVer.h>		// 利用できる最も上位の Windows プラットフォームが定義される
+#define WIN32_LEAN_AND_MEAN	// 32bitアプリには不要な情報を抑止してコンパイル時間を短縮
 #include <windows.h>
 #include "debug_ostream.h"	//デバッグ表示
 
@@ -17,20 +17,15 @@
 #include "field.h"
 #include "sprite.h"
 #include "keyboard.h"
-#include "player.h"
-#include "block.h"
 #include "Effect.h"
 #include "score.h"
 #include "Polygon3D.h"
-
 #include "Manager.h"
 #include "Audio.h"
 #include "input.h"
-
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-
 #include <dinput.h>
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
@@ -39,7 +34,6 @@
 #define		SCREEN_HEIGHT	(720)
 //#define		SCREEN_WIDTH	(1920)
 //#define		SCREEN_HEIGHT	(1080)
-
 
 //==================================
 //グローバル変数
@@ -58,8 +52,8 @@ char	g_DebugStr[2048];	//FPS表示文字列
 //=================================
 //マクロ定義
 //=================================
-#define		CLASS_NAME	"DX21 Window"
-#define		WINDOW_CAPTION	"ポリゴン描画"
+#define	 CLASS_NAME	"DX21 Window"
+#define	 WINDOW_CAPTION	"ポリゴン描画"
 
 //===================================
 //プロトタイプ宣言
@@ -74,18 +68,17 @@ BOOL CALLBACK EnumGamepadCallback(const DIDEVICEINSTANCE* inst, VOID* ctx)
 {
 	// プロコンだけ拾う（名称一致）
 	//if (strstr(inst->tszProductName, "Pro Controller"))
-	
-		if (g_GamepadCount < 4)
-		{
-			HRESULT hr = g_pDI->CreateDevice(inst->guidInstance, &g_pGamepad[g_GamepadCount], NULL);
-			
-			if (SUCCEEDED(hr))
-			{
-				g_GamepadCount++;
-			}
-		}
 
-	
+	if (g_GamepadCount < 4)
+	{
+		HRESULT hr = g_pDI->CreateDevice(inst->guidInstance, &g_pGamepad[g_GamepadCount], NULL);
+
+		if (SUCCEEDED(hr))
+		{
+			g_GamepadCount++;
+		}
+	}
+
 	return DIENUM_CONTINUE;
 }
 
@@ -153,15 +146,12 @@ float NormalizeStickWithDeadZone(LONG value)
 		return (v + DEAD_ZONE) / (MAX_VALUE - DEAD_ZONE);
 }
 
-
-int APIENTRY WinMain(HINSTANCE hInstance,
-	HINSTANCE hPrevInstance, LPSTR lpCmd, int nCmdShow)
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, int nCmdShow)
 {
-
-	//乱数の初期化
+	// 乱数の初期化
 	srand(timeGetTime());
 
-	//フレームレート計測用変数
+	// フレームレート計測用変数
 	DWORD	dwExecLastTime;
 	DWORD	dwFPSLastTime;
 	DWORD	dwCurrentTime;
@@ -169,33 +159,32 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	HRESULT hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
 
+	// ウィンドウクラスの登録（ウィンドウの仕様的な物を決めてWindowsへセットする）
+	WNDCLASS	wc;	// 構造体を準備
+	ZeroMemory(&wc, sizeof(WNDCLASS));	// 内容を０で初期化
+	wc.lpfnWndProc = WndProc;			// コールバック関数のポインター
+	wc.lpszClassName = CLASS_NAME;		// この仕様書の名前
+	wc.hInstance = hInstance;			// このアプリケーションのこと
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);	// カーソルの種類
+	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND + 1);	// ウィンドウの背景色は黒
+	RegisterClass(&wc);	// 構造体をWindowsへセット
 
-	//ウィンドウクラスの登録（ウィンドウの仕様的な物を決めてWindowsへセットする）
-	WNDCLASS	wc;	//構造体を準備
-	ZeroMemory(&wc, sizeof(WNDCLASS));//内容を０で初期化
-	wc.lpfnWndProc = WndProc;	//コールバック関数のポインター
-	wc.lpszClassName = CLASS_NAME;	//この仕様書の名前
-	wc.hInstance = hInstance;	//このアプリケーションのこと
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);//カーソルの種類
-	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND+1 );//ウィンドウの背景色は黒
-	RegisterClass(&wc);	//構造体をWindowsへセット
-
-	//クライアント領域のサイズを表す矩形 (左からleft, top, right, bottom)
+	// クライアント領域のサイズを表す矩形 (左からleft, top, right, bottom)
 	RECT window_rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 	// フルHD
 	//RECT window_rect = { -960, -540, SCREEN_WIDTH, SCREEN_HEIGHT };
-	
-	//ウィンドウのスタイル
+
+	// ウィンドウのスタイル
 	DWORD window_style = WS_OVERLAPPEDWINDOW;
-	//指定したクライアント領域を確保するために新たな矩形座標を計算
+	// 指定したクライアント領域を確保するために新たな矩形座標を計算
 	AdjustWindowRect(&window_rect, window_style, FALSE);
-	//調整された矩形の横と縦のサイズを計算
+	// 調整された矩形の横と縦のサイズを計算
 	int window_width = window_rect.right - window_rect.left;
 	int window_height = window_rect.bottom - window_rect.top;
 
-	//ウィンドウの作成
+	// ウィンドウの作成
 	HWND	hWnd = CreateWindow(
-		CLASS_NAME,	
+		CLASS_NAME,
 		WINDOW_CAPTION,
 		window_style,
 		CW_USEDEFAULT,
@@ -208,19 +197,16 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		NULL
 	);
 
-	//作成したウィンドウを表示する
-	ShowWindow(hWnd, nCmdShow);//引数に従って表示、または非表示
-	//ウィンドウ内部の更新要求
+	// 作成したウィンドウを表示する
+	ShowWindow(hWnd, nCmdShow);	// 引数に従って表示、または非表示
+	// ウィンドウ内部の更新要求
 	UpdateWindow(hWnd);
-
 
 	Direct3D_Initialize(hWnd);
 	Keyboard_Initialize();
 	Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext()); // シェーダの初期化
-	InitializeSprite();//スプライトの初期化
-
-	InitAudio();	//サウンドの初期化
-
+	InitializeSprite();	// スプライトの初期化
+	InitAudio();		// サウンドの初期化
 	InitImGui(hWnd, Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 
 	////////////////////////////////////////////////////////////////
@@ -256,24 +242,23 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	Manager_Initialize();
 
-
-	//メッセージループ
+	// メッセージループ
 	MSG	msg;
 	ZeroMemory(&msg, sizeof(MSG));
 
-	//フレームレート計測初期化
-	timeBeginPeriod(1);	//タイマーの精度を設定
-	dwExecLastTime = dwFPSLastTime = timeGetTime();//現在のタイマー値
+	// フレームレート計測初期化
+	timeBeginPeriod(1);	// タイマーの精度を設定
+	dwExecLastTime = dwFPSLastTime = timeGetTime();	// 現在のタイマー値
 	dwCurrentTime = dwFrameCount = 0;
 
-	//終了メッセージが来るまでループする
+	// 終了メッセージが来るまでループする
 	do {
-		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) 
+		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{ // ウィンドウメッセージが来ていたら
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		else 
+		else
 		{ // ゲームの処理
 			dwCurrentTime = timeGetTime();
 			if ((dwCurrentTime - dwFPSLastTime) >= 1000)
@@ -281,15 +266,15 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 #ifdef _DEBUG
 				g_CountFPS = dwFrameCount;
 #endif
-				dwFPSLastTime = dwCurrentTime;//現在のタイマー値保存
+				dwFPSLastTime = dwCurrentTime;	// 現在のタイマー値保存
 				dwFrameCount = 0;
 			}
 
 			if ((dwCurrentTime - dwExecLastTime) >= ((float)1000 / 60))
 			{// 1/60s 経過した
-				dwExecLastTime = dwCurrentTime;//現在のタイマーと保存
+				dwExecLastTime = dwCurrentTime;	// 現在のタイマーと保存
 #ifdef _DEBUG
-				//ウィンドウキャプションへ現在のFPSを表示
+				// ウィンドウキャプションへ現在のFPSを表示
 				wsprintf(g_DebugStr, "DX21 プロジェクト ");
 				wsprintf(&g_DebugStr[strlen(g_DebugStr)],
 					" FPS : %d", g_CountFPS);
@@ -356,8 +341,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 
 				}
-				//描画処理
-				Direct3D_Clear();// バックバッファをクリア
+				// 描画処理
+				Direct3D_Clear();	// バックバッファをクリア
 				Manager_Draw();
 				
 				EndImGuiFrame();	// ImGui を描画
@@ -369,29 +354,26 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			}
 		}
 	} while (msg.message != WM_QUIT);
-
 	
-
 	Manager_Finalize();
-	UninitAudio();		//サウンドの終了
-	Shader_Finalize(); // シェーダの終了処理
-	FinalizeSprite();	//スプライトの終了処理
+	UninitAudio();		// サウンドの終了
+	Shader_Finalize();	// シェーダの終了処理
 
 	// DirectInput終了処理
-    for (int i = 0; i < g_GamepadCount; i++)
-    {
+	for (int i = 0; i < g_GamepadCount; i++)
+	{
 		if (g_pGamepad[i])
 		{
 			g_pGamepad[i]->Unacquire();
 			g_pGamepad[i]->Release();
 			g_pGamepad[i] = nullptr;
 		}
-    }
-    if (g_pDI)
-    {
+	}
+	if (g_pDI)
+	{
 		g_pDI->Release();
 		g_pDI = nullptr;
-    }
+	}
 
 	ShutdownImGui();
 	Direct3D_Finalize();
@@ -400,62 +382,56 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	return (int)msg.wParam;
 }
 
-
-
 //=========================================
 //ウィンドウプロシージャ
 // メッセージループ内で呼び出される
 //=========================================
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	HGDIOBJ hbrWhite, hbrGray;
-
-	HDC		hdc;	//ウィンドウ画面を表す情報（デバイスコンテキスト 入出力先）
-	PAINTSTRUCT	ps;	//ウィンドウ画面の大きさなど描画関連の情報
+	//HGDIOBJ hbrWhite, hbrGray;
+	//HDC		hdc;	//ウィンドウ画面を表す情報（デバイスコンテキスト 入出力先）
+	//PAINTSTRUCT	ps;	//ウィンドウ画面の大きさなど描画関連の情報
 
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
 		return true;
 
 	switch (uMsg)
 	{
-		case WM_ACTIVATEAPP:
-		case WM_SYSKEYDOWN:
-		case WM_KEYUP:
-		case WM_SYSKEYUP:
-		     Keyboard_ProcessMessage(uMsg, wParam, lParam);
-			 break;
+	case WM_ACTIVATEAPP:
+	case WM_SYSKEYDOWN:
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		Keyboard_ProcessMessage(uMsg, wParam, lParam);
+		break;
 
-		case WM_KEYDOWN:	//キーが押された
-			if (wParam == VK_ESCAPE)//押されたのはESCキー
-			{
-				//ウィンドウを閉じたいリクエストをWindowsに送る
-				SendMessage(hWnd, WM_CLOSE, 0, 0);
-			}
+	case WM_KEYDOWN:	// キーが押された
+		if (wParam == VK_ESCAPE)	// 押されたのはESCキー
+		{
+			// ウィンドウを閉じたいリクエストをWindowsに送る
+			SendMessage(hWnd, WM_CLOSE, 0, 0);
+		}
 
-			Keyboard_ProcessMessage(uMsg, wParam, lParam);
-			break;
-		case WM_CLOSE:	//ウィンドウを閉じなさい命令				
-			//if (
-			//	MessageBox(hWnd, "本当に終了してよろしいですか？",
-			//		"確認", MB_OKCANCEL | MB_DEFBUTTON2) == IDOK
-			//	)
-			//{//OKが押されたとき
-			//	DestroyWindow(hWnd);//終了する手続きをWindowsへリクエスト
-			//}
-			//else
-			//{
-			//	return 0;	//やっぱり終わらない
-			//}
+		Keyboard_ProcessMessage(uMsg, wParam, lParam);
+		break;
+	case WM_CLOSE:	// ウィンドウを閉じなさい命令				
+		//if (
+		//	MessageBox(hWnd, "本当に終了してよろしいですか？",
+		//		"確認", MB_OKCANCEL | MB_DEFBUTTON2) == IDOK
+		//	)
+		//{//OKが押されたとき
+		//	DestroyWindow(hWnd);//終了する手続きをWindowsへリクエスト
+		//}
+		//else
+		//{
+		//	return 0;	//やっぱり終わらない
+		//}
 
-			//break;
-		case WM_DESTROY:	//終了してOKですよ
-			PostQuitMessage(0);		//自分のメッセージに０を送る
-			break;
-
+		//break;
+	case WM_DESTROY:			// 終了してOKですよ
+		PostQuitMessage(0);		// 自分のメッセージに0を送る
+		break;
 	}
-
-	//必用の無いメッセージは適当に処理させて終了
+	// 必要の無いメッセージは適当に処理させて終了
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
-
 }
 

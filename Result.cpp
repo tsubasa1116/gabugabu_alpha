@@ -1,16 +1,13 @@
 ﻿//======================================================
-//	result.cpp[]
+//	Result.cpp[]
 // 
 //	制作者：田中佑奈			日付：2026//
 //======================================================
 
-//Result.cpp
-#include	"Manager.h"
-#include	"sprite.h"
-#include	"keyboard.h"
-
-#include	"Result.h"
-
+#include "Manager.h"
+#include "sprite.h"
+#include "keyboard.h"
+#include "Result.h"
 #include "fade.h"
 #include "swipe.h"
 #include "shader.h"
@@ -204,7 +201,7 @@ void Result_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		assert(g_Texture3);//読み込み失敗時にダイアログを表示
 	}
 
-	//フェードインのセット
+	// フェードインのセット
 	XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	SetFade(60.0f, color, FADE_IN, SCENE_GAME);
 }
@@ -214,7 +211,7 @@ void Result_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 //======================================================
 void Result_Finalize()
 {
-	//テクスチャの解放など
+	// テクスチャの解放など
 	SAFE_RELEASE(g_Texture);
 	SAFE_RELEASE(g_Texture2);
 	SAFE_RELEASE(g_Texture3);
@@ -247,7 +244,7 @@ void Result_Update()
 	//フェード処理中はキーを受け付けない
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
-		//フェードアウトさせてシーンを切り替える
+		// フェードアウトさせてシーンを切り替える
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_TITLE);
 	}
@@ -452,7 +449,7 @@ void Result_Draw()
 		0.0f,
 		0.0f,
 		1.0f));
-	// スプライトの描画は通常ブレンド無しかアルファにする（既存スタイルに合わせる）
+	// スプライトの描画は第1形態ブレンド無しかアルファにする（既存スタイルに合わせる）
 	SetBlendState(BLENDSTATE_NONE);
 
 	// --- ボタン：5秒後に右からポップアウト ---
@@ -532,6 +529,6 @@ void Result_Draw()
 	}
 	// ------------------------------------------------------------------
 
-	// スプライトの描画は通常ブレンド無しかアルファにする（既存スタイルに合わせる）
+	// スプライトの描画は第1形態ブレンド無しかアルファにする（既存スタイルに合わせる）
 	SetBlendState(BLENDSTATE_NONE);
 }

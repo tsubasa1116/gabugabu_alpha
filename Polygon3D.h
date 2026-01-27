@@ -3,7 +3,7 @@
 #pragma once
 
 #include <vector>
-#include "d3d11.h"
+#include <d3d11.h>
 #include "collider.h" // AABB を使うためにインクルード
 #include "Building.h" 
 
@@ -21,22 +21,22 @@
 
 enum class PlayerDir
 {
-	Up_Right = 0,
-	Up_Left,
-	Down_Right,
+	Down = 0,
 	Down_Left,
-	Up,
-	Down,
-	Right,
 	Left,
+	Up_Left,
+	Up,
+	Up_Right,
+	Right,
+	Down_Right,
 	Max
 };
 
 enum class Form
 {
-	Normal = 0,			// 通常
-	FirstEvolution,		// 1進化
-	SecondEvolution		// 2進化
+	First = 0,	// 第1形態
+	Second,		// 第2形態
+	Third		// 第3形態
 };
 
 enum class PlayerType
@@ -45,7 +45,7 @@ enum class PlayerType
 	Glass,		// ガラス
 	Concrete,	// コンクリ
 	Plant,		// 植物
-	Electric,	// 電気
+	Electricity,// 電気
 	Max
 };
 
@@ -90,12 +90,6 @@ struct PLAYEROBJECT
 	bool isDown;			// ダウン中かどうか
 	float downTimer;		// ダウンタイマー
 
-	float gl;
-	float pl;
-	float co;
-	float el;
-	float gaugeOuter;
-
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	PlayerDir lastDir;							// 待機時の向き
@@ -108,7 +102,7 @@ struct PLAYEROBJECT
 	int breakCount_Glass;					// 破壊した数 ガラス
 	int breakCount_Concrete;				// 破壊した数 コンクリート
 	int breakCount_Plant;					// 破壊した数 植物
-	int breakCount_Electric;				// 破壊した数 電気
+	int breakCount_Electricity;				// 破壊した数 電気
 	std::vector<BuildingType> brokenHistory;// 破壊した建物のリスト
 
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル

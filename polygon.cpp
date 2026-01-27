@@ -10,9 +10,8 @@ using namespace DirectX;
 #include "direct3d.h"
 #include "shader.h"
 #include "debug_ostream.h"
-#include "sprite.h"//スプライト機能を追加
-
-#include "keyboard.h"//<<<<<<<<<<<<<<<<<<<追加
+#include "sprite.h"
+#include "keyboard.h"
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//テクスチャ１枚を表すオブジェクト
 
@@ -32,14 +31,13 @@ void Polygon_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	//テクスチャ画像読み込み
+	// テクスチャ画像読み込み
 	TexMetadata		metadata;
 	ScratchImage	image;
-//	LoadFromWICFile(L"asset\\texture\\shadow.png", WIC_FLAGS_NONE, &metadata, image);
+	//LoadFromWICFile(L"asset\\texture\\shadow.png", WIC_FLAGS_NONE, &metadata, image);
 	LoadFromWICFile(L"asset\\texture\\kai_walk_01.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-	assert(g_Texture);//読み込み失敗時にダイアログを表示
-
+	assert(g_Texture);	// 読み込み失敗時にダイアログを表示
 }
 
 void Polygon_Finalize(void)
@@ -57,53 +55,53 @@ void Polygon_Draw(void)
 	XMFLOAT2 size = { 200, 300 };
 
 	static XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT - 150 };
-	if (Keyboard_IsKeyDown(KK_W))//Wキー
+	if (Keyboard_IsKeyDown(KK_W))	// Wキー
 	{
-		//キーが押された場合
+		// キーが押された場合
 		pos.y += -2.0f;
 	}
-	//トリガーキーの場合
-	if (Keyboard_IsKeyDown(KK_S))//S矢印キー
+	// トリガーキーの場合
+	if (Keyboard_IsKeyDown(KK_S))	// Sキー
 	{
 		//キーが押された場合
 		pos.y += 2.0f;
 	}
-	if (Keyboard_IsKeyDown(KK_A))//Aキー
+	if (Keyboard_IsKeyDown(KK_A))	// Aキー
 	{
-		//キーが押された場合
+		// キーが押された場合
 		pos.x += -2.0f;
 	}
-	//トリガーキーの場合
-	if (Keyboard_IsKeyDown(KK_D))//D矢印キー
+	// トリガーキーの場合
+	if (Keyboard_IsKeyDown(KK_D))	// Dキー
 	{
-		//キーが押された場合
+		// キーが押された場合
 		pos.x += 2.0f;
 	}
 
-	//スプライト回転角(度)
+	// スプライト回転角(度)
 	static float deg = 0.0f;
-	//キーボードの入力チェック
-	if (Keyboard_IsKeyDown(KK_LEFT))//左矢印キー
+	// キーボードの入力チェック
+	if (Keyboard_IsKeyDown(KK_LEFT))	// 左矢印キー
 	{
 		//キーが押された場合
 		deg += 2.0f;
 	}
-	//トリガーキーの場合
-	if (Keyboard_IsKeyDown(KK_RIGHT))//右矢印キー
+	// トリガーキーの場合
+	if (Keyboard_IsKeyDown(KK_RIGHT))	// 右矢印キー
 	{
-		//キーが押された場合
+		// キーが押された場合
 		deg += -2.0f;
 	}
-	//スケーリング
+	// スケーリング
 	static	float	scl = 1.0f;
-	if (Keyboard_IsKeyDown(KK_UP))//上矢印キー
+	if (Keyboard_IsKeyDown(KK_UP))		// 上矢印キー
 	{
-		//キーが押された場合
+		// キーが押された場合
 		scl += 0.1f;
 		if (scl > 5.0f) scl = 5.0f;
 	}
-	//トリガーキーの場合
-	if (Keyboard_IsKeyDown(KK_DOWN))//↓矢印キー
+	// トリガーキーの場合
+	if (Keyboard_IsKeyDown(KK_DOWN))	// 下矢印キー
 	{
 		//キーが押された場合
 		scl += -0.1f;
@@ -133,15 +131,15 @@ void Polygon_Draw(void)
 
 	Shader_SetMatrix(mat);
 
-	SetBlendState(BLENDSTATE_ALPHA);//ブレンド無し
+	SetBlendState(BLENDSTATE_ALPHA);	// ブレンド無し
 
-	//スプライト描画テスト
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Textureを使うように設定する
+	// スプライト描画テスト
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture);	// g_Textureを使うように設定する
 
-	static float bno = 0;	//ブロックの番号
+	static float bno = 0;	// ブロックの番号
 	DrawSprite(size, col, (int)bno, 4, 3);
 
-	bno += 5.0f/60.0f;	//適当に数字を増やす
+	bno += 5.0f/60.0f;	// 適当に数字を増やす
 	if (bno >= 10.0f)
 	{
 		bno = 0.0f;
