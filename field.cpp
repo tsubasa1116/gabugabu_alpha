@@ -1,7 +1,5 @@
 //======================================================
 //	field.cpp[]
-// 
-//	制作者：前野翼			日付：2024//
 //======================================================
 #include "field.h"
 #include "Camera.h"
@@ -47,12 +45,12 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
-	L"Asset\\Texture\\green.png", 
+	L"Asset\\Texture\\gure.jpg",
 	L"Asset\\Texture\\fade.bmp"
 };
 
 
-static const char* g_ModelName[] = { 
+static const char* g_ModelName[] = {
 	"field",
 	"field_v2",
 	"field_v3",
@@ -64,21 +62,25 @@ static const char* g_ModelName[] = {
 	"build_glass_new"			// 変な建物
 	"propsTowerMain_v3"			//東京タワ-
 };
+static const char* g_ModelName1[] = {
+	"raibu",
+	"kitosaku"
+};
 
 //マップデータ配列
 MAPDATA		Map[] =
 {
 	// 地面
-	{ {},{}, FIELD::FIELD_BOX },	// 配列番号[0]の確認
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Plant,0 },	// 配列番号[0]の確認
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
 	{ {},{}, FIELD::FIELD_BOX },	// 10
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -94,23 +96,113 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Glass },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electric},
-	{ {},{}, FIELD::FIELD_Glass },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX},
+	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },	// 30
-	{ {},{}, FIELD::FIELD_Glass },
-	{ {},{}, FIELD::FIELD_Glass },
-	{ {},{}, FIELD::FIELD_Electric },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Concrete },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Concrete },
+	{ {},{}, FIELD::FIELD_Electric,4},
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },	// 40
 	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX},
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Glass },
+	{ {},{}, FIELD::FIELD_BOX},
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Plant,2 },	// 50
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX},
+	{ {},{}, FIELD::FIELD_Concrete,1 },
+	{ {},{}, FIELD::FIELD_Concrete,2},
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Plant,2 },		// 60
+	{ {},{}, FIELD::FIELD_Concrete,0 },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Electric,0 },
+	{ {},{}, FIELD::FIELD_Glass },
+	{ {},{}, FIELD::FIELD_Concrete,1 },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },// 70
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX},
+	{ {},{}, FIELD::FIELD_Electric,1},//
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX},
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },	// 80
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Electric,0 },
+	{ {},{}, FIELD::FIELD_BOX},
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },	// 90
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX},//
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Electric,0 },
+	{ {},{}, FIELD::FIELD_Electric,0 },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },	// 100
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Concrete,1},
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },	// 110
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Concrete,2 },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Plant,2},  //
+	{ {},{}, FIELD::FIELD_Plant,2},  //
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },	// 118
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Glass,1 },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Glass, },
+	{ {},{}, FIELD::FIELD_Glass, },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_Plant,2 },//
+	{ {},{}, FIELD::FIELD_Electric ,2},//
+	{ {},{}, FIELD::FIELD_Plant,2 },//
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX},
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -119,7 +211,9 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 50
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX },
+	{ {},{}, FIELD::FIELD_BOX},
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -129,7 +223,6 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 60
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -138,109 +231,18 @@ MAPDATA		Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 70
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Glass },
-	{ {},{}, FIELD::FIELD_Tower },
-	{ {},{}, FIELD::FIELD_Concrete },
-	{ {},{}, FIELD::FIELD_Electric },
-	{ {},{}, FIELD::FIELD_Electric},
-	{ {},{}, FIELD::FIELD_Electric },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 80
-	{ {},{}, FIELD::FIELD_Glass },
-	{ {},{}, FIELD::FIELD_Glass },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Concrete },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electric },
-	{ {},{}, FIELD::FIELD_Electric },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 90
-	{ {},{}, FIELD::FIELD_Concrete },
-	{ {},{}, FIELD::FIELD_Concrete },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_Plant },	// 100
-	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_Plant },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 110
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 118
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	
-	
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,0 },
+
+
 	//{ {},{}, FIELD::FIELD_BOX },	// 120
 
 	{ XMFLOAT3(2.0f,-1.0f,	5.0f), {}, FIELD::FIELD_MAX }	// MAPデータ終了
@@ -253,7 +255,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	char modelPath[256];
 	snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[1]);
-	
+
 	Test = ModelLoad(modelPath);//デバッグ
 
 
@@ -375,7 +377,7 @@ void Field_Finalize(void)
 //	描画関数
 //======================================================
 void Field_Draw(bool s_IsKonamiCodeEntered)
-{ 
+{
 	static bool input2 = false;
 	// デバッグモード中のみキー入力を受け付ける
 	if (s_IsKonamiCodeEntered)
@@ -449,7 +451,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		//DirectXへ行列をセット
 		Shader_SetWorldMatrix(World);
 		Shader_SetMatrix(WVP);
-		
+
 		// --------------------------------------------------------
 		// map[i].no の値 (intにキャスト) に対応するテクスチャをセット
 		// --------------------------------------------------------
@@ -533,7 +535,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 //======================================================
 //	更新処理
 //======================================================
-void Field_Update(void) 
+void Field_Update(void)
 {
 
 }
@@ -553,6 +555,7 @@ MAPDATA* GetFieldObjects()
 // フィールドオブジェクトの総数を返す
 int GetFieldObjectCount()
 {
+
 	int count = 0;
 	// map配列はFIELD_MAXを終了マーカーとしている
 	while (Map[count].no != FIELD_MAX)
