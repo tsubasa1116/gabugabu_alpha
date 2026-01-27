@@ -609,31 +609,31 @@ void Polygon3D_Update()
 			{
 				if (p == 0) // プレイヤー0 (WASD)
 				{
-					if (g_Input[0].LStickX > 0.0f) { object[0].moveDir.x += 1.0f; object[0].isMoving = true; }
-					if (g_Input[0].LStickX < 0.0f) { object[0].moveDir.x -= 1.0f; object[0].isMoving = true; }
-					if (g_Input[0].LStickY > 0.0f) { object[0].moveDir.z -= 1.0f; object[0].isMoving = true; }
-					if (g_Input[0].LStickY < 0.0f) { object[0].moveDir.z += 1.0f; object[0].isMoving = true; }
+					if (g_Input[0].LStickX > 0.0f)	{ object[0].moveDir.x += 1.0f; object[0].isMoving = true; }
+					if (g_Input[0].LStickX < 0.0f)	{ object[0].moveDir.x -= 1.0f; object[0].isMoving = true; }
+					if (g_Input[0].LStickY > 0.0f)	{ object[0].moveDir.z -= 1.0f; object[0].isMoving = true; }
+					if (g_Input[0].LStickY < 0.0f)	{ object[0].moveDir.z += 1.0f; object[0].isMoving = true; }
 
-					if (Keyboard_IsKeyDown(KK_W)) { object[0].moveDir.z += 1.0f; object[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S)) { object[0].moveDir.z -= 1.0f; object[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A)) { object[0].moveDir.x -= 1.0f; object[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D)) { object[0].moveDir.x += 1.0f; object[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_W))	{ object[0].moveDir.z += 1.0f; object[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_S))	{ object[0].moveDir.z -= 1.0f; object[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_A))	{ object[0].moveDir.x -= 1.0f; object[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_D))	{ object[0].moveDir.x += 1.0f; object[0].isMoving = true; }
 					if (object[0].moveDir.x == 0.0f && object[0].moveDir.z == 0.0f)	object[0].isMoving = false;
 				}
 				else if (p == 1) // プレイヤー1 (矢印キー)
 				{
-					if (Keyboard_IsKeyDown(KK_UP)) { object[1].moveDir.z += 1.0f; object[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_DOWN)) { object[1].moveDir.z -= 1.0f; object[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_LEFT)) { object[1].moveDir.x -= 1.0f; object[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_RIGHT)) { object[1].moveDir.x += 1.0f; object[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_UP))		{ object[1].moveDir.z += 1.0f; object[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_DOWN))	{ object[1].moveDir.z -= 1.0f; object[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_LEFT))	{ object[1].moveDir.x -= 1.0f; object[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_RIGHT))	{ object[1].moveDir.x += 1.0f; object[1].isMoving = true; }
 					if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
 				}
 				else if (p == 2) // プレイヤー2 (TFGH) 攻撃 V
 				{
-					if (Keyboard_IsKeyDown(KK_T)) { object[2].moveDir.z += 1.0f; object[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_G)) { object[2].moveDir.z -= 1.0f; object[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_F)) { object[2].moveDir.x -= 1.0f; object[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_H)) { object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_T))	{ object[2].moveDir.z += 1.0f; object[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_G))	{ object[2].moveDir.z -= 1.0f; object[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_F))	{ object[2].moveDir.x -= 1.0f; object[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_H))	{ object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
 					if (object[2].moveDir.x == 0.0f && object[2].moveDir.z == 0.0f)	object[2].isMoving = false;
 				}
 			}
@@ -667,10 +667,7 @@ void Polygon3D_Update()
 				// 残機を1つ減らす
 				object[p].stock -= 1;
 
-				if (object[p].stock > 0)
-				{
-					Polygon3D_Respawn(p);
-				}
+				if (object[p].stock > 0)	Polygon3D_Respawn(p);
 				else
 				{
 					// 残機無しで復活なし
@@ -690,11 +687,8 @@ void Polygon3D_Update()
 			// 残機を一つ減らす
 			object[p].stock -= 1;
 
-			if (object[p].stock > 0)
-			{
-				// リスポーン（位置・ステートリセット）
-				Polygon3D_Respawn(p);
-			}
+			// リスポーン（位置・ステートリセット）
+			if (object[p].stock > 0)	Polygon3D_Respawn(p);
 			else
 			{
 				// 残機無しで完全に非アクティブ化
@@ -1399,7 +1393,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		}
 
 		// スペシャル使用中は専用テクスチャ
-		//if (object[idx].useSpecial)			srv = g_Texture[9];
+		if (object[idx].useSpecial)			srv = g_Texture[9];
 
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 
