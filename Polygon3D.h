@@ -11,7 +11,7 @@
 #define	PLAYER_MAX				(4)	// プレイヤー最大数
 #define	DELTA_TIME	 (1.0f / 60.0f)	// デルタタイム（秒）
 
-#define	EVOLUTIONGAUGE_MAX	(10)	// 進化ゲージ最大値
+#define	EVOLUTIONGAUGE_MAX	(1.0f)	// 進化ゲージ最大値
 #define	ATTACKING_TIME		(0.5f)	// 攻撃持続時間（秒）
 #define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間（秒）
 #define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間（秒）
@@ -90,27 +90,33 @@ struct PLAYEROBJECT
 	bool isDown;			// ダウン中かどうか
 	float downTimer;		// ダウンタイマー
 
+	float gl;
+	float pl;
+	float co;
+	float el;
+	float gaugeOuter;
+
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	PlayerDir lastDir;							// 待機時の向き
 	bool isMoving = false;						// 移動中かどうか
 
-	Form form;									// 変身形態
-	PlayerType type;							// プレイヤーの属性タイプ
-	int evolutionGauge;							// 進化ゲージ
-	int evolutionGaugeRate;						// 進化ゲージ 倍率
-	int breakCount_Glass;						// 破壊した数 ガラス
-	int breakCount_Concrete;					// 破壊した数 コンクリート
-	int breakCount_Plant;						// 破壊した数 植物
-	int breakCount_Electricity;					// 破壊した数 電気
-	std::vector<BuildingType> brokenHistory;	// 破壊した建物のリスト
-
-	float gl, pl, co, el;
-	float gaugeOuter;
+	Form form;								// 変身形態
+	PlayerType type;						// プレイヤーの属性タイプ
+	float evolutionGauge;					// 進化ゲージ
+	float evolutionGaugeRate;				// 進化ゲージ 倍率
+	int breakCount_Glass;					// 破壊した数 ガラス
+	int breakCount_Concrete;				// 破壊した数 コンクリート
+	int breakCount_Plant;					// 破壊した数 植物
+	int breakCount_Electric;				// 破壊した数 電気
+	std::vector<BuildingType> brokenHistory;// 破壊した建物のリスト
 
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル
 	bool is_knocked_back = false;						// 吹き飛ばし中かどうか
 	float knockback_duration = 0.0f;					// 吹き飛ばしの残り時間（フレーム数
+
+	XMFLOAT2 screenPos;     // テキスト描画用スクリーン座標
+	bool isOnScreen;
 };
 
 void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -130,5 +136,7 @@ void Polygon3D_Respawn(int playerIndex);
 
 void Polygon3D_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int playerIndex);
+
+void Polygon3D_DrawText();
 
 

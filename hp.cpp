@@ -30,7 +30,7 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	TexMetadata		metadata;
 	ScratchImage	image;
 	
-	LoadFromWICFile(L"asset\\texture\\uiHpGauge_v2.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiHpGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);//読み込み失敗時にダイアログを表示
 
@@ -38,19 +38,19 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
 	assert(g_Texture[1]);//読み込み失敗時にダイアログを表示
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v2.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v4.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
 	assert(g_Texture[2]);//読み込み失敗時にダイアログを表示
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v2.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v4.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
 	assert(g_Texture[3]);//読み込み失敗時にダイアログを表示
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v2.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v4.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
 	assert(g_Texture[4]);//読み込み失敗時にダイアログを表示
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v2.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v4.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
 	assert(g_Texture[5]);//読み込み失敗時にダイアログを表示
 }
@@ -129,8 +129,6 @@ void DrawHP(const hp* bar, int texNum)
 	float ratio = bar->current / bar->size.x;
 	ratio = max(0.0f, min(1.0f, ratio));
 
-	
-
 	// 画像バー本体（横に削る）
 	XMFLOAT2 uvMin = { 0.0f, 0.0f };
 	XMFLOAT2 uvMax = { ratio, 1.0f };
@@ -143,16 +141,16 @@ void DrawHP(const hp* bar, int texNum)
 	XMFLOAT2 fillPos = { bar->pos.x - (bar->size.x / 2.0f) + (fillSize.x / 2.0f), bar->pos.y
 	};
 
-	// サイズ・位置調整（ごり押し）
-	XMFLOAT2 fillSizeOK = { fillSize .x / 1.88f, fillSize .y / 2.0f};
-	XMFLOAT2 fillPosOK = {bar->pos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 97.0f, bar->pos.y + 33.0f};
+	//// サイズ・位置調整（ごり押し）
+	XMFLOAT2 fillSizeOK = { fillSize.x / 1.88f, fillSize.y};
+	XMFLOAT2 fillPosOK = {bar->pos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, bar->pos.y};
 	
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNum]);
 	DrawSprite(backPos, backSize, bar->backColor);
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	Shader_BeginHpber();
-	Shader_SetHpber(color::blue, color::red, 0.7f, 0.5f);
+	Shader_SetHpber(color::blue, color::red, 0.3f, 0.5f);
 	DrawSpriteUV(fillPosOK, fillSizeOK, bar->fillColor, uvMin, uvMax);
 
 	Shader_Begin();

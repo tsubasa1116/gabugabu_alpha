@@ -12,6 +12,7 @@
 #include	"Sound.h"
 
 #include "fade.h"
+#include "swipe.h"
 #include "shader.h"
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//テクスチャ１枚を表すオブジェクト
@@ -30,7 +31,7 @@ void Sound_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"asset\\texture\\sound.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 	assert(g_Texture);//読み込み失敗時にダイアログを表示
-
+	
 	//フェードインのセット
 	XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	SetFade(60.0f, color, FADE_IN, SCENE_START);
@@ -47,11 +48,11 @@ void Sound_Update()
 	//キー入力チェック
 	//スタートボタンが押されたらシーンを切り替え
 	//フェード処理中はキーを受け付けない
-	if (Keyboard_IsKeyDownTrigger(KK_SPACE) && (GetFadeState() == FADE_NONE))
+	if (Keyboard_IsKeyDownTrigger(KK_SPACE) && (GetSwipeState() == SWIPE_NONE))
 	{
 		//フェードアウトさせてシーンを切り替える
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_START);
+		SetSwipe(40.0f, color, SWIPE_OUT, SCENE_TITLE);
 	}
 
 }

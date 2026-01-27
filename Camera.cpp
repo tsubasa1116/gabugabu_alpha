@@ -8,6 +8,7 @@
 #include "keyboard.h"
 #include "Ball.h"
 #include "Polygon3D.h"
+#include "input.h"
 
 // グローバル変数
 static CAMERA	CameraObject;
@@ -72,6 +73,25 @@ void Camera_Update()
 	{
 		vec.y = -1.0f;
 	}
+
+
+	if (g_Input->Up)
+	{
+		vec.z = 1.0f;
+	}
+	if (g_Input->Down)
+	{
+		vec.z = -1.0f;
+	}
+	if (g_Input->Right)
+	{
+		vec.x = 1.0f;
+	}
+	if (g_Input->Left)
+	{
+		vec.x = -1.0f;
+	}
+
 
 	// vecの正規化
 	float len = sqrtf(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
@@ -216,30 +236,32 @@ void Camera_Update()
 
 void Camera_Draw()
 { 
-	//プロジェクション行列作成
-	CameraObject.projection = XMMatrixPerspectiveFovLH
-	(
-		XMConvertToRadians(CameraObject.fov),
-		CameraObject.aspect,
-		CameraObject.nearClip,
-		CameraObject.farClip
-	);
-
-	//// ★★★ 修正箇所はここ！：平行投影行列を作成する ★★★
-	//// プロジェクション行列作成
-	//// XMMatrixOrthographicLH(幅, 高さ, nearClip, farClip) を使用する
-	//// ※幅と高さは、画面サイズをそのまま使うのが一般的です
-	//float width = (float)Direct3D_GetBackBufferWidth();
-	//float height = (float)Direct3D_GetBackBufferHeight();
-
-	//CameraObject.Projection = XMMatrixOrthographicLH
+	////プロジェクション行列作成
+	//CameraObject.projection = XMMatrixPerspectiveFovLH
 	//(
-	//	// 幅と高さ。この値がそのまま描画範囲（スクリーンサイズ）になる
-	//	width / CameraObject.aspect, // 幅 (アスペクト比で補正)
-	//	height / CameraObject.aspect, // 高さ (アスペクト比で補正)
+	//	XMConvertToRadians(CameraObject.fov),
+	//	CameraObject.aspect,
 	//	CameraObject.nearClip,
 	//	CameraObject.farClip
 	//);
+
+	// ★★★ 平行投影行列を作成する ★★★
+	// プロジェクション行列作成
+	// XMMatrixOrthographicLH(幅, 高さ, nearClip, farClip) を使用する
+	// ※幅と高さは、画面サイズをそのまま使うのが一般的です
+	float width = (float)Direct3D_GetBackBufferWidth();
+	width = 12.80f;
+	float height = (float)Direct3D_GetBackBufferHeight();
+	height = 7.20f;
+
+	CameraObject.projection = XMMatrixOrthographicLH
+	(
+		// 幅と高さ。この値がそのまま描画範囲（スクリーンサイズ）になる
+		width / CameraObject.aspect, // 幅 (アスペクト比で補正)
+		height / CameraObject.aspect, // 高さ (アスペクト比で補正)
+		CameraObject.nearClip,
+		CameraObject.farClip
+	);
 
 	//ビュー行列作成
 	XMVECTOR	vpos = XMVectorSet(

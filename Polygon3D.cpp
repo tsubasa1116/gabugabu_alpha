@@ -25,9 +25,16 @@ using namespace DirectX;
 #include "debug_render.h"
 #include "debug_ostream.h"
 #include "attack.h" 
+#include "DamageText.h"
+#include "makeText.h"
+///////////////////////////////////////
+
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+#include <chrono>
+#include <codecvt>
+
 #include <vector>
 #include <algorithm>
 
@@ -37,8 +44,8 @@ using namespace DirectX;
 #define	NUM_VERTEX		(6)			// 一面のみの頂点数
 #define HPBER_SIZE_X	(270.0f)	// HPバーのサイズ
 #define HPBER_SIZE_Y	(270.0f)	// 〃
-#define GAUGE_POS_X		(77.0f)		// HPバーを基準としたゲージの位置調整
-#define GAUGE_POS_Y		(36.0f)		// 〃
+#define GAUGE_POS_X		(69.0f)		// HPバーを基準としたゲージの位置調整
+#define GAUGE_POS_Y		(8.0f)		// 〃
 
 //======================================================
 //	グローバル変数
@@ -154,17 +161,13 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].isMoving = false;
 	object[0].form = Form::First;
 	object[0].type = PlayerType::None;
-	object[0].evolutionGauge = 0;
-	object[0].evolutionGaugeRate = 1;
-	object[0].breakCount_Glass = 0;
-	object[0].breakCount_Concrete = 0;
-	object[0].breakCount_Plant = 0;
-	object[0].breakCount_Electricity = 0;
-	object[0].gl = 1.0f;
-	object[0].pl = 1.0f;
-	object[0].co = 1.0f;
-	object[0].el = 1.0f;
-	object[0].gaugeOuter = 1.0f;
+	object[0].evolutionGauge = 0.0f;
+	object[0].evolutionGaugeRate = 0.1f;
+	object[0].breakCount_Glass = 1;
+	object[0].breakCount_Concrete = 1;
+	object[0].breakCount_Plant = 1;
+	object[0].breakCount_Electric = 1;
+
 
 	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -199,17 +202,13 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].isMoving = false;
 	object[1].form = Form::First;
 	object[1].type = PlayerType::None;
-	object[1].evolutionGauge = 0;
-	object[1].evolutionGaugeRate = 1;
-	object[1].breakCount_Glass = 0;
-	object[1].breakCount_Concrete = 0;
-	object[1].breakCount_Plant = 0;
-	object[1].breakCount_Electricity = 0;
-	object[1].gl = 1.0f;
-	object[1].pl = 1.0f;
-	object[1].co = 1.0f;
-	object[1].el = 1.0f;
-	object[1].gaugeOuter = 1.0f;
+	object[1].evolutionGauge = 0.0f;
+	object[1].evolutionGaugeRate = 0.1f;
+	object[1].breakCount_Glass = 1;
+	object[1].breakCount_Concrete = 1;
+	object[1].breakCount_Plant = 1;
+	object[1].breakCount_Electric = 1;
+
 
 	object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -249,12 +248,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].breakCount_Glass = 0;
 	object[2].breakCount_Concrete = 0;
 	object[2].breakCount_Plant = 0;
-	object[2].breakCount_Electricity = 0;
-	object[2].gl = 1.0f;
-	object[2].pl = 1.0f;
-	object[2].co = 1.0f;
-	object[2].el = 1.0f;
-	object[2].gaugeOuter = 1.0f;
+	object[2].breakCount_Electric = 0;
 
 	object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
 	object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -294,12 +288,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].breakCount_Glass = 0;
 	object[3].breakCount_Concrete = 0;
 	object[3].breakCount_Plant = 0;
-	object[3].breakCount_Electricity = 0;
-	object[3].gl = 1.0f;
-	object[3].pl = 1.0f;
-	object[3].co = 1.0f;
-	object[3].el = 1.0f;
-	object[3].gaugeOuter = 1.0f;
+	object[3].breakCount_Electric = 0;
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
@@ -313,8 +302,17 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
+#ifdef _DEBUG_
+	// テクスチャロード時間計測
+	auto tex_start = std::chrono::high_resolution_clock::now();
+	LoadTextureList(pDevice);
+	auto tex_end = std::chrono::high_resolution_clock::now();
+	auto tex_ms = std::chrono::duration_cast<std::chrono::milliseconds>(tex_end - tex_start).count();
+	hal::dout << "テクスチャロード時間: " << tex_ms << " ms" << std::endl;
+#else
 	// テクスチャ読み込み
 	LoadTextureList(pDevice);
+#endif
 
 	// インデックスバッファ作成
 	{
@@ -338,8 +336,10 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// デバッグレンダラー初期化
 	Debug_Initialize(pDevice, pContext);
 
-	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  630.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  630.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[2], { 800.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[3], { 1120.0f, 620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 
 	// アニメーションの初期化
 	for (int i = 0; i < PLAYER_MAX; ++i)
@@ -367,21 +367,23 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
 		{  5, L"asset\\texture\\characterBigGlass_v1.png" },		// 第3形態 ガラス
 		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// 第3形態 コンクリート
-		{  7, L"asset\\texture\\characterBigTree_v1.png" },			// 第3形態 植物
-		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },	// 第3形態 電気
-		{  9, L"asset\\texture\\characterBigSP_v1.png" },			// 第3形態 スペシャル
-		{ 10, L"asset\\texture\\uiStockBlue_v2.png"},				// UI ストック 青
-		{ 11, L"asset\\texture\\uiStockGleen_v2.png"},				// UI ストック 緑
-		//{ 12, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
-		//{ 13, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
-		{ 14, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
-		{ 15, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
-		//{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
-		//{ 17, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
+		{  7, L"asset\\texture\\characterBigTree_v1.png" },		// 第3形態 植物
+		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },		// 第3形態 電気
+		{  9, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 青
+		{ 10, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 緑
+		{ 11, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 
+		{ 12, L"asset\\texture\\uiStockGreen_v4.png" },			// UI ストック 
+		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
+		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
+		{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
+		{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
 	};
 
 	for (const auto& e : texList)
 	{
+
+		auto start = std::chrono::high_resolution_clock::now();
+
 		// コメント化している要素は配列エントリ自体をコメントアウトしているためここには来ない。
 		HRESULT hr = LoadFromWICFile(e.path, WIC_FLAGS_NONE, &metadata, image);
 		if (SUCCEEDED(hr))
@@ -397,6 +399,13 @@ static void LoadTextureList(ID3D11Device* pDevice)
 			// 読み込み失敗は nullptr を代入して続行
 			g_Texture[e.idx] = nullptr;
 		}
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+		// std::wstring を std::string に変換して出力
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+		hal::dout << "テクスチャロード: " << conv.to_bytes(e.path) << " " << ms << " ms" << std::endl;
 	}
 }
 
@@ -492,10 +501,49 @@ void Polygon3D_Update()
 	// 各プレイヤーに対応する発動キー
 	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V };
 
-	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_F9, KK_F10, KK_F11 };
+	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_F9, KK_F10, KK_F11, KK_F12 };
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
+		if (!object[p].active) continue;
+
+		// ワールド座標をスクリーン座標に変換
+		XMFLOAT3 worldPos = object[p].position;
+		worldPos.y += 2.0f; // プレイヤーの上方に表示
+
+		XMVECTOR posVec = XMLoadFloat3(&worldPos);
+		XMMATRIX view = GetViewMatrix();
+		XMMATRIX proj = GetProjectionMatrix();
+		XMMATRIX viewProj = view * proj;
+
+		// ビューポート変換
+		XMVECTOR screenPos = XMVector3Project(
+			posVec,
+			0.0f, 0.0f,
+			1280.0f, 720.0f,
+			0.0f, 1.0f,
+			proj, view,
+			XMMatrixIdentity()
+		);
+
+		// Z値チェック（カメラの後ろなら描画しない）
+		float screenZ = XMVectorGetZ(screenPos);
+		if (screenZ > 0.0f && screenZ < 1.0f)
+		{
+			float screenX = XMVectorGetX(screenPos);
+			float screenY = XMVectorGetY(screenPos);
+
+			// テキスト描画（Update内では呼び出さない、Draw内で描画する）
+			// ここでは座標を保存しておく
+			object[p].screenPos = XMFLOAT2(screenX, screenY);
+			object[p].isOnScreen = true;
+		}
+		else
+		{
+			object[p].isOnScreen = false;
+		}
+
+
 		// -------------------------------------------------------------
 		// 変身
 		// -------------------------------------------------------------
@@ -571,18 +619,21 @@ void Polygon3D_Update()
 				object[p].isAttacking = true;
 
 				// 第2・第3形態の場合、スキル使用フラグも立てる
-				if (object[p].type != PlayerType::None)		object[p].useSkill = true;
+				if (object[p].type != PlayerType::None)	object[p].useSkill = true;
 			}
-			if (g_Input[0].A)
+			if (g_Input[p].A)
 			{
-				object[0].isAttacking = true;
+				object[p].isAttacking = true;
 
 				// 第2・第3形態の場合、スキル使用フラグも立てる
-				if (object[0].type != PlayerType::None)		object[0].useSkill = true;
+				if (object[p].type != PlayerType::None)	object[p].useSkill = true;
 			}
 
 			// 発動トリガー入力をチェックしてスペシャル使用フラグを立てる
 			if (object[p].form == Form::Third && Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
+			{
+				object[p].useSpecial = true;
+			}
 
 			// フラグが立ったら更新処理を呼び出す
 			if (object[p].useSkill)		Skill_Update(p);								// スキル
@@ -611,9 +662,6 @@ void Polygon3D_Update()
 				{
 					if (g_Input[0].LStickX > 0.0f)	{ object[0].moveDir.x += 1.0f; object[0].isMoving = true; }
 					if (g_Input[0].LStickX < 0.0f)	{ object[0].moveDir.x -= 1.0f; object[0].isMoving = true; }
-					if (g_Input[0].LStickY > 0.0f)	{ object[0].moveDir.z -= 1.0f; object[0].isMoving = true; }
-					if (g_Input[0].LStickY < 0.0f)	{ object[0].moveDir.z += 1.0f; object[0].isMoving = true; }
-
 					if (Keyboard_IsKeyDown(KK_W))	{ object[0].moveDir.z += 1.0f; object[0].isMoving = true; }
 					if (Keyboard_IsKeyDown(KK_S))	{ object[0].moveDir.z -= 1.0f; object[0].isMoving = true; }
 					if (Keyboard_IsKeyDown(KK_A))	{ object[0].moveDir.x -= 1.0f; object[0].isMoving = true; }
@@ -637,6 +685,9 @@ void Polygon3D_Update()
 					if (object[2].moveDir.x == 0.0f && object[2].moveDir.z == 0.0f)	object[2].isMoving = false;
 				}
 			}
+				if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
+			}
+
 			// 現在のプレイヤー p だけを動かす
 			Move(object[p], object[p].moveDir);
 		}
@@ -647,6 +698,7 @@ void Polygon3D_Update()
 			// ダウン状態に移行してタイマーをリセット
 			object[p].isDown = true;
 			object[p].downTimer = 0.0f;
+			Effect_Clear(p);
 		}
 
 		// ダウン状態のタイマー更新とリスポーン判定
@@ -684,6 +736,7 @@ void Polygon3D_Update()
 		// 落下処理
 		if (object[p].active && object[p].position.y <= -10.0f)
 		{
+			Effect_Clear(p);
 			// 残機を一つ減らす
 			object[p].stock -= 1;
 
@@ -941,19 +994,41 @@ void Polygon3D_Update()
 		ImGui::Text("Player %d", p + 1);
 		ImGui::Indent();
 
-		ImGui::SliderFloat("HP", &object[p].hp, 0.0f, 100.0f, "%.1f");
-		ImGui::SliderFloat("stunGauge", &object[p].stunGauge, 0.0f, 10.0f, "%.1f");
-		ImGui::SliderFloat("invincibleTimer", &object[p].invincibleTimer, 0.0f, 3.0f, "%.1f");
-		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
-		ImGui::BulletText("useSpecial        : %d", object[p].useSpecial);
-		ImGui::BulletText("position.y        : %.2f", object[p].position.y);
-		//ImGui::BulletText("form              : %d", object[p].form);
-		//ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
-		//ImGui::BulletText("EvolutionGaugeRate: %d", object[p].evolutionGaugeRate);
-		//ImGui::BulletText("1 Glass breaks    : %d", object[p].breakCount_Glass);
-		//ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
-		//ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
-		//ImGui::BulletText("4 Electricity breaks : %d", object[p].breakCount_Electricity);
+		ImGui::BulletText("rank              : %d", object[p].rank);
+		ImGui::BulletText("speed             : %.3f", object[p].speed);
+		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
+		ImGui::BulletText("form              : %d", object[p].form);
+		ImGui::BulletText("type              : %d", object[p].type);
+		ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
+		ImGui::BulletText("EvolutionGaugeRate: %d", object[p].evolutionGaugeRate);
+
+		if (ImGui::Button("hp -1"))
+		{
+			object[p].hp -= 0.1f;
+		}
+
+		if (ImGui::Button("gl +1"))
+		{
+			object[p].breakCount_Glass += 1;
+		}
+		else if (ImGui::Button("pl +1"))
+		{
+			object[p].breakCount_Plant += 1;
+		}
+		else if (ImGui::Button("co +1"))
+		{
+			object[p].breakCount_Concrete += 1;
+		}
+		else if (ImGui::Button("el +1"))
+		{
+			object[p].breakCount_Electric += 1;
+		}
+		
+		ImGui::SliderFloat("HP", &object[p].hp, 0.0f, 100.0f);
+		ImGui::SliderFloat("Outer", &object[p].evolutionGauge, 0.0f, 1.0f);
+		ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
+		ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
+		ImGui::BulletText("4 Electric breaks : %d", object[p].breakCount_Electric);
 
 		// 履歴リストのサイズを表示
 		size_t historySize = object[p].brokenHistory.size();
@@ -1035,15 +1110,15 @@ void Polygon3D_Update()
 		// 重力加速度のない簡易的な重力
 		object[p].position.y += -0.1f;
 
-		// デバッグ出力
-		if (posBuff.x != object[p].position.x ||
-			posBuff.y != object[p].position.y ||
-			posBuff.z != object[p].position.z)
-		{
-			hal::dout << "x : " << object[p].position.x << std::endl;
-			hal::dout << "y : " << object[p].position.y << std::endl;
-			hal::dout << "z : " << object[p].position.z << std::endl;
-		}
+		//// デバッグ出力
+		//if (posBuff.x != object[p].position.x ||
+		//	posBuff.y != object[p].position.y ||
+		//	posBuff.z != object[p].position.z)
+		//{
+		//	hal::dout << "x : " << object[p].position.x << std::endl;
+		//	hal::dout << "y : " << object[p].position.y << std::endl;
+		//	hal::dout << "z : " << object[p].position.z << std::endl;
+		//}
 
 		//hal::dout << vdata[0].position.x << std::endl;
 
@@ -1480,8 +1555,8 @@ void Polygon3D_DrawHP()
 		DrawHP(&HPBar[i], i + 2);
 		XMFLOAT2 hp = HPBar[i].pos;
 
-		Gauge_Set(i, object[i].gl, object[i].pl, object[i].co, object[i].el,
-			object[i].gaugeOuter, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y});
+		Gauge_Set(i, object[i].breakCount_Glass, object[i].breakCount_Concrete, object[i].breakCount_Plant, object[i].breakCount_Electric,
+			object[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y});
 
 		Gauge_Draw(i);
 
@@ -1493,19 +1568,7 @@ void Polygon3D_DrawHP()
 
 void Polygon3D_DrawEffect()
 {
-	Effect_Set(g_Texture[13], { 170.0f,600.0f }, { 400.0f, 400.0f });
-
-	//// g_Texture[4] を X 座標のみ 4 個並べて描画する
-	//// basePos: 左端の位置、size: 各エフェクトのサイズ
-	//// spacingX: 各インスタンスの X 間隔（表示幅 + 余白）
-	//XMFLOAT2 basePos = { 170.0f, 600.0f };
-	//XMFLOAT2 size = { 400.0f, 400.0f };
-	//int count = 4;
-	//float spacingX = 320.0f;
-
-	//ID3D11ShaderResourceView* texToUse = (g_effectElapsed >= 5.0f) ? g_Texture[5] : g_Texture[4];
-
-	//Effect_SetMultiple(texToUse, basePos, size, count, spacingX);
+	//Effect_Set(0, { 170.0f, 600.0f }, { 400.0f, 400.0f });
 }
 
 void Polygon3D_Respawn(int playerIndex)
@@ -1553,12 +1616,6 @@ void Polygon3D_Respawn(int playerIndex)
 		object[playerIndex].breakCount_Plant = 0;
 		object[playerIndex].breakCount_Electricity = 0;
 		object[playerIndex].brokenHistory.clear();
-		object[playerIndex].gl = 1.0f;
-		object[playerIndex].pl = 1.0f;
-		object[playerIndex].co = 1.0f;
-		object[playerIndex].el = 1.0f;
-		object[playerIndex].gaugeOuter = 1.0f;
-
 		object[playerIndex].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		object[playerIndex].is_knocked_back = false;
 		object[playerIndex].knockback_duration = 0.0f;
@@ -1586,20 +1643,65 @@ void Polygon3D_DrawStock(int i)
 	Shader_BeginUI();
 
 	// HPバー位置取得・ゲージ座標設定
-	float bx = HPBar[i].pos.x;
-	float by = HPBar[i].pos.y - 5.0f;
+	float bx = HPBar[i].pos.x - 12.0f;
+	float by = HPBar[i].pos.y + 5.0f;
 
 	// プレイヤーごとのストック描画
 	for (int j = 0; j < object[i].stock; j++)
 	{
 		// ストック描画変数
-		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
-		XMFLOAT2 size = { 300.0f, 300.0f };
+		XMFLOAT2 pos = { bx + j * 28.0f, by };	// 横並び
+		XMFLOAT2 size = { 240.0f, 240.0f };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 10]);
 	
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);
+	}
+}
+
+
+void Polygon3D_DrawText()
+{
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		if (!object[p].active || !object[p].isOnScreen) continue;
+
+		wchar_t playerLabel[8];
+		swprintf_s(playerLabel, L"P%d", p + 1);
+
+		// プレイヤーごとに色設定
+		TextColor textColor;
+		switch (p)
+		{
+		case 0:
+			textColor = TextColor::Red;
+			break;
+		case 1:
+			textColor = TextColor::Blue;
+			break;
+		case 2:
+			textColor = TextColor::Yellow;
+			break;
+		case 3:
+			textColor = TextColor::Green;
+			break;
+		default:
+			textColor = TextColor::White;
+			break;
+		}
+
+		// フォントサイズの半分程度左にずらす
+		float offsetX = 15.0f;
+
+		DrawTextEx(
+			playerLabel,
+			object[p].screenPos.x - offsetX,
+			object[p].screenPos.y - 10.0f,  // テキストの高さ分上に表示
+			40.0f,                           // フォントサイズ
+			L"Impact",
+			textColor
+		);
 	}
 }
 

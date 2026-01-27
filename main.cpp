@@ -7,7 +7,9 @@
 #include <SDKDDKVer.h>		// 利用できる最も上位の Windows プラットフォームが定義される
 #define WIN32_LEAN_AND_MEAN	// 32bitアプリには不要な情報を抑止してコンパイル時間を短縮
 #include <windows.h>
-#include "debug_ostream.h"	// デバッグ表示
+#include "debug_ostream.h"	//デバッグ表示
+
+#include <chrono> // 追加
 #include <algorithm>
 #include "direct3d.h"
 #include "shader.h"
@@ -296,8 +298,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, 
 						continue;
 					}
 
-					g_Input[p].LStickX = NormalizeStickWithDeadZone(js.lX);;
-					g_Input[p].LStickY = NormalizeStickWithDeadZone(js.lY);;
+					g_Input[p].LStickX = NormalizeStickWithDeadZone(js.lX);
+					g_Input[p].LStickY = NormalizeStickWithDeadZone(js.lY);
+
 					// ==== ボタン ====
 					g_Input[p].B = (js.rgbButtons[0] & 0x80);
 					g_Input[p].A = (js.rgbButtons[1] & 0x80);
@@ -309,6 +312,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, 
 					g_Input[p].ZR = (js.rgbButtons[7] & 0x80);
 					g_Input[p].Minus = (js.rgbButtons[8] & 0x80);
 					g_Input[p].Plus = (js.rgbButtons[9] & 0x80);
+
 					g_Input[p].LStickPush = (js.rgbButtons[10] & 0x80);
 					g_Input[p].RStickPush = (js.rgbButtons[11] & 0x80);
 
@@ -318,22 +322,39 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, 
 					g_Input[p].Right = (pov == 9000);
 					g_Input[p].Down = (pov == 18000);
 					g_Input[p].Left = (pov == 27000);
-					// ------------------------------
+
+					if (g_pGamepad[p])
+					{
+						if (SUCCEEDED(g_pGamepad[p]->GetDeviceState(sizeof(DIJOYSTATE2), &js)))
+						{
+							ImGui::Text("LStick X : %.3f", g_Input[p].LStickX);
+							ImGui::Text("LStick Y : %.3f", g_Input[p].LStickY);
+							ImGui::Text("B Button : %d", (js.rgbButtons[0] & 0x80) != 0);
+							ImGui::Text("A Button : %d", (js.rgbButtons[1] & 0x80) != 0);
+							ImGui::Text("Y Button : %d", (js.rgbButtons[2] & 0x80) != 0);
+							ImGui::Text("X Button : %d", (js.rgbButtons[3] & 0x80) != 0);
+							ImGui::Text("Cross Button : %d", js.rgdwPOV[0]);
+						}
+					}
+
+				// ------------------------------
+
+
 				}
 				// 描画処理
 				Direct3D_Clear();	// バックバッファをクリア
 				Manager_Draw();
-
+				
 				EndImGuiFrame();	// ImGui を描画
-
+				
 				Direct3D_Present();
 				keycopy();
-
+				
 				dwFrameCount++;		//処理回数更新
 			}
 		}
 	} while (msg.message != WM_QUIT);
-
+	
 	Manager_Finalize();
 	UninitAudio();		// サウンドの終了
 	Shader_Finalize();	// シェーダの終了処理
@@ -413,3 +434,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	// 必要の無いメッセージは適当に処理させて終了
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
+

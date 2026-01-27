@@ -2,6 +2,9 @@
 #include "direct3d.h"
 #include "debug_ostream.h"
 
+#include <iostream>
+#include <algorithm>
+
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "dwrite.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -113,10 +116,53 @@ void DrawTextEx(
 
 	BeginDraw_MakeText();
 
+	// ブラシ作成
 	ComPtr<ID2D1SolidColorBrush> brush;
 	g_d2dContext->CreateSolidColorBrush(D2DColor(color), &brush);
 
+	// アウトライン用ブラシ作成
+	ComPtr<ID2D1SolidColorBrush> outlineBrush;
+	g_d2dContext->CreateSolidColorBrush(D2DColor(TextColor::White), &outlineBrush);
+
+	// 描画矩形
 	D2D1_RECT_F rect = D2D1::RectF(x, y, x + 2000, y + 300);
+	const D2D1_RECT_F baseRect = rect;
+
+#undef max
+	// アウトラインの太さ
+	float outlineThickness = std::max(1.0f, fontSize * 0.03f);
+
+	const float ox = outlineThickness;
+	const float oy = outlineThickness;
+	const D2D1_POINT_2F offsets[] = 
+	{
+		{-ox,  0.0f},
+		{ ox,  0.0f},
+		{ 0.0f, -oy},
+		{ 0.0f,  oy},
+		{-ox, -oy},
+		{ ox, -oy},
+		{-ox,  oy},
+		{ ox,  oy}
+	};
+
+	for (auto& off : offsets)
+	{
+		D2D1_RECT_F r = D2D1::RectF(
+			baseRect.left + off.x,
+			baseRect.top + off.y,
+			baseRect.right + off.x,
+			baseRect.bottom + off.y
+		);
+
+		g_d2dContext->DrawText(
+			text,
+			(UINT32)wcslen(text),
+			format.Get(),
+			r,
+			outlineBrush.Get()
+		);
+	}
 
 	g_d2dContext->DrawText(
 		text,

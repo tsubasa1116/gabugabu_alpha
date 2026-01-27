@@ -1,14 +1,11 @@
 ﻿//======================================================
-//	manager.cpp[]
+//	Manager.cpp[]
 // 
 //	制作者：田中佑奈			日付：2024//
 //======================================================
-//Manager.cpp
-
 #include "direct3d.h"
 #include "Manager.h"
 #include "keyboard.h"
-
 #include "Game.h"
 #include "Title.h"
 #include "Start.h"
@@ -16,18 +13,18 @@
 #include "Sound.h"
 #include "Result.h"
 #include "fade.h"
-
+#include "swipe.h"
 #include "shader.h"
 
-
 //グローバル変数
-static	SCENE	g_Scene = SCENE_NONE;	//現在のシーン番号
+static SCENE g_Scene = SCENE_NONE;		//現在のシーン番号
 static bool g_InitSettingOnce = false;	//最初だけ初期化したか
 static bool g_InitSoundOnce = false;	//最初だけ初期化したか
 
-void	Manager_Initialize()
+void Manager_Initialize()
 {
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 
 	////本来はtitleの初期化でフェードインをセットする
 	//XMFLOAT4 color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -37,8 +34,9 @@ void	Manager_Initialize()
 
 	//本来の形
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 #ifdef _DEBUG
-	SetScene(SCENE_GAME);	//debug用に最初からゲームシーンへ
+	SetScene(SCENE_TITLE);	//debug用に最初からゲームシーンへ
 #else
 	SetScene(SCENE_TITLE);	//最初に動かすシーンに切り替える
 #endif
@@ -49,6 +47,7 @@ void	Manager_Initialize()
 void	Manager_Finalize()
 {
 	Fade_Finalize();
+	Swipe_Finalize();
 	SetScene(SCENE_NONE);
 }
 
@@ -81,7 +80,7 @@ void	Manager_Update()
 	}
 
 	Fade_Update();
-
+	Swipe_Update();
 }
 
 void	Manager_Draw()
@@ -113,7 +112,7 @@ void	Manager_Draw()
 	}
 
 	Fade_Draw();
-
+	Swipe_Draw();
 }
 
 void	SetScene(SCENE scene) //シーンを切り替える
