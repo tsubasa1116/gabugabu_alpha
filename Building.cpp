@@ -48,7 +48,7 @@
 //static ID3D11ShaderResourceView* g_Texture;
 
 // FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
-#define FIELD_TEX_MAX 2 
+#define FIELD_TEX_MAX (2) 
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 
 // FIELD::no の値に対応するテクスチャファイル名
@@ -237,7 +237,7 @@ void Building::LoadModelForPhase()
 		m_Model = ModelLoad(modelPath);
 	}
 }
-	
+
 //==============================================
 // フェーズ変更（New / Damaged / Broken）
 //==============================================

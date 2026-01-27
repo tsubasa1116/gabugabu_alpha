@@ -369,14 +369,15 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// 第3形態 コンクリート
 		{  7, L"asset\\texture\\characterBigTree_v1.png" },			// 第3形態 植物
 		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },	// 第3形態 電気
-		{  9, L"asset\\texture\\uiStockBlue_v2.png"},				// UI ストック 青
-		{ 10, L"asset\\texture\\uiStockGleen_v2.png"},				// UI ストック 緑
-		//{ 11, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
+		{  9, L"asset\\texture\\characterBigSP_v1.png" },			// 第3形態 スペシャル
+		{ 10, L"asset\\texture\\uiStockBlue_v2.png"},				// UI ストック 青
+		{ 11, L"asset\\texture\\uiStockGleen_v2.png"},				// UI ストック 緑
 		//{ 12, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
-		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
-		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
-		//{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
-		//{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
+		//{ 13, L"asset\\texture\\uiStockGleen_v2.png" },			// UI ストック 
+		{ 14, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
+		{ 15, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
+		//{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
+		//{ 17, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
 	};
 
 	for (const auto& e : texList)
@@ -790,14 +791,14 @@ void Polygon3D_Update()
 			{
 				// 向きに応じた開始フレームを決定
 				int start = 15; // デフォルト（Down）
-					 if (object[p].lastDir == PlayerDir::Up_Right)	 start = 145;
-				else if (object[p].lastDir == PlayerDir::Up_Left)	 start = 93;
-				else if (object[p].lastDir == PlayerDir::Down_Right) start = 197;
+					 if (object[p].lastDir == PlayerDir::Down)		 start = 15;
 				else if (object[p].lastDir == PlayerDir::Down_Left)	 start = 41;
-				else if (object[p].lastDir == PlayerDir::Up)		 start = 119;
-				else if (object[p].lastDir == PlayerDir::Down)		 start = 15;
-				else if (object[p].lastDir == PlayerDir::Right)		 start = 171;
 				else if (object[p].lastDir == PlayerDir::Left)		 start = 67;
+				else if (object[p].lastDir == PlayerDir::Up_Left)	 start = 93;
+				else if (object[p].lastDir == PlayerDir::Up)		 start = 119;
+				else if (object[p].lastDir == PlayerDir::Up_Right)	 start = 145;
+				else if (object[p].lastDir == PlayerDir::Right)		 start = 171;
+				else if (object[p].lastDir == PlayerDir::Down_Right) start = 197;
 
 				const int count = 5;
 				const int lastFrame = start + count - 1;
@@ -832,53 +833,106 @@ void Polygon3D_Update()
 					}
 				}
 			}
+			// スペシャル 6コマ
+			else if (object[p].useSpecial)
+			{
+				int type = -1;
+				switch (object[p].type)
+				{
+				case PlayerType::Concrete:		type = 0;	break;
+				case PlayerType::Electricity:	type = 1;	break;
+				case PlayerType::Glass:			type = 2;	break;
+				case PlayerType::Plant:			type = 3;	break;
+				default: break;
+				}
+					 if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p], type * 8 +  0, 8, advance);	//  下  type * 8 +  0～7
+				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p], type * 8 +  8, 8, advance);	// 左下 type * 8 +  8～15
+				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p], type * 8 + 16, 8, advance);	//  左  type * 8 + 16～23
+				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p], type * 8 + 24, 8, advance);	// 左上 type * 8 + 24～31
+				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], type * 8 + 32, 8, advance);	//  上  type * 8 + 32～39
+				else if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], type * 8 + 40, 8, advance);	// 右上 type * 8 + 40～47
+				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], type * 8 + 48, 8, advance);	//  右  type * 8 + 48～55
+				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], type * 8 + 56, 8, advance);	// 右下 type * 8 + 56～63
+			}
 			// ダメージ 3コマ
 			else if (object[p].isAttacked == true || object[p].isStunning)
 			{
-					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 144, 3, advance);	// 右上 144～146
-				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  92, 3, advance);	// 左上  92～94
-				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 196, 3, advance);	// 右下 196～198
+					 if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  14, 3, advance);	//  下   14～16 
 				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  40, 3, advance);	// 左下  40～42
-				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 118, 3, advance);	//  上  118～120
-				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  14, 3, advance);	//  下   14～16
-				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 170, 3, advance);	//  右  170～172
 				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  66, 3, advance);	//  左   66～68
+				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  92, 3, advance);	// 左上  92～94
+				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 118, 3, advance);	//  上  118～120
+				else if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 144, 3, advance);	// 右上 144～146
+				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 170, 3, advance);	//  右  170～172
+				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 196, 3, advance);	// 右下 196～198
 			}
 			// 攻撃 6コマ
 			else if (object[p].isAttacking == true)
 			{
-					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 150, 6, advance);	// 右上 150～155
-				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  98, 6, advance);	// 左上  98～103
-				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 202, 6, advance);	// 右下 202～207
+					 if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  20, 6, advance);	//  下   20～25
 				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  46, 6, advance);	// 左下  46～51
-				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 124, 6, advance);	//  上  124～129
-				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  20, 6, advance);	//  下   20～25
-				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 176, 6, advance);	//  右  176～181
 				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  72, 6, advance);	//  左   72～77
+				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  98, 6, advance);	// 左上  98～103
+				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 124, 6, advance);	//  上  124～129
+				else if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 150, 6, advance);	// 右上 150～155
+				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 176, 6, advance);	//  右  176～181
+				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 202, 6, advance);	// 右下 202～207
 			}
 			// 移動 8コマ
 			else if (object[p].isMoving == true)
 			{
-					 if (object[p].moveDir.x > 0.0f && object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p], 136, 8, advance); object[p].lastDir = PlayerDir::Up_Right; }		// 右上 136～143
-				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p],  84, 8, advance); object[p].lastDir = PlayerDir::Up_Left; }		// 左上  84～91
-				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p], 188, 8, advance); object[p].lastDir = PlayerDir::Down_Right; }	// 右下 188～195
-				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p],  32, 8, advance); object[p].lastDir = PlayerDir::Down_Left; }	// 左下  32～39
-				else if (object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p], 110, 8, advance); object[p].lastDir = PlayerDir::Up; }		// 上 110～117
-				else if (object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p],   6, 8, advance); object[p].lastDir = PlayerDir::Down; }	// 下   6～13
-				else if (object[p].moveDir.x > 0.0f) { LoopRange(g_animFrame[p], 162, 8, advance); object[p].lastDir = PlayerDir::Right; }	// 右 162～169
-				else if (object[p].moveDir.x < 0.0f) { LoopRange(g_animFrame[p],  58, 8, advance); object[p].lastDir = PlayerDir::Left; }	// 左  58～63
+				if (object[p].moveDir.z < 0.0f)										// 下   6～13
+				{
+					LoopRange(g_animFrame[p], 6, 8, advance); 
+					object[p].lastDir = PlayerDir::Down; 
+				}
+				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z < 0.0f)	// 左下  32～39
+				{
+					LoopRange(g_animFrame[p], 32, 8, advance); 
+					object[p].lastDir = PlayerDir::Down_Left;
+				}
+				else if (object[p].moveDir.x < 0.0f)								// 左  58～63
+				{	
+					LoopRange(g_animFrame[p], 58, 8, advance);
+					object[p].lastDir = PlayerDir::Left;
+				}
+				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z > 0.0f) 	// 左上  84～91
+				{
+					LoopRange(g_animFrame[p], 84, 8, advance);
+					object[p].lastDir = PlayerDir::Up_Left;
+				}
+				else if (object[p].moveDir.z > 0.0f)								// 上 110～117
+				{
+					LoopRange(g_animFrame[p], 110, 8, advance);
+					object[p].lastDir = PlayerDir::Up;
+				}
+				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z > 0.0f)	// 右上 136～143
+				{
+					LoopRange(g_animFrame[p], 136, 8, advance);
+					object[p].lastDir = PlayerDir::Up_Right;
+				}
+				else if (object[p].moveDir.x > 0.0f)								// 右 162～169
+				{
+					LoopRange(g_animFrame[p], 162, 8, advance);
+					object[p].lastDir = PlayerDir::Right;
+				}
+				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z < 0.0f)	// 右下 188～195
+				{
+					LoopRange(g_animFrame[p], 188, 8, advance); 
+					object[p].lastDir = PlayerDir::Down_Right;
+				}
 			}
 			// 待機 6コマ
 			else if (object[p].isMoving == false)
 			{
-					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 130, 6, advance);	// 右上 130～135
-				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  78, 6, advance);	// 左上  78～83 
-				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 182, 6, advance);	// 右下 182～187		
+					 if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],   0, 6, advance);	//  下    0～5
 				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  26, 6, advance);	// 左下  26～31
-				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 104, 6, advance);	//  上  104～109
-				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],   0, 6, advance);	//  下    0～5
-				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 156, 6, advance);	//  右  156～161
 				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  52, 6, advance);	//  左   52～57
+				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  78, 6, advance);	// 左上  78～83 
+				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 104, 6, advance);	//  上  104～109
+				else if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 130, 6, advance);	// 右上 130～135
+				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 156, 6, advance);	//  右  156～161
+				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 182, 6, advance);	// 右下 182～187		
 			}
 		}
 	}
@@ -1344,7 +1398,12 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			default: break;
 			}
 			break;
+		default: break;
 		}
+
+		// スペシャル使用中は専用テクスチャ
+		//if (object[idx].useSpecial)			srv = g_Texture[9];
+
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 
 		Shader_SetColor({ 1,1,1,1 });
@@ -1546,7 +1605,7 @@ void Polygon3D_DrawStock(int i)
 		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
 		XMFLOAT2 size = { 300.0f, 300.0f };
 
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 9]);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 10]);
 	
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);

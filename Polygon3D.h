@@ -14,21 +14,21 @@
 #define	EVOLUTIONGAUGE_MAX	(10)	// 進化ゲージ最大値
 #define	ATTACKING_TIME		(0.5f)	// 攻撃持続時間（秒）
 #define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間（秒）
-#define	INVINCIBLE_TIME		(13.0f)	// 進化無敵時間（秒）
+#define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間（秒）
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間（秒）
 #define	DOWN_TIME			(3.0f)	// ダウン持続時間（秒）
 
 enum class PlayerDir
 {
-	Up_Right = 0,
-	Up_Left,
-	Down_Right,
+	Down = 0,
 	Down_Left,
-	Up,
-	Down,
-	Right,
 	Left,
+	Up_Left,
+	Up,
+	Up_Right,
+	Right,
+	Down_Right,
 	Max
 };
 
