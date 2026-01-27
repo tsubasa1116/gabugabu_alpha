@@ -9,6 +9,7 @@
 #include <windows.h>
 #include "debug_ostream.h"	//デバッグ表示
 
+#include <chrono> // 追加
 #include <algorithm>
 #include "direct3d.h"
 #include "shader.h"
@@ -255,6 +256,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	Manager_Initialize();
 
+
 	//メッセージループ
 	MSG	msg;
 	ZeroMemory(&msg, sizeof(MSG));
@@ -311,8 +313,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 						continue;
 					}
 
-					g_Input[p].LStickX = NormalizeStickWithDeadZone(js.lX);;
-					g_Input[p].LStickY = NormalizeStickWithDeadZone(js.lY);;
+					g_Input[p].LStickX = NormalizeStickWithDeadZone(js.lX);
+					g_Input[p].LStickY = NormalizeStickWithDeadZone(js.lY);
+
 					// ==== ボタン ====
 					g_Input[p].B = (js.rgbButtons[0] & 0x80);
 					g_Input[p].A = (js.rgbButtons[1] & 0x80);
@@ -324,6 +327,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 					g_Input[p].ZR = (js.rgbButtons[7] & 0x80);
 					g_Input[p].Minus = (js.rgbButtons[8] & 0x80);
 					g_Input[p].Plus = (js.rgbButtons[9] & 0x80);
+
 					g_Input[p].LStickPush = (js.rgbButtons[10] & 0x80);
 					g_Input[p].RStickPush = (js.rgbButtons[11] & 0x80);
 
@@ -453,3 +457,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 
 }
+
