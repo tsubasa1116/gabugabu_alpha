@@ -717,7 +717,7 @@ void AttackPlayerCollisions()
 				if (defender->hp < 0.0f) defender->hp = 0.0f;
 
 				// スタンゲージ増加
-				defender->stunGauge += 0.5f;
+				defender->stunGauge += 2.0f;
 
 				// ダメージフラグ・タイマー（アニメ／UI 用）
 				defender->isAttacked = true;

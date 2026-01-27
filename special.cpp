@@ -571,7 +571,7 @@ void Special_Plant_Update(int playerIndex)
 		// 円とAABBの衝突判定
 		if (CheckCircleAABBCollision(circle, otherPlayer.boundingBox))
 		{
-			// 衝突している場合、防御率でダメージ軽減（ノックバックは与えない）
+			// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
 			otherPlayer.hp -= SPECIAL_PLANT_DAMAGE * otherPlayer.defense;
 
 			// HPが0以下にならないように
@@ -631,7 +631,17 @@ void Special_Electricity_Update(int playerIndex)
 		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 		{
 			// 円とAABBの衝突判定 スタンさせる
-			if (CheckCircleAABBCollision(electricityCircles[i], otherPlayer.boundingBox))	otherPlayer.stunGauge = 10.0f;
+			if (CheckCircleAABBCollision(electricityCircles[i], otherPlayer.boundingBox))
+			{
+				// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
+				otherPlayer.hp -= SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense;
+
+				// 確定スタン
+				otherPlayer.stunGauge = 10.0f;
+
+				// HPが0以下にならないように
+				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+			}
 		}
 	}
 
@@ -662,9 +672,9 @@ void Special_Update(int playerIndex)
 	{
 		switch (player.type)
 		{
-		case PlayerType::Glass:		Special_Glass_Update(playerIndex);		break;
-		case PlayerType::Concrete:	Special_Concrete_Update(playerIndex);	break;
-		case PlayerType::Plant:		Special_Plant_Update(playerIndex);		break;
+		case PlayerType::Glass:			Special_Glass_Update(playerIndex);			break;
+		case PlayerType::Concrete:		Special_Concrete_Update(playerIndex);		break;
+		case PlayerType::Plant:			Special_Plant_Update(playerIndex);			break;
 		case PlayerType::Electricity:	Special_Electricity_Update(playerIndex);	break;
 		default: break;
 		}
