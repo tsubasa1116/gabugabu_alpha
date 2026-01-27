@@ -90,12 +90,6 @@ struct PLAYEROBJECT
 	bool isDown;			// ダウン中かどうか
 	float downTimer;		// ダウンタイマー
 
-	float gl;
-	float pl;
-	float co;
-	float el;
-	float gaugeOuter;
-
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	PlayerDir lastDir;							// 待機時の向き
@@ -108,7 +102,7 @@ struct PLAYEROBJECT
 	int breakCount_Glass;					// 破壊した数 ガラス
 	int breakCount_Concrete;				// 破壊した数 コンクリート
 	int breakCount_Plant;					// 破壊した数 植物
-	int breakCount_Electric;				// 破壊した数 電気
+	int breakCount_Electricity;				// 破壊した数 電気
 	std::vector<BuildingType> brokenHistory;// 破壊した建物のリスト
 
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル

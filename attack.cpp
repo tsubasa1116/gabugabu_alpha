@@ -526,10 +526,10 @@ void Attack_Update(int playerIndex)
 			// --- Step 3: 最終タイプ反映 ---
 			switch (maxIdx)
 			{
-			case 0: playerObject->type = PlayerType::Glass;    break;
-			case 1: playerObject->type = PlayerType::Concrete; break;
-			case 2: playerObject->type = PlayerType::Plant;    break;
-			case 3: playerObject->type = PlayerType::Electric; break;
+			case 0: playerObject->type = PlayerType::Glass;			break;
+			case 1: playerObject->type = PlayerType::Concrete;		break;
+			case 2: playerObject->type = PlayerType::Plant;			break;
+			case 3: playerObject->type = PlayerType::Electricity;	break;
 			}
 		}
 
@@ -537,16 +537,16 @@ void Attack_Update(int playerIndex)
 		//    タイプ決定の if ブロックの外に出すことで、どのフォーム段階からの進化でもリセットされる
 
 
-		// 2進化に到達した直後ならエフェクトをセット
-		/*if (playerObject->form == Form::SecondEvolution && currentForm != Form::SecondEvolution)
+		// 第3形態に到達した直後ならエフェクトをセット
+		/*if (playerObject->form == Form::Third && currentForm != Form::Third)
 		{
 			XMFLOAT2 pos = { 170.0f, 600.0f };
 			XMFLOAT2 size = { 300.0f, 300.0f };
 			Effect_Set(0, pos, size);
 		}*/
 
-		// 2進化に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
-		if (playerObject->form == Form::SecondEvolution && currentForm != Form::SecondEvolution)
+		// 第3形態に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
+		if (playerObject->form == Form::Third && currentForm != Form::Third)
 		{
 			// プレイヤーごとの画面上のエフェクト位置
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
@@ -564,7 +564,7 @@ void Attack_Update(int playerIndex)
 			case PlayerType::Glass:		effectTexNo = 0; break;
 			case PlayerType::Concrete:	effectTexNo = 1; break;
 			case PlayerType::Plant:		effectTexNo = 2; break;
-			case PlayerType::Electric:	effectTexNo = 3; break;
+			case PlayerType::Electricity:	effectTexNo = 3; break;
 			default:					effectTexNo = 0; break;
 			}
 

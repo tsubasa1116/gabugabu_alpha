@@ -166,7 +166,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].breakCount_Glass = 1;
 	object[0].breakCount_Concrete = 1;
 	object[0].breakCount_Plant = 1;
-	object[0].breakCount_Electric = 1;
+	object[0].breakCount_Electricity = 1;
 
 
 	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
@@ -207,7 +207,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].breakCount_Glass = 1;
 	object[1].breakCount_Concrete = 1;
 	object[1].breakCount_Plant = 1;
-	object[1].breakCount_Electric = 1;
+	object[1].breakCount_Electricity = 1;
 
 
 	object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
@@ -248,7 +248,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].breakCount_Glass = 0;
 	object[2].breakCount_Concrete = 0;
 	object[2].breakCount_Plant = 0;
-	object[2].breakCount_Electric = 0;
+	object[2].breakCount_Electricity = 0;
 
 	object[3].position = XMFLOAT3(4.0f, 4.0f, -2.0f);
 	object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -288,7 +288,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].breakCount_Glass = 0;
 	object[3].breakCount_Concrete = 0;
 	object[3].breakCount_Plant = 0;
-	object[3].breakCount_Electric = 0;
+	object[3].breakCount_Electricity = 0;
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC	bd;
@@ -367,12 +367,12 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
 		{  5, L"asset\\texture\\characterBigGlass_v1.png" },		// 第3形態 ガラス
 		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// 第3形態 コンクリート
-		{  7, L"asset\\texture\\characterBigTree_v1.png" },		// 第3形態 植物
-		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },		// 第3形態 電気
+		{  7, L"asset\\texture\\characterBigTree_v1.png" },			// 第3形態 植物
+		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },	// 第3形態 電気
 		{  9, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 青
 		{ 10, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 緑
 		{ 11, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 
-		{ 12, L"asset\\texture\\uiStockGreen_v4.png" },			// UI ストック 
+		{ 12, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ストック 
 		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
 		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
 		{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
@@ -684,8 +684,6 @@ void Polygon3D_Update()
 					if (Keyboard_IsKeyDown(KK_H))	{ object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
 					if (object[2].moveDir.x == 0.0f && object[2].moveDir.z == 0.0f)	object[2].isMoving = false;
 				}
-			}
-				if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
 			}
 
 			// 現在のプレイヤー p だけを動かす
@@ -1021,14 +1019,14 @@ void Polygon3D_Update()
 		}
 		else if (ImGui::Button("el +1"))
 		{
-			object[p].breakCount_Electric += 1;
+			object[p].breakCount_Electricity += 1;
 		}
 		
 		ImGui::SliderFloat("HP", &object[p].hp, 0.0f, 100.0f);
 		ImGui::SliderFloat("Outer", &object[p].evolutionGauge, 0.0f, 1.0f);
 		ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
 		ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
-		ImGui::BulletText("4 Electric breaks : %d", object[p].breakCount_Electric);
+		ImGui::BulletText("4 Electricity breaks : %d", object[p].breakCount_Electricity);
 
 		// 履歴リストのサイズを表示
 		size_t historySize = object[p].brokenHistory.size();
@@ -1555,7 +1553,7 @@ void Polygon3D_DrawHP()
 		DrawHP(&HPBar[i], i + 2);
 		XMFLOAT2 hp = HPBar[i].pos;
 
-		Gauge_Set(i, object[i].breakCount_Glass, object[i].breakCount_Concrete, object[i].breakCount_Plant, object[i].breakCount_Electric,
+		Gauge_Set(i, object[i].breakCount_Glass, object[i].breakCount_Concrete, object[i].breakCount_Plant, object[i].breakCount_Electricity,
 			object[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y});
 
 		Gauge_Draw(i);

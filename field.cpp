@@ -99,7 +99,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX },	// 30
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electric,4},
+	{ {},{}, FIELD::FIELD_Electricity,4},
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -131,7 +131,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electric,0 },
+	{ {},{}, FIELD::FIELD_Electricity,0 },
 	{ {},{}, FIELD::FIELD_Glass },
 	{ {},{}, FIELD::FIELD_Concrete,1 },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -140,7 +140,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_Electric,1},//
+	{ {},{}, FIELD::FIELD_Electricity,1},//
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX},
@@ -150,7 +150,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electric,0 },
+	{ {},{}, FIELD::FIELD_Electricity,0 },
 	{ {},{}, FIELD::FIELD_BOX},
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -162,8 +162,8 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX},//
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electric,0 },
-	{ {},{}, FIELD::FIELD_Electric,0 },
+	{ {},{}, FIELD::FIELD_Electricity,0 },
+	{ {},{}, FIELD::FIELD_Electricity,0 },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },	// 100
@@ -193,7 +193,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Glass, },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_Plant,2 },//
-	{ {},{}, FIELD::FIELD_Electric ,2},//
+	{ {},{}, FIELD::FIELD_Electricity ,2},//
 	{ {},{}, FIELD::FIELD_Plant,2 },//
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },

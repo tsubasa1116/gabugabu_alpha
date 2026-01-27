@@ -102,7 +102,7 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 		if (m_ModelIndex >= COUNT(g_PlantModels)) m_ModelIndex = 0;
 		break;
 
-	case BuildingType::Electric:
+	case BuildingType::Electricity:
 		if (m_ModelIndex >= COUNT(g_ElectricModels)) m_ModelIndex = 0;
 		break;
 
@@ -194,7 +194,7 @@ void Building::LoadModelForPhase()
 	case BuildingType::Glass:		modelName = g_GlassModels[m_ModelIndex];	break;
 	case BuildingType::Concrete:	modelName = g_ConcreteModels[m_ModelIndex];	break;
 	case BuildingType::Plant:		modelName = g_PlantModels[m_ModelIndex];	break;
-	case BuildingType::Electric:	modelName = g_ElectricModels[m_ModelIndex];	break;
+	case BuildingType::Electricity:	modelName = g_ElectricModels[m_ModelIndex];	break;
 
 	default: return;
 	}
