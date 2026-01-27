@@ -347,14 +347,14 @@ void Attack_Update(int playerIndex)
 		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
 		MTV collision = CalculateAABBMTV(atttackObject.boundingBox, pStaticObjectAABB);
 
-		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER/*, KK_, KK_ */};
+		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V, /*KK_ */};
 
 		// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
 		if (collision.isColliding)
 		{
 			BuildingType type = buildingObjects[i]->Type;
 
-			if (g_Input[playerIndex].A)
+			if (g_Input[playerIndex].A || Keyboard_IsKeyDown(confirmKey[playerIndex]))
 			{
 				// 各建物タイプごとの処理
 				switch (type)
@@ -472,9 +472,9 @@ void Attack_Update(int playerIndex)
 			// 4種類の破壊した建物数を配列に格納
 			const int counts[4] =
 			{
-				player.breakCount_Glass,		// idx 0
+				player.breakCount_Glass,	// idx 0
 				player.breakCount_Concrete,	// idx 1
-				player.breakCount_Plant,		// idx 2
+				player.breakCount_Plant,	// idx 2
 				player.breakCount_Electric	// idx 3
 			};
 
@@ -561,11 +561,11 @@ void Attack_Update(int playerIndex)
 			int effectTexNo = 0; // デフォルト
 			switch (playerObject->type)
 			{
-			case PlayerType::Glass:     effectTexNo = 0; break;
-			case PlayerType::Concrete:  effectTexNo = 1; break;
-			case PlayerType::Plant:     effectTexNo = 2; break;
-			case PlayerType::Electric:  effectTexNo = 3; break;
-			default:                    effectTexNo = 0; break;
+			case PlayerType::Glass:		effectTexNo = 0; break;
+			case PlayerType::Concrete:	effectTexNo = 1; break;
+			case PlayerType::Plant:		effectTexNo = 2; break;
+			case PlayerType::Electric:	effectTexNo = 3; break;
+			default:					effectTexNo = 0; break;
 			}
 
 			// プレイヤー番号は playerIndex（0ベース）
@@ -574,8 +574,6 @@ void Attack_Update(int playerIndex)
 
 			Effect_Set(effectTexNo, pos, size);
 		}
-
-
 
 		player.brokenHistory.clear(); // 履歴もクリアする
 		player.evolutionGauge = 0;

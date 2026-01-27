@@ -46,7 +46,7 @@ void SetDamageText(const XMFLOAT3& worldPos, int damage, TextColor color)
 	e.text = std::to_wstring(damage);
 	e.worldPos = worldPos;
 	e.vy = 0.05f; // 上にゆっくり移動
-	e.flame = 30.0f; // フレーム数で消す
+	e.flame = 100.0f; // フレーム数で消す
 	e.size = 36.0f;
 	e.color = color;
 	e.alive = true;
