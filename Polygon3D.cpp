@@ -27,14 +27,11 @@ using namespace DirectX;
 #include "attack.h" 
 #include "DamageText.h"
 #include "makeText.h"
-///////////////////////////////////////
-
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 #include <chrono>
 #include <codecvt>
-
 #include <vector>
 #include <algorithm>
 
@@ -168,7 +165,6 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].breakCount_Plant = 1;
 	object[0].breakCount_Electricity = 1;
 
-
 	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
@@ -208,7 +204,6 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].breakCount_Concrete = 1;
 	object[1].breakCount_Plant = 1;
 	object[1].breakCount_Electricity = 1;
-
 
 	object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -291,7 +286,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].breakCount_Electricity = 0;
 
 	// 頂点バッファ作成
-	D3D11_BUFFER_DESC	bd;
+	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));// 0でクリア
 	bd.Usage = D3D11_USAGE_DYNAMIC;
 	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// 格納できる頂点数*頂点サイズ
@@ -325,7 +320,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
 
 		// インデックスバッファへ書き込み
-		D3D11_MAPPED_SUBRESOURCE   msr;
+		D3D11_MAPPED_SUBRESOURCE msr;
 		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		UINT* index = (UINT*)msr.pData;
 
@@ -369,14 +364,15 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// 第3形態 コンクリート
 		{  7, L"asset\\texture\\characterBigTree_v1.png" },			// 第3形態 植物
 		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },	// 第3形態 電気
-		{  9, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 青
-		{ 10, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 緑
-		{ 11, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 
-		{ 12, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ストック 
-		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
-		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
-		{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
-		{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
+		{  9, L"asset\\texture\\characterBigSP_v1.png" },			// 第3形態 スペシャル
+		{ 10, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 青
+		{ 11, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 緑
+		{ 12, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 
+		{ 13, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ストック 
+		{ 14, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
+		{ 15, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
+		{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
+		{ 17, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
 	};
 
 	for (const auto& e : texList)
@@ -621,19 +617,13 @@ void Polygon3D_Update()
 				// 第2・第3形態の場合、スキル使用フラグも立てる
 				if (object[p].type != PlayerType::None)	object[p].useSkill = true;
 			}
-			if (g_Input[p].A)
-			{
-				object[p].isAttacking = true;
+			if (g_Input[p].A)	object[p].isAttacking = true;
 
-				// 第2・第3形態の場合、スキル使用フラグも立てる
-				if (object[p].type != PlayerType::None)	object[p].useSkill = true;
-			}
+			// 第2・第3形態の場合スキル使用フラグ立てる
+			if (g_Input[p].X)	if (object[p].type != PlayerType::None)	object[p].useSkill = true;
 
 			// 発動トリガー入力をチェックしてスペシャル使用フラグを立てる
 			if (object[p].form == Form::Third && Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
-			{
-				object[p].useSpecial = true;
-			}
 
 			// フラグが立ったら更新処理を呼び出す
 			if (object[p].useSkill)		Skill_Update(p);								// スキル
@@ -997,8 +987,8 @@ void Polygon3D_Update()
 		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
 		ImGui::BulletText("form              : %d", object[p].form);
 		ImGui::BulletText("type              : %d", object[p].type);
-		ImGui::BulletText("EvolutionGauge    : %d", object[p].evolutionGauge);
-		ImGui::BulletText("EvolutionGaugeRate: %d", object[p].evolutionGaugeRate);
+		ImGui::BulletText("EvolutionGauge    : %.1f", object[p].evolutionGauge);
+		ImGui::BulletText("EvolutionGaugeRate: %.1f", object[p].evolutionGaugeRate);
 
 		if (ImGui::Button("hp -1"))
 		{
