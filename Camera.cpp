@@ -236,29 +236,11 @@ void Camera_Update()
 
 void Camera_Draw()
 { 
-	////プロジェクション行列作成
-	//CameraObject.projection = XMMatrixPerspectiveFovLH
-	//(
-	//	XMConvertToRadians(CameraObject.fov),
-	//	CameraObject.aspect,
-	//	CameraObject.nearClip,
-	//	CameraObject.farClip
-	//);
-
-	// ★★★ 平行投影行列を作成する ★★★
-	// プロジェクション行列作成
-	// XMMatrixOrthographicLH(幅, 高さ, nearClip, farClip) を使用する
-	// ※幅と高さは、画面サイズをそのまま使うのが一般的です
-	float width = (float)Direct3D_GetBackBufferWidth();
-	width = 12.80f;
-	float height = (float)Direct3D_GetBackBufferHeight();
-	height = 7.20f;
-
-	CameraObject.projection = XMMatrixOrthographicLH
+	//プロジェクション行列作成
+	CameraObject.projection = XMMatrixPerspectiveFovLH
 	(
-		// 幅と高さ。この値がそのまま描画範囲（スクリーンサイズ）になる
-		width / CameraObject.aspect, // 幅 (アスペクト比で補正)
-		height / CameraObject.aspect, // 高さ (アスペクト比で補正)
+		XMConvertToRadians(CameraObject.fov),
+		CameraObject.aspect,
 		CameraObject.nearClip,
 		CameraObject.farClip
 	);
