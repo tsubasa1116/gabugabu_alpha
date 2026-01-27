@@ -1,28 +1,28 @@
-#pragma once
+ï»¿#pragma once
 
 class BLOCK
 {
 	public:
-		bool Enable;	//ƒuƒƒbƒN‚ª‚ ‚é‚©‚È‚¢‚©
-		bool Erase;		//Á–Å—\’èƒtƒ‰ƒO
-		int Type;		//ƒuƒƒbƒNí•Ê
+		bool Enable;	//ãƒ–ãƒ­ãƒƒã‚¯ãŒã‚ã‚‹ã‹ãªã„ã‹
+		bool Erase;		//æ¶ˆæ»…äºˆå®šãƒ•ãƒ©ã‚°
+		int Type;		//ãƒ–ãƒ­ãƒƒã‚¯ç¨®åˆ¥
 };
 
 enum BLOCK_STATE
 {
-	BLOCK_STATE_IDLE,			//‚Ğ‚Ü
-	BLOCK_STATE_ERASE_IDLE,		//Á–Å’†
-	BLOCK_STATE_STACK_IDLE,		//—‰º’†
+	BLOCK_STATE_IDLE,			//ã²ã¾
+	BLOCK_STATE_ERASE_IDLE,		//æ¶ˆæ»…ä¸­
+	BLOCK_STATE_STACK_IDLE,		//è½ä¸‹ä¸­
 
 };
 
-//ƒƒCƒ“ˆ—ŠÖ”
+//ãƒ¡ã‚¤ãƒ³å‡¦ç†é–¢æ•°
 void Block_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Block_Finalize();
 void Block_Update();
 void Block_Draw();
 
-//ƒTƒuˆ—ŠÖ”
+//ã‚µãƒ–å‡¦ç†é–¢æ•°
 void Block_SetBlock(int x, int y, int Type);
 BLOCK Block_GetBlock(int x, int y);
 void Block_EraseBlock();

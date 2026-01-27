@@ -1,23 +1,23 @@
-#include "Building.h"
+ï»¿#include "Building.h"
 #include "field.h"
 #include "Camera.h"
 #include "keyboard.h"
 
 //=========================================
-// ƒOƒ[ƒoƒ‹ŠÇ—
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«ç®¡ç†
 //=========================================
 
-// Œš•¨”z—ñiÅ‘å100ŒÂj
+// å»ºç‰©é…åˆ—ï¼ˆæœ€å¤§100å€‹ï¼‰
 static Building* Buildings[300];
 
-// Œ»İ‚ÌŒš•¨”
+// ç¾åœ¨ã®å»ºç‰©æ•°
 static int BuildingCount = 0;
 
 //=========================================
-// ƒ‚ƒfƒ‹’è‹`i•¡”‘Î‰j
+// ãƒ¢ãƒ‡ãƒ«å®šç¾©ï¼ˆè¤‡æ•°å¯¾å¿œï¼‰
 //=========================================
 
-// ƒKƒ‰ƒXŒš•¨
+// ã‚¬ãƒ©ã‚¹å»ºç‰©
 static const char* g_GlassModels[] = {
 	"3birugarsu",
 	"2marugarasu",
@@ -26,7 +26,7 @@ static const char* g_GlassModels[] = {
 
 };
 
-// ƒRƒ“ƒNƒŠ[ƒgŒš•¨
+// ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆå»ºç‰©
 static const char* g_ConcreteModels[] = {
 	"bizyutukan",
 	"biru3dannkonkuri",
@@ -35,7 +35,7 @@ static const char* g_ConcreteModels[] = {
 
 };
 
-// A•¨Œš•¨
+// æ¤ç‰©å»ºç‰©
 static const char* g_PlantModels[] = {
 	"propsTreeSub_v2",
 	"kitoyugu",
@@ -44,7 +44,7 @@ static const char* g_PlantModels[] = {
 	"torii_ki"
 };
 
-// “d‹CŒš•¨
+// é›»æ°—å»ºç‰©
 static const char* g_ElectricModels[] = {
 	"singou",
 	"tawa-",
@@ -55,11 +55,11 @@ static const char* g_ElectricModels[] = {
 };
 
 
-// ”z—ñ”æ“¾ƒ}ƒNƒ
+// é…åˆ—æ•°å–å¾—ãƒã‚¯ãƒ­
 #define COUNT(arr) (sizeof(arr) / sizeof(arr[0]))
 
 //=========================================
-// ‘SŒš•¨•`‰æ
+// å…¨å»ºç‰©æç”»
 //=========================================
 void Building_DrawAll(bool s_IsKonamiCodeEntered)
 {
@@ -73,7 +73,7 @@ void Building_DrawAll(bool s_IsKonamiCodeEntered)
 }
 
 //=========================================
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 //=========================================
 Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 	: Type(type),
@@ -83,11 +83,11 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 	isActive(true),
 	m_ModelIndex(modelIndex)
 {
-	// ‰Šúƒgƒ‰ƒ“ƒXƒtƒH[ƒ€
+	// åˆæœŸãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ 
 	scaling = { 1.0f, 1.0f, 1.0f };
 	rotation = { 0.0f, 0.0f, 0.0f };
 
-	// ƒ‚ƒfƒ‹”Ô†‚Ì”ÍˆÍƒ`ƒFƒbƒN
+	// ãƒ¢ãƒ‡ãƒ«ç•ªå·ã®ç¯„å›²ãƒã‚§ãƒƒã‚¯
 	switch (Type)
 	{
 	case BuildingType::Glass:
@@ -109,12 +109,12 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 
 	}
 
-	// ƒ‚ƒfƒ‹“Ç‚İ‚İ
+	// ãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿
 	LoadModelForPhase();
 }
 
 //=========================================
-// ƒfƒXƒgƒ‰ƒNƒ^
+// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 //=========================================
 Building::~Building()
 {
@@ -126,7 +126,7 @@ Building::~Building()
 }
 
 //=========================================
-// ‰Šú‰»iField ‚©‚çŒš•¨¶¬j
+// åˆæœŸåŒ–ï¼ˆField ã‹ã‚‰å»ºç‰©ç”Ÿæˆï¼‰
 //=========================================
 void Building_Initialize(ID3D11Device*, ID3D11DeviceContext*)
 {
@@ -139,7 +139,7 @@ void Building_Initialize(ID3D11Device*, ID3D11DeviceContext*)
 	{
 		BuildingType type = BuildingType::None;
 
-		// FIELD ¨ BuildingType •ÏŠ·
+		// FIELD â†’ BuildingType å¤‰æ›
 		switch (map[i].no)
 		{
 		case FIELD::FIELD_Glass:	type = BuildingType::Glass;	break;
@@ -150,10 +150,10 @@ void Building_Initialize(ID3D11Device*, ID3D11DeviceContext*)
 		default: continue;
 		}
 
-		// Field‘¤‚Åw’è‚µ‚½ƒ‚ƒfƒ‹”Ô†‚ğg—p
+		// Fieldå´ã§æŒ‡å®šã—ãŸãƒ¢ãƒ‡ãƒ«ç•ªå·ã‚’ä½¿ç”¨
 		int modelIndex = map[i].variant;
 
-		// Œš•¨¶¬
+		// å»ºç‰©ç”Ÿæˆ
 		Buildings[BuildingCount++] =
 			new Building(type, map[i].pos, modelIndex);
 
@@ -162,7 +162,7 @@ void Building_Initialize(ID3D11Device*, ID3D11DeviceContext*)
 }
 
 //=========================================
-// I—¹ˆ—
+// çµ‚äº†å‡¦ç†
 //=========================================
 void Building_Finalize()
 {
@@ -175,11 +175,11 @@ void Building_Finalize()
 }
 
 //=========================================
-// ƒ‚ƒfƒ‹“Ç‚İ‚İˆ—
+// ãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿å‡¦ç†
 //=========================================
 void Building::LoadModelForPhase()
 {
-	// Šù‘¶ƒ‚ƒfƒ‹‰ğ•ú
+	// æ—¢å­˜ãƒ¢ãƒ‡ãƒ«è§£æ”¾
 	if (m_Model)
 	{
 		ModelRelease(m_Model);
@@ -188,7 +188,7 @@ void Building::LoadModelForPhase()
 
 	const char* modelName = nullptr;
 
-	// Œš•¨ƒ^ƒCƒv‚²‚Æ‚Éƒ‚ƒfƒ‹Œˆ’è
+	// å»ºç‰©ã‚¿ã‚¤ãƒ—ã”ã¨ã«ãƒ¢ãƒ‡ãƒ«æ±ºå®š
 	switch (Type)
 	{
 	case BuildingType::Glass:		modelName = g_GlassModels[m_ModelIndex];	break;
@@ -199,16 +199,16 @@ void Building::LoadModelForPhase()
 	default: return;
 	}
 
-	// ƒpƒX‘g‚İ—§‚Ä
+	// ãƒ‘ã‚¹çµ„ã¿ç«‹ã¦
 	char path[256];
 	snprintf(path, sizeof(path), "asset/model/%s.fbx", modelName);
 
-	// ƒ‚ƒfƒ‹ƒ[ƒh
+	// ãƒ¢ãƒ‡ãƒ«ãƒ­ãƒ¼ãƒ‰
 	m_Model = ModelLoad(path);
 }
 
 //=========================================
-// ƒtƒF[ƒY•ÏXi«—ˆŠg’£—pj
+// ãƒ•ã‚§ãƒ¼ã‚ºå¤‰æ›´ï¼ˆå°†æ¥æ‹¡å¼µç”¨ï¼‰
 //=========================================
 void Building::SetPhase(BuildingPhase phase)
 {
@@ -220,15 +220,15 @@ void Building::SetPhase(BuildingPhase phase)
 }
 
 //=========================================
-// XV
+// æ›´æ–°
 //=========================================
 void Building::Update()
 {
-	// ¡‚Í–¢g—p
+	// ä»Šã¯æœªä½¿ç”¨
 }
 
 //=========================================
-// •`‰æ
+// æç”»
 //=========================================
 void Building::Draw(bool)
 {
@@ -236,10 +236,10 @@ void Building::Draw(bool)
 
 	Shader_Begin();
 
-	// View ~ Projection
+	// View Ã— Projection
 	XMMATRIX VP = GetViewMatrix() * GetProjectionMatrix();
 
-	// Worlds—ñ
+	// Worldè¡Œåˆ—
 	XMMATRIX World =
 		XMMatrixScaling(scaling.x, scaling.y, scaling.z) *
 		XMMatrixRotationRollPitchYaw(
@@ -255,7 +255,7 @@ void Building::Draw(bool)
 }
 
 //=========================================
-// ƒQƒbƒ^[
+// ã‚²ãƒƒã‚¿ãƒ¼
 //=========================================
 int GetBuildingCount()
 {

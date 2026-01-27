@@ -1,13 +1,13 @@
-#pragma once
+ï»¿#pragma once
 
 #include <d3d11.h>
 #include "collider.h"
 #include <DirectXMath.h>
 #include <vector>
 
-// ƒ}ƒNƒ’è‹`
+// ãƒžã‚¯ãƒ­å®šç¾©
 #define SPECIAL_GLASS_TIME			(10.0f)	// 
-#define SPECIAL_GLASS_LOCKON_TIME	(3.0f)	// ƒXƒyƒVƒƒƒ‹ ƒKƒ‰ƒX ƒƒbƒNƒIƒ“ŽžŠÔ
+#define SPECIAL_GLASS_LOCKON_TIME	(3.0f)	// ã‚¹ãƒšã‚·ãƒ£ãƒ« ã‚¬ãƒ©ã‚¹ ãƒ­ãƒƒã‚¯ã‚ªãƒ³æ™‚é–“
 #define SPECIAL_CONCRETE_TIME		(10.0f)	// 
 #define SPECIAL_PLANT_TIME			(10.0f)	// 
 #define SPECIAL_ELECTRIC_TIME		(10.0f)	// 
@@ -22,7 +22,7 @@ struct SPECIAL_OBJECT
 	AABB boundingBox;
 };
 
-// ƒ~ƒTƒCƒ‹iGlassj\‘¢‘Ì
+// ãƒŸã‚µã‚¤ãƒ«ï¼ˆGlassï¼‰æ§‹é€ ä½“
 struct GLASS_MISSILE
 {
 	bool	active = false;
@@ -32,29 +32,29 @@ struct GLASS_MISSILE
 	float	speed = 0.0f;
 };
 
-// Glassê—p‚ÌƒXƒLƒ‹ŠÇ—\‘¢‘Ìi5‚Â‚Ì” ‚Ìî•ñ‚ðŠi”[‚·‚éj
+// Glasså°‚ç”¨ã®ã‚¹ã‚­ãƒ«ç®¡ç†æ§‹é€ ä½“ï¼ˆ5ã¤ã®ç®±ã®æƒ…å ±ã‚’æ ¼ç´ã™ã‚‹ï¼‰
 struct SPECIAL_GLASS
 {
-	// GlassƒXƒLƒ‹‚ª¶¬‚·‚é5‚Â‚Ì” 
+	// Glassã‚¹ã‚­ãƒ«ãŒç”Ÿæˆã™ã‚‹5ã¤ã®ç®±
 	SPECIAL_OBJECT boxes[5];
 
-	// ƒXƒLƒ‹‚ÌŒ»Ý‚Ìó‘Ô
+	// ã‚¹ã‚­ãƒ«ã®ç¾åœ¨ã®çŠ¶æ…‹
 	bool isActive = false;
 	float duration = 0.0f;
 
-	// ƒXƒLƒ‹‚Ì‘S‘Ì“I‚ÈeÀ•W‚ª•K—v‚Èê‡
+	// ã‚¹ã‚­ãƒ«ã®å…¨ä½“çš„ãªè¦ªåº§æ¨™ãŒå¿…è¦ãªå ´åˆ
 	XMFLOAT3 parentPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
-	// ‘¼ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ðŠi”[‚·‚é”z—ñiƒƒbƒNƒIƒ“Žž‚Éˆê“x‚¾‚¯•Û‘¶j
+	// ä»–ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’æ ¼ç´ã™ã‚‹é…åˆ—ï¼ˆãƒ­ãƒƒã‚¯ã‚ªãƒ³æ™‚ã«ä¸€åº¦ã ã‘ä¿å­˜ï¼‰
 	std::vector<XMFLOAT3> lockedTargets;
 
-	// ”­ŽËÏ‚Ýƒtƒ‰ƒOiƒƒbƒNƒIƒ“Œã‚Éˆê“x‚¾‚¯”­ŽËj
+	// ç™ºå°„æ¸ˆã¿ãƒ•ãƒ©ã‚°ï¼ˆãƒ­ãƒƒã‚¯ã‚ªãƒ³å¾Œã«ä¸€åº¦ã ã‘ç™ºå°„ï¼‰
 	bool hasSpawned = false;
 
-	// ƒƒbƒNƒIƒ“Ï‚Ýƒtƒ‰ƒOiƒƒbƒNƒIƒ“ƒf[ƒ^‚ð•Û‘¶‚µ‚½‚©j
+	// ãƒ­ãƒƒã‚¯ã‚ªãƒ³æ¸ˆã¿ãƒ•ãƒ©ã‚°ï¼ˆãƒ­ãƒƒã‚¯ã‚ªãƒ³ãƒ‡ãƒ¼ã‚¿ã‚’ä¿å­˜ã—ãŸã‹ï¼‰
 	bool locked = false;
 
-	// ƒ~ƒTƒCƒ‹”z—ñ
+	// ãƒŸã‚µã‚¤ãƒ«é…åˆ—
 	GLASS_MISSILE missiles[5];
 };
 

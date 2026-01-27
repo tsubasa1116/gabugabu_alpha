@@ -1,4 +1,4 @@
-
+﻿
 #include <d3d11.h>
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -8,7 +8,6 @@ using namespace DirectX;
 #include "keyboard.h"
 
 #include "audio.h"
-
 
 //ohayogozaimasu
 //konnichiwa

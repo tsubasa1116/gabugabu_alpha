@@ -1,15 +1,15 @@
-//======================================================
+ï»¿//======================================================
 //	main.cpp[]
 // 
-//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
+//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
 //======================================================
-//ƒEƒBƒ“ƒhƒE‚Ì•\¦
-#include <SDKDDKVer.h>	//—˜—p‚Å‚«‚éÅ‚àãˆÊ‚Ì Windows ƒvƒ‰ƒbƒgƒtƒH[ƒ€‚ª’è‹`‚³‚ê‚é
-#define WIN32_LEAN_AND_MEAN	//32bitƒAƒvƒŠ‚É‚Í•s—v‚Èî•ñ‚ğ—}~‚µ‚ÄƒRƒ“ƒpƒCƒ‹ŠÔ‚ğ’Zk
+//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®è¡¨ç¤º
+#include <SDKDDKVer.h>	//åˆ©ç”¨ã§ãã‚‹æœ€ã‚‚ä¸Šä½ã® Windows ãƒ—ãƒ©ãƒƒãƒˆãƒ•ã‚©ãƒ¼ãƒ ãŒå®šç¾©ã•ã‚Œã‚‹
+#define WIN32_LEAN_AND_MEAN	//32bitã‚¢ãƒ—ãƒªã«ã¯ä¸è¦ãªæƒ…å ±ã‚’æŠ‘æ­¢ã—ã¦ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«æ™‚é–“ã‚’çŸ­ç¸®
 #include <windows.h>
-#include "debug_ostream.h"	//ƒfƒoƒbƒO•\¦
+#include "debug_ostream.h"	//ãƒ‡ãƒãƒƒã‚°è¡¨ç¤º
 
-#include <chrono> // ’Ç‰Á
+#include <chrono> // è¿½åŠ 
 #include <algorithm>
 #include "direct3d.h"
 #include "shader.h"
@@ -42,37 +42,37 @@
 
 
 //==================================
-//ƒOƒ[ƒoƒ‹•Ï”
+//ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 //==================================
 LPDIRECTINPUT8 g_pDI = nullptr;
 LPDIRECTINPUTDEVICE8 g_pGamepad[4] = { nullptr };
-int g_GamepadCount = 0;  // Ú‘±‚³‚ê‚½ƒvƒƒRƒ“‚Ì”
+int g_GamepadCount = 0;  // æ¥ç¶šã•ã‚ŒãŸãƒ—ãƒ­ã‚³ãƒ³ã®æ•°
 
-#ifdef _DEBUG	//ƒfƒoƒbƒOƒrƒ‹ƒh‚Ì‚¾‚¯•Ï”‚ªì‚ç‚ê‚é
-int		g_CountFPS;			//FPSƒJƒEƒ“ƒ^[
-char	g_DebugStr[2048];	//FPS•\¦•¶š—ñ
+#ifdef _DEBUG	//ãƒ‡ãƒãƒƒã‚°ãƒ“ãƒ«ãƒ‰ã®æ™‚ã ã‘å¤‰æ•°ãŒä½œã‚‰ã‚Œã‚‹
+int		g_CountFPS;			//FPSã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
+char	g_DebugStr[2048];	//FPSè¡¨ç¤ºæ–‡å­—åˆ—
 #endif
 
 #pragma comment(lib, "winmm.lib")
 
 //=================================
-//ƒ}ƒNƒ’è‹`
+//ãƒã‚¯ãƒ­å®šç¾©
 //=================================
 #define		CLASS_NAME	"DX21 Window"
-#define		WINDOW_CAPTION	"ƒ|ƒŠƒSƒ“•`‰æ"
+#define		WINDOW_CAPTION	"ãƒãƒªã‚´ãƒ³æç”»"
 
 //===================================
-//ƒvƒƒgƒ^ƒCƒvéŒ¾
+//ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€
 //===================================
 LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-//ƒEƒBƒ“ƒhƒEƒvƒƒV[ƒWƒƒ
-//ƒR[ƒ‹ƒoƒbƒNŠÖ”„‘¼l‚ªŒÄ‚Ño‚µ‚Ä‚­‚ê‚éŠÖ”
+//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
+//ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°ï¼ï¼ä»–äººãŒå‘¼ã³å‡ºã—ã¦ãã‚Œã‚‹é–¢æ•°
 LRESULT	CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CALLBACK EnumGamepadCallback(const DIDEVICEINSTANCE* inst, VOID* ctx)
 {
-	// ƒvƒƒRƒ“‚¾‚¯E‚¤i–¼Ìˆê’vj
+	// ãƒ—ãƒ­ã‚³ãƒ³ã ã‘æ‹¾ã†ï¼ˆåç§°ä¸€è‡´ï¼‰
 	//if (strstr(inst->tszProductName, "Pro Controller"))
 	
 		if (g_GamepadCount < 4)
@@ -124,13 +124,13 @@ void SetAxisRange(LPDIRECTINPUTDEVICE8 device)
 	range.diph.dwHeaderSize = sizeof(DIPROPHEADER);
 	range.diph.dwHow = DIPH_BYOFFSET;
 
-	// X²
+	// Xè»¸
 	range.diph.dwObj = DIJOFS_X;
 	range.lMin = -32767;
 	range.lMax = 32767;
 	device->SetProperty(DIPROP_RANGE, &range.diph);
 
-	// Y²
+	// Yè»¸
 	range.diph.dwObj = DIJOFS_Y;
 	device->SetProperty(DIPROP_RANGE, &range.diph);
 }
@@ -140,11 +140,11 @@ float NormalizeStickWithDeadZone(LONG value)
 	constexpr float DEAD_ZONE = 4000.0f;
 	constexpr float MAX_VALUE = 32767.0f;
 
-	// ƒfƒbƒhƒ][ƒ“
+	// ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³
 	if (value > -DEAD_ZONE && value < DEAD_ZONE)
 		return 0.0f;
 
-	// ³‹K‰»
+	// æ­£è¦åŒ–
 	float v = static_cast<float>(value);
 
 	if (v > 0.0f)
@@ -158,10 +158,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	HINSTANCE hPrevInstance, LPSTR lpCmd, int nCmdShow)
 {
 
-	//—”‚Ì‰Šú‰»
+	//ä¹±æ•°ã®åˆæœŸåŒ–
 	srand(timeGetTime());
 
-	//ƒtƒŒ[ƒ€ƒŒ[ƒgŒv‘ª—p•Ï”
+	//ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆè¨ˆæ¸¬ç”¨å¤‰æ•°
 	DWORD	dwExecLastTime;
 	DWORD	dwFPSLastTime;
 	DWORD	dwCurrentTime;
@@ -170,30 +170,30 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	HRESULT hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
 
 
-	//ƒEƒBƒ“ƒhƒEƒNƒ‰ƒX‚Ì“o˜^iƒEƒBƒ“ƒhƒE‚Ìd—l“I‚È•¨‚ğŒˆ‚ß‚ÄWindows‚ÖƒZƒbƒg‚·‚éj
-	WNDCLASS	wc;	//\‘¢‘Ì‚ğ€”õ
-	ZeroMemory(&wc, sizeof(WNDCLASS));//“à—e‚ğ‚O‚Å‰Šú‰»
-	wc.lpfnWndProc = WndProc;	//ƒR[ƒ‹ƒoƒbƒNŠÖ”‚Ìƒ|ƒCƒ“ƒ^[
-	wc.lpszClassName = CLASS_NAME;	//‚±‚Ìd—l‘‚Ì–¼‘O
-	wc.hInstance = hInstance;	//‚±‚ÌƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì‚±‚Æ
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);//ƒJ[ƒ\ƒ‹‚Ìí—Ş
-	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND+1 );//ƒEƒBƒ“ƒhƒE‚Ì”wŒiF‚Í•
-	RegisterClass(&wc);	//\‘¢‘Ì‚ğWindows‚ÖƒZƒbƒg
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¯ãƒ©ã‚¹ã®ç™»éŒ²ï¼ˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ä»•æ§˜çš„ãªç‰©ã‚’æ±ºã‚ã¦Windowsã¸ã‚»ãƒƒãƒˆã™ã‚‹ï¼‰
+	WNDCLASS	wc;	//æ§‹é€ ä½“ã‚’æº–å‚™
+	ZeroMemory(&wc, sizeof(WNDCLASS));//å†…å®¹ã‚’ï¼ã§åˆæœŸåŒ–
+	wc.lpfnWndProc = WndProc;	//ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°ã®ãƒã‚¤ãƒ³ã‚¿ãƒ¼
+	wc.lpszClassName = CLASS_NAME;	//ã“ã®ä»•æ§˜æ›¸ã®åå‰
+	wc.hInstance = hInstance;	//ã“ã®ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®ã“ã¨
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);//ã‚«ãƒ¼ã‚½ãƒ«ã®ç¨®é¡
+	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND+1 );//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®èƒŒæ™¯è‰²ã¯é»’
+	RegisterClass(&wc);	//æ§‹é€ ä½“ã‚’Windowsã¸ã‚»ãƒƒãƒˆ
 
-	//ƒNƒ‰ƒCƒAƒ“ƒg—Ìˆæ‚ÌƒTƒCƒY‚ğ•\‚·‹éŒ` (¶‚©‚çleft, top, right, bottom)
+	//ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆé ˜åŸŸã®ã‚µã‚¤ã‚ºã‚’è¡¨ã™çŸ©å½¢ (å·¦ã‹ã‚‰left, top, right, bottom)
 	RECT window_rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
-	// ƒtƒ‹HD
+	// ãƒ•ãƒ«HD
 	//RECT window_rect = { -960, -540, SCREEN_WIDTH, SCREEN_HEIGHT };
 	
-	//ƒEƒBƒ“ƒhƒE‚ÌƒXƒ^ƒCƒ‹
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ã‚¹ã‚¿ã‚¤ãƒ«
 	DWORD window_style = WS_OVERLAPPEDWINDOW;
-	//w’è‚µ‚½ƒNƒ‰ƒCƒAƒ“ƒg—Ìˆæ‚ğŠm•Û‚·‚é‚½‚ß‚ÉV‚½‚È‹éŒ`À•W‚ğŒvZ
+	//æŒ‡å®šã—ãŸã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆé ˜åŸŸã‚’ç¢ºä¿ã™ã‚‹ãŸã‚ã«æ–°ãŸãªçŸ©å½¢åº§æ¨™ã‚’è¨ˆç®—
 	AdjustWindowRect(&window_rect, window_style, FALSE);
-	//’²®‚³‚ê‚½‹éŒ`‚Ì‰¡‚Æc‚ÌƒTƒCƒY‚ğŒvZ
+	//èª¿æ•´ã•ã‚ŒãŸçŸ©å½¢ã®æ¨ªã¨ç¸¦ã®ã‚µã‚¤ã‚ºã‚’è¨ˆç®—
 	int window_width = window_rect.right - window_rect.left;
 	int window_height = window_rect.bottom - window_rect.top;
 
-	//ƒEƒBƒ“ƒhƒE‚Ìì¬
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ä½œæˆ
 	HWND	hWnd = CreateWindow(
 		CLASS_NAME,	
 		WINDOW_CAPTION,
@@ -208,23 +208,23 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		NULL
 	);
 
-	//ì¬‚µ‚½ƒEƒBƒ“ƒhƒE‚ğ•\¦‚·‚é
-	ShowWindow(hWnd, nCmdShow);//ˆø”‚É]‚Á‚Ä•\¦A‚Ü‚½‚Í”ñ•\¦
-	//ƒEƒBƒ“ƒhƒE“à•”‚ÌXV—v‹
+	//ä½œæˆã—ãŸã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤ºã™ã‚‹
+	ShowWindow(hWnd, nCmdShow);//å¼•æ•°ã«å¾“ã£ã¦è¡¨ç¤ºã€ã¾ãŸã¯éè¡¨ç¤º
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦å†…éƒ¨ã®æ›´æ–°è¦æ±‚
 	UpdateWindow(hWnd);
 
 
 	Direct3D_Initialize(hWnd);
 	Keyboard_Initialize();
-	Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext()); // ƒVƒF[ƒ_‚Ì‰Šú‰»
-	InitializeSprite();//ƒXƒvƒ‰ƒCƒg‚Ì‰Šú‰»
+	Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext()); // ã‚·ã‚§ãƒ¼ãƒ€ã®åˆæœŸåŒ–
+	InitializeSprite();//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®åˆæœŸåŒ–
 
-	InitAudio();	//ƒTƒEƒ“ƒh‚Ì‰Šú‰»
+	InitAudio();	//ã‚µã‚¦ãƒ³ãƒ‰ã®åˆæœŸåŒ–
 
 	InitImGui(hWnd, Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 
 	////////////////////////////////////////////////////////////////
-	// DirectInput ‰Šú‰»
+	// DirectInput åˆæœŸåŒ–
 	////////////////////////////////////////////////////////////////
 	HRESULT hrDI = DirectInput8Create(
 		hInstance,
@@ -234,7 +234,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		NULL
 	);
 
-	// ƒvƒƒRƒ“‚ğ—ñ‹“
+	// ãƒ—ãƒ­ã‚³ãƒ³ã‚’åˆ—æŒ™
 	g_pDI->EnumDevices(
 		DI8DEVCLASS_GAMECTRL,
 		EnumGamepadCallback,
@@ -242,7 +242,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		DIEDFL_ATTACHEDONLY
 	);
 
-	// Œ©‚Â‚©‚Á‚½ƒvƒƒRƒ“‚É‘Î‚µ‚Ä Device €”õ
+	// è¦‹ã¤ã‹ã£ãŸãƒ—ãƒ­ã‚³ãƒ³ã«å¯¾ã—ã¦ Device æº–å‚™
 	for (int i = 0; i < g_GamepadCount; i++)
 	{
 		if (!g_pGamepad[i]) continue;
@@ -257,51 +257,51 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	Manager_Initialize();
 
 
-	//ƒƒbƒZ[ƒWƒ‹[ƒv
+	//ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—
 	MSG	msg;
 	ZeroMemory(&msg, sizeof(MSG));
 
-	//ƒtƒŒ[ƒ€ƒŒ[ƒgŒv‘ª‰Šú‰»
-	timeBeginPeriod(1);	//ƒ^ƒCƒ}[‚Ì¸“x‚ğİ’è
-	dwExecLastTime = dwFPSLastTime = timeGetTime();//Œ»İ‚Ìƒ^ƒCƒ}[’l
+	//ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆè¨ˆæ¸¬åˆæœŸåŒ–
+	timeBeginPeriod(1);	//ã‚¿ã‚¤ãƒãƒ¼ã®ç²¾åº¦ã‚’è¨­å®š
+	dwExecLastTime = dwFPSLastTime = timeGetTime();//ç¾åœ¨ã®ã‚¿ã‚¤ãƒãƒ¼å€¤
 	dwCurrentTime = dwFrameCount = 0;
 
-	//I—¹ƒƒbƒZ[ƒW‚ª—ˆ‚é‚Ü‚Åƒ‹[ƒv‚·‚é
+	//çµ‚äº†ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒæ¥ã‚‹ã¾ã§ãƒ«ãƒ¼ãƒ—ã™ã‚‹
 	do {
 		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) 
-		{ // ƒEƒBƒ“ƒhƒEƒƒbƒZ[ƒW‚ª—ˆ‚Ä‚¢‚½‚ç
+		{ // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒæ¥ã¦ã„ãŸã‚‰
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
 		else 
-		{ // ƒQ[ƒ€‚Ìˆ—
+		{ // ã‚²ãƒ¼ãƒ ã®å‡¦ç†
 			dwCurrentTime = timeGetTime();
 			if ((dwCurrentTime - dwFPSLastTime) >= 1000)
 			{
 #ifdef _DEBUG
 				g_CountFPS = dwFrameCount;
 #endif
-				dwFPSLastTime = dwCurrentTime;//Œ»İ‚Ìƒ^ƒCƒ}[’l•Û‘¶
+				dwFPSLastTime = dwCurrentTime;//ç¾åœ¨ã®ã‚¿ã‚¤ãƒãƒ¼å€¤ä¿å­˜
 				dwFrameCount = 0;
 			}
 
 			if ((dwCurrentTime - dwExecLastTime) >= ((float)1000 / 60))
-			{// 1/60s Œo‰ß‚µ‚½
-				dwExecLastTime = dwCurrentTime;//Œ»İ‚Ìƒ^ƒCƒ}[‚Æ•Û‘¶
+			{// 1/60s çµŒéã—ãŸ
+				dwExecLastTime = dwCurrentTime;//ç¾åœ¨ã®ã‚¿ã‚¤ãƒãƒ¼ã¨ä¿å­˜
 #ifdef _DEBUG
-				//ƒEƒBƒ“ƒhƒEƒLƒƒƒvƒVƒ‡ƒ“‚ÖŒ»İ‚ÌFPS‚ğ•\¦
-				wsprintf(g_DebugStr, "DX21 ƒvƒƒWƒFƒNƒg ");
+				//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚­ãƒ£ãƒ—ã‚·ãƒ§ãƒ³ã¸ç¾åœ¨ã®FPSã‚’è¡¨ç¤º
+				wsprintf(g_DebugStr, "DX21 ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ ");
 				wsprintf(&g_DebugStr[strlen(g_DebugStr)],
 					" FPS : %d", g_CountFPS);
 				SetWindowText(hWnd, g_DebugStr);
 #endif
-				// ======= ImGui‰Šú‰» =======
+				// ======= ImGuiåˆæœŸåŒ– =======
 				BeginImGuiFrame();
 				Manager_Update();
-				//// ======= ImGui•`‰æƒeƒXƒg =======
+				//// ======= ImGuiæç”»ãƒ†ã‚¹ãƒˆ =======
 				//ImGui::Begin("Debug Window");
 
-				//// ƒQƒbƒ^[‚Æ‚©‚©‚çî•ñ‚ğæ‚Á‚Ä‚«‚Ä•\¦‚µ‚Ä‚¢‚­
+				//// ã‚²ãƒƒã‚¿ãƒ¼ã¨ã‹ã‹ã‚‰æƒ…å ±ã‚’å–ã£ã¦ãã¦è¡¨ç¤ºã—ã¦ã„ã
 				//ImGui::Text("Hello, Dear ImGui!");
 				//ImGui::End();
 				for (int p = 0; p < g_GamepadCount; p++)
@@ -316,7 +316,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 					g_Input[p].LStickX = NormalizeStickWithDeadZone(js.lX);
 					g_Input[p].LStickY = NormalizeStickWithDeadZone(js.lY);
 
-					// ==== ƒ{ƒ^ƒ“ ====
+					// ==== ãƒœã‚¿ãƒ³ ====
 					g_Input[p].B = (js.rgbButtons[0] & 0x80);
 					g_Input[p].A = (js.rgbButtons[1] & 0x80);
 					g_Input[p].Y = (js.rgbButtons[2] & 0x80);
@@ -331,7 +331,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 					g_Input[p].LStickPush = (js.rgbButtons[10] & 0x80);
 					g_Input[p].RStickPush = (js.rgbButtons[11] & 0x80);
 
-					// ==== POVi\šƒL[j ====
+					// ==== POVï¼ˆåå­—ã‚­ãƒ¼ï¼‰ ====
 					int pov = js.rgdwPOV[0];
 					g_Input[p].Up = (pov == 0);
 					g_Input[p].Right = (pov == 9000);
@@ -356,16 +356,16 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 
 				}
-				//•`‰æˆ—
-				Direct3D_Clear();// ƒoƒbƒNƒoƒbƒtƒ@‚ğƒNƒŠƒA
+				//æç”»å‡¦ç†
+				Direct3D_Clear();// ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã‚’ã‚¯ãƒªã‚¢
 				Manager_Draw();
 				
-				EndImGuiFrame();	// ImGui ‚ğ•`‰æ
+				EndImGuiFrame();	// ImGui ã‚’æç”»
 				
 				Direct3D_Present();
 				keycopy();
 				
-				dwFrameCount++;		//ˆ—‰ñ”XV
+				dwFrameCount++;		//å‡¦ç†å›æ•°æ›´æ–°
 			}
 		}
 	} while (msg.message != WM_QUIT);
@@ -373,11 +373,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	
 
 	Manager_Finalize();
-	UninitAudio();		//ƒTƒEƒ“ƒh‚ÌI—¹
-	Shader_Finalize(); // ƒVƒF[ƒ_‚ÌI—¹ˆ—
-	FinalizeSprite();	//ƒXƒvƒ‰ƒCƒg‚ÌI—¹ˆ—
+	UninitAudio();		//ã‚µã‚¦ãƒ³ãƒ‰ã®çµ‚äº†
+	Shader_Finalize(); // ã‚·ã‚§ãƒ¼ãƒ€ã®çµ‚äº†å‡¦ç†
+	FinalizeSprite();	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®çµ‚äº†å‡¦ç†
 
-	// DirectInputI—¹ˆ—
+	// DirectInputçµ‚äº†å‡¦ç†
     for (int i = 0; i < g_GamepadCount; i++)
     {
 		if (g_pGamepad[i])
@@ -396,21 +396,22 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	ShutdownImGui();
 	Direct3D_Finalize();
 
-	//I—¹‚·‚é
+	//çµ‚äº†ã™ã‚‹
 	return (int)msg.wParam;
 }
 
 
+
 //=========================================
-//ƒEƒBƒ“ƒhƒEƒvƒƒV[ƒWƒƒ
-// ƒƒbƒZ[ƒWƒ‹[ƒv“à‚ÅŒÄ‚Ño‚³‚ê‚é
+//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
+// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—å†…ã§å‘¼ã³å‡ºã•ã‚Œã‚‹
 //=========================================
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	HGDIOBJ hbrWhite, hbrGray;
 
-	HDC		hdc;	//ƒEƒBƒ“ƒhƒE‰æ–Ê‚ğ•\‚·î•ñiƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg “üo—Íæj
-	PAINTSTRUCT	ps;	//ƒEƒBƒ“ƒhƒE‰æ–Ê‚Ì‘å‚«‚³‚È‚Ç•`‰æŠÖ˜A‚Ìî•ñ
+	HDC		hdc;	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç”»é¢ã‚’è¡¨ã™æƒ…å ±ï¼ˆãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ å…¥å‡ºåŠ›å…ˆï¼‰
+	PAINTSTRUCT	ps;	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç”»é¢ã®å¤§ãã•ãªã©æç”»é–¢é€£ã®æƒ…å ±
 
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
 		return true;
@@ -424,36 +425,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		     Keyboard_ProcessMessage(uMsg, wParam, lParam);
 			 break;
 
-		case WM_KEYDOWN:	//ƒL[‚ª‰Ÿ‚³‚ê‚½
-			if (wParam == VK_ESCAPE)//‰Ÿ‚³‚ê‚½‚Ì‚ÍESCƒL[
+		case WM_KEYDOWN:	//ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸ
+			if (wParam == VK_ESCAPE)//æŠ¼ã•ã‚ŒãŸã®ã¯ESCã‚­ãƒ¼
 			{
-				//ƒEƒBƒ“ƒhƒE‚ğ•Â‚¶‚½‚¢ƒŠƒNƒGƒXƒg‚ğWindows‚É‘—‚é
+				//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‰ã˜ãŸã„ãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚’Windowsã«é€ã‚‹
 				SendMessage(hWnd, WM_CLOSE, 0, 0);
 			}
 
 			Keyboard_ProcessMessage(uMsg, wParam, lParam);
 			break;
-		case WM_CLOSE:	//ƒEƒBƒ“ƒhƒE‚ğ•Â‚¶‚È‚³‚¢–½—ß				
+		case WM_CLOSE:	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‰ã˜ãªã•ã„å‘½ä»¤				
 			//if (
-			//	MessageBox(hWnd, "–{“–‚ÉI—¹‚µ‚Ä‚æ‚ë‚µ‚¢‚Å‚·‚©H",
-			//		"Šm”F", MB_OKCANCEL | MB_DEFBUTTON2) == IDOK
+			//	MessageBox(hWnd, "æœ¬å½“ã«çµ‚äº†ã—ã¦ã‚ˆã‚ã—ã„ã§ã™ã‹ï¼Ÿ",
+			//		"ç¢ºèª", MB_OKCANCEL | MB_DEFBUTTON2) == IDOK
 			//	)
-			//{//OK‚ª‰Ÿ‚³‚ê‚½‚Æ‚«
-			//	DestroyWindow(hWnd);//I—¹‚·‚éè‘±‚«‚ğWindows‚ÖƒŠƒNƒGƒXƒg
+			//{//OKãŒæŠ¼ã•ã‚ŒãŸã¨ã
+			//	DestroyWindow(hWnd);//çµ‚äº†ã™ã‚‹æ‰‹ç¶šãã‚’Windowsã¸ãƒªã‚¯ã‚¨ã‚¹ãƒˆ
 			//}
 			//else
 			//{
-			//	return 0;	//‚â‚Á‚Ï‚èI‚í‚ç‚È‚¢
+			//	return 0;	//ã‚„ã£ã±ã‚Šçµ‚ã‚ã‚‰ãªã„
 			//}
 
 			//break;
-		case WM_DESTROY:	//I—¹‚µ‚ÄOK‚Å‚·‚æ
-			PostQuitMessage(0);		//©•ª‚ÌƒƒbƒZ[ƒW‚É‚O‚ğ‘—‚é
+		case WM_DESTROY:	//çµ‚äº†ã—ã¦OKã§ã™ã‚ˆ
+			PostQuitMessage(0);		//è‡ªåˆ†ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«ï¼ã‚’é€ã‚‹
 			break;
 
 	}
 
-	//•K—p‚Ì–³‚¢ƒƒbƒZ[ƒW‚Í“K“–‚Éˆ—‚³‚¹‚ÄI—¹
+	//å¿…ç”¨ã®ç„¡ã„ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¯é©å½“ã«å‡¦ç†ã•ã›ã¦çµ‚äº†
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 
 }

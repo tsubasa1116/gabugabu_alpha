@@ -1,32 +1,32 @@
-#pragma once
+﻿#pragma once
 
 #include <xaudio2.h>
 
-void InitAudio();		//�T�E���h�̏�����
-void UninitAudio();		//�T�E���h�̏I��
+void InitAudio();		//サウンドの初期化
+void UninitAudio();		//サウンドの終了
 
 
-int LoadAudio(const char* FileName);		//�T�E���h�f�[�^�ǂݍ���
-void UnloadAudio(int Index);				//�T�E���h�f�[�^����i��~�j
-void PlayAudio(int Index, bool Loop = false);//�T�E���h�f�[�^�Đ�
+int LoadAudio(const char* FileName);		//サウンドデータ読み込み
+void UnloadAudio(int Index);				//サウンドデータ解放（停止）
+void PlayAudio(int Index, bool Loop = false);//サウンドデータ再生
 
 /*
-//�ȉ��̊֐��̓v���O�����̍ŏ��ƍŌ��1�񂸂Ăяo����OK
-void InitAudio();		//�T�E���h�̏�����
-void UninitAudio();		//�T�E���h�̏I��
+//以下の関数はプログラムの最初と最後に1回ずつ呼び出せばOK
+void InitAudio();		//サウンドの初期化
+void UninitAudio();		//サウンドの終了
 
 
-//�ȉ��̓V�[�����Ƃ̏���
+//以下はシーンごとの処理
 
-//�O���[�o���ϐ�
-static int g_BgmID = NULL;//���[�h����f�[�^�̐������ϐ����K�v
+//グローバル変数
+static int g_BgmID = NULL;//ロードするデータの数だけ変数が必要
 
-//��������
-g_BgmID = LoadAudio("asset\\Audio\\title.wav");	//�T�E���h�f�[�^�ǂݍ���
-PlayAudio(g_BgmID, true);	//�T�E���h�f�[�^�Đ�(���[�v����)
+//初期化時
+g_BgmID = LoadAudio("asset\\Audio\\title.wav");	//サウンドデータ読み込み
+PlayAudio(g_BgmID, true);	//サウンドデータ再生(ループあり)
 
-//�I����
-UnloadAudio(g_BgmID);		//�T�E���h�f�[�^����i��~�j
+//終了時
+UnloadAudio(g_BgmID);		//サウンドデータ解放（停止）
 
 
 */

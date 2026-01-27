@@ -1,10 +1,10 @@
-// input.h
+ï»¿// input.h
 
 #pragma once
 
 struct GamepadInput
 {
-	// ƒ{ƒ^ƒ“
+	// ãƒœã‚¿ãƒ³
 	bool A = false;
 	bool B = false;
 	bool X = false;
@@ -18,18 +18,18 @@ struct GamepadInput
 	bool LStickPush = false;
 	bool RStickPush = false;
 
-	// ƒXƒeƒBƒbƒNi³‹K‰»Ï‚İ -1.0 ` +1.0j
+	// ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆæ­£è¦åŒ–æ¸ˆã¿ -1.0 ï½ +1.0ï¼‰
 	float LStickX = 0.0f;
 	float LStickY = 0.0f;/*
 	float RStickX = 0.0f;
 	float RStickY = 0.0f;*/
 
-	// \šƒL[
+	// åå­—ã‚­ãƒ¼
 	bool Up = false;
 	bool Down = false;
 	bool Left = false;
 	bool Right = false;
 };
 
-// Å‘å4l“ü—Í
+// æœ€å¤§4äººå…¥åŠ›
 extern GamepadInput g_Input[4];

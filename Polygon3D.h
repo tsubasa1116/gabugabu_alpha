@@ -1,23 +1,23 @@
-// Polygon3D.h
+ï»¿// Polygon3D.h
 
 #pragma once
 
 #include <vector>
 #include "d3d11.h"
-#include "collider.h" // AABB ‚ğg‚¤‚½‚ß‚ÉƒCƒ“ƒNƒ‹[ƒh
+#include "collider.h" // AABB ã‚’ä½¿ã†ãŸã‚ã«ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "Building.h" 
 
-// ƒ}ƒNƒ’è‹`
-#define	PLAYER_MAX				(4)	// ƒvƒŒƒCƒ„[Å‘å”
-#define	DELTA_TIME	 (1.0f / 60.0f)	// ƒfƒ‹ƒ^ƒ^ƒCƒ€i•bj
+// ãƒã‚¯ãƒ­å®šç¾©
+#define	PLAYER_MAX				(4)	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æœ€å¤§æ•°
+#define	DELTA_TIME	 (1.0f / 60.0f)	// ãƒ‡ãƒ«ã‚¿ã‚¿ã‚¤ãƒ ï¼ˆç§’ï¼‰
 
-#define	EVOLUTIONGAUGE_MAX	(1.0f)	// i‰»ƒQ[ƒWÅ‘å’l
-#define	ATTACKING_TIME		(0.5f)	// UŒ‚‘±ŠÔi•bj
-#define	ATTACKED_TIME		(0.5f)	// ƒ_ƒ[ƒW‘±ŠÔi•bj
-#define	INVINCIBLE_TIME		(3.0f)	// i‰»–³“GŠÔi•bj
-#define	STUNGAUGE_MAX		(10)	// ƒXƒ^ƒ“ƒQ[ƒWÅ‘å’l
-#define	STUN_TIME			(5.0f)	// ƒXƒ^ƒ“‘±ŠÔi•bj
-#define	DOWN_TIME			(3.0f)	// ƒ_ƒEƒ“‘±ŠÔi•bj
+#define	EVOLUTIONGAUGE_MAX	(1.0f)	// é€²åŒ–ã‚²ãƒ¼ã‚¸æœ€å¤§å€¤
+#define	ATTACKING_TIME		(0.5f)	// æ”»æ’ƒæŒç¶šæ™‚é–“ï¼ˆç§’ï¼‰
+#define	ATTACKED_TIME		(0.5f)	// ãƒ€ãƒ¡ãƒ¼ã‚¸æŒç¶šæ™‚é–“ï¼ˆç§’ï¼‰
+#define	INVINCIBLE_TIME		(3.0f)	// é€²åŒ–ç„¡æ•µæ™‚é–“ï¼ˆç§’ï¼‰
+#define	STUNGAUGE_MAX		(10)	// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸æœ€å¤§å€¤
+#define	STUN_TIME			(5.0f)	// ã‚¹ã‚¿ãƒ³æŒç¶šæ™‚é–“ï¼ˆç§’ï¼‰
+#define	DOWN_TIME			(3.0f)	// ãƒ€ã‚¦ãƒ³æŒç¶šæ™‚é–“ï¼ˆç§’ï¼‰
 
 enum class PlayerDir
 {
@@ -34,61 +34,61 @@ enum class PlayerDir
 
 enum class Form
 {
-	Normal = 0,			// ’Êí
-	FirstEvolution,		// 1i‰»
-	SecondEvolution		// 2i‰»
+	Normal = 0,			// é€šå¸¸
+	FirstEvolution,		// 1é€²åŒ–
+	SecondEvolution		// 2é€²åŒ–
 };
 
 enum class PlayerType
 {
-	None,		// –¢İ’è
-	Glass,		// ƒKƒ‰ƒX
-	Concrete,	// ƒRƒ“ƒNƒŠ
-	Plant,		// A•¨
-	Electric,	// “d‹C
+	None,		// æœªè¨­å®š
+	Glass,		// ã‚¬ãƒ©ã‚¹
+	Concrete,	// ã‚³ãƒ³ã‚¯ãƒª
+	Plant,		// æ¤ç‰©
+	Electric,	// é›»æ°—
 	Max
 };
 
-// ƒvƒŒƒCƒ„[ƒIƒuƒWƒFƒNƒgê—p‚Ì\‘¢‘Ì
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå°‚ç”¨ã®æ§‹é€ ä½“
 struct PLAYEROBJECT
 {
-	XMFLOAT3 position;		// À•W
-	XMFLOAT3 rotation;		// ‰ñ“]Šp“x
-	XMFLOAT3 scaling;		// Šg‘å—¦
-	AABB boundingBox;		// “–‚½‚è”»’è
-	float hp;				// ‘Ì—Í
-	float maxHp;			// Å‘å‘Ì—Í
-	float attack;			// UŒ‚—Í
-	float power;			// ‚Ó‚Á‚Æ‚Î‚µ‚Ìƒpƒ[
-	float speed;			// ƒXƒs[ƒh
-	float defense;			// –hŒä—¦
-	XMFLOAT3 dir;			// Œü‚«
-	int stock;				// c‹@
-	int rank;				// ‡ˆÊ
-	bool active;			// ¶‘¶ƒtƒ‰ƒO
+	XMFLOAT3 position;		// åº§æ¨™
+	XMFLOAT3 rotation;		// å›è»¢è§’åº¦
+	XMFLOAT3 scaling;		// æ‹¡å¤§ç‡
+	AABB boundingBox;		// å½“ãŸã‚Šåˆ¤å®š
+	float hp;				// ä½“åŠ›
+	float maxHp;			// æœ€å¤§ä½“åŠ›
+	float attack;			// æ”»æ’ƒåŠ›
+	float power;			// ãµã£ã¨ã°ã—ã®ãƒ‘ãƒ¯ãƒ¼
+	float speed;			// ã‚¹ãƒ”ãƒ¼ãƒ‰
+	float defense;			// é˜²å¾¡ç‡
+	XMFLOAT3 dir;			// å‘ã
+	int stock;				// æ®‹æ©Ÿ
+	int rank;				// é †ä½
+	bool active;			// ç”Ÿå­˜ãƒ•ãƒ©ã‚°
 
-	bool isAttacking;		// UŒ‚’†‚©‚Ç‚¤‚©
-	float attackTimer;		// UŒ‚ƒ^ƒCƒ}[
+	bool isAttacking;		// æ”»æ’ƒä¸­ã‹ã©ã†ã‹
+	float attackTimer;		// æ”»æ’ƒã‚¿ã‚¤ãƒãƒ¼
 
-	bool isAttacked;		// ƒ_ƒ[ƒW’†‚©‚Ç‚¤‚©
-	float attackedTimer;	// ƒ_ƒ[ƒWƒ^ƒCƒ}[
+	bool isAttacked;		// ãƒ€ãƒ¡ãƒ¼ã‚¸ä¸­ã‹ã©ã†ã‹
+	float attackedTimer;	// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚¿ã‚¤ãƒãƒ¼
 
-	bool useSkill;			// ƒXƒLƒ‹g—p’†‚©‚Ç‚¤‚©
-	float skillTimer;		// ƒXƒLƒ‹ƒ^ƒCƒ}[
-	float skillCoolTimer;	// ƒXƒLƒ‹ƒN[ƒ‹ƒ^ƒCƒ}[
+	bool useSkill;			// ã‚¹ã‚­ãƒ«ä½¿ç”¨ä¸­ã‹ã©ã†ã‹
+	float skillTimer;		// ã‚¹ã‚­ãƒ«ã‚¿ã‚¤ãƒãƒ¼
+	float skillCoolTimer;	// ã‚¹ã‚­ãƒ«ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒãƒ¼
 
-	bool useSpecial;		// ƒXƒyƒVƒƒƒ‹g—p’†‚©‚Ç‚¤‚©
-	float specialTimer;		// ƒXƒyƒVƒƒƒ‹ƒ^ƒCƒ}[
+	bool useSpecial;		// ã‚¹ãƒšã‚·ãƒ£ãƒ«ä½¿ç”¨ä¸­ã‹ã©ã†ã‹
+	float specialTimer;		// ã‚¹ãƒšã‚·ãƒ£ãƒ«ã‚¿ã‚¤ãƒãƒ¼
 
-	bool isInvincible;		// –³“G’†‚©‚Ç‚¤‚©
-	float invincibleTimer;	// –³“Gƒ^ƒCƒ}[
+	bool isInvincible;		// ç„¡æ•µä¸­ã‹ã©ã†ã‹
+	float invincibleTimer;	// ç„¡æ•µã‚¿ã‚¤ãƒãƒ¼
 
-	float stunGauge;		// ƒXƒ^ƒ“ƒQ[ƒW
-	bool isStunning;		// ƒXƒ^ƒ“’†‚©‚Ç‚¤‚©
-	float stunTimer;		// ƒXƒ^ƒ“ƒ^ƒCƒ}[
+	float stunGauge;		// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸
+	bool isStunning;		// ã‚¹ã‚¿ãƒ³ä¸­ã‹ã©ã†ã‹
+	float stunTimer;		// ã‚¹ã‚¿ãƒ³ã‚¿ã‚¤ãƒãƒ¼
 
-	bool isDown;			// ƒ_ƒEƒ“’†‚©‚Ç‚¤‚©
-	float downTimer;		// ƒ_ƒEƒ“ƒ^ƒCƒ}[
+	bool isDown;			// ãƒ€ã‚¦ãƒ³ä¸­ã‹ã©ã†ã‹
+	float downTimer;		// ãƒ€ã‚¦ãƒ³ã‚¿ã‚¤ãƒãƒ¼
 
 	float gl;
 	float pl;
@@ -96,26 +96,26 @@ struct PLAYEROBJECT
 	float el;
 	float gaugeOuter;
 
-	float moveAngle = 0.0f;	// ƒvƒŒƒCƒ„[ŒÅ—L‚Ì‰ñ“]•âŠÔ—pŠp“x
-	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// ˆÚ“®ƒxƒNƒgƒ‹
-	PlayerDir lastDir;							// ‘Ò‹@‚ÌŒü‚«
-	bool isMoving = false;						// ˆÚ“®’†‚©‚Ç‚¤‚©
+	float moveAngle = 0.0f;	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å›ºæœ‰ã®å›è»¢è£œé–“ç”¨è§’åº¦
+	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«
+	PlayerDir lastDir;							// å¾…æ©Ÿæ™‚ã®å‘ã
+	bool isMoving = false;						// ç§»å‹•ä¸­ã‹ã©ã†ã‹
 
-	Form form;								// •ÏgŒ`‘Ô
-	PlayerType type;						// ƒvƒŒƒCƒ„[‚Ì‘®«ƒ^ƒCƒv
-	float evolutionGauge;					// i‰»ƒQ[ƒW
-	float evolutionGaugeRate;				// i‰»ƒQ[ƒW ”{—¦
-	int breakCount_Glass;					// ”j‰ó‚µ‚½” ƒKƒ‰ƒX
-	int breakCount_Concrete;				// ”j‰ó‚µ‚½” ƒRƒ“ƒNƒŠ[ƒg
-	int breakCount_Plant;					// ”j‰ó‚µ‚½” A•¨
-	int breakCount_Electric;				// ”j‰ó‚µ‚½” “d‹C
-	std::vector<BuildingType> brokenHistory;// ”j‰ó‚µ‚½Œš•¨‚ÌƒŠƒXƒg
+	Form form;								// å¤‰èº«å½¢æ…‹
+	PlayerType type;						// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å±æ€§ã‚¿ã‚¤ãƒ—
+	float evolutionGauge;					// é€²åŒ–ã‚²ãƒ¼ã‚¸
+	float evolutionGaugeRate;				// é€²åŒ–ã‚²ãƒ¼ã‚¸ å€ç‡
+	int breakCount_Glass;					// ç ´å£Šã—ãŸæ•° ã‚¬ãƒ©ã‚¹
+	int breakCount_Concrete;				// ç ´å£Šã—ãŸæ•° ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ
+	int breakCount_Plant;					// ç ´å£Šã—ãŸæ•° æ¤ç‰©
+	int breakCount_Electric;				// ç ´å£Šã—ãŸæ•° é›»æ°—
+	std::vector<BuildingType> brokenHistory;// ç ´å£Šã—ãŸå»ºç‰©ã®ãƒªã‚¹ãƒˆ
 
-	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// ‚«”ò‚Î‚µ—p‚Ì‘¬“xƒxƒNƒgƒ‹
-	bool is_knocked_back = false;						// ‚«”ò‚Î‚µ’†‚©‚Ç‚¤‚©
-	float knockback_duration = 0.0f;					// ‚«”ò‚Î‚µ‚Ìc‚èŠÔiƒtƒŒ[ƒ€”
+	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// å¹ãé£›ã°ã—ç”¨ã®é€Ÿåº¦ãƒ™ã‚¯ãƒˆãƒ«
+	bool is_knocked_back = false;						// å¹ãé£›ã°ã—ä¸­ã‹ã©ã†ã‹
+	float knockback_duration = 0.0f;					// å¹ãé£›ã°ã—ã®æ®‹ã‚Šæ™‚é–“ï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ æ•°
 
-	XMFLOAT2 screenPos;     // ƒeƒLƒXƒg•`‰æ—pƒXƒNƒŠ[ƒ“À•W
+	XMFLOAT2 screenPos;     // ãƒ†ã‚­ã‚¹ãƒˆæç”»ç”¨ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™
 	bool isOnScreen;
 };
 
@@ -127,7 +127,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 void Polygon3D_DrawHP();
 void Polygon3D_DrawEffect();
 
-// ƒAƒjƒ[ƒVƒ‡ƒ“ŠÖ”
+// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é–¢æ•°
 static inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
 
 void Ranking(int playerIndex);

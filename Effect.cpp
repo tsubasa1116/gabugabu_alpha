@@ -1,4 +1,4 @@
-
+ï»¿
 //Effect.cpp
 
 #include "Effect.h"
@@ -13,8 +13,8 @@
 #define EFFECT_TEX_MAX 8
 #define EFFECT_MAX 4
 
-//ƒOƒ[ƒoƒ‹•Ï”
-// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
+//ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
@@ -30,7 +30,7 @@ static int g_EffectTimer = 0;
 static bool g_EffectLoopFlag = false;
 
 //===============================================
-//@ƒeƒNƒXƒ`ƒƒƒZƒbƒg—pŠÖ”
+//ã€€ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚»ãƒƒãƒˆç”¨é–¢æ•°
 //===============================================
 static void Effect_LoadTexture(int i, const wchar_t* num)
 {
@@ -50,7 +50,7 @@ static void Effect_LoadTexture(int i, const wchar_t* num)
 }
 
 //===============================================
-//@‰Šú‰»
+//ã€€åˆæœŸåŒ–
 //===============================================
 void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
@@ -73,7 +73,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 }
 
 //===============================================
-//@I—¹
+//ã€€çµ‚äº†
 //===============================================
 void Effect_Finalize()
 {
@@ -89,7 +89,7 @@ void Effect_Finalize()
 }
 
 //===============================================
-//@XV
+//ã€€æ›´æ–°
 //===============================================
 void Effect_Update()
 {
@@ -115,7 +115,7 @@ void Effect_Update()
 		}
 		else
 		{
-			// ƒ‹[ƒv
+			// ãƒ«ãƒ¼ãƒ—
 			g_EffectFrame++;
 			if (g_EffectFrame >= 61)
 			{
@@ -126,7 +126,7 @@ void Effect_Update()
 }
 
 //===============================================
-//@•`‰æ
+//ã€€æç”»
 //===============================================
 void Effect_Draw()
 {
@@ -143,7 +143,7 @@ void Effect_Draw()
 	XMFLOAT2 uvMin = { fx * u, fy * v };
 	XMFLOAT2 uvMax = { uvMin.x + u, uvMin.y + v };
 
-	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 	Shader_Begin();
 	Shader_BeginUI();
 
@@ -167,14 +167,14 @@ void Effect_Draw()
 }
 
 //===============================================
-//@ƒZƒbƒgŠÖ”
+//ã€€ã‚»ãƒƒãƒˆé–¢æ•°
 //===============================================
 void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
 {
 	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
 	if (!g_Texture[texNo]) return;
 	
-	// ‹ó‚«‚ğ’T‚·
+	// ç©ºãã‚’æ¢ã™
 	int slot = -1;
 	for (int i = 0; i < EFFECT_MAX; ++i)
 	{
@@ -195,17 +195,17 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
 }
 
 //===============================================
-//@ƒGƒtƒFƒNƒgÁ‹
+//ã€€ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ¶ˆå»
 //===============================================
 void Effect_Clear(int pIndex)
 {
-	// ƒvƒŒƒCƒ„[‚²‚Æ‚ÌƒGƒtƒFƒNƒgˆÊ’u
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆä½ç½®
 	const XMFLOAT2 playerEffectPos[4] =
 	{
-		{ 160.0f, 620.0f }, // ƒvƒŒƒCƒ„[1
-		{ 470.0f, 620.0f },  // ƒvƒŒƒCƒ„[2
-		{ 780.0f, 620.0f }, // ƒvƒŒƒCƒ„[3
-		{ 1090.0f, 620.0f }  // ƒvƒŒƒCƒ„[4
+		{ 160.0f, 620.0f }, // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1
+		{ 470.0f, 620.0f },  // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼2
+		{ 780.0f, 620.0f }, // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼3
+		{ 1090.0f, 620.0f }  // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼4
 	};
 
 	if (pIndex < 0 || pIndex >= 4) return;
@@ -216,7 +216,7 @@ void Effect_Clear(int pIndex)
 	{
 		if (!effect[i].enable) continue;
 
-		// ˆÊ’u‚ªˆê’v‚·‚éƒGƒtƒFƒNƒg‚ğ–³Œø‰»
+		// ä½ç½®ãŒä¸€è‡´ã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç„¡åŠ¹åŒ–
 		if (fabsf(effect[i].pos.x - targetPos.x) < 1.0f &&
 			fabsf(effect[i].pos.y - targetPos.y) < 1.0f)
 		{

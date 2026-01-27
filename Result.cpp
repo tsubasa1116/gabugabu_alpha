@@ -1,7 +1,7 @@
-//======================================================
+ï»¿//======================================================
 //	result.cpp[]
 // 
-//	§ìÒF“c’†—C“Ş			“ú•tF2026//
+//	åˆ¶ä½œè€…ï¼šç”°ä¸­ä½‘å¥ˆ			æ—¥ä»˜ï¼š2026//
 //======================================================
 
 //Result.cpp
@@ -19,17 +19,17 @@
 
 #include <cfloat> // FLT_MAX
 #include <array>
-#include <chrono> // ’Ç‰ÁFŠÔŒv‘ª
-#include <algorithm> // ’Ç‰ÁFstd::minic‚µ‚Ä‚à–â‘è‚È‚µj
+#include <chrono> // è¿½åŠ ï¼šæ™‚é–“è¨ˆæ¸¬
+#include <algorithm> // è¿½åŠ ï¼šstd::minï¼ˆæ®‹ã—ã¦ã‚‚å•é¡Œãªã—ï¼‰
 
-static	ID3D11ShaderResourceView* g_Texture = NULL;		// ”wŒi
-static	ID3D11ShaderResourceView* g_Texture2 = NULL;	// Ÿ‚Ö
-static	ID3D11ShaderResourceView* g_Texture3 = NULL;	// ‘I‘ğ
-static ID3D11ShaderResourceView* g_ResultTex = nullptr; // Šù‘¶ƒ‚ƒfƒ‹—pƒeƒNƒXƒ`ƒƒ
+static	ID3D11ShaderResourceView* g_Texture = NULL;		// èƒŒæ™¯
+static	ID3D11ShaderResourceView* g_Texture2 = NULL;	// æ¬¡ã¸
+static	ID3D11ShaderResourceView* g_Texture3 = NULL;	// é¸æŠ
+static ID3D11ShaderResourceView* g_ResultTex = nullptr; // æ—¢å­˜ãƒ¢ãƒ‡ãƒ«ç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£
 static TexMetadata		g_ResultTexMeta{};
-static MODEL* g_ResultModel = nullptr;					// Šù‘¶ƒ‚ƒfƒ‹
+static MODEL* g_ResultModel = nullptr;					// æ—¢å­˜ãƒ¢ãƒ‡ãƒ«
 
-// V‹KFƒ^ƒ[ƒ‚ƒfƒ‹‚ÆƒeƒNƒXƒ`ƒƒŒQi4‚Âj
+// æ–°è¦ï¼šã‚¿ãƒ¯ãƒ¼ãƒ¢ãƒ‡ãƒ«ã¨ãƒ†ã‚¯ã‚¹ãƒãƒ£ç¾¤ï¼ˆ4ã¤ï¼‰
 static MODEL* g_TowerModel = nullptr;
 static ID3D11ShaderResourceView* g_TowerTex[4] = { nullptr, nullptr, nullptr, nullptr };
 static TexMetadata g_TowerTexMeta[4]{};
@@ -39,19 +39,19 @@ static float    g_TowerModelRadius = 1.0f;
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
-// ƒ‚ƒfƒ‹’†SE”¼ŒaiInitialize‚ÅŒvZj
+// ãƒ¢ãƒ‡ãƒ«ä¸­å¿ƒãƒ»åŠå¾„ï¼ˆInitializeã§è¨ˆç®—ï¼‰
 static XMFLOAT3 g_ResultModelCenter = { 0.0f, 0.0f, 0.0f };
 static float    g_ResultModelRadius = 1.0f;
 
-// ---------- ƒ|ƒbƒvƒCƒ“—pƒ^ƒCƒ}[ / ƒAƒjƒ[ƒVƒ‡ƒ“ó‘Ô ----------
+// ---------- ãƒãƒƒãƒ—ã‚¤ãƒ³ç”¨ã‚¿ã‚¤ãƒãƒ¼ / ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çŠ¶æ…‹ ----------
 static std::chrono::steady_clock::time_point g_StartTime;
 static bool g_ButtonsAnimStarted = false;
 static std::chrono::steady_clock::time_point g_AnimStartTime;
-static constexpr double g_ButtonDelaySeconds = 5.0;     // 5•b’x‰„
-static constexpr double g_ButtonAnimDuration = 0.6;     // ƒAƒjƒ[ƒVƒ‡ƒ“’·i•bj
+static constexpr double g_ButtonDelaySeconds = 5.0;     // 5ç§’é…å»¶
+static constexpr double g_ButtonAnimDuration = 0.6;     // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é•·ï¼ˆç§’ï¼‰
 // -----------------------------------------------------------------
 
-// ƒ†[ƒeƒBƒŠƒeƒBFƒ‚ƒfƒ‹‚ÌƒoƒEƒ“ƒfƒBƒ“ƒOŒvZ
+// ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£ï¼šãƒ¢ãƒ‡ãƒ«ã®ãƒã‚¦ãƒ³ãƒ‡ã‚£ãƒ³ã‚°è¨ˆç®—
 static void CalculateModelBounds(MODEL* model, XMFLOAT3& outCenter, float& outRadius)
 {
 	if (model == nullptr || model->AiScene == nullptr)
@@ -91,7 +91,7 @@ static void CalculateModelBounds(MODEL* model, XMFLOAT3& outCenter, float& outRa
 	outRadius = sqrtf(hx * hx + hy * hy + hz * hz);
 }
 
-// ƒC[ƒWƒ“ƒOFEaseOutBackiƒ|ƒbƒvŠ´AƒI[ƒo[ƒVƒ…[ƒg‚ ‚èj
+// ã‚¤ãƒ¼ã‚¸ãƒ³ã‚°ï¼šEaseOutBackï¼ˆãƒãƒƒãƒ—æ„Ÿã€ã‚ªãƒ¼ãƒãƒ¼ã‚·ãƒ¥ãƒ¼ãƒˆã‚ã‚Šï¼‰
 static float EaseOutBack(float t)
 {
 	const float c1 = 1.70158f;
@@ -100,13 +100,13 @@ static float EaseOutBack(float t)
 	return 1.0f + (c3 * t * t * t + c1 * t * t);
 }
 
-// ƒŠƒjƒA•âŠÔ
+// ãƒªãƒ‹ã‚¢è£œé–“
 static float Lerp(float a, float b, float t)
 {
 	return a + (b - a) * t;
 }
 
-// ’l‚ğ [0,1] ‚ÉƒNƒ‰ƒ“ƒvistd::min ƒ}ƒNƒÕ“Ë‰ñ”ğ‚Ì‚½‚ßg—pj
+// å€¤ã‚’ [0,1] ã«ã‚¯ãƒ©ãƒ³ãƒ—ï¼ˆstd::min ãƒã‚¯ãƒ­è¡çªå›é¿ã®ãŸã‚ä½¿ç”¨ï¼‰
 static double Clamp01(double v)
 {
 	if (v <= 0.0) return 0.0;
@@ -114,7 +114,7 @@ static double Clamp01(double v)
 	return v;
 }
 
-// Œ»İi•bjæ“¾iŠJn‚©‚ç‚ÌŒo‰ßj
+// ç¾åœ¨æ™‚åˆ»ï¼ˆç§’ï¼‰å–å¾—ï¼ˆé–‹å§‹æ™‚åˆ»ã‹ã‚‰ã®çµŒéï¼‰
 static double GetElapsedSeconds()
 {
 	using namespace std::chrono;
@@ -124,31 +124,31 @@ static double GetElapsedSeconds()
 }
 
 //======================================================
-//	‰Šú‰»ŠÖ”
+//	åˆæœŸåŒ–é–¢æ•°
 //======================================================
 void Result_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// ƒ^ƒCƒ}[ŠJn‚ğ‹L˜^
+	// ã‚¿ã‚¤ãƒãƒ¼é–‹å§‹æ™‚åˆ»ã‚’è¨˜éŒ²
 	g_StartTime = std::chrono::steady_clock::now();
 	g_ButtonsAnimStarted = false;
 
-	// ”wŒiƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// èƒŒæ™¯ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
 		LoadFromWICFile(L"asset\\texture\\uiBack_v1.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-		assert(g_Texture);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+		assert(g_Texture);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 	}
 
-	// Šù‘¶ƒ‚ƒfƒ‹“Ç‚İ‚İiFBXj
+	// æ—¢å­˜ãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿ï¼ˆFBXï¼‰
 	g_ResultModel = ModelLoad("asset\\model\\uiResultArch_v3.fbx");
 	assert(g_ResultModel);
 
-	// Šù‘¶ƒ‚ƒfƒ‹ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// æ—¢å­˜ãƒ¢ãƒ‡ãƒ«ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata metadata;
 		ScratchImage image;
@@ -159,16 +159,16 @@ void Result_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_ResultTexMeta = metadata;
 	}
 
-	// ----- Šù‘¶ƒ‚ƒfƒ‹‚ÌƒoƒEƒ“ƒfƒBƒ“ƒOƒ{ƒbƒNƒX‚ğŒvZ‚µ‚Ä’†S‚ğ•Û‘¶ -----
+	// ----- æ—¢å­˜ãƒ¢ãƒ‡ãƒ«ã®ãƒã‚¦ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ãƒœãƒƒã‚¯ã‚¹ã‚’è¨ˆç®—ã—ã¦ä¸­å¿ƒã‚’ä¿å­˜ -----
 	CalculateModelBounds(g_ResultModel, g_ResultModelCenter, g_ResultModelRadius);
 	// ------------------------------------------------------------
 
-	// --- ƒ^ƒ[ƒ‚ƒfƒ‹“Ç‚İ‚İ ---
+	// --- ã‚¿ãƒ¯ãƒ¼ãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿ ---
 	g_TowerModel = ModelLoad("asset\\model\\uiResultTour_v2.fbx");
 	assert(g_TowerModel);
 	CalculateModelBounds(g_TowerModel, g_TowerModelCenter, g_TowerModelRadius);
 
-	// ƒ^ƒ[—p 4 ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İi‡‚É Red, Blue, Green, Yellowj
+	// ã‚¿ãƒ¯ãƒ¼ç”¨ 4 ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿ï¼ˆé †ã« Red, Blue, Green, Yellowï¼‰
 	const wchar_t* towerTexFiles[4] = {
 		L"asset\\texture\\uiTextureTowerRed_v1.png",
 		L"asset\\texture\\uiTextureTowerBlue_v1.png",
@@ -186,35 +186,35 @@ void Result_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_TowerTexMeta[i] = meta;
 	}
 
-	// Ÿ‚ÖƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// æ¬¡ã¸ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
 		LoadFromWICFile(L"asset\\texture\\nextButton.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture2);
-		assert(g_Texture2);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+		assert(g_Texture2);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 	}
 
-	// ‘I‘ğƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// é¸æŠãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
 		LoadFromWICFile(L"asset\\texture\\selectButton.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture3);
-		assert(g_Texture3);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+		assert(g_Texture3);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 	}
 
-	//ƒtƒF[ƒhƒCƒ“‚ÌƒZƒbƒg
+	//ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã®ã‚»ãƒƒãƒˆ
 	XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	SetFade(60.0f, color, FADE_IN, SCENE_GAME);
 }
 
 //======================================================
-//	I—¹ˆ—ŠÖ”
+//	çµ‚äº†å‡¦ç†é–¢æ•°
 //======================================================
 void Result_Finalize()
 {
-	//ƒeƒNƒXƒ`ƒƒ‚Ì‰ğ•ú‚È‚Ç
+	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®è§£æ”¾ãªã©
 	SAFE_RELEASE(g_Texture);
 	SAFE_RELEASE(g_Texture2);
 	SAFE_RELEASE(g_Texture3);
@@ -238,21 +238,21 @@ void Result_Finalize()
 }
 
 //======================================================
-//	XVˆ—
+//	æ›´æ–°å‡¦ç†
 //======================================================
 void Result_Update()
 {
-	//ƒL[“ü—Íƒ`ƒFƒbƒN
-	//ƒXƒ^[ƒgƒ{ƒ^ƒ“‚ª‰Ÿ‚³‚ê‚½‚çƒV[ƒ“‚ğØ‚è‘Ö‚¦
-	//ƒtƒF[ƒhˆ—’†‚ÍƒL[‚ğó‚¯•t‚¯‚È‚¢
+	//ã‚­ãƒ¼å…¥åŠ›ãƒã‚§ãƒƒã‚¯
+	//ã‚¹ã‚¿ãƒ¼ãƒˆãƒœã‚¿ãƒ³ãŒæŠ¼ã•ã‚ŒãŸã‚‰ã‚·ãƒ¼ãƒ³ã‚’åˆ‡ã‚Šæ›¿ãˆ
+	//ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†ä¸­ã¯ã‚­ãƒ¼ã‚’å—ã‘ä»˜ã‘ãªã„
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
-		//ƒtƒF[ƒhƒAƒEƒg‚³‚¹‚ÄƒV[ƒ“‚ğØ‚è‘Ö‚¦‚é
+		//ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã•ã›ã¦ã‚·ãƒ¼ãƒ³ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_TITLE);
 	}
 
-	// ’x‰„Œo‰ßƒ`ƒFƒbƒNFƒAƒjƒ[ƒVƒ‡ƒ“ŠJnƒ^ƒCƒ~ƒ“ƒO‚ğ Result_Update ‚Å‚à•Û
+	// é…å»¶çµŒéãƒã‚§ãƒƒã‚¯ï¼šã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é–‹å§‹ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã‚’ Result_Update ã§ã‚‚ä¿æŒ
 	double elapsed = GetElapsedSeconds();
 	if (!g_ButtonsAnimStarted && elapsed >= g_ButtonDelaySeconds)
 	{
@@ -262,18 +262,18 @@ void Result_Update()
 }
 
 //======================================================
-//	•`‰æŠÖ”
+//	æç”»é–¢æ•°
 //======================================================
 void Result_Draw()
 {
-	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 	Shader_Begin();
 
-	// ‰æ–ÊƒTƒCƒYæ“¾
+	// ç”»é¢ã‚µã‚¤ã‚ºå–å¾—
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
-	// ’¸“_ƒVƒF[ƒ_[‚É•ÏŠ·s—ñ‚ğİ’èiUI—pF’¼Œğ“Š‰ej
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«å¤‰æ›è¡Œåˆ—ã‚’è¨­å®šï¼ˆUIç”¨ï¼šç›´äº¤æŠ•å½±ï¼‰
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
 		0.0f,
 		SCREEN_WIDTH,
@@ -283,28 +283,28 @@ void Result_Draw()
 		1.0f));
 	//---------------------------------------------------
 
-	//”wŒi•`‰æ
+	//èƒŒæ™¯æç”»
 	if (g_Texture)
 	{
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Texture‚ğg‚¤‚æ‚¤‚Éİ’è‚·‚é
-		SetBlendState(BLENDSTATE_NONE);//ƒuƒŒƒ“ƒh–³‚µ
-		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ƒXƒvƒ‰ƒCƒg‚ÌF
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Textureã‚’ä½¿ã†ã‚ˆã†ã«è¨­å®šã™ã‚‹
+		SetBlendState(BLENDSTATE_NONE);//ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—
+		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®è‰²
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 		XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
-		DrawSprite(pos, size, col);//1–‡ŠG‚ğ•\¦
+		DrawSprite(pos, size, col);//1æšçµµã‚’è¡¨ç¤º
 	}
 
-	// ƒ‚ƒfƒ‹•`‰æiŠù‘¶ƒ‚ƒfƒ‹FƒA[ƒ`j
+	// ãƒ¢ãƒ‡ãƒ«æç”»ï¼ˆæ—¢å­˜ãƒ¢ãƒ‡ãƒ«ï¼šã‚¢ãƒ¼ãƒï¼‰
 	if (g_ResultModel && g_ResultTex)
 	{
 		ID3D11DeviceContext* ctx = Direct3D_GetDeviceContext();
 		if (ctx == nullptr) return;
 
-		// 3D —p‚Ìs—ñiƒA[ƒ`‚Í‚»‚Ì‚Ü‚Ü•\¦j
+		// 3D ç”¨ã®è¡Œåˆ—ï¼ˆã‚¢ãƒ¼ãƒã¯ãã®ã¾ã¾è¡¨ç¤ºï¼‰
 		XMMATRIX worldArch = XMMatrixIdentity();
 
-		// ‰ñ“]‚ğ’Ç‰ÁiFBXŒü‚¯‚Ì‰ñ“]’²®j
-		// rotation ‚Í•K—v‚É‰‚¶‚Ä•ÏX‚µ‚Ä‚­‚¾‚³‚¢iƒ‰ƒWƒAƒ“j
+		// å›è»¢ã‚’è¿½åŠ ï¼ˆFBXå‘ã‘ã®å›è»¢èª¿æ•´ï¼‰
+		// rotation ã¯å¿…è¦ã«å¿œã˜ã¦å¤‰æ›´ã—ã¦ãã ã•ã„ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰
 		XMFLOAT3 rotationArch = { 0.0f, 0.0f, 0.0f };
 		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			rotationArch.x + XMConvertToRadians(-90.0f),
@@ -312,7 +312,7 @@ void Result_Draw()
 			rotationArch.z);
 		worldArch = RotationMatrix * worldArch;
 
-		// ƒJƒƒ‰iƒ‚ƒfƒ‹ŒQ‚ğ’†S‚Éj
+		// ã‚«ãƒ¡ãƒ©ï¼ˆãƒ¢ãƒ‡ãƒ«ç¾¤ã‚’ä¸­å¿ƒã«ï¼‰
 		XMVECTOR eyePos = XMVectorSet(g_ResultModelCenter.x, g_ResultModelCenter.y + 1.5f, g_ResultModelCenter.z - (g_ResultModelRadius * 2.0f + 2.0f), 0.0f);
 		XMVECTOR focus = XMVectorSet(g_ResultModelCenter.x, g_ResultModelCenter.y, g_ResultModelCenter.z, 0.0f);
 		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
@@ -321,10 +321,10 @@ void Result_Draw()
 		float aspect = (SCREEN_HEIGHT != 0.0f) ? (SCREEN_WIDTH / SCREEN_HEIGHT) : 1.0f;
 		XMMATRIX proj = XMMatrixPerspectiveFovLH(XM_PIDIV4, aspect, 0.1f, 1000.0f);
 
-		// •`‰æFƒA[ƒ`
+		// æç”»ï¼šã‚¢ãƒ¼ãƒ
 		Shader_SetMatrix(worldArch * view * proj);
 
-		// [“xƒXƒeƒ“ƒVƒ‹‚Ìİ’è
+		// æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã®è¨­å®š
 		ID3D11DepthStencilState* oldDepth = nullptr;
 		UINT oldRef = 0;
 		ctx->OMGetDepthStencilState(&oldDepth, &oldRef);
@@ -360,13 +360,13 @@ void Result_Draw()
 		SAFE_RELEASE(pDepthState);
 	}
 
-	// --- ƒ^ƒ[‚ğ4‚Â‹Ï“™”z’u‚µ‚Ä•`‰æ ---
+	// --- ã‚¿ãƒ¯ãƒ¼ã‚’4ã¤å‡ç­‰é…ç½®ã—ã¦æç”» ---
 	if (g_TowerModel)
 	{
 		ID3D11DeviceContext* ctx = Direct3D_GetDeviceContext();
 		if (ctx == nullptr) return;
 
-		// ƒJƒƒ‰‚ğƒ^ƒ[ŒQ’†S‚É‡‚í‚¹iŠù‘¶ƒA[ƒ`’†S‚ğŠî€j
+		// ã‚«ãƒ¡ãƒ©ã‚’ã‚¿ãƒ¯ãƒ¼ç¾¤ä¸­å¿ƒã«åˆã‚ã›ï¼ˆæ—¢å­˜ã‚¢ãƒ¼ãƒä¸­å¿ƒã‚’åŸºæº–ï¼‰
 		XMVECTOR eyePos = XMVectorSet(g_ResultModelCenter.x, g_ResultModelCenter.y + 1.5f, g_ResultModelCenter.z - (g_ResultModelRadius * 2.0f + 2.0f), 0.0f);
 		XMVECTOR focus = XMVectorSet(g_ResultModelCenter.x, g_ResultModelCenter.y, g_ResultModelCenter.z, 0.0f);
 		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
@@ -375,12 +375,12 @@ void Result_Draw()
 		float aspect = (SCREEN_HEIGHT != 0.0f) ? (SCREEN_WIDTH / SCREEN_HEIGHT) : 1.0f;
 		XMMATRIX proj = XMMatrixPerspectiveFovLH(XM_PIDIV4, aspect, 0.1f, 1000.0f);
 
-		// ”z’uŠÔŠuiƒ‚ƒfƒ‹ƒTƒCƒY‚ÉŠî‚Ã‚­j
+		// é…ç½®é–“éš”ï¼ˆãƒ¢ãƒ‡ãƒ«ã‚µã‚¤ã‚ºã«åŸºã¥ãï¼‰
 		float spacing = g_TowerModelRadius * 2.2f;
-		// ’†S‚©‚ç‚ÌƒIƒtƒZƒbƒg: -1.5, -0.5, 0.5, 1.5
+		// ä¸­å¿ƒã‹ã‚‰ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ: -1.5, -0.5, 0.5, 1.5
 		float offsets[4] = { -1.5f * spacing, -0.5f * spacing, 0.5f * spacing, 1.5f * spacing };
 
-		// [“xƒXƒeƒ“ƒVƒ‹i‹¤’Êj
+		// æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ï¼ˆå…±é€šï¼‰
 		ID3D11DepthStencilState* oldDepth = nullptr;
 		UINT oldRef = 0;
 		ctx->OMGetDepthStencilState(&oldDepth, &oldRef);
@@ -400,20 +400,20 @@ void Result_Draw()
 
 		for (int i = 0; i < 4; ++i)
 		{
-			// –Ú•Wƒ[ƒ‹ƒhˆÊ’uiResult ‚Ì’†SŠî€j
+			// ç›®æ¨™ãƒ¯ãƒ¼ãƒ«ãƒ‰ä½ç½®ï¼ˆResult ã®ä¸­å¿ƒåŸºæº–ï¼‰
 			XMFLOAT3 targetPos;
 			targetPos.x = g_ResultModelCenter.x + offsets[i];
 			targetPos.y = g_ResultModelCenter.y;
 			targetPos.z = g_ResultModelCenter.z;
 
-			// ƒ‚ƒfƒ‹‚ÌdS‚ğ targetPos ‚É‡‚í‚¹‚éƒ[ƒ‹ƒhs—ñ
+			// ãƒ¢ãƒ‡ãƒ«ã®é‡å¿ƒã‚’ targetPos ã«åˆã‚ã›ã‚‹ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—
 			XMMATRIX world = XMMatrixTranslation(
 				targetPos.x - g_TowerModelCenter.x,
 				targetPos.y - g_TowerModelCenter.y,
 				targetPos.z - g_TowerModelCenter.z);
 
-			// ‰ñ“]‚ğ’Ç‰ÁiFBXŒü‚¯‚Ì‰ñ“]’²®j
-			// rotation ‚Í•K—v‚É‰‚¶‚Ä•ÏX‚µ‚Ä‚­‚¾‚³‚¢iƒ‰ƒWƒAƒ“j
+			// å›è»¢ã‚’è¿½åŠ ï¼ˆFBXå‘ã‘ã®å›è»¢èª¿æ•´ï¼‰
+			// rotation ã¯å¿…è¦ã«å¿œã˜ã¦å¤‰æ›´ã—ã¦ãã ã•ã„ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰
 			XMFLOAT3 rotationTower = { 0.0f, 0.0f, 0.0f };
 			XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 				rotationTower.x + XMConvertToRadians(-90.0f),
@@ -423,12 +423,12 @@ void Result_Draw()
 
 			Shader_SetMatrix(world * view * proj);
 
-			// ŠeƒƒbƒVƒ…‚ğ•`‰æiŠeƒ^ƒ[‚ÉŒÅ—LƒeƒNƒXƒ`ƒƒ‚ğ“K—pj
+			// å„ãƒ¡ãƒƒã‚·ãƒ¥ã‚’æç”»ï¼ˆå„ã‚¿ãƒ¯ãƒ¼ã«å›ºæœ‰ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’é©ç”¨ï¼‰
 			for (unsigned int m = 0; m < g_TowerModel->AiScene->mNumMeshes; m++)
 			{
 				aiMesh* mesh = g_TowerModel->AiScene->mMeshes[m];
 
-				// ƒeƒNƒXƒ`ƒƒ‚ğƒsƒNƒZƒ‹ƒVƒF[ƒ_‚ÉƒoƒCƒ“ƒhii ”Ô–Ú‚ÌFj
+				// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ã«ãƒã‚¤ãƒ³ãƒ‰ï¼ˆi ç•ªç›®ã®è‰²ï¼‰
 				ctx->PSSetShaderResources(0, 1, &g_TowerTex[i]);
 
 				UINT stride = sizeof(Vertex3D);
@@ -444,7 +444,7 @@ void Result_Draw()
 		SAFE_RELEASE(pDepthState);
 	}
 
-	// ‚±‚±‚Å UI —p‚Ì’¼Œğ“Š‰es—ñ‚É–ß‚·id—vj
+	// ã“ã“ã§ UI ç”¨ã®ç›´äº¤æŠ•å½±è¡Œåˆ—ã«æˆ»ã™ï¼ˆé‡è¦ï¼‰
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
 		0.0f,
 		SCREEN_WIDTH,
@@ -452,23 +452,23 @@ void Result_Draw()
 		0.0f,
 		0.0f,
 		1.0f));
-	// ƒXƒvƒ‰ƒCƒg‚Ì•`‰æ‚Í’ÊíƒuƒŒƒ“ƒh–³‚µ‚©ƒAƒ‹ƒtƒ@‚É‚·‚éiŠù‘¶ƒXƒ^ƒCƒ‹‚É‡‚í‚¹‚éj
+	// ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®æç”»ã¯é€šå¸¸ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—ã‹ã‚¢ãƒ«ãƒ•ã‚¡ã«ã™ã‚‹ï¼ˆæ—¢å­˜ã‚¹ã‚¿ã‚¤ãƒ«ã«åˆã‚ã›ã‚‹ï¼‰
 	SetBlendState(BLENDSTATE_NONE);
 
-	// --- ƒ{ƒ^ƒ“F5•bŒã‚É‰E‚©‚çƒ|ƒbƒvƒAƒEƒg ---
-	// ƒ{ƒ^ƒ“Šî–{î•ñ
+	// --- ãƒœã‚¿ãƒ³ï¼š5ç§’å¾Œã«å³ã‹ã‚‰ãƒãƒƒãƒ—ã‚¢ã‚¦ãƒˆ ---
+	// ãƒœã‚¿ãƒ³åŸºæœ¬æƒ…å ±
 	const XMFLOAT2 btnSize = { 200.0f, 200.0f };
 	const float targetX = SCREEN_WIDTH - 100.0f;
-	const float startX = SCREEN_WIDTH + btnSize.x * 0.5f + 50.0f; // ‰E‰æ–ÊŠO‚©‚ço‚Ä‚­‚é
+	const float startX = SCREEN_WIDTH + btnSize.x * 0.5f + 50.0f; // å³ç”»é¢å¤–ã‹ã‚‰å‡ºã¦ãã‚‹
 	double nowElapsed = GetElapsedSeconds();
 
-	// Ÿ‚Öƒ{ƒ^ƒ“
+	// æ¬¡ã¸ãƒœã‚¿ãƒ³
 	if (g_Texture2)
 	{
-		// ’x‰„’†‚Í‚Ü‚¾•\¦‚µ‚È‚¢
+		// é…å»¶ä¸­ã¯ã¾ã è¡¨ç¤ºã—ãªã„
 		if (nowElapsed >= g_ButtonDelaySeconds)
 		{
-			// ƒAƒjƒ[ƒVƒ‡ƒ“is“x
+			// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é€²è¡Œåº¦
 			double animElapsed = 0.0;
 			if (g_ButtonsAnimStarted)
 			{
@@ -480,28 +480,28 @@ void Result_Draw()
 			float t = static_cast<float>(Clamp01(rawT));
 			float eased = EaseOutBack(t);
 
-			// ˆÊ’uEƒXƒP[ƒ‹EƒAƒ‹ƒtƒ@•âŠÔ
+			// ä½ç½®ãƒ»ã‚¹ã‚±ãƒ¼ãƒ«ãƒ»ã‚¢ãƒ«ãƒ•ã‚¡è£œé–“
 			float curX = Lerp(startX, targetX, eased);
-			float curScale = Lerp(0.6f, 1.05f, eased); // ­‚µƒI[ƒo[‚µ‚Ä–ß‚é
+			float curScale = Lerp(0.6f, 1.05f, eased); // å°‘ã—ã‚ªãƒ¼ãƒãƒ¼ã—ã¦æˆ»ã‚‹
 			float alpha = Lerp(0.0f, 1.0f, t);
 
-			// ƒ|ƒbƒvÂŠñ‚¹
+			// ãƒãƒƒãƒ—é’å¯„ã›
 			XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-			// DrawSprite ‚Í’†SÀ•W‚Å•`‰æ‚·‚é‘z’è
+			// DrawSprite ã¯ä¸­å¿ƒåº§æ¨™ã§æç”»ã™ã‚‹æƒ³å®š
 			XMFLOAT2 pos = { curX, SCREEN_HEIGHT / 2 + 230 };
 			XMFLOAT2 size = { btnSize.x * curScale, btnSize.y * curScale };
 
-			g_pContext->PSSetShaderResources(0, 1, &g_Texture2);//g_Texture‚ğg‚¤‚æ‚¤‚Éİ’è‚·‚é
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture2);//g_Textureã‚’ä½¿ã†ã‚ˆã†ã«è¨­å®šã™ã‚‹
 			SetBlendState(BLENDSTATE_ALPHA);
 			DrawSprite(pos, size, col);
 		}
 	}
 
-	// ‘I‘ğƒ{ƒ^ƒ“
+	// é¸æŠãƒœã‚¿ãƒ³
 	if (g_Texture3)
 	{
-		// ’x‰„’†‚Í‚Ü‚¾•\¦‚µ‚È‚¢
+		// é…å»¶ä¸­ã¯ã¾ã è¡¨ç¤ºã—ãªã„
 		if (nowElapsed >= g_ButtonDelaySeconds)
 		{
 			double animElapsed = 0.0;
@@ -511,7 +511,7 @@ void Result_Draw()
 				animElapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - g_AnimStartTime).count();
 			}
 
-			// ­‚µ’x‚ç‚¹‚Ä2‚Â‚ß‚Ìƒ{ƒ^ƒ“‚Í“¯‚¶ƒAƒjƒ‚¾‚ªŠJn‚ğ­‚µ’x‚ç‚¹‚½‚¢ê‡‚Í offset ‚ğ’Ç‰Á‰Â”\
+			// å°‘ã—é…ã‚‰ã›ã¦2ã¤ã‚ã®ãƒœã‚¿ãƒ³ã¯åŒã˜ã‚¢ãƒ‹ãƒ¡ã ãŒé–‹å§‹ã‚’å°‘ã—é…ã‚‰ã›ãŸã„å ´åˆã¯ offset ã‚’è¿½åŠ å¯èƒ½
 			double rawT = animElapsed / g_ButtonAnimDuration;
 			float t = static_cast<float>(Clamp01(rawT));
 			float eased = EaseOutBack(t);
@@ -525,13 +525,13 @@ void Result_Draw()
 			XMFLOAT2 pos = { curX, SCREEN_HEIGHT / 2 + 300 };
 			XMFLOAT2 size = { btnSize.x * curScale, btnSize.y * curScale };
 
-			g_pContext->PSSetShaderResources(0, 1, &g_Texture3);//g_Texture‚ğg‚¤‚æ‚¤‚Éİ’è‚·‚é
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture3);//g_Textureã‚’ä½¿ã†ã‚ˆã†ã«è¨­å®šã™ã‚‹
 			SetBlendState(BLENDSTATE_ALPHA);
 			DrawSprite(pos, size, col);
 		}
 	}
 	// ------------------------------------------------------------------
 
-	// ƒXƒvƒ‰ƒCƒg‚Ì•`‰æ‚Í’ÊíƒuƒŒƒ“ƒh–³‚µ‚©ƒAƒ‹ƒtƒ@‚É‚·‚éiŠù‘¶ƒXƒ^ƒCƒ‹‚É‡‚í‚¹‚éj
+	// ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®æç”»ã¯é€šå¸¸ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—ã‹ã‚¢ãƒ«ãƒ•ã‚¡ã«ã™ã‚‹ï¼ˆæ—¢å­˜ã‚¹ã‚¿ã‚¤ãƒ«ã«åˆã‚ã›ã‚‹ï¼‰
 	SetBlendState(BLENDSTATE_NONE);
 }

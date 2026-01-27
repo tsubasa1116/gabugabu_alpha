@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -9,17 +9,17 @@ using namespace DirectX;
 
 
 struct HP {
-	XMFLOAT2 pos;      // ˆÊ’u
-	XMFLOAT2 size;     // ƒTƒCƒY
-	float current;     // Œ»İ‚ÌHPƒo[•
-	float target;      // –Ú•WHPƒo[•
-	bool use;          // g—p’†‚©‚Ç‚¤‚©
-	XMFLOAT4 backColor;  // ”wŒiF
-	XMFLOAT4 fillColor;  // c—ÊF
+	XMFLOAT2 pos;      // ä½ç½®
+	XMFLOAT2 size;     // ã‚µã‚¤ã‚º
+	float current;     // ç¾åœ¨ã®HPãƒãƒ¼å¹…
+	float target;      // ç›®æ¨™HPãƒãƒ¼å¹…
+	bool use;          // ä½¿ç”¨ä¸­ã‹ã©ã†ã‹
+	XMFLOAT4 backColor;  // èƒŒæ™¯è‰²
+	XMFLOAT4 fillColor;  // æ®‹é‡è‰²
 };
 
 //=============================================
-// HPƒo[‚ğİ’è‚µ‚½‚¢cpp‚ÅŒÄ‚Ño‚·(Ql:p.cpp)
+// HPãƒãƒ¼ã‚’è¨­å®šã—ãŸã„cppã§å‘¼ã³å‡ºã™(å‚è€ƒ:p.cpp)
 //=============================================
 void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HP* bar, XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 backColor, XMFLOAT4 fillColor);
 void UpdateHP(HP* bar);

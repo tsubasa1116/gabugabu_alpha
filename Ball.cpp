@@ -1,7 +1,7 @@
-//======================================================
+ï»¿//======================================================
 //	ball.cpp[]
 // 
-//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
+//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
 //======================================================
 //Ball.cpp
 
@@ -14,7 +14,7 @@
 
 static HP b_HPBar;
 
-// ƒ{[ƒ‹ƒIƒuƒWƒFƒNƒg
+// ãƒœãƒ¼ãƒ«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 BALL	g_Ball;
 
 ID3D11Device* g_pDevice;
@@ -57,7 +57,7 @@ void	BallUpdate()
 		break;
 	}
 
-	//ƒfƒoƒbƒO
+	//ãƒ‡ãƒãƒƒã‚°
 	g_Ball.Velocity = XMFLOAT3(0, 0, 0);
 	if (Keyboard_IsKeyDown(KK_UP))
 	{
@@ -84,7 +84,7 @@ void	BallUpdate()
 void	BallDraw() 
 {
 
-	//ƒ[ƒ‹ƒhs—ñì¬
+	//ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ä½œæˆ
 	XMMATRIX	scale = XMMatrixScaling(
 		g_Ball.Scaling.x,
 		g_Ball.Scaling.y,
@@ -99,16 +99,16 @@ void	BallDraw()
 		g_Ball.position.z);
 	XMMATRIX	world = scale * rotation * translation;
 
-	//•ÏŠ·s—ñì¬
+	//å¤‰æ›è¡Œåˆ—ä½œæˆ
 	XMMATRIX	view = GetViewMatrix();
 	XMMATRIX	projection = GetProjectionMatrix();
 	XMMATRIX	wvp = world * view * projection;
 
-	//ƒVƒF[ƒ_[‚Ös—ñ‚ğƒZƒbƒg
+	//ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¸è¡Œåˆ—ã‚’ã‚»ãƒƒãƒˆ
 	Shader_SetWorldMatrix(world);
 	Shader_SetMatrix(wvp);
 
-	//ƒ‚ƒfƒ‹‚Ì•`‰æƒŠƒNƒGƒXƒg
+	//ãƒ¢ãƒ‡ãƒ«ã®æç”»ãƒªã‚¯ã‚¨ã‚¹ãƒˆ
 	ModelDraw(g_Ball.Model);
 }
 

@@ -1,4 +1,4 @@
-
+ï»¿
 //Effect.h
 
 #pragma once
@@ -15,10 +15,10 @@ class EFFECT
 		bool enable;
 		XMFLOAT3 pos;
 		XMFLOAT2 size;
-		int frameCnt;	//ƒAƒjƒ[ƒVƒ‡ƒ“ƒJƒEƒ“ƒ^[
+		int frameCnt;	//ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
 		int texNo;
 };
-//ƒƒCƒ“ˆ—ŠÖ”
+//ãƒ¡ã‚¤ãƒ³å‡¦ç†é–¢æ•°
 void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Effect_Finalize();
 void Effect_Update();

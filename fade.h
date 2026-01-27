@@ -1,4 +1,4 @@
-
+ï»¿
 //fade.h
 
 #pragma once
@@ -18,11 +18,11 @@ enum FADE_STATE
 
 struct FadeObject
 {
-	FADE_STATE	state;			//ƒtƒF[ƒhˆ—ó‘Ô
-	float		count;			//ƒJƒEƒ“ƒ^[
-	float		frame;			//ƒtƒF[ƒhˆ—ŠÔ
-	XMFLOAT4	fadecolor;		//ƒtƒF[ƒhF
-	SCENE		scene;			//Ÿ‚ÉØ‚è‘Ö‚í‚éƒV[ƒ“
+	FADE_STATE	state;			//ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†çŠ¶æ…‹
+	float		count;			//ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
+	float		frame;			//ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†æ™‚é–“
+	XMFLOAT4	fadecolor;		//ãƒ•ã‚§ãƒ¼ãƒ‰è‰²
+	SCENE		scene;			//æ¬¡ã«åˆ‡ã‚Šæ›¿ã‚ã‚‹ã‚·ãƒ¼ãƒ³
 };
 
 void Fade_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

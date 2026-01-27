@@ -1,69 +1,69 @@
-#pragma once
+ï»¿#pragma once
 //======================================================
 //	collider.h
 // -----------------------------------------------------
-//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
+//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
 //======================================================
-#include <DirectXMath.h>   // © ‚±‚ê‚ª•K{I XMFLOAT3 ‚Ì’è‹`
+#include <DirectXMath.h>   // â† ã“ã‚ŒãŒå¿…é ˆï¼ XMFLOAT3 ã®å®šç¾©
 using namespace DirectX;
 //======================================================
-//	ƒRƒ‰ƒCƒ_[
+//	ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼
 //======================================================
 struct AABB
 {
-	XMFLOAT3 Min;	// Å¬“_
-	XMFLOAT3 Max;	// Å‘å“_
+	XMFLOAT3 Min;	// æœ€å°ç‚¹
+	XMFLOAT3 Max;	// æœ€å¤§ç‚¹
 };
 
 
 //======================================================
-// Å¬d‚È‚è—Ê (MTV) ‚ğ•Ô‚·\‘¢‘Ì
+// æœ€å°é‡ãªã‚Šé‡ (MTV) ã‚’è¿”ã™æ§‹é€ ä½“
 //======================================================
 struct MTV
 {
-	XMFLOAT3 translation;	// ‰Ÿ‚µ–ß‚·‚½‚ß‚ÌˆÚ“®ƒxƒNƒgƒ‹
-	float overlap;			// Å¬‚Ìd‚È‚è—Ê
-	bool isColliding;		// Õ“Ë‚µ‚½‚©‚Ç‚¤‚©
+	XMFLOAT3 translation;	// æŠ¼ã—æˆ»ã™ãŸã‚ã®ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«
+	float overlap;			// æœ€å°ã®é‡ãªã‚Šé‡
+	bool isColliding;		// è¡çªã—ãŸã‹ã©ã†ã‹
 };
 
 //======================================================
-//	“–‚½‚è”»’è ŒvZŠÖ”
+//	å½“ãŸã‚Šåˆ¤å®š è¨ˆç®—é–¢æ•°
 //======================================================
 
 /**
- * @brief ƒIƒuƒWƒFƒNƒg‚ÌÀ•W‚ÆŠgk‚©‚çAABBi²•Às‹«ŠEƒ{ƒbƒNƒXj‚ğŒvZ‚·‚é
- * @param boundingBox [out] ŒvZŒ‹‰Ê‚ªŠi”[‚³‚ê‚éAABB
- * @param position ƒIƒuƒWƒFƒNƒg‚Ì’†SÀ•W
- * @param scaling ƒIƒuƒWƒFƒNƒg‚ÌŠgkiƒTƒCƒYj
+ * @brief ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®åº§æ¨™ã¨æ‹¡ç¸®ã‹ã‚‰AABBï¼ˆè»¸ä¸¦è¡Œå¢ƒç•Œãƒœãƒƒã‚¯ã‚¹ï¼‰ã‚’è¨ˆç®—ã™ã‚‹
+ * @param boundingBox [out] è¨ˆç®—çµæœãŒæ ¼ç´ã•ã‚Œã‚‹AABB
+ * @param position ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ä¸­å¿ƒåº§æ¨™
+ * @param scaling ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®æ‹¡ç¸®ï¼ˆã‚µã‚¤ã‚ºï¼‰
  */
 void CalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& scaling);
 
 /**
- * @brief 2‚Â‚ÌAABB‚ªÕ“Ë‚µ‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN‚·‚é
- * @return Õ“Ë‚µ‚Ä‚¢‚ê‚Î true
+ * @brief 2ã¤ã®AABBãŒè¡çªã—ã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯ã™ã‚‹
+ * @return è¡çªã—ã¦ã„ã‚Œã° true
  */
 bool CheckAABBCollision(const AABB& a, const AABB& b);
 
 /**
- * @brief 2‚Â‚ÌAABB‚ÌÕ“Ë‚ğŒŸo‚µA‰Ÿ‚µ–ß‚µƒxƒNƒgƒ‹(MTV)‚ğŒvZ‚·‚é
- * @param pMovingObject “®‚­ƒIƒuƒWƒFƒNƒg‚ÌAABB
- * @param pStaticObject Ã“I‚ÈƒIƒuƒWƒFƒNƒg‚ÌAABB
- * @return Õ“Ëî•ñ‚Æ‰Ÿ‚µ–ß‚µƒxƒNƒgƒ‹(MTV)
+ * @brief 2ã¤ã®AABBã®è¡çªã‚’æ¤œå‡ºã—ã€æŠ¼ã—æˆ»ã—ãƒ™ã‚¯ãƒˆãƒ«(MTV)ã‚’è¨ˆç®—ã™ã‚‹
+ * @param pMovingObject å‹•ãã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®AABB
+ * @param pStaticObject é™çš„ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®AABB
+ * @return è¡çªæƒ…å ±ã¨æŠ¼ã—æˆ»ã—ãƒ™ã‚¯ãƒˆãƒ«(MTV)
  */
 MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject);
 
 
 // ==============================================================================
-// ˜ZŠp’ŒƒRƒ‰ƒCƒ_[ (Hexagon Collider)
+// å…­è§’æŸ±ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ (Hexagon Collider)
 // ==============================================================================
 struct HexCollider
 {
-	XMFLOAT3 center;	// ’†SÀ•W
-	float radius;		// ”¼Œai’†S‚©‚çŠp‚Ü‚Å‚Ì‹——£j
-	float height;		// ‚‚³iŒú‚İj
+	XMFLOAT3 center;	// ä¸­å¿ƒåº§æ¨™
+	float radius;		// åŠå¾„ï¼ˆä¸­å¿ƒã‹ã‚‰è§’ã¾ã§ã®è·é›¢ï¼‰
+	float height;		// é«˜ã•ï¼ˆåšã¿ï¼‰
 };
 
-// “_‚Æ˜ZŠp’Œ‚Ì“–‚½‚è”»’èi’†‚É“ü‚Á‚Ä‚¢‚é‚©Hj
+// ç‚¹ã¨å…­è§’æŸ±ã®å½“ãŸã‚Šåˆ¤å®šï¼ˆä¸­ã«å…¥ã£ã¦ã„ã‚‹ã‹ï¼Ÿï¼‰
 bool CheckPointHexCollision(const XMFLOAT3& point, const HexCollider& hex);
 
 bool CheckAABBHexCollision(const AABB& box, const HexCollider& hex);

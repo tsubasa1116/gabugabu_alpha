@@ -1,7 +1,7 @@
-//======================================================
+ï»¿//======================================================
 //	Manager.cpp[]
 // 
-//	§ìÒF“c’†—C“Ş			“ú•tF2024//
+//	åˆ¶ä½œè€…ï¼šç”°ä¸­ä½‘å¥ˆ			æ—¥ä»˜ï¼š2024//
 //======================================================
 #include "direct3d.h"
 #include "Manager.h"
@@ -16,29 +16,29 @@
 #include "swipe.h"
 #include "shader.h"
 
-//ƒOƒ[ƒoƒ‹•Ï”
-static SCENE g_Scene = SCENE_NONE;		//Œ»İ‚ÌƒV[ƒ“”Ô†
-static bool g_InitSettingOnce = false;	//Å‰‚¾‚¯‰Šú‰»‚µ‚½‚©
-static bool g_InitSoundOnce = false;	//Å‰‚¾‚¯‰Šú‰»‚µ‚½‚©
+//ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+static SCENE g_Scene = SCENE_NONE;		//ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ç•ªå·
+static bool g_InitSettingOnce = false;	//æœ€åˆã ã‘åˆæœŸåŒ–ã—ãŸã‹
+static bool g_InitSoundOnce = false;	//æœ€åˆã ã‘åˆæœŸåŒ–ã—ãŸã‹
 
 void Manager_Initialize()
 {
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 
-	////–{—ˆ‚Ítitle‚Ì‰Šú‰»‚ÅƒtƒF[ƒhƒCƒ“‚ğƒZƒbƒg‚·‚é
+	////æœ¬æ¥ã¯titleã®åˆæœŸåŒ–ã§ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã‚’ã‚»ãƒƒãƒˆã™ã‚‹
 	//XMFLOAT4 color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	//SetFade(60.0f, color, FADE_STATE::FADE_IN, SCENE_GAME);
-	//SetScene(SCENE_GAME);	//Å‰‚É“®‚©‚·ƒV[ƒ“‚ÉØ‚è‘Ö‚¦‚é
+	//SetScene(SCENE_GAME);	//æœ€åˆã«å‹•ã‹ã™ã‚·ãƒ¼ãƒ³ã«åˆ‡ã‚Šæ›¿ãˆã‚‹
 
 
-	//–{—ˆ‚ÌŒ`
+	//æœ¬æ¥ã®å½¢
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 #ifdef _DEBUG
-	SetScene(SCENE_TITLE);	//debug—p‚ÉÅ‰‚©‚çƒQ[ƒ€ƒV[ƒ“‚Ö
+	SetScene(SCENE_TITLE);	//debugç”¨ã«æœ€åˆã‹ã‚‰ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³ã¸
 #else
-	SetScene(SCENE_TITLE);	//Å‰‚É“®‚©‚·ƒV[ƒ“‚ÉØ‚è‘Ö‚¦‚é
+	SetScene(SCENE_TITLE);	//æœ€åˆã«å‹•ã‹ã™ã‚·ãƒ¼ãƒ³ã«åˆ‡ã‚Šæ›¿ãˆã‚‹
 #endif
 
 
@@ -53,7 +53,7 @@ void	Manager_Finalize()
 
 void	Manager_Update()
 {
-	switch (g_Scene)	//Œ»İƒV[ƒ“‚ÌƒAƒbƒvƒf[ƒgŠÖ”‚ğŒÄ‚Ño‚·
+	switch (g_Scene)	//ç¾åœ¨ã‚·ãƒ¼ãƒ³ã®ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆé–¢æ•°ã‚’å‘¼ã³å‡ºã™
 	{
 	case SCENE_NONE:
 		break;
@@ -85,7 +85,7 @@ void	Manager_Update()
 
 void	Manager_Draw()
 {
-	switch (g_Scene)	//Œ»İƒV[ƒ“‚Ì•`‰æŠÖ”‚ğŒÄ‚Ño‚·
+	switch (g_Scene)	//ç¾åœ¨ã‚·ãƒ¼ãƒ³ã®æç”»é–¢æ•°ã‚’å‘¼ã³å‡ºã™
 	{
 	case SCENE_NONE:
 		break;
@@ -115,10 +115,10 @@ void	Manager_Draw()
 	Swipe_Draw();
 }
 
-void	SetScene(SCENE scene) //ƒV[ƒ“‚ğØ‚è‘Ö‚¦‚é
+void	SetScene(SCENE scene) //ã‚·ãƒ¼ãƒ³ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
 {
-	//Às’†‚ÌƒV[ƒ“‚ğI—¹‚³‚¹‚é
-	switch (g_Scene)	//Œ»İƒV[ƒ“‚ÌI—¹ŠÖ”‚ğŒÄ‚Ño‚·
+	//å®Ÿè¡Œä¸­ã®ã‚·ãƒ¼ãƒ³ã‚’çµ‚äº†ã•ã›ã‚‹
+	switch (g_Scene)	//ç¾åœ¨ã‚·ãƒ¼ãƒ³ã®çµ‚äº†é–¢æ•°ã‚’å‘¼ã³å‡ºã™
 	{
 	case SCENE_NONE:
 		break;
@@ -144,10 +144,10 @@ void	SetScene(SCENE scene) //ƒV[ƒ“‚ğØ‚è‘Ö‚¦‚é
 		break;
 	}
 
-	g_Scene = scene;	//w’è‚ÌƒV[ƒ“‚ÖØ‚è‘Ö‚¦‚é
+	g_Scene = scene;	//æŒ‡å®šã®ã‚·ãƒ¼ãƒ³ã¸åˆ‡ã‚Šæ›¿ãˆã‚‹
 
-	//Ÿ‚ÌƒV[ƒ“‚ğ‰Šú‰»‚·‚é
-	switch (g_Scene)	//Œ»İƒV[ƒ“‚Ì‰Šú‰»ŠÖ”‚ğŒÄ‚Ño‚·
+	//æ¬¡ã®ã‚·ãƒ¼ãƒ³ã‚’åˆæœŸåŒ–ã™ã‚‹
+	switch (g_Scene)	//ç¾åœ¨ã‚·ãƒ¼ãƒ³ã®åˆæœŸåŒ–é–¢æ•°ã‚’å‘¼ã³å‡ºã™
 	{
 	case SCENE_NONE:
 		break;
@@ -161,14 +161,14 @@ void	SetScene(SCENE scene) //ƒV[ƒ“‚ğØ‚è‘Ö‚¦‚é
 		if (!g_InitSettingOnce)
 		{
 			Setting_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
-			g_InitSettingOnce = true;   //‰‰ñ‚¾‚¯ true ‚É‚·‚é
+			g_InitSettingOnce = true;   //åˆå›ã ã‘ true ã«ã™ã‚‹
 		}
 		break;
 	case SCENE_SOUND:
 		if (!g_InitSettingOnce)
 		{
 			Sound_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
-			g_InitSoundOnce = true;   //‰‰ñ‚¾‚¯ true ‚É‚·‚é
+			g_InitSoundOnce = true;   //åˆå›ã ã‘ true ã«ã™ã‚‹
 		}
 		break;
 	case SCENE_GAME:

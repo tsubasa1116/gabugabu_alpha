@@ -1,6 +1,6 @@
-/*==============================================================================
+ï»¿/*==============================================================================
 
-   Direct3D‚Ì‰Šú‰»ŠÖ˜A [direct3d.cpp]
+   Direct3Dã®åˆæœŸåŒ–é–¢é€£ [direct3d.cpp]
 														 Author : Youhei Sato
 														 Date   : 2025/05/12
 --------------------------------------------------------------------------------
@@ -24,49 +24,49 @@
 
 
 
-// ƒZ[ƒtƒŠƒŠ[ƒXƒ}ƒNƒ
+// ã‚»ãƒ¼ãƒ•ãƒªãƒªãƒ¼ã‚¹ãƒã‚¯ãƒ­
 #define SAFE_RELEASE(o) if (o) { (o)->Release(); o = NULL; }
 
 
-bool Direct3D_Initialize(HWND hWnd); // Direct3D‚Ì‰Šú‰»
-void Direct3D_Finalize(); // Direct3D‚ÌI—¹ˆ—
+bool Direct3D_Initialize(HWND hWnd); // Direct3Dã®åˆæœŸåŒ–
+void Direct3D_Finalize(); // Direct3Dã®çµ‚äº†å‡¦ç†
 
-void Direct3D_Clear(); // ƒoƒbƒNƒoƒbƒtƒ@‚ÌƒNƒŠƒA
-void Direct3D_Present(); // ƒoƒbƒNƒoƒbƒtƒ@‚Ì•\¦
+void Direct3D_Clear(); // ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã®ã‚¯ãƒªã‚¢
+void Direct3D_Present(); // ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã®è¡¨ç¤º
 
-////////////////////////////////////////////////’Ç‰Á
-ID3D11Device* Direct3D_GetDevice(); // ƒfƒoƒCƒX‚Ìæ“¾
-ID3D11DeviceContext* Direct3D_GetDeviceContext(); // ƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìæ“¾
-IDXGISwapChain* Direct3D_GetSwapChain(); // ƒXƒƒbƒvƒ`ƒFƒCƒ“‚Ìæ“¾
+////////////////////////////////////////////////è¿½åŠ 
+ID3D11Device* Direct3D_GetDevice(); // ãƒ‡ãƒã‚¤ã‚¹ã®å–å¾—
+ID3D11DeviceContext* Direct3D_GetDeviceContext(); // ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®å–å¾—
+IDXGISwapChain* Direct3D_GetSwapChain(); // ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³ã®å–å¾—
 
-unsigned int Direct3D_GetBackBufferWidth(); // ƒoƒbƒNƒoƒbƒtƒ@‚Ì•‚ğæ“¾
-unsigned int Direct3D_GetBackBufferHeight(); // ƒoƒbƒNƒoƒbƒtƒ@‚Ì‚‚³‚ğæ“¾
+unsigned int Direct3D_GetBackBufferWidth(); // ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã®å¹…ã‚’å–å¾—
+unsigned int Direct3D_GetBackBufferHeight(); // ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã®é«˜ã•ã‚’å–å¾—
 
 
-void SetDepthTest(bool flg);	//[“xƒeƒXƒgØ‚è‘Ö‚¦
-void SetDepthReadOnly();		// [“xƒeƒXƒg‚Í—LŒø‚¾‚ª[“xƒoƒbƒtƒ@‚Ö‚Ì‘‚«‚İ‚ğ–³Œø‚É‚·‚é
+void SetDepthTest(bool flg);	//æ·±åº¦ãƒ†ã‚¹ãƒˆåˆ‡ã‚Šæ›¿ãˆ
+void SetDepthReadOnly();		// æ·±åº¦ãƒ†ã‚¹ãƒˆã¯æœ‰åŠ¹ã ãŒæ·±åº¦ãƒãƒƒãƒ•ã‚¡ã¸ã®æ›¸ãè¾¼ã¿ã‚’ç„¡åŠ¹ã«ã™ã‚‹
 
 enum	BLENDSTATE
 {
-	BLENDSTATE_NONE = 0,	//ƒuƒŒƒ“ƒh‚µ‚È‚¢
-	BLENDSTATE_ALPHA,		//•’Ê‚Ìƒ¿ƒuƒŒƒ“ƒh
-	BLENDSTATE_ADD,			//‰ÁZ‡¬ 
-	BLENDSTATE_SUB,			//Œ¸Z‡¬
+	BLENDSTATE_NONE = 0,	//ãƒ–ãƒ¬ãƒ³ãƒ‰ã—ãªã„
+	BLENDSTATE_ALPHA,		//æ™®é€šã®Î±ãƒ–ãƒ¬ãƒ³ãƒ‰
+	BLENDSTATE_ADD,			//åŠ ç®—åˆæˆ 
+	BLENDSTATE_SUB,			//æ¸›ç®—åˆæˆ
 
 	BLENDSTATE_MAX
 };
 void SetBlendState(BLENDSTATE blend);
 
 
-//ƒuƒƒbƒNc‰¡”z—ñƒTƒCƒY
-#define BLOCK_COLS		(6)	//ƒuƒƒbƒNƒXƒ^ƒbƒN‰¡‚Ì”
-#define BLOCK_ROWS		(13)//ƒuƒƒbƒNƒXƒ^ƒbƒNc‚Ì”
+//ãƒ–ãƒ­ãƒƒã‚¯ç¸¦æ¨ªé…åˆ—ã‚µã‚¤ã‚º
+#define BLOCK_COLS		(6)	//ãƒ–ãƒ­ãƒƒã‚¯ã‚¹ã‚¿ãƒƒã‚¯æ¨ªã®æ•°
+#define BLOCK_ROWS		(13)//ãƒ–ãƒ­ãƒƒã‚¯ã‚¹ã‚¿ãƒƒã‚¯ç¸¦ã®æ•°
 
-//ƒuƒƒbƒNƒTƒCƒY
+//ãƒ–ãƒ­ãƒƒã‚¯ã‚µã‚¤ã‚º
 #define		BLOCK_WIDTH		(50.0f)
 #define		BLOCK_HEIGHT	(50.0f)
 
-//ƒXƒNƒ[ƒ‹’l
+//ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«å€¤
 #define		POSITION_OFFSET_X	(490.0f)
 #define		POSITION_OFFSET_Y	(34.0f)
 
@@ -77,25 +77,25 @@ void SetBlendState(BLENDSTATE blend);
 using namespace DirectX;
 struct Vertex3D
 {
-	XMFLOAT3 position; // ’¸“_À•W  //XMFLOAT3‚Ö•ÏX
+	XMFLOAT3 position; // é ‚ç‚¹åº§æ¨™  //XMFLOAT3ã¸å¤‰æ›´
 	XMFLOAT3 normal;
-	XMFLOAT4 color;		//’¸“_ƒJƒ‰[iR,G,B,Aj
-	XMFLOAT2 texCoord;	//ƒeƒNƒXƒ`ƒƒÀ•W
+	XMFLOAT4 color;		//é ‚ç‚¹ã‚«ãƒ©ãƒ¼ï¼ˆR,G,B,Aï¼‰
+	XMFLOAT2 texCoord;	//ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™
 };
 
 class LIGHT
 {
 	public:
-		BOOL	Enable;			//ƒ‰ƒCƒeƒBƒ“ƒOƒXƒCƒbƒ`
+		BOOL	Enable;			//ãƒ©ã‚¤ãƒ†ã‚£ãƒ³ã‚°ã‚¹ã‚¤ãƒƒãƒ
 		BOOL	dummy[3];
-		XMFLOAT4	Direction;//Œõ‚Ì•ûŒü
-		XMFLOAT4	Diffuse;	//Œõ‚ÌF
-		XMFLOAT4	Ambient;	//ŠÂ‹«Œõ‚ÌF
+		XMFLOAT4	Direction;//å…‰ã®æ–¹å‘
+		XMFLOAT4	Diffuse;	//å…‰ã®è‰²
+		XMFLOAT4	Ambient;	//ç’°å¢ƒå…‰ã®è‰²
 };
 class LIGHTOBJECT
 {
 	public:
-		LIGHT	Light;	//ƒ‰ƒCƒg\‘¢‘Ì
+		LIGHT	Light;	//ãƒ©ã‚¤ãƒˆæ§‹é€ ä½“
 		void	SetEnable(bool b) { Light.Enable = b; }
 		void	SetDirection(XMFLOAT4 d) { Light.Direction = d; }
 		void	SetDiffuse(XMFLOAT4 d) { Light.Diffuse = d; }

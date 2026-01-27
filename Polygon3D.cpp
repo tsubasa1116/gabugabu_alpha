@@ -1,7 +1,7 @@
-// =====================================================
+ï»¿// =====================================================
 //	polygon3D.cpp[]
 // 
-//	§ìÒF•½‰ªéD”n			“ú•tF2025/01/13
+//	åˆ¶ä½œè€…ï¼šå¹³å²¡é¢¯é¦¬			æ—¥ä»˜ï¼š2025/01/13
 //======================================================
 
 #include <d3d11.h>
@@ -41,77 +41,77 @@ using namespace DirectX;
 #include <algorithm>
 
 //======================================================
-//	ƒ}ƒNƒ’è‹`
+//	ãƒã‚¯ãƒ­å®šç¾©
 //======================================================
 #define	NUM_VERTEX		(6)
-#define HPBER_SIZE_X	(270.0f)	// HPƒo[‚ÌƒTƒCƒY
-#define HPBER_SIZE_Y	(270.0f)	// V
-#define GAUGE_POS_X		(69.0f)		// HPƒo[‚ğŠî€‚Æ‚µ‚½ƒQ[ƒW‚ÌˆÊ’u’²®
-#define GAUGE_POS_Y		(8.0f)		// V
+#define HPBER_SIZE_X	(270.0f)	// HPãƒãƒ¼ã®ã‚µã‚¤ã‚º
+#define HPBER_SIZE_Y	(270.0f)	// ã€ƒ
+#define GAUGE_POS_X		(69.0f)		// HPãƒãƒ¼ã‚’åŸºæº–ã¨ã—ãŸã‚²ãƒ¼ã‚¸ã®ä½ç½®èª¿æ•´
+#define GAUGE_POS_Y		(8.0f)		// ã€ƒ
 
 //======================================================
-//	\‘¢‘ÌéŒ¾
+//	æ§‹é€ ä½“å®£è¨€
 //======================================================
-// ƒIƒuƒWƒFƒNƒg
+// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 PLAYEROBJECT object[PLAYER_MAX];
 
 //======================================================
-//	ƒOƒ[ƒoƒ‹•Ï”
+//	ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 //======================================================
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
 static HP HPBar[PLAYER_MAX];
 
-// ’¸“_ƒoƒbƒtƒ@
+// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
 static ID3D11Buffer* g_VertexBuffer = NULL;
 
-// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
+// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
 static ID3D11Buffer* g_IndexBuffer = NULL;
 
-// ƒeƒNƒXƒ`ƒƒ•Ï”
+// ãƒ†ã‚¯ã‚¹ãƒãƒ£å¤‰æ•°
 static ID3D11ShaderResourceView* g_Texture[25];
 
-// ƒGƒtƒFƒNƒg ƒfƒoƒbƒO—pƒ^ƒCƒ}[
-static float g_effectElapsed = 0.0f; // •b’PˆÊ‚Å‚ÌŒo‰ßŠÔ‚ğ•Û
+// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ ãƒ‡ãƒãƒƒã‚°ç”¨ã‚¿ã‚¤ãƒãƒ¼
+static float g_effectElapsed = 0.0f; // ç§’å˜ä½ã§ã®çµŒéæ™‚é–“ã‚’ä¿æŒ
 
-// ƒvƒŒƒCƒ„[ ƒAƒjƒ[ƒVƒ‡ƒ“—p•Ï”
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”¨å¤‰æ•°
 static int   g_animFrame[PLAYER_MAX];
 static float g_animTimer[PLAYER_MAX];
-static const float ANIM_FRAME_TIME = 0.15f; // 1ƒtƒŒ[ƒ€‚ ‚½‚è‚Ì•b”
+static const float ANIM_FRAME_TIME = 0.15f; // 1ãƒ•ãƒ¬ãƒ¼ãƒ ã‚ãŸã‚Šã®ç§’æ•°
 static const int   SHEET_COLS = 16;
 static const int   SHEET_ROWS = 16;
 
-static int g_victoryState[PLAYER_MAX] = { 0 };			// 0=‚È‚µ, 1=‰‰ñ Ä¶’†, 2=ƒ‹[ƒv
-static float g_downHoldTimer[PLAYER_MAX] = { 0.0f };	// ÅIƒtƒŒ[ƒ€ƒz[ƒ‹ƒh—pƒ^ƒCƒ}[iƒvƒŒƒCƒ„[–ˆj
+static int g_victoryState[PLAYER_MAX] = { 0 };			// 0=ãªã—, 1=åˆå› å†ç”Ÿä¸­, 2=ãƒ«ãƒ¼ãƒ—
+static float g_downHoldTimer[PLAYER_MAX] = { 0.0f };	// æœ€çµ‚ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ›ãƒ¼ãƒ«ãƒ‰ç”¨ã‚¿ã‚¤ãƒãƒ¼ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ¯ï¼‰
 
-// ‡ˆÊE€–S‡‚ÌŠÇ—
-static std::vector<int> g_deathOrder;	// €–S‚µ‚½ƒvƒŒƒCƒ„[‚ÌƒCƒ“ƒfƒbƒNƒXiæ‚É€‚ñ‚¾Ò‚ªæ“ªj
+// é †ä½ãƒ»æ­»äº¡é †ã®ç®¡ç†
+static std::vector<int> g_deathOrder;	// æ­»äº¡ã—ãŸãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ï¼ˆå…ˆã«æ­»ã‚“ã è€…ãŒå…ˆé ­ï¼‰
 
-#define COORDINATE	(0.5f)	// ƒfƒtƒHƒ‹ƒg (0.5f)
-#define TEXCOORD	(1.0f)	// ƒfƒtƒHƒ‹ƒg (1.0f)
+#define COORDINATE	(0.5f)	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ (0.5f)
+#define TEXCOORD	(1.0f)	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ (1.0f)
 
-// ’¸“_”z—ñ
+// é ‚ç‚¹é…åˆ—
 static Vertex2 vdata[NUM_VERTEX] =
 {
-	{// ’¸“_0 LEFT-TOP
-		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),// À•W
-		XMFLOAT3(0.0f, 0.0f, -1.0f),			// –@üƒxƒNƒgƒ‹
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),		// ƒJƒ‰[
-		XMFLOAT2(0.0f, 0.0f)					// ƒeƒNƒXƒ`ƒƒÀ•W
+	{// é ‚ç‚¹0 LEFT-TOP
+		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),// åº§æ¨™
+		XMFLOAT3(0.0f, 0.0f, -1.0f),			// æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),		// ã‚«ãƒ©ãƒ¼
+		XMFLOAT2(0.0f, 0.0f)					// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™
 	},
-	{// ’¸“_1 RIGHT-TOP
+	{// é ‚ç‚¹1 RIGHT-TOP
 		XMFLOAT3(COORDINATE, COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(TEXCOORD, 0.0f)
 	},
-	{// ’¸“_2 LEFT-BOTTOM
+	{// é ‚ç‚¹2 LEFT-BOTTOM
 		XMFLOAT3(-COORDINATE, -COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f, TEXCOORD)
 	},
-	{// ’¸“_3 RIGHT-BOTTOM
+	{// é ‚ç‚¹3 RIGHT-BOTTOM
 		XMFLOAT3(COORDINATE, -COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -119,20 +119,20 @@ static Vertex2 vdata[NUM_VERTEX] =
 	},
 };
 
-// ƒCƒ“ƒfƒbƒNƒX”z—ñ
+// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹é…åˆ—
 static UINT idxdata[6]
 {
-	 0, 1, 2, 2, 1, 3, // -Z–Ê
+	 0, 1, 2, 2, 1, 3, // -Zé¢
 };
 
-static float top_y = 0;	// ˜ZŠpŒ`‚Ìtop-yÀ•[‚ÌƒfƒoƒbƒO•\¦
+static float top_y = 0;	// å…­è§’å½¢ã®top-yåº§ç¥¨ã®ãƒ‡ãƒãƒƒã‚°è¡¨ç¤º
 
 //======================================================
-//	‰Šú‰»ŠÖ”
+//	åˆæœŸåŒ–é–¢æ•°
 //======================================================
 void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// ƒ|ƒŠƒSƒ“•\¦‚Ì‰Šú‰»
+	// ãƒãƒªã‚´ãƒ³è¡¨ç¤ºã®åˆæœŸåŒ–
 	object[0].position = XMFLOAT3(-2.0f, 4.0f, 0.0f);
 	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
@@ -162,7 +162,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].stunTimer = 0.0f;
 	object[0].isDown = false;
 	object[0].downTimer = 0.0f;
-	object[0].lastDir = PlayerDir::Down; // ³–Ê
+	object[0].lastDir = PlayerDir::Down; // æ­£é¢
 	object[0].isMoving = false;
 	object[0].form = Form::Normal;
 	object[0].type = PlayerType::None;
@@ -203,7 +203,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].stunTimer = 0.0f;
 	object[1].isDown = false;
 	object[1].downTimer = 0.0f;
-	object[1].lastDir = PlayerDir::Down; // ³–Ê
+	object[1].lastDir = PlayerDir::Down; // æ­£é¢
 	object[1].isMoving = false;
 	object[1].form = Form::Normal;
 	object[1].type = PlayerType::None;
@@ -244,7 +244,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].stunTimer = 0.0f;
 	object[2].isDown = false;
 	object[2].downTimer = 0.0f;
-	object[2].lastDir = PlayerDir::Down; // ³–Ê
+	object[2].lastDir = PlayerDir::Down; // æ­£é¢
 	object[2].isMoving = false;
 	object[2].form = Form::Normal;
 	object[2].type = PlayerType::None;
@@ -284,7 +284,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].stunTimer = 0.0f;
 	object[3].isDown = false;
 	object[3].downTimer = 0.0f;
-	object[3].lastDir = PlayerDir::Down; // ³–Ê
+	object[3].lastDir = PlayerDir::Down; // æ­£é¢
 	object[3].isMoving = false;
 	object[3].form = Form::Normal;
 	object[3].type = PlayerType::None;
@@ -295,11 +295,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].breakCount_Plant = 0;
 	object[3].breakCount_Electric = 0;
 
-	// ’¸“_ƒoƒbƒtƒ@ì¬
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
 	D3D11_BUFFER_DESC	bd;
-	ZeroMemory(&bd, sizeof(bd));// 0‚ÅƒNƒŠƒA
+	ZeroMemory(&bd, sizeof(bd));// 0ã§ã‚¯ãƒªã‚¢
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// Ši”[‚Å‚«‚é’¸“_”*’¸“_ƒTƒCƒY
+	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// æ ¼ç´ã§ãã‚‹é ‚ç‚¹æ•°*é ‚ç‚¹ã‚µã‚¤ã‚º
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -308,37 +308,37 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pContext = pContext;
 
 #ifdef _DEBUG_
-	// ƒeƒNƒXƒ`ƒƒƒ[ƒhŠÔŒv‘ª
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ­ãƒ¼ãƒ‰æ™‚é–“è¨ˆæ¸¬
 	auto tex_start = std::chrono::high_resolution_clock::now();
 	LoadTextureList(pDevice);
 	auto tex_end = std::chrono::high_resolution_clock::now();
 	auto tex_ms = std::chrono::duration_cast<std::chrono::milliseconds>(tex_end - tex_start).count();
-	hal::dout << "ƒeƒNƒXƒ`ƒƒƒ[ƒhŠÔ: " << tex_ms << " ms" << std::endl;
+	hal::dout << "ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ­ãƒ¼ãƒ‰æ™‚é–“: " << tex_ms << " ms" << std::endl;
 #else
-	// ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	LoadTextureList(pDevice);
 #endif
 
-	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@ì¬
+	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
 	{
 		D3D11_BUFFER_DESC	bd;
-		ZeroMemory(&bd, sizeof(bd));	// 0‚ÅƒNƒŠƒA
+		ZeroMemory(&bd, sizeof(bd));	// 0ã§ã‚¯ãƒªã‚¢
 		bd.Usage = D3D11_USAGE_DYNAMIC;
 		bd.ByteWidth = sizeof(UINT) * 6 * 6;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
 
-		// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚Ö‘‚«‚İ
+		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã¸æ›¸ãè¾¼ã¿
 		D3D11_MAPPED_SUBRESOURCE   msr;
 		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		UINT* index = (UINT*)msr.pData;
 
-		// ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^‚ğƒoƒbƒtƒ@‚ÖƒRƒs[
+		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ•ã‚¡ã¸ã‚³ãƒ”ãƒ¼
 		CopyMemory(&index[0], &idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
-	// ƒfƒoƒbƒOƒŒƒ“ƒ_ƒ‰[‰Šú‰»
+	// ãƒ‡ãƒãƒƒã‚°ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼åˆæœŸåŒ–
 	Debug_Initialize(pDevice, pContext);
 
 	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
@@ -346,14 +346,14 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	InitializeHP(pDevice, pContext, &HPBar[2], { 800.0f,  620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 	InitializeHP(pDevice, pContext, &HPBar[3], { 1120.0f, 620.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‰Šú‰»
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®åˆæœŸåŒ–
 	for (int i = 0; i < PLAYER_MAX; ++i)
 	{
 		g_animFrame[i] = 0;
 		g_animTimer[i] = 0.0f;
 	}
 
-	// ‡ˆÊî•ñ‚ğ‰Šú‰»
+	// é †ä½æƒ…å ±ã‚’åˆæœŸåŒ–
 	g_deathOrder.clear();
 }
 
@@ -365,23 +365,23 @@ static void LoadTextureList(ID3D11Device* pDevice)
 	struct TexEntry { int idx; const wchar_t* path;};
 
 	const TexEntry texList[] = {
-		{  0, L"asset\\texture\\characterMini_v2.png"},				// ‘æ1Œ`‘Ô
-		{  1, L"asset\\texture\\characterMidGlass_v1.png"},			// ‘æ2Œ`‘Ô ƒKƒ‰ƒX
-		{  2, L"asset\\texture\\characterMidConcrete_v1.png" },		// ‘æ2Œ`‘Ô ƒRƒ“ƒNƒŠ[ƒg
-		{  3, L"asset\\texture\\characterMidTree_v1.png" },			// ‘æ2Œ`‘Ô A•¨
-		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// ‘æ2Œ`‘Ô “d‹C
-		{  5, L"asset\\texture\\characterBigGlass_v1.png" },		// ‘æ3Œ`‘Ô ƒKƒ‰ƒX
-		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// ‘æ3Œ`‘Ô ƒRƒ“ƒNƒŠ[ƒg
-		{  7, L"asset\\texture\\characterBigTree_v1.png" },		// ‘æ3Œ`‘Ô A•¨
-		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },		// ‘æ3Œ`‘Ô “d‹C
-		{  9, L"asset\\texture\\uiStockRed_v4.png"},				// UI ƒXƒgƒbƒN Â
-		{ 10, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ƒXƒgƒbƒN —Î
-		{ 11, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ƒXƒgƒbƒN 
-		{ 12, L"asset\\texture\\uiStockGreen_v4.png" },			// UI ƒXƒgƒbƒN 
-		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// ƒGƒtƒFƒNƒg ƒKƒ‰ƒX
-		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// ƒGƒtƒFƒNƒg ƒRƒ“ƒNƒŠ[ƒg
-		{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// ƒGƒtƒFƒNƒg A•¨
-		{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// ƒGƒtƒFƒNƒg “d‹C
+		{  0, L"asset\\texture\\characterMini_v2.png"},				// ç¬¬1å½¢æ…‹
+		{  1, L"asset\\texture\\characterMidGlass_v1.png"},			// ç¬¬2å½¢æ…‹ ã‚¬ãƒ©ã‚¹
+		{  2, L"asset\\texture\\characterMidConcrete_v1.png" },		// ç¬¬2å½¢æ…‹ ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ
+		{  3, L"asset\\texture\\characterMidTree_v1.png" },			// ç¬¬2å½¢æ…‹ æ¤ç‰©
+		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// ç¬¬2å½¢æ…‹ é›»æ°—
+		{  5, L"asset\\texture\\characterBigGlass_v1.png" },		// ç¬¬3å½¢æ…‹ ã‚¬ãƒ©ã‚¹
+		{  6, L"asset\\texture\\characterBigConcrete_v1.png" },		// ç¬¬3å½¢æ…‹ ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ
+		{  7, L"asset\\texture\\characterBigTree_v1.png" },		// ç¬¬3å½¢æ…‹ æ¤ç‰©
+		{  8, L"asset\\texture\\characterBigElectricity_v1.png" },		// ç¬¬3å½¢æ…‹ é›»æ°—
+		{  9, L"asset\\texture\\uiStockRed_v4.png"},				// UI ã‚¹ãƒˆãƒƒã‚¯ é’
+		{ 10, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ã‚¹ãƒˆãƒƒã‚¯ ç·‘
+		{ 11, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ã‚¹ãƒˆãƒƒã‚¯ 
+		{ 12, L"asset\\texture\\uiStockGreen_v4.png" },			// UI ã‚¹ãƒˆãƒƒã‚¯ 
+		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ ã‚¬ãƒ©ã‚¹
+		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ
+		{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ æ¤ç‰©
+		{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ é›»æ°—
 	};
 
 	for (const auto& e : texList)
@@ -389,46 +389,46 @@ static void LoadTextureList(ID3D11Device* pDevice)
 
 		auto start = std::chrono::high_resolution_clock::now();
 
-		// ƒRƒƒ“ƒg‰»‚µ‚Ä‚¢‚é—v‘f‚Í”z—ñƒGƒ“ƒgƒŠ©‘Ì‚ğƒRƒƒ“ƒgƒAƒEƒg‚µ‚Ä‚¢‚é‚½‚ß‚±‚±‚É‚Í—ˆ‚È‚¢B
+		// ã‚³ãƒ¡ãƒ³ãƒˆåŒ–ã—ã¦ã„ã‚‹è¦ç´ ã¯é…åˆ—ã‚¨ãƒ³ãƒˆãƒªè‡ªä½“ã‚’ã‚³ãƒ¡ãƒ³ãƒˆã‚¢ã‚¦ãƒˆã—ã¦ã„ã‚‹ãŸã‚ã“ã“ã«ã¯æ¥ãªã„ã€‚
 		HRESULT hr = LoadFromWICFile(e.path, WIC_FLAGS_NONE, &metadata, image);
 		if (SUCCEEDED(hr))
 		{
 			if (FAILED(CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[e.idx])))
 			{
-				// ì¬¸”s‚Í nullptr ‚ğ‘ã“ü‚µ‚Ä‘±s
+				// ä½œæˆå¤±æ•—æ™‚ã¯ nullptr ã‚’ä»£å…¥ã—ã¦ç¶šè¡Œ
 				g_Texture[e.idx] = nullptr;
 			}
 		}
 		else
 		{
-			// “Ç‚İ‚İ¸”s‚Í nullptr ‚ğ‘ã“ü‚µ‚Ä‘±s
+			// èª­ã¿è¾¼ã¿å¤±æ•—ã¯ nullptr ã‚’ä»£å…¥ã—ã¦ç¶šè¡Œ
 			g_Texture[e.idx] = nullptr;
 		}
 
 		auto end = std::chrono::high_resolution_clock::now();
 		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-		// std::wstring ‚ğ std::string ‚É•ÏŠ·‚µ‚Äo—Í
+		// std::wstring ã‚’ std::string ã«å¤‰æ›ã—ã¦å‡ºåŠ›
 		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
-		hal::dout << "ƒeƒNƒXƒ`ƒƒƒ[ƒh: " << conv.to_bytes(e.path) << " " << ms << " ms" << std::endl;
+		hal::dout << "ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ­ãƒ¼ãƒ‰: " << conv.to_bytes(e.path) << " " << ms << " ms" << std::endl;
 	}
 }
 
 //======================================================
-//	I—¹ˆ—ŠÖ”
+//	çµ‚äº†å‡¦ç†é–¢æ•°
 //======================================================
 void Polygon3D_Finalize()
 {
-	// ƒVƒF[ƒ_[‚ÉƒoƒCƒ“ƒh‚³‚ê‚Ä‚¢‚é SRV ‚ğƒAƒ“ƒoƒCƒ“ƒhiˆÀ‘S‚Ì‚½‚ß‘S—v‘f•ªj
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«ãƒã‚¤ãƒ³ãƒ‰ã•ã‚Œã¦ã„ã‚‹ SRV ã‚’ã‚¢ãƒ³ãƒã‚¤ãƒ³ãƒ‰ï¼ˆå®‰å…¨ã®ãŸã‚å…¨è¦ç´ åˆ†ï¼‰
 	const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
 	if (g_pContext)
 	{
-		// ŒÅ’è’·”z—ñ‚ğg‚Á‚ÄŠmÀ‚É nullptr ‚ğ“n‚·iAPI ‚Í¶”z—ñ‚ğ—v‹j
+		// å›ºå®šé•·é…åˆ—ã‚’ä½¿ã£ã¦ç¢ºå®Ÿã« nullptr ã‚’æ¸¡ã™ï¼ˆAPI ã¯ç”Ÿé…åˆ—ã‚’è¦æ±‚ï¼‰
 		ID3D11ShaderResourceView* nullSRV[25] = {};
 		g_pContext->PSSetShaderResources(0, static_cast<UINT>(TEX_COUNT), nullSRV);
 	}
 
-	// ƒCƒ“ƒfƒbƒNƒX^’¸“_ƒoƒbƒtƒ@‚Ì‰ğ•úiNULL ƒ`ƒFƒbƒNŒã‚É nullptr ‚Éİ’èj
+	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ï¼é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®è§£æ”¾ï¼ˆNULL ãƒã‚§ãƒƒã‚¯å¾Œã« nullptr ã«è¨­å®šï¼‰
 	if (g_IndexBuffer != nullptr)
 	{
 		g_IndexBuffer->Release();
@@ -441,7 +441,7 @@ void Polygon3D_Finalize()
 		g_VertexBuffer = nullptr;
 	}
 
-	// ƒeƒNƒXƒ`ƒƒ”z—ñ‘S—v‘f‚ğˆÀ‘S‚É‰ğ•úiƒRƒƒ“ƒg‰»‚µ‚Ä–¢ƒ[ƒh‚Ì—v‘f‚à nullptr ƒ`ƒFƒbƒN‚ÅˆÀ‘Sj
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£é…åˆ—å…¨è¦ç´ ã‚’å®‰å…¨ã«è§£æ”¾ï¼ˆã‚³ãƒ¡ãƒ³ãƒˆåŒ–ã—ã¦æœªãƒ­ãƒ¼ãƒ‰ã®è¦ç´ ã‚‚ nullptr ãƒã‚§ãƒƒã‚¯ã§å®‰å…¨ï¼‰
 	for (size_t i = 0; i < TEX_COUNT; ++i)
 	{
 		if (g_Texture[i] != nullptr)
@@ -451,47 +451,47 @@ void Polygon3D_Finalize()
 		}
 	}
 
-	// ƒfƒoƒCƒX^ƒRƒ“ƒeƒLƒXƒg‚ÍŠO•”ŠÇ—‚Ì‚½‚ß‰ğ•ú‚µ‚È‚¢‚ªAQÆ‚ÍƒNƒŠƒA‚µ‚Ä‚¨‚­
+	// ãƒ‡ãƒã‚¤ã‚¹ï¼ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã¯å¤–éƒ¨ç®¡ç†ã®ãŸã‚è§£æ”¾ã—ãªã„ãŒã€å‚ç…§ã¯ã‚¯ãƒªã‚¢ã—ã¦ãŠã
 	g_pContext = nullptr;
 	g_pDevice = nullptr;
 
-	// ƒfƒoƒbƒOƒŒƒ“ƒ_ƒ‰[‚ÌI—¹ˆ—
+	// ãƒ‡ãƒãƒƒã‚°ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼ã®çµ‚äº†å‡¦ç†
 	Debug_Finalize();
 }
 
 // ======================================================
-// ˆÚ“®ŠÖ”i—v•ÏXj
+// ç§»å‹•é–¢æ•°ï¼ˆè¦å¤‰æ›´ï¼‰
 // ------------------------------------------------------
-// ˆÚ“®ƒxƒNƒgƒ‹‚ÆŒü‚¢‚Ä‚¢‚é•ûŒüƒxƒNƒgƒ‹‚Í•Ê‚Å‚Á‚½•û‚ª‚¢‚¢
+// ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«ã¨å‘ã„ã¦ã„ã‚‹æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã¯åˆ¥ã§æŒã£ãŸæ–¹ãŒã„ã„
 // ======================================================
 void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 {
-	// i‚İ‚½‚¢•ûŒüi3•½•ûj
+	// é€²ã¿ãŸã„æ–¹å‘ï¼ˆ3å¹³æ–¹ï¼‰
 	float length = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
 
 	if (length > 0.0f)
 	{
-		// ƒxƒNƒgƒ‹‚Ì³‹K‰»
+		// ãƒ™ã‚¯ãƒˆãƒ«ã®æ­£è¦åŒ–
 		moveDir.x /= length;
 		moveDir.z /= length;
 
-		// –Ú•WŠp“x‚ğ‹‚ß‚é
-		float targetAngle = atan2f(moveDir.x, moveDir.z);	// ƒxƒNƒgƒ‹‚ÌŠp“x
-		targetAngle = XMConvertToDegrees(targetAngle);		// ƒ‰ƒWƒAƒ“ -> “x
+		// ç›®æ¨™è§’åº¦ã‚’æ±‚ã‚ã‚‹
+		float targetAngle = atan2f(moveDir.x, moveDir.z);	// ãƒ™ã‚¯ãƒˆãƒ«ã®è§’åº¦
+		targetAngle = XMConvertToDegrees(targetAngle);		// ãƒ©ã‚¸ã‚¢ãƒ³ -> åº¦
 
-		// ·•ª‚ğ’²®i180“x’´‚¦‚È‚¢‚æ‚¤‚Éj
-		float diff = targetAngle - object.moveAngle;	// Šp“x·
+		// å·®åˆ†ã‚’èª¿æ•´ï¼ˆ180åº¦è¶…ãˆãªã„ã‚ˆã†ã«ï¼‰
+		float diff = targetAngle - object.moveAngle;	// è§’åº¦å·®
 		if (diff > 180.0f) diff -= 360.0f;
 		if (diff < -180.0f) diff += 360.0f;
 
 		static float angSpeed = 0.5f;
 
-		// ƒXƒ€[ƒY‚É•âŠÔi0.1f‚ª•âŠÔƒXƒs[ƒhj
+		// ã‚¹ãƒ ãƒ¼ã‚ºã«è£œé–“ï¼ˆ0.1fãŒè£œé–“ã‚¹ãƒ”ãƒ¼ãƒ‰ï¼‰
 		object.moveAngle += diff * angSpeed;
 
-		object.rotation.y = object.moveAngle;	// Šp“x‚Ì”½‰f
+		object.rotation.y = object.moveAngle;	// è§’åº¦ã®åæ˜ 
 
-		// ‘Oi
+		// å‰é€²
 		float rad = XMConvertToRadians(object.moveAngle);
 		object.position.x += sinf(rad) * object.speed;
 		object.position.z += cosf(rad) * object.speed;
@@ -499,11 +499,11 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 }
 
 //======================================================
-// XVŠÖ”
+// æ›´æ–°é–¢æ•°
 //======================================================
 void Polygon3D_Update()
 {
-	// ŠeƒvƒŒƒCƒ„[‚É‘Î‰‚·‚é”­“®ƒL[
+	// å„ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«å¯¾å¿œã™ã‚‹ç™ºå‹•ã‚­ãƒ¼
 	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V };
 
 	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_F9, KK_F10, KK_F11, KK_F12 };
@@ -512,16 +512,16 @@ void Polygon3D_Update()
 	{
 		if (!object[p].active) continue;
 
-		// ƒ[ƒ‹ƒhÀ•W‚ğƒXƒNƒŠ[ƒ“À•W‚É•ÏŠ·
+		// ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™ã«å¤‰æ›
 		XMFLOAT3 worldPos = object[p].position;
-		worldPos.y += 2.0f; // ƒvƒŒƒCƒ„[‚Ìã•û‚É•\¦
+		worldPos.y += 2.0f; // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä¸Šæ–¹ã«è¡¨ç¤º
 
 		XMVECTOR posVec = XMLoadFloat3(&worldPos);
 		XMMATRIX view = GetViewMatrix();
 		XMMATRIX proj = GetProjectionMatrix();
 		XMMATRIX viewProj = view * proj;
 
-		// ƒrƒ…[ƒ|[ƒg•ÏŠ·
+		// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆå¤‰æ›
 		XMVECTOR screenPos = XMVector3Project(
 			posVec,
 			0.0f, 0.0f,
@@ -531,15 +531,15 @@ void Polygon3D_Update()
 			XMMatrixIdentity()
 		);
 
-		// Z’lƒ`ƒFƒbƒNiƒJƒƒ‰‚ÌŒã‚ë‚È‚ç•`‰æ‚µ‚È‚¢j
+		// Zå€¤ãƒã‚§ãƒƒã‚¯ï¼ˆã‚«ãƒ¡ãƒ©ã®å¾Œã‚ãªã‚‰æç”»ã—ãªã„ï¼‰
 		float screenZ = XMVectorGetZ(screenPos);
 		if (screenZ > 0.0f && screenZ < 1.0f)
 		{
 			float screenX = XMVectorGetX(screenPos);
 			float screenY = XMVectorGetY(screenPos);
 
-			// ƒeƒLƒXƒg•`‰æiUpdate“à‚Å‚ÍŒÄ‚Ño‚³‚È‚¢ADraw“à‚Å•`‰æ‚·‚éj
-			// ‚±‚±‚Å‚ÍÀ•W‚ğ•Û‘¶‚µ‚Ä‚¨‚­
+			// ãƒ†ã‚­ã‚¹ãƒˆæç”»ï¼ˆUpdateå†…ã§ã¯å‘¼ã³å‡ºã•ãªã„ã€Drawå†…ã§æç”»ã™ã‚‹ï¼‰
+			// ã“ã“ã§ã¯åº§æ¨™ã‚’ä¿å­˜ã—ã¦ãŠã
 			object[p].screenPos = XMFLOAT2(screenX, screenY);
 			object[p].isOnScreen = true;
 		}
@@ -550,11 +550,11 @@ void Polygon3D_Update()
 
 
 		// -------------------------------------------------------------
-		// •Ïg
+		// å¤‰èº«
 		// -------------------------------------------------------------
 		switch (object[p].form)
 		{
-		case Form::Normal: // ’Êí
+		case Form::Normal: // é€šå¸¸
 			object[p].scaling.x = 0.5f;
 			object[p].scaling.y = 0.5f;
 			object[p].scaling.z = 0.5f;
@@ -563,7 +563,7 @@ void Polygon3D_Update()
 			object[p].speed = 0.06f;
 			break;
 
-		case Form::FirstEvolution: // 1i‰»
+		case Form::FirstEvolution: // 1é€²åŒ–
 			object[p].scaling.x = 0.8f;
 			object[p].scaling.y = 0.8f;
 			object[p].scaling.z = 0.8f;
@@ -572,7 +572,7 @@ void Polygon3D_Update()
 			object[p].speed = 0.05f;
 			break;
 
-		case Form::SecondEvolution: // 2i‰»
+		case Form::SecondEvolution: // 2é€²åŒ–
 			object[p].scaling.x = 1.2f;
 			object[p].scaling.y = 1.2f;
 			object[p].scaling.z = 1.2f;
@@ -584,80 +584,80 @@ void Polygon3D_Update()
 			break;
 		}
 
-		// ƒXƒ^ƒ“ƒQ[ƒW‚ªÅ‘å‚ÅƒXƒ^ƒ“ƒtƒ‰ƒO‚ğ—§‚Ä‚é
+		// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸ãŒæœ€å¤§ã§ã‚¹ã‚¿ãƒ³ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 		if (object[p].stunGauge >= STUNGAUGE_MAX)
 		{
 			object[p].isStunning = true;
 			object[p].stunGauge = STUNGAUGE_MAX;
 		}
 
-		// ƒXƒ^ƒ“’†‚Ìˆ—
+		// ã‚¹ã‚¿ãƒ³ä¸­ã®å‡¦ç†
 		if (object[p].isStunning)
 		{
-			// ƒXƒ^ƒ“ƒ^ƒCƒ}[‚ği‚ß‚é
+			// ã‚¹ã‚¿ãƒ³ã‚¿ã‚¤ãƒãƒ¼ã‚’é€²ã‚ã‚‹
 			object[p].stunTimer += DELTA_TIME;
 
-			// ƒXƒ^ƒ“ŠÔŒo‰ß‚ÅƒXƒ^ƒ“‰ğœ
+			// ã‚¹ã‚¿ãƒ³æ™‚é–“çµŒéã§ã‚¹ã‚¿ãƒ³è§£é™¤
 			if (object[p].stunTimer >= STUN_TIME)
 			{
-				object[p].isStunning = false;	// ƒXƒ^ƒ“‰ğœ
-				object[p].stunTimer = 0.0f;		// ƒXƒ^ƒ“ƒ^ƒCƒ}[ƒŠƒZƒbƒg
-				object[p].stunGauge = 0.0f;		// ƒXƒ^ƒ“ƒQ[ƒWƒŠƒZƒbƒg
+				object[p].isStunning = false;	// ã‚¹ã‚¿ãƒ³è§£é™¤
+				object[p].stunTimer = 0.0f;		// ã‚¹ã‚¿ãƒ³ã‚¿ã‚¤ãƒãƒ¼ãƒªã‚»ãƒƒãƒˆ
+				object[p].stunGauge = 0.0f;		// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸ãƒªã‚»ãƒƒãƒˆ
 			}
 
-			// ƒXƒ^ƒ“’†‚ÍˆÚ“®ƒxƒNƒgƒ‹‚ğŠ®‘S‚Éƒ[ƒ‚É‚·‚é
+			// ã‚¹ã‚¿ãƒ³ä¸­ã¯ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«ã‚’å®Œå…¨ã«ã‚¼ãƒ­ã«ã™ã‚‹
 			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
 		}
-		else // ƒXƒ^ƒ“‚µ‚Ä‚¢‚È‚¢ê‡‚Ìˆ—
+		else // ã‚¹ã‚¿ãƒ³ã—ã¦ã„ãªã„å ´åˆã®å‡¦ç†
 		{
-			// ƒXƒ^ƒ“‚µ‚Ä‚¢‚È‚¢ŠÔ‚ÍƒXƒ^ƒ“ƒQ[ƒW‚ğŒ¸­‚³‚¹‚é
+			// ã‚¹ã‚¿ãƒ³ã—ã¦ã„ãªã„é–“ã¯ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸ã‚’æ¸›å°‘ã•ã›ã‚‹
 			object[p].stunGauge -= 0.1f / 60.0f;
 
-			// ƒXƒ^ƒ“ƒQ[ƒW‚ª0–¢–‚É‚È‚ç‚È‚¢‚æ‚¤‚ÉƒNƒ‰ƒ“ƒv
+			// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸ãŒ0æœªæº€ã«ãªã‚‰ãªã„ã‚ˆã†ã«ã‚¯ãƒ©ãƒ³ãƒ—
 			if (object[p].stunGauge < 0.0f)
 			{
 				object[p].stunGauge = 0.0f;
 			}
 		}
 
-		// ƒXƒ^ƒ“’†Eƒ_ƒEƒ“’†‚Å‚È‚¯‚ê‚Î’Êís“®
+		// ã‚¹ã‚¿ãƒ³ä¸­ãƒ»ãƒ€ã‚¦ãƒ³ä¸­ã§ãªã‘ã‚Œã°é€šå¸¸è¡Œå‹•
 		if(!object[p].isStunning && !object[p].isDown)
 		{
-			// ”­“®ƒgƒŠƒK[“ü—Í‚ğƒ`ƒFƒbƒN‚µ‚ÄUŒ‚ƒtƒ‰ƒO‚ğ—§‚Ä‚é
+			// ç™ºå‹•ãƒˆãƒªã‚¬ãƒ¼å…¥åŠ›ã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦æ”»æ’ƒãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
 			{
 				object[p].isAttacking = true;
 
-				// ‘æ2E‘æ3Œ`‘Ô‚Ìê‡AƒXƒLƒ‹g—pƒtƒ‰ƒO‚à—§‚Ä‚é
+				// ç¬¬2ãƒ»ç¬¬3å½¢æ…‹ã®å ´åˆã€ã‚¹ã‚­ãƒ«ä½¿ç”¨ãƒ•ãƒ©ã‚°ã‚‚ç«‹ã¦ã‚‹
 				if (object[p].type != PlayerType::None)	object[p].useSkill = true;
 			}
 			if (g_Input[p].A)
 			{
 				object[p].isAttacking = true;
 
-				// ‘æ2E‘æ3Œ`‘Ô‚Ìê‡AƒXƒLƒ‹g—pƒtƒ‰ƒO‚à—§‚Ä‚é
+				// ç¬¬2ãƒ»ç¬¬3å½¢æ…‹ã®å ´åˆã€ã‚¹ã‚­ãƒ«ä½¿ç”¨ãƒ•ãƒ©ã‚°ã‚‚ç«‹ã¦ã‚‹
 				if (object[p].type != PlayerType::None)	object[p].useSkill = true;
 			}
 
-			// ”­“®ƒgƒŠƒK[“ü—Í‚ğƒ`ƒFƒbƒN‚µ‚ÄƒXƒyƒVƒƒƒ‹g—pƒtƒ‰ƒO‚ğ—§‚Ä‚é
+			// ç™ºå‹•ãƒˆãƒªã‚¬ãƒ¼å…¥åŠ›ã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦ã‚¹ãƒšã‚·ãƒ£ãƒ«ä½¿ç”¨ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 			if (Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
 
-			// ƒtƒ‰ƒO‚ª—§‚Á‚½‚çXVˆ—‚ğŒÄ‚Ño‚·
-			if (object[p].useSkill)		Skill_Update(p);	// ƒXƒLƒ‹
-			if (object[p].isAttacking)	Attack_Update(p);	// UŒ‚
-			if (object[p].useSpecial)	Special_Update(p);	// ƒXƒyƒVƒƒƒ‹
-			// ƒvƒŒƒCƒ„[‚²‚Æ‚ÌƒXƒLƒ‹ƒN[ƒ‹ƒ^ƒCƒ€‚ğ–ˆƒtƒŒ[ƒ€Œ¸Z
+			// ãƒ•ãƒ©ã‚°ãŒç«‹ã£ãŸã‚‰æ›´æ–°å‡¦ç†ã‚’å‘¼ã³å‡ºã™
+			if (object[p].useSkill)		Skill_Update(p);	// ã‚¹ã‚­ãƒ«
+			if (object[p].isAttacking)	Attack_Update(p);	// æ”»æ’ƒ
+			if (object[p].useSpecial)	Special_Update(p);	// ã‚¹ãƒšã‚·ãƒ£ãƒ«
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®ã‚¹ã‚­ãƒ«ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ¸›ç®—
 			if (object[p].skillCoolTimer > 0.0f)
 			{
 				object[p].skillCoolTimer -= DELTA_TIME;
 				if (object[p].skillCoolTimer < 0.0f) object[p].skillCoolTimer = 0.0f;
 			}
 
-			// Œ»İ‚ÌƒvƒŒƒCƒ„[ p ‚ÌˆÚ“®ƒxƒNƒgƒ‹‚¾‚¯‚ğƒŠƒZƒbƒg
+			// ç¾åœ¨ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ p ã®ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«ã ã‘ã‚’ãƒªã‚»ãƒƒãƒˆ
 			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
 
-			// ƒvƒŒƒCƒ„[‚Ì”Ô†‚É‰‚¶‚Ä“ü—ÍƒL[‚ğ•ª‚¯‚é
-			if (p == 0) // ƒvƒŒƒCƒ„[1 (WASD)
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç•ªå·ã«å¿œã˜ã¦å…¥åŠ›ã‚­ãƒ¼ã‚’åˆ†ã‘ã‚‹
+			if (p == 0) // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1 (WASD)
 			{
 				if (g_Input[0].LStickX > 0.0f)	{object[0].moveDir.x += 1.0f; object[0].isMoving = true;}
 				if (g_Input[0].LStickX < 0.0f)	{object[0].moveDir.x -= 1.0f; object[0].isMoving = true;}
@@ -670,7 +670,7 @@ void Polygon3D_Update()
 				if (Keyboard_IsKeyDown(KK_D))	{object[0].moveDir.x += 1.0f; object[0].isMoving = true;}
 				if (object[0].moveDir.x == 0.0f && object[0].moveDir.z == 0.0f)	object[0].isMoving = false;
 			}
-			else if (p == 1) // ƒvƒŒƒCƒ„[2 (–îˆóƒL[)
+			else if (p == 1) // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼2 (çŸ¢å°ã‚­ãƒ¼)
 			{
 				if (g_Input[1].LStickX > 0.0f)		{ object[1].moveDir.x += 1.0f; object[1].isMoving = true; }
 				if (g_Input[1].LStickX < 0.0f)		{ object[1].moveDir.x -= 1.0f; object[1].isMoving = true; }
@@ -683,7 +683,7 @@ void Polygon3D_Update()
 				if (Keyboard_IsKeyDown(KK_RIGHT))	{object[1].moveDir.x += 1.0f; object[1].isMoving = true;}
 				if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
 			}
-			else if (p == 2) // ƒvƒŒƒCƒ„[3 (TFGH UŒ‚V)
+			else if (p == 2) // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼3 (TFGH æ”»æ’ƒV)
 			{
 				if (g_Input[2].LStickX > 0.0f)	{ object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
 				if (g_Input[2].LStickX < 0.0f)	{ object[2].moveDir.x -= 1.0f; object[2].isMoving = true; }
@@ -696,7 +696,7 @@ void Polygon3D_Update()
 				if (Keyboard_IsKeyDown(KK_H))	{ object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
 				if (object[2].moveDir.x == 0.0f && object[2].moveDir.z == 0.0f)	object[2].isMoving = false;
 			}
-			else if (p == 3) // ƒvƒŒƒCƒ„[4
+			else if (p == 3) // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼4
 			{
 				if (g_Input[3].LStickX > 0.0f)	{ object[3].moveDir.x += 1.0f; object[3].isMoving = true; }
 				if (g_Input[3].LStickX < 0.0f)	{ object[3].moveDir.x -= 1.0f; object[3].isMoving = true; }
@@ -704,35 +704,35 @@ void Polygon3D_Update()
 				if (g_Input[3].LStickY < 0.0f)	{ object[3].moveDir.z += 1.0f; object[3].isMoving = true; }
 			}
 
-			// Œ»İ‚ÌƒvƒŒƒCƒ„[ p ‚¾‚¯‚ğ“®‚©‚·
+			// ç¾åœ¨ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ p ã ã‘ã‚’å‹•ã‹ã™
 			Move(object[p], object[p].moveDir);
 		}
 
-		// HP‚ª0ˆÈ‰º‚Ìˆ—iƒ_ƒEƒ“‚Í1“x‚¾‚¯j
+		// HPãŒ0ä»¥ä¸‹ã®å‡¦ç†ï¼ˆãƒ€ã‚¦ãƒ³ã¯1åº¦ã ã‘ï¼‰
 		if (object[p].hp <= 0.0f && object[p].active && !object[p].isDown)
 		{
-			// ƒ_ƒEƒ“ó‘Ô‚ÉˆÚs‚µ‚Äƒ^ƒCƒ}[‚ğƒŠƒZƒbƒg
+			// ãƒ€ã‚¦ãƒ³çŠ¶æ…‹ã«ç§»è¡Œã—ã¦ã‚¿ã‚¤ãƒãƒ¼ã‚’ãƒªã‚»ãƒƒãƒˆ
 			object[p].isDown = true;
 			object[p].downTimer = 0.0f;
 			Effect_Clear(p);
 		}
 
-		// ƒ_ƒEƒ“ó‘Ô‚Ìƒ^ƒCƒ}[XV‚ÆƒŠƒXƒ|[ƒ“”»’è
+		// ãƒ€ã‚¦ãƒ³çŠ¶æ…‹ã®ã‚¿ã‚¤ãƒãƒ¼æ›´æ–°ã¨ãƒªã‚¹ãƒãƒ¼ãƒ³åˆ¤å®š
 		if (object[p].isDown)
 		{
-			// s“®’â~
+			// è¡Œå‹•åœæ­¢
 			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
 			object[p].isAttacking = false;
 			object[p].useSkill = false;
 			object[p].useSpecial = false;
 
-			// ƒ_ƒEƒ“ƒ^ƒCƒ}[XV
+			// ãƒ€ã‚¦ãƒ³ã‚¿ã‚¤ãƒãƒ¼æ›´æ–°
 			object[p].downTimer += DELTA_TIME;
 
-			// ƒvƒŒƒCƒ„[–ˆ‚Ìƒ_ƒEƒ“ŠÔ‚ªŒo‰ß‚µ‚½‚çƒŠƒXƒ|[ƒ“ˆ—
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ¯ã®ãƒ€ã‚¦ãƒ³æ™‚é–“ãŒçµŒéã—ãŸã‚‰ãƒªã‚¹ãƒãƒ¼ãƒ³å‡¦ç†
 			if (object[p].downTimer >= DOWN_TIME)
 			{
-				// c‹@‚ğ1‚ÂŒ¸‚ç‚·
+				// æ®‹æ©Ÿã‚’1ã¤æ¸›ã‚‰ã™
 				object[p].stock -= 1;
 
 				if (object[p].stock > 0)
@@ -741,45 +741,45 @@ void Polygon3D_Update()
 				}
 				else
 				{
-					// c‹@–³‚µ‚Å•œŠˆ‚È‚µ
+					// æ®‹æ©Ÿç„¡ã—ã§å¾©æ´»ãªã—
 					object[p].active = false;
 					object[p].isDown = false;
 					object[p].downTimer = 0.0f;
 
-					// ‡ˆÊ“o˜^i“à•”‚Åd•¡“o˜^‚ğ–h~j
+					// é †ä½ç™»éŒ²ï¼ˆå†…éƒ¨ã§é‡è¤‡ç™»éŒ²ã‚’é˜²æ­¢ï¼‰
 					Ranking(p);
 				}
 			}
 		}
 
-		// —‰ºˆ—
+		// è½ä¸‹å‡¦ç†
 		if (object[p].active && object[p].position.y <= -10.0f)
 		{
 			Effect_Clear(p);
-			// c‹@‚ğˆê‚ÂŒ¸‚ç‚·
+			// æ®‹æ©Ÿã‚’ä¸€ã¤æ¸›ã‚‰ã™
 			object[p].stock -= 1;
 
 			if (object[p].stock > 0)
 			{
-				// ƒŠƒXƒ|[ƒ“iˆÊ’uEƒXƒe[ƒgƒŠƒZƒbƒgj
+				// ãƒªã‚¹ãƒãƒ¼ãƒ³ï¼ˆä½ç½®ãƒ»ã‚¹ãƒ†ãƒ¼ãƒˆãƒªã‚»ãƒƒãƒˆï¼‰
 				Polygon3D_Respawn(p);
 			}
 			else
 			{
-				// c‹@–³‚µ‚ÅŠ®‘S‚É”ñƒAƒNƒeƒBƒu‰»
+				// æ®‹æ©Ÿç„¡ã—ã§å®Œå…¨ã«éã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ–
 				object[p].active = false;
-				// ‡ˆÊ“o˜^
+				// é †ä½ç™»éŒ²
 				Ranking(p);
 			}
 		}
 
-		// ƒ_ƒ[ƒW‚ğó‚¯‚½‚Ìˆ—
+		// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ãŸæ™‚ã®å‡¦ç†
 		if (object[p].isAttacked)
 		{
-			// ƒ_ƒ[ƒWƒ^ƒCƒ}[XV
+			// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚¿ã‚¤ãƒãƒ¼æ›´æ–°
 			object[p].attackedTimer += DELTA_TIME;
 
-			// ƒvƒŒƒCƒ„[–ˆ‚Ìƒ_ƒ[ƒWŠÔ‚ªŒo‰ß‚µ‚½‚çƒ_ƒ[ƒWI—¹
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ¯ã®ãƒ€ãƒ¡ãƒ¼ã‚¸æ™‚é–“ãŒçµŒéã—ãŸã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸çµ‚äº†
 			if (object[p].attackedTimer >= ATTACKED_TIME)
 			{
 				object[p].isAttacked = false;
@@ -787,13 +787,13 @@ void Polygon3D_Update()
 			}
 		}
 
-		// i‰»‚Ì–³“Gˆ—
+		// é€²åŒ–æ™‚ã®ç„¡æ•µå‡¦ç†
 		if (object[p].isInvincible)
 		{
-			// –³“Gƒ^ƒCƒ}[XV
+			// ç„¡æ•µã‚¿ã‚¤ãƒãƒ¼æ›´æ–°
 			object[p].invincibleTimer += DELTA_TIME;
 
-			// ƒvƒŒƒCƒ„[–ˆ‚Ì–³“GŠÔ‚ªŒo‰ß‚µ‚½‚ç–³“GI—¹
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ¯ã®ç„¡æ•µæ™‚é–“ãŒçµŒéã—ãŸã‚‰ç„¡æ•µçµ‚äº†
 			if (object[p].invincibleTimer >= INVINCIBLE_TIME)
 			{
 				object[p].isInvincible = false;
@@ -801,65 +801,65 @@ void Polygon3D_Update()
 			}
 		}
 
-		// ƒvƒŒƒCƒ„[ ƒAƒjƒ[ƒVƒ‡ƒ“XV
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
 		g_animTimer[p] += DELTA_TIME;
 		if (g_animTimer[p] >= ANIM_FRAME_TIME)
 		{
 			int advance = (int)(g_animTimer[p] / ANIM_FRAME_TIME);
 			g_animTimer[p] -= advance * ANIM_FRAME_TIME;
 
-			// Ÿ—˜ ‘æ1Œ`‘Ô 13ƒRƒ}(ƒ‰ƒXƒg5ƒRƒ} ƒ‹[ƒv) ‘æ2Œ`‘Ô 20ƒRƒ}(ƒ‰ƒXƒg9ƒRƒ} ƒ‹[ƒv) ‘æ3Œ`‘Ô 21ƒRƒ}(ƒ‰ƒXƒgƒRƒ} ƒ‹[ƒv)
+			// å‹åˆ© ç¬¬1å½¢æ…‹ 13ã‚³ãƒ(ãƒ©ã‚¹ãƒˆ5ã‚³ãƒ ãƒ«ãƒ¼ãƒ—) ç¬¬2å½¢æ…‹ 20ã‚³ãƒ(ãƒ©ã‚¹ãƒˆ9ã‚³ãƒ ãƒ«ãƒ¼ãƒ—) ç¬¬3å½¢æ…‹ 21ã‚³ãƒ(ãƒ©ã‚¹ãƒˆã‚³ãƒ ãƒ«ãƒ¼ãƒ—)
 			if (Keyboard_IsKeyDown(KK_TAB) || g_victoryState[p] != 0)
 			{
-				// ‰Ÿ‰º‚ÅŠJn
+				// æŠ¼ä¸‹ã§é–‹å§‹
 				if (Keyboard_IsKeyDown(KK_TAB) && g_victoryState[p] == 0)
 				{
 					g_victoryState[p] = 1;
-					g_animFrame[p] = 208; // ‰‰ñÄ¶ŠJnƒtƒŒ[ƒ€
+					g_animFrame[p] = 208; // åˆå›å†ç”Ÿé–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ 
 				}
 
 				if (g_victoryState[p] == 1)
 				{
-					// ‰‰ñÄ¶ ƒtƒŒ[ƒ€‚ğ’Pƒ‘‰Á
+					// åˆå›å†ç”Ÿ ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’å˜ç´”å¢—åŠ 
 					g_animFrame[p] += advance;
 
-					// ‘æ1Œ`‘Ô 220 ‚ğ•\¦‚µ‚½Œã‚Éƒ‹[ƒv—Ìˆæ‚ÖˆÚs‚·‚é
+					// ç¬¬1å½¢æ…‹ 220 ã‚’è¡¨ç¤ºã—ãŸå¾Œã«ãƒ«ãƒ¼ãƒ—é ˜åŸŸã¸ç§»è¡Œã™ã‚‹
 					if (g_animFrame[p] > 220 && object[p].form == Form::Normal)
 					{
 						g_victoryState[p] = 2;
-						g_animFrame[p] = 216; // ƒ‹[ƒvŠJnƒtƒŒ[ƒ€
+						g_animFrame[p] = 216; // ãƒ«ãƒ¼ãƒ—é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ 
 					}
-					// ‘æ2Œ`‘Ô 227 ‚ğ•\¦‚µ‚½Œã‚Éƒ‹[ƒv—Ìˆæ‚ÖˆÚs‚·‚é
+					// ç¬¬2å½¢æ…‹ 227 ã‚’è¡¨ç¤ºã—ãŸå¾Œã«ãƒ«ãƒ¼ãƒ—é ˜åŸŸã¸ç§»è¡Œã™ã‚‹
 					if (g_animFrame[p] > 227 && object[p].form == Form::FirstEvolution)
 					{
 						g_victoryState[p] = 2;
-						g_animFrame[p] = 219; // ƒ‹[ƒvŠJnƒtƒŒ[ƒ€
+						g_animFrame[p] = 219; // ãƒ«ãƒ¼ãƒ—é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ 
 					}
-					// ‘æ3Œ`‘Ô 229 ‚ğ•\¦‚µ‚½Œã‚Éƒ‹[ƒv—Ìˆæ‚ÖˆÚs‚·‚é
+					// ç¬¬3å½¢æ…‹ 229 ã‚’è¡¨ç¤ºã—ãŸå¾Œã«ãƒ«ãƒ¼ãƒ—é ˜åŸŸã¸ç§»è¡Œã™ã‚‹
 					if (g_animFrame[p] > 229 && object[p].form == Form::SecondEvolution)
 					{
 						g_victoryState[p] = 2;
-						g_animFrame[p] = 219; // ƒ‹[ƒvŠJnƒtƒŒ[ƒ€
+						g_animFrame[p] = 219; // ãƒ«ãƒ¼ãƒ—é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ 
 					}
 				}
 				else if (g_victoryState[p] == 2)
 				{
 					switch (object[p].form)
 					{
-					case Form::Normal:			LoopRange(g_animFrame[p], 216, 5, advance);	// ‘æ1Œ`‘Ô 216`220‚ğƒ‹[ƒv
+					case Form::Normal:			LoopRange(g_animFrame[p], 216, 5, advance);	// ç¬¬1å½¢æ…‹ 216ï½220ã‚’ãƒ«ãƒ¼ãƒ—
 						break;
-					case Form::FirstEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// ‘æ2Œ`‘Ô 219`227‚ğƒ‹[ƒv
+					case Form::FirstEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// ç¬¬2å½¢æ…‹ 219ï½227ã‚’ãƒ«ãƒ¼ãƒ—
 						break;
-					case Form::SecondEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// ‘æ3Œ`‘Ô 219`229‚ğƒ‹[ƒv
+					case Form::SecondEvolution:	LoopRange(g_animFrame[p], 219, 9, advance);	// ç¬¬3å½¢æ…‹ 219ï½229ã‚’ãƒ«ãƒ¼ãƒ—
 						break;
 					}
 				}
 			}
-			// ƒ_ƒEƒ“ 5ƒRƒ} (ƒ_ƒ[ƒW 2ƒRƒ} + ƒ_ƒEƒ“ 3ƒRƒ}) ÅIƒRƒ}‚Å’â~
+			// ãƒ€ã‚¦ãƒ³ 5ã‚³ãƒ (ãƒ€ãƒ¡ãƒ¼ã‚¸ 2ã‚³ãƒ + ãƒ€ã‚¦ãƒ³ 3ã‚³ãƒ) æœ€çµ‚ã‚³ãƒã§åœæ­¢
 			else if (object[p].isDown == true)
 			{
-				// Œü‚«‚É‰‚¶‚½ŠJnƒtƒŒ[ƒ€‚ğŒˆ’è
-				int start = 15; // ƒfƒtƒHƒ‹ƒgiDownj
+				// å‘ãã«å¿œã˜ãŸé–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’æ±ºå®š
+				int start = 15; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆï¼ˆDownï¼‰
 					 if (object[p].lastDir == PlayerDir::Up_Right)	 start = 145;
 				else if (object[p].lastDir == PlayerDir::Up_Left)	 start = 93;
 				else if (object[p].lastDir == PlayerDir::Down_Right) start = 197;
@@ -872,95 +872,95 @@ void Polygon3D_Update()
 				const int count = 5;
 				const int lastFrame = start + count - 1;
 
-				// advance ‚É‘Î‰‚·‚éŒo‰ß•big_animTimer‚Å‚Ü‚Æ‚ß‚Äi‚ß‚½•ªj
+				// advance ã«å¯¾å¿œã™ã‚‹çµŒéç§’ï¼ˆg_animTimerã§ã¾ã¨ã‚ã¦é€²ã‚ãŸåˆ†ï¼‰
 				float elapsedSec = (float)advance * ANIM_FRAME_TIME;
 
-				// ƒtƒŒ[ƒ€‚ª”ÍˆÍŠO‚È‚çŠJnƒtƒŒ[ƒ€‚É•â³‚µƒ^ƒCƒ}[ƒŠƒZƒbƒg
+				// ãƒ•ãƒ¬ãƒ¼ãƒ ãŒç¯„å›²å¤–ãªã‚‰é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ ã«è£œæ­£ã—ã‚¿ã‚¤ãƒãƒ¼ãƒªã‚»ãƒƒãƒˆ
 				if (g_animFrame[p] < start || g_animFrame[p] > lastFrame)
 				{
 					g_animFrame[p] = start;
 					g_downHoldTimer[p] = 0.0f;
 				}
 
-				// ÅIƒtƒŒ[ƒ€ˆÈŠO‚È‚ç’Êíisiƒ‹[ƒvj
+				// æœ€çµ‚ãƒ•ãƒ¬ãƒ¼ãƒ ä»¥å¤–ãªã‚‰é€šå¸¸é€²è¡Œï¼ˆãƒ«ãƒ¼ãƒ—ï¼‰
 				if (g_animFrame[p] != lastFrame)
 				{
 					LoopRange(g_animFrame[p], start, count, advance);
-					g_downHoldTimer[p] = 0.0f; // “’B‘O‚Íƒz[ƒ‹ƒhƒ^ƒCƒ}[‚ğƒŠƒZƒbƒg
+					g_downHoldTimer[p] = 0.0f; // åˆ°é”å‰ã¯ãƒ›ãƒ¼ãƒ«ãƒ‰ã‚¿ã‚¤ãƒãƒ¼ã‚’ãƒªã‚»ãƒƒãƒˆ
 				}
 				else
 				{
-					// ÅIƒtƒŒ[ƒ€‚É“’B ƒz[ƒ‹ƒh‚ği‚ß‚é
+					// æœ€çµ‚ãƒ•ãƒ¬ãƒ¼ãƒ ã«åˆ°é” ãƒ›ãƒ¼ãƒ«ãƒ‰ã‚’é€²ã‚ã‚‹
 					g_downHoldTimer[p] += elapsedSec;
 
-					// ƒz[ƒ‹ƒh‚ª–—¹‚µ‚½‚çŸ‚Éi‚ß‚éi‚±‚±‚Å‚Í1ƒtƒŒ[ƒ€•ª‚¾‚¯i‚ß‚éj
+					// ãƒ›ãƒ¼ãƒ«ãƒ‰ãŒæº€äº†ã—ãŸã‚‰æ¬¡ã«é€²ã‚ã‚‹ï¼ˆã“ã“ã§ã¯1ãƒ•ãƒ¬ãƒ¼ãƒ åˆ†ã ã‘é€²ã‚ã‚‹ï¼‰
 					if (g_downHoldTimer[p] >= DOWN_TIME)
 					{
 						g_downHoldTimer[p] = 0.0f;
-						// 1ƒtƒŒ[ƒ€•ªi‚ß‚éiƒ‹[ƒv‚É‚æ‚è start ‚É–ß‚éj
+						// 1ãƒ•ãƒ¬ãƒ¼ãƒ åˆ†é€²ã‚ã‚‹ï¼ˆãƒ«ãƒ¼ãƒ—ã«ã‚ˆã‚Š start ã«æˆ»ã‚‹ï¼‰
 						LoopRange(g_animFrame[p], start, count, 1);
 					}
 				}
 			}
-			// ƒ_ƒ[ƒW 3ƒRƒ}
+			// ãƒ€ãƒ¡ãƒ¼ã‚¸ 3ã‚³ãƒ
 			else if (object[p].isAttacked == true || object[p].isStunning)
 			{
-					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 144, 3, advance);	// ‰Eã 144`146
-				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  92, 3, advance);	// ¶ã  92`94
-				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 196, 3, advance);	// ‰E‰º 196`198
-				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  40, 3, advance);	// ¶‰º  40`42
-				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 118, 3, advance);	//  ã  118`120
-				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  14, 3, advance);	//  ‰º   14`16
-				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 170, 3, advance);	//  ‰E  170`172
-				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  66, 3, advance);	//  ¶   66`68
+					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 144, 3, advance);	// å³ä¸Š 144ï½146
+				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  92, 3, advance);	// å·¦ä¸Š  92ï½94
+				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 196, 3, advance);	// å³ä¸‹ 196ï½198
+				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  40, 3, advance);	// å·¦ä¸‹  40ï½42
+				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 118, 3, advance);	//  ä¸Š  118ï½120
+				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  14, 3, advance);	//  ä¸‹   14ï½16
+				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 170, 3, advance);	//  å³  170ï½172
+				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  66, 3, advance);	//  å·¦   66ï½68
 			}
-			// UŒ‚ 6ƒRƒ}
+			// æ”»æ’ƒ 6ã‚³ãƒ
 			else if (object[p].isAttacking == true)
 			{
-					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 150, 6, advance);	// ‰Eã 150`155
-				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  98, 6, advance);	// ¶ã  98`103
-				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 202, 6, advance);	// ‰E‰º 202`207
-				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  46, 6, advance);	// ¶‰º  46`51
-				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 124, 6, advance);	//  ã  124`129
-				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  20, 6, advance);	//  ‰º   20`25
-				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 176, 6, advance);	//  ‰E  176`181
-				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  72, 6, advance);	//  ¶   72`77
+					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 150, 6, advance);	// å³ä¸Š 150ï½155
+				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  98, 6, advance);	// å·¦ä¸Š  98ï½103
+				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 202, 6, advance);	// å³ä¸‹ 202ï½207
+				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  46, 6, advance);	// å·¦ä¸‹  46ï½51
+				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 124, 6, advance);	//  ä¸Š  124ï½129
+				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  20, 6, advance);	//  ä¸‹   20ï½25
+				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 176, 6, advance);	//  å³  176ï½181
+				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  72, 6, advance);	//  å·¦   72ï½77
 			}
-			// ˆÚ“® 8ƒRƒ}
+			// ç§»å‹• 8ã‚³ãƒ
 			else if (object[p].isMoving == true)
 			{
-					 if (object[p].moveDir.x > 0.0f && object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p], 136, 8, advance); object[p].lastDir = PlayerDir::Up_Right; }		// ‰Eã 136`143
-				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p],  84, 8, advance); object[p].lastDir = PlayerDir::Up_Left; }		// ¶ã  84`91
-				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p], 188, 8, advance); object[p].lastDir = PlayerDir::Down_Right; }	// ‰E‰º 188`195
-				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p],  32, 8, advance); object[p].lastDir = PlayerDir::Down_Left; }	// ¶‰º  32`39
-				else if (object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p], 110, 8, advance); object[p].lastDir = PlayerDir::Up; }		// ã 110`117
-				else if (object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p],   6, 8, advance); object[p].lastDir = PlayerDir::Down; }	// ‰º   6`13
-				else if (object[p].moveDir.x > 0.0f) { LoopRange(g_animFrame[p], 162, 8, advance); object[p].lastDir = PlayerDir::Right; }	// ‰E 162`169
-				else if (object[p].moveDir.x < 0.0f) { LoopRange(g_animFrame[p],  58, 8, advance); object[p].lastDir = PlayerDir::Left; }	// ¶  58`63
+					 if (object[p].moveDir.x > 0.0f && object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p], 136, 8, advance); object[p].lastDir = PlayerDir::Up_Right; }		// å³ä¸Š 136ï½143
+				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p],  84, 8, advance); object[p].lastDir = PlayerDir::Up_Left; }		// å·¦ä¸Š  84ï½91
+				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p], 188, 8, advance); object[p].lastDir = PlayerDir::Down_Right; }	// å³ä¸‹ 188ï½195
+				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p],  32, 8, advance); object[p].lastDir = PlayerDir::Down_Left; }	// å·¦ä¸‹  32ï½39
+				else if (object[p].moveDir.z > 0.0f) { LoopRange(g_animFrame[p], 110, 8, advance); object[p].lastDir = PlayerDir::Up; }		// ä¸Š 110ï½117
+				else if (object[p].moveDir.z < 0.0f) { LoopRange(g_animFrame[p],   6, 8, advance); object[p].lastDir = PlayerDir::Down; }	// ä¸‹   6ï½13
+				else if (object[p].moveDir.x > 0.0f) { LoopRange(g_animFrame[p], 162, 8, advance); object[p].lastDir = PlayerDir::Right; }	// å³ 162ï½169
+				else if (object[p].moveDir.x < 0.0f) { LoopRange(g_animFrame[p],  58, 8, advance); object[p].lastDir = PlayerDir::Left; }	// å·¦  58ï½63
 			}
-			// ‘Ò‹@ 6ƒRƒ}
+			// å¾…æ©Ÿ 6ã‚³ãƒ
 			else if (object[p].isMoving == false)
 			{
-					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 130, 6, advance);	// ‰Eã 130`135
-				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  78, 6, advance);	// ¶ã  78`83 
-				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 182, 6, advance);	// ‰E‰º 182`187		
-				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  26, 6, advance);	// ¶‰º  26`31
-				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 104, 6, advance);	//  ã  104`109
-				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],   0, 6, advance);	//  ‰º    0`5
-				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 156, 6, advance);	//  ‰E  156`161
-				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  52, 6, advance);	//  ¶   52`57
+					 if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 130, 6, advance);	// å³ä¸Š 130ï½135
+				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  78, 6, advance);	// å·¦ä¸Š  78ï½83 
+				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 182, 6, advance);	// å³ä¸‹ 182ï½187		
+				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  26, 6, advance);	// å·¦ä¸‹  26ï½31
+				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 104, 6, advance);	//  ä¸Š  104ï½109
+				else if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],   0, 6, advance);	//  ä¸‹    0ï½5
+				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 156, 6, advance);	//  å³  156ï½161
+				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  52, 6, advance);	//  å·¦   52ï½57
 			}
 		}
 	}
 
-	// ‚ª‚Ô‚ª‚Ô‚ÆƒvƒŒƒCƒ„[‚Ì“–‚½‚è”»’è
+	// ãŒã¶ãŒã¶ã¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å½“ãŸã‚Šåˆ¤å®š
 	AttackPlayerCollisions();
 
-	// ƒfƒoƒbƒO—p ImGui ƒEƒBƒ“ƒhƒE
+	// ãƒ‡ãƒãƒƒã‚°ç”¨ ImGui ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 	ImGui::Begin("Player Debug");
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		// ƒvƒŒƒCƒ„[‚²‚Æ‚É ID ‚ğ•ª‚¯‚éi“¯ˆêƒ‰ƒxƒ‹Õ“Ë‰ñ”ğj
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã« ID ã‚’åˆ†ã‘ã‚‹ï¼ˆåŒä¸€ãƒ©ãƒ™ãƒ«è¡çªå›é¿ï¼‰
 		ImGui::PushID(p);
 
 		ImGui::Text("Player %d", p + 1);
@@ -1006,31 +1006,31 @@ void Polygon3D_Update()
 		ImGui::SliderFloat("HP", &object[p].hp, 0.0f, 100.0f);
 		ImGui::SliderFloat("Outer", &object[p].evolutionGauge, 0.0f, 1.0f);
 
-		// —š—ğƒŠƒXƒg‚ÌƒTƒCƒY‚ğ•\¦
+		// å±¥æ­´ãƒªã‚¹ãƒˆã®ã‚µã‚¤ã‚ºã‚’è¡¨ç¤º
 		size_t historySize = object[p].brokenHistory.size();
 		ImGui::BulletText("brokenHistory Size : %zu", historySize);
 
 		if (historySize > 0)
 		{
-			ImGui::Indent(); // —š—ğ‚ğ‚³‚ç‚Éˆê’iƒCƒ“ƒfƒ“ƒg
+			ImGui::Indent(); // å±¥æ­´ã‚’ã•ã‚‰ã«ä¸€æ®µã‚¤ãƒ³ãƒ‡ãƒ³ãƒˆ
 			ImGui::Text("History (Latest -> Oldest):");
 
-			// —š—ğ‚ğÅVi––”öj‚©‚çŒÃ‚¢•û‚Öƒ‹[ƒv‚µ‚Ä•\¦
+			// å±¥æ­´ã‚’æœ€æ–°ï¼ˆæœ«å°¾ï¼‰ã‹ã‚‰å¤ã„æ–¹ã¸ãƒ«ãƒ¼ãƒ—ã—ã¦è¡¨ç¤º
 			for (int i = (int)historySize - 1; i >= 0; --i)
 			{
-				// BuildingType ‚Í enumŒ^i®”’lj‚È‚Ì‚ÅA‚»‚Ì‚Ü‚Ü %d ‚Å•\¦‰Â”\
-				// ‚Ü‚½‚ÍAImGui::Text‚Å®Œ`‚µ‚Ä•\¦‚·‚é
+				// BuildingType ã¯ enumå‹ï¼ˆæ•´æ•°å€¤ï¼‰ãªã®ã§ã€ãã®ã¾ã¾ %d ã§è¡¨ç¤ºå¯èƒ½
+				// ã¾ãŸã¯ã€ImGui::Textã§æ•´å½¢ã—ã¦è¡¨ç¤ºã™ã‚‹
 
-				// —á1: —š—ğ‚ÌƒCƒ“ƒfƒbƒNƒX‚Æ’l‚ğ’¼Ú•\¦
+				// ä¾‹1: å±¥æ­´ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã¨å€¤ã‚’ç›´æ¥è¡¨ç¤º
 				// ImGui::BulletText("[%d]: %d", p, (int)object[p].brokenHistory[p]);
 
-				// —á2: —š—ğ‚Ì’l‚ğ‰¡‚É•À‚×‚Ä•\¦
-				ImGui::SameLine(); // “¯‚¶s‚É•\¦
-				// —š—ğ‚Ì’li®”j‚ğ•¶š—ñ‚É•ÏŠ·‚µ‚Ä‚©‚ç•\¦
+				// ä¾‹2: å±¥æ­´ã®å€¤ã‚’æ¨ªã«ä¸¦ã¹ã¦è¡¨ç¤º
+				ImGui::SameLine(); // åŒã˜è¡Œã«è¡¨ç¤º
+				// å±¥æ­´ã®å€¤ï¼ˆæ•´æ•°ï¼‰ã‚’æ–‡å­—åˆ—ã«å¤‰æ›ã—ã¦ã‹ã‚‰è¡¨ç¤º
 				ImGui::Text("%d", (int)object[p].brokenHistory[i]);
 			}
 
-			// —š—ğ‚ª‰¡‚É•À‚Ñ‚·‚¬‚È‚¢‚æ‚¤‰üs
+			// å±¥æ­´ãŒæ¨ªã«ä¸¦ã³ã™ããªã„ã‚ˆã†æ”¹è¡Œ
 			ImGui::NewLine();
 			ImGui::Unindent();
 		}
@@ -1044,29 +1044,29 @@ void Polygon3D_Update()
 	
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
-		static XMFLOAT3 posBuff = object[p].position;	// ƒfƒoƒbƒO•\¦À•W
+		static XMFLOAT3 posBuff = object[p].position;	// ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºåº§æ¨™
 
-		// •`‰æ‚Åg‚Á‚Ä‚¢‚éƒXƒvƒ‰ƒCƒg”{—¦‚Æ“¯‚¶’l‚ğ•¨—‚É‚àg‚¤
-		const float renderScale = 2.0f; // Draw ‘¤‚Ì spriteScale ‚É‡‚í‚¹‚é
-		// •`‰æƒXƒP[ƒ‹‚ğ”½‰f‚µ‚½ƒXƒP[ƒ‹i•\¦—pj
+		// æç”»ã§ä½¿ã£ã¦ã„ã‚‹ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆå€ç‡ã¨åŒã˜å€¤ã‚’ç‰©ç†ã«ã‚‚ä½¿ã†
+		const float renderScale = 2.0f; // Draw å´ã® spriteScale ã«åˆã‚ã›ã‚‹
+		// æç”»ã‚¹ã‚±ãƒ¼ãƒ«ã‚’åæ˜ ã—ãŸã‚¹ã‚±ãƒ¼ãƒ«ï¼ˆè¡¨ç¤ºç”¨ï¼‰
 		XMFLOAT3 physicsScaling = XMFLOAT3(object[p].scaling.x * renderScale, object[p].scaling.y * renderScale, object[p].scaling.z * renderScale);
 
-		// --- ƒvƒŒƒCƒ„[—pƒqƒbƒgƒ{ƒbƒNƒX”ä—¦iŒü‚«‚Å’·’Z‚ğØ‚è‘Ö‚¦‚éj ---
-		// ‚‚³‚ÍŒÅ’èA…•½–Ê‚ÍŒü‚«‚É‰‚¶‚Ä’·’Z‚ğØ‚è‘Ö‚¦‚é
+		// --- ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”¨ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹æ¯”ç‡ï¼ˆå‘ãã§é•·çŸ­ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹ï¼‰ ---
+		// é«˜ã•ã¯å›ºå®šã€æ°´å¹³é¢ã¯å‘ãã«å¿œã˜ã¦é•·çŸ­ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
-		const float HITBOX_SHORT = 0.35f; // Œü‚«‚Æ’¼Œğ‚·‚é’Z•Ó
-		const float HITBOX_LONG  = 0.65f; // Œü‚«‚É‰ˆ‚Á‚½’·•Ó
+		const float HITBOX_SHORT = 0.35f; // å‘ãã¨ç›´äº¤ã™ã‚‹çŸ­è¾º
+		const float HITBOX_LONG  = 0.65f; // å‘ãã«æ²¿ã£ãŸé•·è¾º
 
-		// ‰ñ“]‚©‚ç‘O•ûƒxƒNƒgƒ‹‚ğZo‚µ‚ÄA‚Ç‚¿‚ç‚Ì²‚ª—D¨‚©”»’è‚·‚é
+		// å›è»¢ã‹ã‚‰å‰æ–¹ãƒ™ã‚¯ãƒˆãƒ«ã‚’ç®—å‡ºã—ã¦ã€ã©ã¡ã‚‰ã®è»¸ãŒå„ªå‹¢ã‹åˆ¤å®šã™ã‚‹
 		float radFacing = XMConvertToRadians(object[p].rotation.y);
 		float facingX = sinf(radFacing);
 		float facingZ = cosf(radFacing);
 		bool facingZDominant = fabsf(facingZ) >= fabsf(facingX);
 
-		float widthScale  = facingZDominant ? HITBOX_SHORT : HITBOX_LONG; // X•ûŒüƒXƒP[ƒ‹
-		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT; // Z•ûŒüƒXƒP[ƒ‹
+		float widthScale  = facingZDominant ? HITBOX_SHORT : HITBOX_LONG; // Xæ–¹å‘ã‚¹ã‚±ãƒ¼ãƒ«
+		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT; // Zæ–¹å‘ã‚¹ã‚±ãƒ¼ãƒ«
 
-		// ‘æ2Œ`‘Ô ‘æ3Œ`‘Ô‚ÍX‚ÆZ“¯‚¶‚É‚·‚é
+		// ç¬¬2å½¢æ…‹ ç¬¬3å½¢æ…‹ã¯Xã¨ZåŒã˜ã«ã™ã‚‹
 		if (object[p].form == Form::FirstEvolution || object[p].form == Form::SecondEvolution)
 		{
 			widthScale = 0.25f;
@@ -1079,14 +1079,14 @@ void Polygon3D_Update()
 			object[p].scaling.z * renderScale * depthScale
 		);
 
-		// AABB ‚ğŒ»İ‚ÌˆÊ’uEƒXƒP[ƒ‹iƒqƒbƒgƒ{ƒbƒNƒXj‚ÅXV‚µ‚Ä‚¨‚­iÕ“Ë”»’è‚Åg—pj
+		// AABB ã‚’ç¾åœ¨ã®ä½ç½®ãƒ»ã‚¹ã‚±ãƒ¼ãƒ«ï¼ˆãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ï¼‰ã§æ›´æ–°ã—ã¦ãŠãï¼ˆè¡çªåˆ¤å®šã§ä½¿ç”¨ï¼‰
 		CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
 
-		// y²‚ÌˆÚ“®—Ê (d—Í + ƒWƒƒƒ“ƒv)
-		// d—Í‰Á‘¬“x‚Ì‚È‚¢ŠÈˆÕ“I‚Èd—Í
+		// yè»¸ã®ç§»å‹•é‡ (é‡åŠ› + ã‚¸ãƒ£ãƒ³ãƒ—)
+		// é‡åŠ›åŠ é€Ÿåº¦ã®ãªã„ç°¡æ˜“çš„ãªé‡åŠ›
 		object[p].position.y += -0.1f;
 
-		//// ƒfƒoƒbƒOo—Í
+		//// ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›
 		//if (posBuff.x != object[p].position.x ||
 		//	posBuff.y != object[p].position.y ||
 		//	posBuff.z != object[p].position.z)
@@ -1100,50 +1100,50 @@ void Polygon3D_Update()
 
 		posBuff = object[p].position;
 
-		// ’n–Ê‚Ì‚‚³iÅ’áƒ‰ƒCƒ“j
-		//float groundHeight = -10.0f;	// “Ş—‚Ì’ê
-		//bool isGrounded = false;		// ’n–Ê‚É‘«‚ª‚Â‚¢‚Ä‚¢‚é‚©ƒtƒ‰ƒO
+		// åœ°é¢ã®é«˜ã•ï¼ˆæœ€ä½ãƒ©ã‚¤ãƒ³ï¼‰
+		//float groundHeight = -10.0f;	// å¥ˆè½ã®åº•
+		//bool isGrounded = false;		// åœ°é¢ã«è¶³ãŒã¤ã„ã¦ã„ã‚‹ã‹ãƒ•ãƒ©ã‚°
 
-		// ƒ}ƒbƒvƒf[ƒ^i’n–Êj‚Æ‚Ì“–‚½‚è”»’è
+		// ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ï¼ˆåœ°é¢ï¼‰ã¨ã®å½“ãŸã‚Šåˆ¤å®š
 		int fieldCount = GetFieldObjectCount();
 		MAPDATA* fieldObjects = GetFieldObjects();
 
 		for (int j = 0; j < fieldCount; ++j)
 		{
-			// ƒAƒNƒeƒBƒu‚¶‚á‚È‚¢A‚Ü‚½‚Í no ‚ª MAX ‚È‚çƒXƒLƒbƒv
+			// ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã˜ã‚ƒãªã„ã€ã¾ãŸã¯ no ãŒ MAX ãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
 			if (!fieldObjects[j].isActive || fieldObjects[j].no == FIELD::FIELD_MAX)
 			{
 				continue;
 			}
 
-			// --- ˜ZŠp’ŒƒRƒ‰ƒCƒ_[‚Ì€”õ ---
+			// --- å…­è§’æŸ±ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®æº–å‚™ ---
 			HexCollider hex;
 			hex.center = fieldObjects[j].pos;		// -1
 			hex.radius = fieldObjects[j].radius;	// 1
 			hex.height = fieldObjects[j].height;	// 3.0
 
-			// ƒvƒŒƒCƒ„[‚ÌAABBi‘Ì‚Ìˆê•”j‚ª˜ZŠp’Œ‚Éæ‚Á‚Ä‚¢‚é‚©
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®AABBï¼ˆä½“ã®ä¸€éƒ¨ï¼‰ãŒå…­è§’æŸ±ã«ä¹—ã£ã¦ã„ã‚‹ã‹
 			if (CheckAABBHexCollision(object[p].boundingBox, hex))
 			{
-				// ƒ^ƒCƒ‹‚Ìã–Ê‚ÌYÀ•W‚ğŒvZ
+				// ã‚¿ã‚¤ãƒ«ã®ä¸Šé¢ã®Yåº§æ¨™ã‚’è¨ˆç®—
 				float tileTopY = fieldObjects[j].pos.y + (hex.height / 2.0f);	// -1 + 1.5 = 0.5
 
-				// ƒvƒŒƒCƒ„[‚Ì’ê–Ê‚ªƒ^ƒCƒ‹‚Ìã–ÊˆÈ‰º‚©
+				// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®åº•é¢ãŒã‚¿ã‚¤ãƒ«ã®ä¸Šé¢ä»¥ä¸‹ã‹
 				if (object[p].boundingBox.Min.y <= tileTopY)
 				{
 					const float baseHalfHeight = COORDINATE;
-					// ’…’n‚Å‚ÍŒ©‚½–Ú‚Ì‚‚³i•`‰æƒXƒP[ƒ‹j‚ğŠî€‚ÉŒvZ‚µ‚Ä‚¢‚é‚½‚ß physicsScaling ‚ğg—p
+					// ç€åœ°ã§ã¯è¦‹ãŸç›®ã®é«˜ã•ï¼ˆæç”»ã‚¹ã‚±ãƒ¼ãƒ«ï¼‰ã‚’åŸºæº–ã«è¨ˆç®—ã—ã¦ã„ã‚‹ãŸã‚ physicsScaling ã‚’ä½¿ç”¨
 					float halfHeight = baseHalfHeight * object[p].scaling.y * renderScale;
 
-					// ’…’n‚³‚¹‚éi‚ß‚è‚İ‚ª‹N‚«‚È‚¢‚æ‚¤Å’á’l‚Æ‚µ‚Ä•â³j
+					// ç€åœ°ã•ã›ã‚‹ï¼ˆã‚ã‚Šè¾¼ã¿ãŒèµ·ããªã„ã‚ˆã†æœ€ä½å€¤ã¨ã—ã¦è£œæ­£ï¼‰
 					float targetY = tileTopY + halfHeight;
 					if (object[p].position.y < targetY)
 					{
 						object[p].position.y = targetY;
 					}
 
-					// AABB ‚ğÄŒvZ‚µ‚Ä®‡«‚ğ•Û‚Âi•`‰æƒXƒP[ƒ‹‚ğl—¶j
-					// ƒqƒbƒgƒ{ƒbƒNƒXiŒü‚«‚É‰‚¶‚½’·•ûŒ`j‚ÅÄŒvZ‚·‚é
+					// AABB ã‚’å†è¨ˆç®—ã—ã¦æ•´åˆæ€§ã‚’ä¿ã¤ï¼ˆæç”»ã‚¹ã‚±ãƒ¼ãƒ«ã‚’è€ƒæ…®ï¼‰
+					// ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ï¼ˆå‘ãã«å¿œã˜ãŸé•·æ–¹å½¢ï¼‰ã§å†è¨ˆç®—ã™ã‚‹
 					CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
 
 					top_y = tileTopY;
@@ -1154,47 +1154,47 @@ void Polygon3D_Update()
 		}
 
 		// -------------------------------------------------------------------------------------
-		// Œš•¨‚Æ‚Ì“–‚½‚è”»’è
+		// å»ºç‰©ã¨ã®å½“ãŸã‚Šåˆ¤å®š
 		// -------------------------------------------------------------------------------------
-		int buildingCount = GetBuildingCount();			// ”‚ğæ“¾
-		Building** buildingObjects = GetBuildings();	// ƒŠƒXƒg‚ğæ“¾
+		int buildingCount = GetBuildingCount();			// æ•°ã‚’å–å¾—
+		Building** buildingObjects = GetBuildings();	// ãƒªã‚¹ãƒˆã‚’å–å¾—
 
 		for (int j = 0; j < buildingCount; ++j)
 		{
-			// ƒAƒNƒeƒBƒu‚Å‚È‚¢‚È‚ç–³‹
+			// ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã§ãªã„ãªã‚‰ç„¡è¦–
 			if (!buildingObjects[j]->isActive)	continue;
 
-			// yÀ•W‚Ì’²®
-			// Building::Draw() ‚Å position.y + 1.0f ‚µ‚Ä‚¢‚é‚Ì‚ÅA”»’è—p‚ÌÀ•W‚à‡‚í‚¹‚é
+			// yåº§æ¨™ã®èª¿æ•´
+			// Building::Draw() ã§ position.y + 1.0f ã—ã¦ã„ã‚‹ã®ã§ã€åˆ¤å®šç”¨ã®åº§æ¨™ã‚‚åˆã‚ã›ã‚‹
 			XMFLOAT3 colliderPos = buildingObjects[j]->position;
 			colliderPos.y += 1.0f;
 
-			// ƒRƒ‰ƒCƒ_[‚Ìì¬‚ÆXVi•â³‚µ‚½À•W colliderPos ‚ğg‚¤j
+			// ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®ä½œæˆã¨æ›´æ–°ï¼ˆè£œæ­£ã—ãŸåº§æ¨™ colliderPos ã‚’ä½¿ã†ï¼‰
 			CalculateAABB(buildingObjects[j]->boundingBox, colliderPos, buildingObjects[j]->scaling);
 
-			// ƒvƒŒƒCƒ„[ ‚Æ Œš•¨‚Ì“–‚½‚è”»’è
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ ã¨ å»ºç‰©ã®å½“ãŸã‚Šåˆ¤å®š
 			MTV collision = CalculateAABBMTV(object[p].boundingBox, buildingObjects[j]->boundingBox);
 
 			if (collision.isColliding)
 			{
-				// Õ“Ë‚µ‚Ä‚¢‚½‚çAMTV‚Ì•ª‚¾‚¯ˆÊ’u‚ğ–ß‚·
+				// è¡çªã—ã¦ã„ãŸã‚‰ã€MTVã®åˆ†ã ã‘ä½ç½®ã‚’æˆ»ã™
 				object[p].position.x += collision.translation.x;
 				object[p].position.y += collision.translation.y;
 				object[p].position.z += collision.translation.z;
 
-				// ‰Ÿ‚µ–ß‚µŒã‚ÌV‚µ‚¢AABB‚ğÄŒvZi•`‰æƒXƒP[ƒ‹‚ğ”½‰fj
-				// ƒqƒbƒgƒ{ƒbƒNƒXiŒü‚«‚É‰‚¶‚½’·•ûŒ`j‚ÅÄŒvZ‚·‚é
+				// æŠ¼ã—æˆ»ã—å¾Œã®æ–°ã—ã„AABBã‚’å†è¨ˆç®—ï¼ˆæç”»ã‚¹ã‚±ãƒ¼ãƒ«ã‚’åæ˜ ï¼‰
+				// ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ï¼ˆå‘ãã«å¿œã˜ãŸé•·æ–¹å½¢ï¼‰ã§å†è¨ˆç®—ã™ã‚‹
 				CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
 			}
 		}
 
-		// ƒvƒŒƒCƒ„[‚É‘Î‰‚·‚éUŒ‚ƒIƒuƒWƒFƒNƒg‚ğ PLAYER_MAX •ªƒ‹[ƒv‚µ‚ÄƒXƒP[ƒŠƒ“ƒO“¯Šú
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«å¯¾å¿œã™ã‚‹æ”»æ’ƒã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ PLAYER_MAX åˆ†ãƒ«ãƒ¼ãƒ—ã—ã¦ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°åŒæœŸ
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
-			ATTACK_OBJECT* attackObject = GetAttack(p); // GetAttack ‚Í 1-based
+			ATTACK_OBJECT* attackObject = GetAttack(p); // GetAttack ã¯ 1-based
 			if (attackObject == nullptr) continue;
 
-			// ƒvƒŒƒCƒ„[‘¤‚ÌƒXƒP[ƒ‹‚É‡‚í‚¹‚éiUŒ‚ƒIƒuƒWƒFƒNƒg‚Í”¼•ªj
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å´ã®ã‚¹ã‚±ãƒ¼ãƒ«ã«åˆã‚ã›ã‚‹ï¼ˆæ”»æ’ƒã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯åŠåˆ†ï¼‰
 			attackObject->scaling.x = object[p].scaling.x * 0.5f;
 			attackObject->scaling.y = object[p].scaling.y * 0.5f;
 			attackObject->scaling.z = object[p].scaling.z * 0.5f;
@@ -1203,20 +1203,20 @@ void Polygon3D_Update()
 		///////////////////////////////////////////////////////////////////////////////////////////////
 
 		// -------------------------------------------------------------
-		// ƒvƒŒƒCƒ„[ƒIƒuƒWƒFƒNƒg“¯m‚Ì“–‚½‚è”»’èiPLAYER_MAX•ª‘Î‰j
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆåŒå£«ã®å½“ãŸã‚Šåˆ¤å®šï¼ˆPLAYER_MAXåˆ†å¯¾å¿œï¼‰
 		// -------------------------------------------------------------
-		// object[p] ‚Ì AABB ‚ÍŠù‚ÉŒvZÏ‚İi‘O•û‚Å CalculateAABB(object[p].boundingBox, ... ) ‚ğŒÄ‚ñ‚Å‚¢‚é‘O’ñj
+		// object[p] ã® AABB ã¯æ—¢ã«è¨ˆç®—æ¸ˆã¿ï¼ˆå‰æ–¹ã§ CalculateAABB(object[p].boundingBox, ... ) ã‚’å‘¼ã‚“ã§ã„ã‚‹å‰æï¼‰
 		for (int otherIndex = p + 1; otherIndex < PLAYER_MAX; ++otherIndex)
 		{
-			// ”ñƒAƒNƒeƒBƒu‚Í–³‹
+			// éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã¯ç„¡è¦–
 			if (!object[otherIndex].active) continue;
 
-			// ‘¼ƒvƒŒƒCƒ„[‚Ìƒqƒbƒgƒ{ƒbƒNƒXƒXƒP[ƒŠƒ“ƒOiŒü‚«‚Å’·’Z‚ğØ‚è‘Ö‚¦‚éj
+			// ä»–ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°ï¼ˆå‘ãã§é•·çŸ­ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹ï¼‰
 			const float HITBOX_HEIGHT_SCALE = 1.0f;
 			const float HITBOX_SHORT = 0.35f;
 			const float HITBOX_LONG  = 0.65f;
 
-			// éŒ¾‚ğƒ‹[ƒvƒXƒR[ƒv‚Ìæ“ª‚É’u‚­iŒã‚ÅÄ—˜—p‚·‚é‚½‚ßj
+			// å®£è¨€ã‚’ãƒ«ãƒ¼ãƒ—ã‚¹ã‚³ãƒ¼ãƒ—ã®å…ˆé ­ã«ç½®ãï¼ˆå¾Œã§å†åˆ©ç”¨ã™ã‚‹ãŸã‚ï¼‰
 			XMFLOAT3 hitboxScalingOther;
 
 			{
@@ -1228,7 +1228,7 @@ void Polygon3D_Update()
 				float otherWidthScale = otherFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;
 				float otherDepthScale = otherFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;
 
-				// ‘æ2Œ`‘Ô ‘æ3Œ`‘Ô‚ÍX‚ÆZ“¯‚¶‚É‚·‚é
+				// ç¬¬2å½¢æ…‹ ç¬¬3å½¢æ…‹ã¯Xã¨ZåŒã˜ã«ã™ã‚‹
 				if (object[otherIndex].form == Form::FirstEvolution || object[otherIndex].form == Form::SecondEvolution)
 				{
 					widthScale = 0.25f;
@@ -1242,15 +1242,15 @@ void Polygon3D_Update()
 				);
 			}
 
-			// ‘¼ƒvƒŒƒCƒ„[‚Ì AABB ‚ğXVi‚±‚±‚Å’è‹`Ï‚İ‚Ì hitboxScalingOther ‚ğg—pj
+			// ä»–ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã® AABB ã‚’æ›´æ–°ï¼ˆã“ã“ã§å®šç¾©æ¸ˆã¿ã® hitboxScalingOther ã‚’ä½¿ç”¨ï¼‰
 			CalculateAABB(object[otherIndex].boundingBox, object[otherIndex].position, hitboxScalingOther);
 
-			// Õ“Ëƒ`ƒFƒbƒNiƒyƒA p <-> otherIndex ‚ğˆê“x‚¾‚¯”»’èj
+			// è¡çªãƒã‚§ãƒƒã‚¯ï¼ˆãƒšã‚¢ p <-> otherIndex ã‚’ä¸€åº¦ã ã‘åˆ¤å®šï¼‰
 			MTV collision_player = CalculateAABBMTV(object[p].boundingBox, object[otherIndex].boundingBox);
 
 			if (collision_player.isColliding)
 			{
-				// Œü‚«ƒxƒNƒgƒ‹‚ğXVirotation.y ‚©‚çZoj
+				// å‘ããƒ™ã‚¯ãƒˆãƒ«ã‚’æ›´æ–°ï¼ˆrotation.y ã‹ã‚‰ç®—å‡ºï¼‰
 				{
 					float rad_p = XMConvertToRadians(object[p].rotation.y);
 					object[p].dir.x = sinf(rad_p);
@@ -1262,7 +1262,7 @@ void Polygon3D_Update()
 					object[otherIndex].dir.z = cosf(rad_o);
 				}
 
-				// ‰Ÿ‚µ–ß‚µ—Ê (MTV) ‚ğ”¼•ª‚É‚µ‚Ä‘o•û‚É“K—p
+				// æŠ¼ã—æˆ»ã—é‡ (MTV) ã‚’åŠåˆ†ã«ã—ã¦åŒæ–¹ã«é©ç”¨
 				XMFLOAT3 half_translation =
 				{
 					collision_player.translation.x * 0.5f,
@@ -1270,17 +1270,17 @@ void Polygon3D_Update()
 					collision_player.translation.z * 0.5f
 				};
 
-				// object[p] ‚ğ MTV ‚Ì”¼•ª‚¾‚¯‰Ÿ‚·
+				// object[p] ã‚’ MTV ã®åŠåˆ†ã ã‘æŠ¼ã™
 				object[p].position.x += half_translation.x;
 				object[p].position.y += half_translation.y;
 				object[p].position.z += half_translation.z;
 
-				// object[otherIndex] ‚ğ‹t•ûŒü‚É”¼•ª‚¾‚¯‰Ÿ‚·
+				// object[otherIndex] ã‚’é€†æ–¹å‘ã«åŠåˆ†ã ã‘æŠ¼ã™
 				object[otherIndex].position.x -= half_translation.x;
 				object[otherIndex].position.y -= half_translation.y;
 				object[otherIndex].position.z -= half_translation.z;
 
-				// ‰Ÿ‚µ–ß‚µŒã‚ÌV‚µ‚¢AABB‚ğÄŒvZ (ƒqƒbƒgƒ{ƒbƒNƒX‚Å)
+				// æŠ¼ã—æˆ»ã—å¾Œã®æ–°ã—ã„AABBã‚’å†è¨ˆç®— (ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ã§)
 				CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
 				CalculateAABB(object[otherIndex].boundingBox, object[otherIndex].position, hitboxScalingOther);
 			}
@@ -1290,35 +1290,35 @@ void Polygon3D_Update()
 		UpdateHP(&HPBar[p]);
 	}
 
-	// ƒGƒtƒFƒNƒg—pƒ^ƒCƒ}[XV
+	// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆç”¨ã‚¿ã‚¤ãƒãƒ¼æ›´æ–°
 	//g_effectElapsed += (1.0f / 60.0f);
 }
 
 //======================================================
-//	•`‰æŠÖ”
+//	æç”»é–¢æ•°
 //======================================================
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 {
 	LIGHT light{};
 	light.Enable = TRUE;
-	// Œõ‚ÌŒü‚«iƒ[ƒ‹ƒh‹óŠÔjƒVƒF[ƒ_[‘¤‚Å’PˆÊ‰»‚µ‚Äg‚Á‚Ä‚¢‚é‘z’è
+	// å…‰ã®å‘ãï¼ˆãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ï¼‰ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å´ã§å˜ä½åŒ–ã—ã¦ä½¿ã£ã¦ã„ã‚‹æƒ³å®š
 	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-	// ŠgUŒõ‚ÆŠÂ‹«Œõ
+	// æ‹¡æ•£å…‰ã¨ç’°å¢ƒå…‰
 	light.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	light.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
 	Shader_SetLight(light);
 
 	static bool input1 = false;
-	// ƒfƒoƒbƒOƒ‚[ƒh’†‚Ì‚İƒL[“ü—Í‚ğó‚¯•t‚¯‚é
+	// ãƒ‡ãƒãƒƒã‚°ãƒ¢ãƒ¼ãƒ‰ä¸­ã®ã¿ã‚­ãƒ¼å…¥åŠ›ã‚’å—ã‘ä»˜ã‘ã‚‹
 	if (s_IsKonamiCodeEntered)
 	{
 		if (Keyboard_IsKeyDownTrigger(KK_D1))
 		{
-			input1 = !input1;	// ƒtƒ‰ƒO”½“]
+			input1 = !input1;	// ãƒ•ãƒ©ã‚°åè»¢
 		}
 	}
 	
-	// UŒ‚•`‰æ
+	// æ”»æ’ƒæç”»
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
 		if (object[p].isAttacking)
@@ -1330,33 +1330,33 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	Shader_Begin(); 
 
 	// ========================================================
-	// ‰œ‚ÌƒvƒŒƒCƒ„[‚ªè‘O‚ÌƒvƒŒƒCƒ„[‚É‰B‚ê‚È‚¢‚æ‚¤‚É•`‰æ
+	// å¥¥ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæ‰‹å‰ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«éš ã‚Œãªã„ã‚ˆã†ã«æç”»
 	// ========================================================
 
-	// ƒvƒƒWƒFƒNƒVƒ‡ƒ“Eƒrƒ…[s—ñ‚ğæ‚Éæ“¾
+	// ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³ãƒ»ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ã‚’å…ˆã«å–å¾—
 	XMMATRIX projection = GetProjectionMatrix();
 	XMMATRIX view = GetViewMatrix();
 
-	// ƒJƒƒ‰ˆÊ’u‚ğZoiView ‚Ì‹ts—ñ‚Ì r[3] ‚ªƒ[ƒ‹ƒh‹óŠÔ‚ÌƒJƒƒ‰ˆÊ’uj
+	// ã‚«ãƒ¡ãƒ©ä½ç½®ã‚’ç®—å‡ºï¼ˆView ã®é€†è¡Œåˆ—ã® r[3] ãŒãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ã®ã‚«ãƒ¡ãƒ©ä½ç½®ï¼‰
 	XMMATRIX invView = XMMatrixInverse(nullptr, view);
 	XMFLOAT3 camPos;
 	camPos.x = invView.r[3].m128_f32[0];
 	camPos.y = invView.r[3].m128_f32[1];
 	camPos.z = invView.r[3].m128_f32[2];
 
-	// ƒvƒŒƒCƒ„[‚ğ•`‰æ‚·‚éƒ‰ƒ€ƒ_iProjection, View ‚ğƒLƒƒƒvƒ`ƒƒj
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’æç”»ã™ã‚‹ãƒ©ãƒ ãƒ€ï¼ˆProjection, View ã‚’ã‚­ãƒ£ãƒ—ãƒãƒ£ï¼‰
 	auto DrawPlayerInternal = [&](int idx)
 		{
-			const float spriteScale = 2.0f; // •\¦”{—¦
+			const float spriteScale = 2.0f; // è¡¨ç¤ºå€ç‡
 
-			// ƒ[ƒ‹ƒhs—ñiƒrƒ‹ƒ{[ƒh•—‚ÌŠù‘¶ƒƒWƒbƒN‚ğ“¥Pj
+			// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ï¼ˆãƒ“ãƒ«ãƒœãƒ¼ãƒ‰é¢¨ã®æ—¢å­˜ãƒ­ã‚¸ãƒƒã‚¯ã‚’è¸è¥²ï¼‰
 			XMMATRIX ScalingMatrix = XMMatrixScaling(
 				object[idx].scaling.x * spriteScale,
 				object[idx].scaling.y * spriteScale,
 				object[idx].scaling.z * spriteScale
 			);
 
-			XMMATRIX vm = GetViewMatrix();	// ƒJƒƒ‰‚Ìs—ñ
+			XMMATRIX vm = GetViewMatrix();	// ã‚«ãƒ¡ãƒ©ã®è¡Œåˆ—
 			vm.r[3].m128_f32[0] = 0.0f;
 			vm.r[3].m128_f32[1] = 0.0f;
 			vm.r[3].m128_f32[2] = 0.0f;
@@ -1367,7 +1367,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			vm.r[3].m128_f32[2] = object[idx].position.z;
 			vm.r[3].m128_f32[3] = 1.0f;
 
-			// World s—ñiƒrƒ‹ƒ{[ƒh—pj‚ğƒVƒF[ƒ_[‚É“n‚·
+			// World è¡Œåˆ—ï¼ˆãƒ“ãƒ«ãƒœãƒ¼ãƒ‰ç”¨ï¼‰ã‚’ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«æ¸¡ã™
 			XMMATRIX WorldMatrix = ScalingMatrix * vm;
 			Shader_SetWorldMatrix(WorldMatrix);
 
@@ -1377,14 +1377,14 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			Shader_Begin();
 			SetBlendState(BLENDSTATE_ALPHA);
 
-			// ’¸“_ƒoƒbƒtƒ@‚Éƒf[ƒ^ƒRƒs[iƒtƒŒ[ƒ€‚É‰‚¶‚ÄUV‚ğ‘‚«Š·‚¦‚éj
+			// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã«ãƒ‡ãƒ¼ã‚¿ã‚³ãƒ”ãƒ¼ï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ ã«å¿œã˜ã¦UVã‚’æ›¸ãæ›ãˆã‚‹ï¼‰
 			D3D11_MAPPED_SUBRESOURCE msr;
 
-			// ƒRƒs[Œ³‚Ìvdata ‚ğƒ[ƒJƒ‹”z—ñ‚ÉƒRƒs[‚µ‚Ä UV ‚ğ’²®
+			// ã‚³ãƒ”ãƒ¼å…ƒã®vdata ã‚’ãƒ­ãƒ¼ã‚«ãƒ«é…åˆ—ã«ã‚³ãƒ”ãƒ¼ã—ã¦ UV ã‚’èª¿æ•´
 			Vertex2 localV[NUM_VERTEX];
 			CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
 
-			// Œ»İ‚ÌƒtƒŒ[ƒ€‚©‚ç UV ‚ğŒvZ
+			// ç¾åœ¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã‚‰ UV ã‚’è¨ˆç®—
 			int frame = g_animFrame[idx];
 			int col = frame % SHEET_COLS;
 			int row = frame / SHEET_COLS;
@@ -1393,13 +1393,13 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 			float u1 = u0 + 1.0f / (float)SHEET_COLS;
 			float v1 = v0 + 1.0f / (float)SHEET_ROWS;
 
-			// ’¸“_‚ÌƒeƒNƒXƒ`ƒƒÀ•W‚ğã‘‚«
+			// é ‚ç‚¹ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ã‚’ä¸Šæ›¸ã
 			localV[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
 			localV[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
 			localV[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
 			localV[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 
-			// ƒoƒbƒtƒ@‚Ö‘‚«‚İ
+			// ãƒãƒƒãƒ•ã‚¡ã¸æ›¸ãè¾¼ã¿
 			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 			Vertex2* vertex = (Vertex2*)msr.pData;
 			CopyMemory(vertex, &localV[0], sizeof(Vertex2) * NUM_VERTEX);
@@ -1407,12 +1407,12 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 			ID3D11ShaderResourceView* srv = nullptr;
 
-			// Œ`‘Ô‚Æƒ^ƒCƒv‚É‰‚¶‚½ƒeƒNƒXƒ`ƒƒ‚ğİ’è
+			// å½¢æ…‹ã¨ã‚¿ã‚¤ãƒ—ã«å¿œã˜ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’è¨­å®š
 			switch (object[idx].form)
 			{
-			// ‘æ1Œ`‘Ô
+			// ç¬¬1å½¢æ…‹
 			case Form::Normal:				srv = g_Texture[0];	break;
-			// ‘æ2Œ`‘Ô
+			// ç¬¬2å½¢æ…‹
 			case Form::FirstEvolution:
 				switch (object[idx].type)
 				{
@@ -1423,7 +1423,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 				default: break;
 				}
 				break;
-			// ‘æ3Œ`‘Ô
+			// ç¬¬3å½¢æ…‹
 			case Form::SecondEvolution:
 				switch (object[idx].type)
 				{
@@ -1443,7 +1443,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 			Shader_SetColor({ 1,1,1,1 });
 
-			// ƒoƒbƒtƒ@ƒZƒbƒg & •`‰æ
+			// ãƒãƒƒãƒ•ã‚¡ã‚»ãƒƒãƒˆ & æç”»
 			UINT stride = sizeof(Vertex2);
 			UINT offset = 0;
 			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
@@ -1453,9 +1453,9 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		};
 
 	// -----------------------------------
-	// “§–¾•`‰æ‚Ì‚½‚ß‚Ìƒ\[ƒgi‰“‚¢‡j
+	// é€æ˜æç”»ã®ãŸã‚ã®ã‚½ãƒ¼ãƒˆï¼ˆé ã„é †ï¼‰
 	// -----------------------------------
-	std::vector<std::pair<float, int>> list; // (‹——£“ñæ, index)
+	std::vector<std::pair<float, int>> list; // (è·é›¢äºŒä¹—, index)
 	list.reserve(PLAYER_MAX);
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
@@ -1467,40 +1467,40 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		list.emplace_back(dist2, p);
 	}
 
-	// ‰“‚¢‡i‘å‚«‚¢‡j‚Éƒ\[ƒg
+	// é ã„é †ï¼ˆå¤§ãã„é †ï¼‰ã«ã‚½ãƒ¼ãƒˆ
 	std::sort(list.begin(), list.end(), [](const std::pair<float, int>& a, const std::pair<float, int>& b)
 		{
 		return a.first > b.first;
 		});
 
-	// “§‰ßƒŒƒ“ƒ_ƒŠƒ“ƒOF[“xƒeƒXƒg‚Í—LŒøA[“x‘‚«‚İ‚Í–³ŒøiSetDepthReadOnly ‚ğg—pj
+	// é€éãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ï¼šæ·±åº¦ãƒ†ã‚¹ãƒˆã¯æœ‰åŠ¹ã€æ·±åº¦æ›¸ãè¾¼ã¿ã¯ç„¡åŠ¹ï¼ˆSetDepthReadOnly ã‚’ä½¿ç”¨ï¼‰
 	SetDepthTest(true);
-	SetDepthReadOnly(); // [“xƒeƒXƒg‚Í‚·‚é‚ª[“xƒoƒbƒtƒ@‚Ö‚Ì‘‚«‚İ‚Í‚µ‚È‚¢
+	SetDepthReadOnly(); // æ·±åº¦ãƒ†ã‚¹ãƒˆã¯ã™ã‚‹ãŒæ·±åº¦ãƒãƒƒãƒ•ã‚¡ã¸ã®æ›¸ãè¾¼ã¿ã¯ã—ãªã„
 
-	// ƒ\[ƒg‡i‰“‚¢‚à‚Ì‚©‚ç•`‰æj
+	// ã‚½ãƒ¼ãƒˆé †ï¼ˆé ã„ã‚‚ã®ã‹ã‚‰æç”»ï¼‰
 	for (auto& p : list)
 	{
 		DrawPlayerInternal(p.second);
 	}
 
-	// 3DƒIƒuƒWƒFƒNƒg‚Í[“xƒeƒXƒg‚ğ—LŒø‚É‚µ‚Ä•`‰æ
+	// 3Dã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯æ·±åº¦ãƒ†ã‚¹ãƒˆã‚’æœ‰åŠ¹ã«ã—ã¦æç”»
 	SetDepthTest(false);
 
 	if (s_IsKonamiCodeEntered)
 	{
 		// ------------------------------------
-		// ƒRƒ‰ƒCƒ_[ƒtƒŒ[ƒ€iAABBj‚Ì•`‰æ
+		// ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ãƒ•ãƒ¬ãƒ¼ãƒ ï¼ˆAABBï¼‰ã®æç”»
 		// ------------------------------------
 		{
-			// ƒvƒŒƒCƒ„[‚Ì•`‰æ‚Ég‚í‚ê‚½s—ñ‚ğƒNƒŠƒA‚·‚é
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æç”»ã«ä½¿ã‚ã‚ŒãŸè¡Œåˆ—ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹
 			XMMATRIX world = XMMatrixIdentity();
-			 Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVPs—ñ‚ğIdentity * View * Projection‚Éİ’è
-			//Shader_Begin(); // ƒVƒF[ƒ_[‚ğÄİ’è
+			 Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVPè¡Œåˆ—ã‚’Identity * View * Projectionã«è¨­å®š
+			//Shader_Begin(); // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’å†è¨­å®š
 
 			for (int i = 0; i < PLAYER_MAX; i++)
 			{
-				// AABB‚ğ•`‰æ
-				// AABB‚ÌMin/Max‚ÍŠù‚Éƒ[ƒ‹ƒhÀ•W‚È‚Ì‚ÅAs—ñ‚ÍƒŠƒZƒbƒg‚µ‚½‚Ü‚Ü•`‰æ‚·‚ê‚ÎOK
+				// AABBã‚’æç”»
+				// AABBã®Min/Maxã¯æ—¢ã«ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ãªã®ã§ã€è¡Œåˆ—ã¯ãƒªã‚»ãƒƒãƒˆã—ãŸã¾ã¾æç”»ã™ã‚Œã°OK
 				Debug_DrawAABB(object[i].boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
 			}
 		}
@@ -1512,7 +1512,7 @@ void Polygon3D_DrawHP()
 {
 	Shader_Begin();
 	
-	// ŒÂ•ÊUIƒXƒe[ƒ^ƒX•`‰æ
+	// å€‹åˆ¥UIã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹æç”»
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -1538,10 +1538,10 @@ void Polygon3D_DrawEffect()
 
 void Polygon3D_Respawn(int playerIndex)
 {
-	// ”ÍˆÍƒ`ƒFƒbƒN 0–¢– ‚Ü‚½‚Í 4ˆÈã‚È‚ç return
+	// ç¯„å›²ãƒã‚§ãƒƒã‚¯ 0æœªæº€ ã¾ãŸã¯ 4ä»¥ä¸Šãªã‚‰ return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	// c‹@‚ª1‚ÂˆÈã‚ ‚éê‡
+	// æ®‹æ©ŸãŒ1ã¤ä»¥ä¸Šã‚ã‚‹å ´åˆ
 	if (object[playerIndex].active == true)
 	{
 		object[playerIndex].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -1570,7 +1570,7 @@ void Polygon3D_Respawn(int playerIndex)
 		object[playerIndex].stunTimer = 0.0f;
 		object[playerIndex].isDown = false;
 		object[playerIndex].downTimer = 0.0f;
-		object[playerIndex].lastDir = PlayerDir::Down; // ³–Ê
+		object[playerIndex].lastDir = PlayerDir::Down; // æ­£é¢
 		object[playerIndex].isMoving = false;
 		object[playerIndex].form = Form::Normal;
 		object[playerIndex].type = PlayerType::None;
@@ -1600,22 +1600,22 @@ static inline void LoopRange(int& animFrame, int start, int count, int advance)
 }
 
 //==================================
-// c‹@•`‰æ
+// æ®‹æ©Ÿæç”»
 //==================================
 void Polygon3D_DrawStock(int i)
 {
 	Shader_Begin();
 	Shader_BeginUI();
 
-	// HPƒo[ˆÊ’uæ“¾EƒQ[ƒWÀ•Wİ’è
+	// HPãƒãƒ¼ä½ç½®å–å¾—ãƒ»ã‚²ãƒ¼ã‚¸åº§æ¨™è¨­å®š
 	float bx = HPBar[i].pos.x - 12.0f;
 	float by = HPBar[i].pos.y + 5.0f;
 
-	// ƒvƒŒƒCƒ„[‚²‚Æ‚ÌƒXƒgƒbƒN•`‰æ
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®ã‚¹ãƒˆãƒƒã‚¯æç”»
 	for (int j = 0; j < object[i].stock; j++)
 	{
-		// ƒXƒgƒbƒN•`‰æ•Ï”
-		XMFLOAT2 pos = { bx + j * 28.0f, by };	// ‰¡•À‚Ñ
+		// ã‚¹ãƒˆãƒƒã‚¯æç”»å¤‰æ•°
+		XMFLOAT2 pos = { bx + j * 28.0f, by };	// æ¨ªä¸¦ã³
 		XMFLOAT2 size = { 240.0f, 240.0f };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 9]);
@@ -1627,7 +1627,7 @@ void Polygon3D_DrawStock(int i)
 
 PLAYEROBJECT* GetPlayer(int playerIndex)
 {
-	// ”ÍˆÍƒ`ƒFƒbƒN 0–¢– ‚Ü‚½‚Í 4ˆÈã‚È‚ç nullptr ‚ğ•Ô‚·
+	// ç¯„å›²ãƒã‚§ãƒƒã‚¯ 0æœªæº€ ã¾ãŸã¯ 4ä»¥ä¸Šãªã‚‰ nullptr ã‚’è¿”ã™
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)
 	{
 		return nullptr;
@@ -1646,7 +1646,7 @@ void Polygon3D_DrawText()
 		wchar_t playerLabel[8];
 		swprintf_s(playerLabel, L"P%d", p + 1);
 
-		// ƒvƒŒƒCƒ„[‚²‚Æ‚ÉFİ’è
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã«è‰²è¨­å®š
 		TextColor textColor;
 		switch (p)
 		{
@@ -1667,14 +1667,14 @@ void Polygon3D_DrawText()
 			break;
 		}
 
-		// ƒtƒHƒ“ƒgƒTƒCƒY‚Ì”¼•ª’ö“x¶‚É‚¸‚ç‚·
+		// ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºã®åŠåˆ†ç¨‹åº¦å·¦ã«ãšã‚‰ã™
 		float offsetX = 15.0f;
 
 		DrawTextEx(
 			playerLabel,
 			object[p].screenPos.x - offsetX,
-			object[p].screenPos.y - 10.0f,  // ƒeƒLƒXƒg‚Ì‚‚³•ªã‚É•\¦
-			40.0f,                           // ƒtƒHƒ“ƒgƒTƒCƒY
+			object[p].screenPos.y - 10.0f,  // ãƒ†ã‚­ã‚¹ãƒˆã®é«˜ã•åˆ†ä¸Šã«è¡¨ç¤º
+			40.0f,                           // ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º
 			L"Impact",
 			textColor
 		);
@@ -1684,17 +1684,17 @@ void Polygon3D_DrawText()
 static void Ranking(int playerIndex)
 {
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
-	// “ñd“o˜^–h~
+	// äºŒé‡ç™»éŒ²é˜²æ­¢
 	if (object[playerIndex].rank != 0) return;
 
-	// €–S‡‚É’Ç‰Á
+	// æ­»äº¡é †ã«è¿½åŠ 
 	g_deathOrder.push_back(playerIndex);
 	size_t pos = g_deathOrder.size();
 
-	// æ‚É€‚ñ‚¾ƒvƒŒƒCƒ„[‚ª’á‡ˆÊ‚É‚È‚éipos=1 -> 4ˆÊj
+	// å…ˆã«æ­»ã‚“ã ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒä½é †ä½ã«ãªã‚‹ï¼ˆpos=1 -> 4ä½ï¼‰
 	object[playerIndex].rank = PLAYER_MAX - (int)(pos - 1);
 
-	// ÅŒã‚Ìˆêl‚ªŠm’è‚µ‚½‚çc‚è‚ğ1ˆÊ‚É‚·‚é
+	// æœ€å¾Œã®ä¸€äººãŒç¢ºå®šã—ãŸã‚‰æ®‹ã‚Šã‚’1ä½ã«ã™ã‚‹
 	if (g_deathOrder.size() == (size_t)(PLAYER_MAX - 1))
 	{
 		for (int p = 0; p < PLAYER_MAX; ++p)

@@ -1,4 +1,4 @@
-//
+﻿//
 //
 //#include <d3d11.h>
 //#include <DirectXMath.h>
@@ -13,20 +13,20 @@
 //#include "player.h"
 //#include "Block.h"
 //
-//// ���ӁI�������ŊO������ݒ肳�����́BRelease�s�v�B
+//// 注意！初期化で外部から設定されるもの。Release不要。
 //static ID3D11Device* g_pDevice = nullptr;
 //static ID3D11DeviceContext* g_pContext = nullptr;
 //
 //
-////�v���C���[�֘A�ϐ�
-//static	ID3D11ShaderResourceView* g_Texture[4];	//�e�N�X�`���S����
-//static	PIECE	g_Piece;						//�����u���b�N�I�u�W�F�N�g
+////プレイヤー関連変数
+//static	ID3D11ShaderResourceView* g_Texture[4];	//テクスチャ４枚分
+//static	PIECE	g_Piece;						//落下ブロックオブジェクト
 //
 //
-//XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//�X�v���C�g�̐F
-//XMFLOAT2 size = { BLOCK_WIDTH, BLOCK_HEIGHT };//�\���T�C�Y
+//XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//スプライトの色
+//XMFLOAT2 size = { BLOCK_WIDTH, BLOCK_HEIGHT };//表示サイズ
 //
-////�X�N���[���l�̏�����
+////スクロール値の初期化
 //static	XMFLOAT2	ScrollOffset = XMFLOAT2(POSITION_OFFSET_X, POSITION_OFFSET_Y);
 //
 //
@@ -34,42 +34,42 @@
 //
 //
 ////------------------------------------------------------
-////������
+////初期化
 //void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 //{
-//	// �f�o�C�X�ƃf�o�C�X�R���e�L�X�g�̃`�F�b�N
+//	// デバイスとデバイスコンテキストのチェック
 //	if (!pDevice || !pContext) {
-//		hal::dout << "Polygon_Initialize() : �^����ꂽ�f�o�C�X���R���e�L�X�g���s���ł�" << std::endl;
+//		hal::dout << "Polygon_Initialize() : 与えられたデバイスかコンテキストが不正です" << std::endl;
 //		return;
 //	}
 //
-//	// �f�o�C�X�ƃf�o�C�X�R���e�L�X�g�̕ۑ�
+//	// デバイスとデバイスコンテキストの保存
 //	g_pDevice = pDevice;
 //	g_pContext = pContext;
 //
-//	//�e�N�X�`���摜�ǂݍ���
+//	//テクスチャ画像読み込み
 //	TexMetadata		metadata;
 //	ScratchImage	image;
 //
 //
-//	LoadFromWICFile(L"asset\\texture\\Spade.png", WIC_FLAGS_NONE, &metadata, image);//�e�N�X�`���͕ύX��
+//	LoadFromWICFile(L"asset\\texture\\Spade.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 //	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
-//	assert(g_Texture[0]);//�ǂݍ��ݎ��s���Ƀ_�C�A���O��\��
+//	assert(g_Texture[0]);//読み込み失敗時にダイアログを表示
 //
-//	LoadFromWICFile(L"asset\\texture\\Clover.png", WIC_FLAGS_NONE, &metadata, image);//�e�N�X�`���͕ύX��
+//	LoadFromWICFile(L"asset\\texture\\Clover.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 //	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
-//	assert(g_Texture[1]);//�ǂݍ��ݎ��s���Ƀ_�C�A���O��\��
+//	assert(g_Texture[1]);//読み込み失敗時にダイアログを表示
 //
-//	LoadFromWICFile(L"asset\\texture\\Diamond.png", WIC_FLAGS_NONE, &metadata, image);//�e�N�X�`���͕ύX��
+//	LoadFromWICFile(L"asset\\texture\\Diamond.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 //	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
-//	assert(g_Texture[2]);//�ǂݍ��ݎ��s���Ƀ_�C�A���O��\��
+//	assert(g_Texture[2]);//読み込み失敗時にダイアログを表示
 //
-//	LoadFromWICFile(L"asset\\texture\\Heart.png", WIC_FLAGS_NONE, &metadata, image);//�e�N�X�`���͕ύX��
+//	LoadFromWICFile(L"asset\\texture\\Heart.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 //	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
-//	assert(g_Texture[3]);//�ǂݍ��ݎ��s���Ƀ_�C�A���O��\��
+//	assert(g_Texture[3]);//読み込み失敗時にダイアログを表示
 //
 //
-//	//�u���b�N�̍쐬
+//	//ブロックの作成
 //	Player_Create();
 //
 //	g_Piece.State = PIECE_STATE_MOVE;
@@ -78,10 +78,10 @@
 //}
 //
 ////------------------------------------------------------
-////�I��
+////終了
 //void Player_Finalize(void)
 //{
-//	//�e�N�X�`���̉��
+//	//テクスチャの解放
 //	for(int i=0;i<4;i++)
 //	{
 //		g_Texture[i]->Release();
@@ -90,35 +90,35 @@
 //}
 //
 ////------------------------------------------------------
-////�X�V
+////更新
 //void Player_Update()
 //{
-//	//�v���C���[�X�e�[�g�ɂ�鏈���̕���
+//	//プレイヤーステートによる処理の分岐
 //	switch (g_Piece.State)
 //	{
 //	case	PIECE_STATE::PIECE_STATE_IDLE:
 //		break;
-//	case	PIECE_STATE::PIECE_STATE_MOVE://�����E�ړ�����
+//	case	PIECE_STATE::PIECE_STATE_MOVE://落下・移動処理
 //		Player_Move();
 //		break;
 //	case	PIECE_STATE::PIECE_STATE_GROUND_IDLE:
-//		g_Piece.StateCount++;	//�J�E���^�[�C���N�������g
-//		if (g_Piece.StateCount >= 60)	//�K���ɑ҂�
+//		g_Piece.StateCount++;	//カウンターインクリメント
+//		if (g_Piece.StateCount >= 60)	//適当に待つ
 //		{
 //			g_Piece.State = PIECE_STATE::PIECE_STATE_IDLE;
 //			g_Piece.StateCount = 0;
 //		
-//			//�u���b�N�����`�F�b�N
+//			//ブロック消去チェック
 //			Block_EraseBlock();
 //		}
 //		break;
 //	case	PIECE_STATE::PIECE_STATE_MISS_IDLE:
-//		g_Piece.StateCount++;	//�J�E���^�[�C���N�������g
-//		if (g_Piece.StateCount >= 40)	//�K���ɑ҂�
+//		g_Piece.StateCount++;	//カウンターインクリメント
+//		if (g_Piece.StateCount >= 40)	//適当に待つ
 //		{
 //			if (GetFadeState() == FADE_NONE)
 //			{
-//				//�t�F�[�h�A�E�g�����ăV�[����؂�ւ���
+//				//フェードアウトさせてシーンを切り替える
 //				XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 //				SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
 //			}
@@ -130,24 +130,24 @@
 //}
 //
 ////------------------------------------------------------
-////�`��
+////描画
 //void Player_Draw(void)
 //{
 //
 //	if (g_Piece.State != PIECE_STATE_MOVE)
-//	{	//�������łȂ���Ε\���͂��Ȃ�
+//	{	//落下中でなければ表示はしない
 //		return;
 //	}
 //
 //
-//	// ��ʃT�C�Y�擾
+//	// 画面サイズ取得
 //	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 //	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 //
-//	// �V�F�[�_�[��`��p�C�v���C���ɐݒ�
+//	// シェーダーを描画パイプラインに設定
 //	Shader_Begin();
 //
-//	// ���_�V�F�[�_�[��2D�ϊ��s���ݒ�
+//	// 頂点シェーダーに2D変換行列を設定
 //	XMMATRIX	Projection = XMMatrixOrthographicOffCenterLH(
 //								0.0f,
 //								SCREEN_WIDTH,
@@ -158,89 +158,89 @@
 //
 //
 //	/*
-//			���@�������{�́@g_Type[0]
-//			��              g_Type[1]
-//			�Z			    g_Type[2]
+//			■　＜＝＝本体　g_Type[0]
+//			◇              g_Type[1]
+//			〇			    g_Type[2]
 //
 //	*/
 //
 //	for(int i = 0; i < 3; i++)
 //	{
-//		//���s�ړ� �\�����W
+//		//平行移動 表示座標
 //		XMMATRIX	Translation = 
 //			XMMatrixTranslation(g_Piece.Position.x, 
 //								g_Piece.Position.y + (i * BLOCK_HEIGHT),
 //								0.0f);
-//		//��]
+//		//回転
 //		XMMATRIX	Rotation = XMMatrixRotationZ(XMConvertToRadians(0.0f));
-//		//�g�嗦�i0�͂��߁j
+//		//拡大率（0はだめ）
 //		XMMATRIX	Scaling = XMMatrixScaling(1.0f, 1.0f, 1.0f);
 //
-//		//���[���h�s��
+//		//ワールド行列
 //		XMMATRIX	World = Scaling * Rotation * Translation;
-//		//���_�ϊ��s��
+//		//頂点変換行列
 //
-//		//�X�N���[���p�s��쐬
-////		XMMATRIX	mat = XMMatrixIdentity();//�s��̏������i�P�ʍs��j
+//		//スクロール用行列作成
+////		XMMATRIX	mat = XMMatrixIdentity();//行列の初期化（単位行列）
 //		XMMATRIX	mat = XMMatrixTranslation(ScrollOffset.x, ScrollOffset.y, 0.0f);
 //		mat = World * mat * Projection;
 //
-//		//�V�F�[�_�[�֍s����Z�b�g
+//		//シェーダーへ行列をセット
 //		Shader_SetMatrix(mat);
-//		//�e�N�X�`���̐ݒ�
+//		//テクスチャの設定
 //		g_pContext->PSSetShaderResources(0, 1, &g_Texture[g_Piece.Type[i]]);
-//		//�u�����h����
+//		//ブレンド無し
 //		SetBlendState(BLENDSTATE_ALPHA);
-//		//�X�v���C�g�`��
+//		//スプライト描画
 //		DrawSprite(size, col, 0, 1, 1);
 //	}
 //
 //}
 //
-////�V�����u���b�N�����
+////新しいブロックを作る
 //void Player_Create()
 //{
-//	//�o�����W
-//	g_Piece.Position = { BLOCK_WIDTH * 2.5f, -BLOCK_HEIGHT * 2.5f };//�Ƃ肠����
+//	//出現座標
+//	g_Piece.Position = { BLOCK_WIDTH * 2.5f, -BLOCK_HEIGHT * 2.5f };//とりあえず
 //
-//	//�u���b�N���R���߂�
+//	//ブロックを３つ決める
 //	for (int i = 0; i < 3; i++)
 //	{
-//		g_Piece.Type[i] = rand() % 4;	//4��ނ���1�I��
+//		g_Piece.Type[i] = rand() % 4;	//4種類から1つ選ぶ
 //	}
 //
-//	//�Q�[���I�[�o�[�`�F�b�N
-//	//�v���C���[�̈�ԉ��̃u���b�N�̕\�����W��z��̈ʒu�ɕϊ�
+//	//ゲームオーバーチェック
+//	//プレイヤーの一番下のブロックの表示座標を配列の位置に変換
 //	int x = g_Piece.Position.x / BLOCK_WIDTH;
 //	int y = 0;
 //
 //	BLOCK	block = Block_GetBlock(x, y);
-//	if (block.Enable == true)//�o���ꏊ�̍ŏ�i�Ƀu���b�N����������I��
-//	{	//�u���b�N����������~�X���[�h�ֈڍs	
+//	if (block.Enable == true)//出現場所の最上段にブロックがあったら終了
+//	{	//ブロックがあったらミスモードへ移行	
 //		g_Piece.State = PIECE_STATE::PIECE_STATE_MISS_IDLE;
 //		g_Piece.StateCount = 0;
 //	}
 //	else
 //	{
-//		g_Piece.State = PIECE_STATE::PIECE_STATE_MOVE;	//�ړ����[�h
-//		g_Piece.StateCount = 0;//�J�E���^�[���Z�b�g
+//		g_Piece.State = PIECE_STATE::PIECE_STATE_MOVE;	//移動モード
+//		g_Piece.StateCount = 0;//カウンターリセット
 //	}
 //
 //
-//	//g_Piece.State = PIECE_STATE::PIECE_STATE_MOVE;	//�ړ����[�h
-//	//g_Piece.StateCount = 0;//�J�E���^�[���Z�b�g
+//	//g_Piece.State = PIECE_STATE::PIECE_STATE_MOVE;	//移動モード
+//	//g_Piece.StateCount = 0;//カウンターリセット
 //
 //
 //}
 //
-////�ړ�����
+////移動処理
 //void Player_Move()
 //{
 //
-//	//�u���b�N�̃��[�e�[�V����
+//	//ブロックのローテーション
 //	if (Keyboard_IsKeyDownTrigger(KK_UP))
 //	{
-//		//Type[]�̓��e�����[�e�[�V����
+//		//Type[]の内容をローテーション
 //		int type = g_Piece.Type[0];
 //		for (int i = 0; i < 2; i++)
 //		{
@@ -249,8 +249,8 @@
 //		g_Piece.Type[2] = type;
 //	}
 //
-//	//�\�����W��z��ԍ��֕ϊ�
-//	//Y���W�ɂ��Ă͍ŉ��i�̃u���b�N�̒�ʂ̍��W�Ƃ���
+//	//表示座標を配列番号へ変換
+//	//Y座標については最下段のブロックの底面の座標とする
 //	int		x, y;
 //	x = (int)g_Piece.Position.x / BLOCK_WIDTH;
 //	y = (int)(g_Piece.Position.y + 
@@ -259,53 +259,53 @@
 //
 //	BLOCK	block;
 //
-//	//���ړ�
+//	//左移動
 //	if (Keyboard_IsKeyDownTrigger(KK_LEFT))
 //	{
-//		if (x > 0)//�z��̈�ԍ����E�ɂ���
+//		if (x > 0)//配列の一番左より右にいる
 //		{
 //			block = Block_GetBlock(x - 1, y);
-//			if (block.Enable == false)//���ׂɃu���b�N������
+//			if (block.Enable == false)//左隣にブロックが無い
 //			{
-//				//X���W�����փu���b�N�P����������
+//				//X座標を左へブロック１つ分うごかす
 //				g_Piece.Position.x += -BLOCK_WIDTH;
 //			}
 //		}
 //	}
-//	//�E�ړ�
+//	//右移動
 //	if (Keyboard_IsKeyDownTrigger(KK_RIGHT))
 //	{
 //
-//		if (x < (BLOCK_COLS - 1))//�z��̈�ԉE�������ɂ���
+//		if (x < (BLOCK_COLS - 1))//配列の一番右よりも左にいる
 //		{
 //			block = Block_GetBlock(x + 1, y);
-//			if (block.Enable == false)//�E�ׂɃu���b�N������
+//			if (block.Enable == false)//右隣にブロックが無い
 //			{
-//				//X���W���E�փu���b�N�P����������
+//				//X座標を右へブロック１つ分うごかす
 //				g_Piece.Position.x += BLOCK_WIDTH;
 //			}
 //		}
 //	}
 //
-//	//���n�`�F�b�N
+//	//着地チェック
 //
-//	block = Block_GetBlock(x, y);//�v���C���[�̐^���̃u���b�N
+//	block = Block_GetBlock(x, y);//プレイヤーの真下のブロック
 //
-//	bool ground = false;//���n�������t���O
+//	bool ground = false;//着地したかフラグ
 //
 //	if (block.Enable == true)
 //	{
 //		ground = true;
 //	}
-//	if (y >= BLOCK_ROWS)	//�z��̈�ԉ��ɂ���
+//	if (y >= BLOCK_ROWS)	//配列の一番下にいる
 //	{
 //		ground = true;
 //	}
 //
-//	//���n�������̏���
+//	//着地した時の処理
 //	if (ground == true)
 //	{
-//		//�v���C���[��z��փR�s�[����
+//		//プレイヤーを配列へコピーする
 //		for (int i = 0; i < 3; i++)
 //		{
 //			x = (int)g_Piece.Position.x / BLOCK_WIDTH;
@@ -314,16 +314,16 @@
 //			Block_SetBlock(x, y, g_Piece.Type[i]);
 //		}
 //
-//		g_Piece.State = PIECE_STATE::PIECE_STATE_GROUND_IDLE;//���n����
+//		g_Piece.State = PIECE_STATE::PIECE_STATE_GROUND_IDLE;//着地した
 //
 //	}
 //
-//	//��������
+//	//加速処理
 //	if (Keyboard_IsKeyDown(KK_DOWN))
 //	{
-//		g_Piece.Position.y += 5.0f;	//���x�͓K���ɒ��߂���
+//		g_Piece.Position.y += 5.0f;	//速度は適当に調節する
 //	}
-//	//�ʏ�̗�������
-//	g_Piece.Position.y += 2.0f * 0.2f;	//���x�͓K���ɒ��߂���
+//	//通常の落下処理
+//	g_Piece.Position.y += 2.0f * 0.2f;	//速度は適当に調節する
 //
 //}

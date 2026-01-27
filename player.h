@@ -1,28 +1,28 @@
-
+ï»¿
 
 #pragma once
 
 #include <d3d11.h>
 
-//ƒvƒŒƒCƒ„[ƒXƒe[ƒg
+//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆ
 enum PIECE_STATE
 {
-	PIECE_STATE_IDLE = 0,	//‰½‚à‚µ‚È‚¢
-	PIECE_STATE_MOVE,		//ˆÚ“®’†
-	PIECE_STATE_GROUND_IDLE,	//’…’n’†
-	PIECE_STATE_MISS_IDLE,		//ƒ~ƒX”­¶
+	PIECE_STATE_IDLE = 0,	//ä½•ã‚‚ã—ãªã„
+	PIECE_STATE_MOVE,		//ç§»å‹•ä¸­
+	PIECE_STATE_GROUND_IDLE,	//ç€åœ°ä¸­
+	PIECE_STATE_MISS_IDLE,		//ãƒŸã‚¹ç™ºç”Ÿ
 
 };
 
-//—Ž‰ºƒuƒƒbƒN
+//è½ä¸‹ãƒ–ãƒ­ãƒƒã‚¯
 class PIECE
 {
 	public:
-		XMFLOAT2		position;	//•\Ž¦À•W
-		int				Type[3];	//FŽí•Ê
-		PIECE_STATE		State;		//ó‘Ô
+		XMFLOAT2		position;	//è¡¨ç¤ºåº§æ¨™
+		int				Type[3];	//è‰²ç¨®åˆ¥
+		PIECE_STATE		State;		//çŠ¶æ…‹
 
-		int				StateCount;	//ƒXƒe[ƒgØ‚è‘Ö‚í‚èƒEƒFƒCƒg
+		int				StateCount;	//ã‚¹ãƒ†ãƒ¼ãƒˆåˆ‡ã‚Šæ›¿ã‚ã‚Šã‚¦ã‚§ã‚¤ãƒˆ
 
 };
 
@@ -31,6 +31,6 @@ void Player_Finalize(void);
 void Player_Update();
 void Player_Draw(void);
 
-void Player_Create();	//V‚µ‚¢ƒuƒƒbƒN‚ðì‚é
-void Player_Move();		//ˆÚ“®ˆ—
+void Player_Create();	//æ–°ã—ã„ãƒ–ãƒ­ãƒƒã‚¯ã‚’ä½œã‚‹
+void Player_Move();		//ç§»å‹•å‡¦ç†
 
