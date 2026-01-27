@@ -457,7 +457,7 @@ void Special_Glass_Update(int playerIndex)
 	}
 
 	// 9個の箱すべてが非アクティブになった場合、スペシャル終了
-	bool allInactive = std::all_of(glassBoxes.begin(), glassBoxes.end(), [](const GLASS_BOX& box){ return !box.active; });
+	bool allInactive = std::all_of(glassBoxes.begin(), glassBoxes.end(), [](const GLASS_BOX& box) { return !box.active; });
 
 	if (allInactive)
 	{
@@ -605,6 +605,8 @@ void Special_Electricity_Update(int playerIndex)
 
 	// スペシャルの初期化処理
 	static bool initialized = false;
+	static bool circleCollided[SPECIAL_ELECTRICITY_QUANTITY] = { false }; // 各サークルの判定フラグ
+	static int totalCollisions = 0; // 総判定回数
 	if (!initialized)
 	{
 		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
@@ -612,25 +614,30 @@ void Special_Electricity_Update(int playerIndex)
 			// ランダムな位置に円を生成 (-5から5の範囲)
 			float randomX = static_cast<float>(rand() % 10 - 5);
 			float randomZ = static_cast<float>(rand() % 10 - 5);
-			electricityCircles[i] = { XMFLOAT3(randomX, 0.0f, randomZ), 0.3f };	// 半径0.3の円
+			electricityCircles[i] = { XMFLOAT3(randomX, 0.0f, randomZ), 0.3f }; // 半径0.3の円
+			circleCollided[i] = false; // 初期化
 		}
 		initialized = true;
+		totalCollisions = 0; // 総判定回数をリセット
 	}
 
 	// 他のプレイヤーとの衝突判定
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		if (p == playerIndex) continue;	// 自分自身は無視
+		if (p == playerIndex) continue; // 自分自身は無視
 
 		PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
 		if (otherPlayerObject == nullptr || !otherPlayerObject->active) continue;
 		PLAYEROBJECT& otherPlayer = *otherPlayerObject;
 
-		if (otherPlayer.isInvincible) continue;	// 無敵中は無視
+		if (otherPlayer.isInvincible) continue; // 無敵中は無視
 
 		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 		{
-			// 円とAABBの衝突判定 スタンさせる
+			// すでに判定済みのサークルはスキップ
+			if (circleCollided[i]) continue;
+
+			// 円とAABBの衝突判定
 			if (CheckCircleAABBCollision(electricityCircles[i], otherPlayer.boundingBox))
 			{
 				// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
@@ -641,8 +648,16 @@ void Special_Electricity_Update(int playerIndex)
 
 				// HPが0以下にならないように
 				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+
+				// このサークルでの判定を終了
+				circleCollided[i] = true;
+				totalCollisions++;
+
+				// 最大判定回数に達したら終了
+				if (totalCollisions >= 4) break;
 			}
 		}
+		if (totalCollisions >= 4) break; // 最大判定回数に達したらループを抜ける
 	}
 
 	// スペシャルの効果時間が経過したらスペシャル終了
@@ -651,8 +666,9 @@ void Special_Electricity_Update(int playerIndex)
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
 		initialized = false;			// 次回のスペシャル使用時に再初期化するため
+		totalCollisions = 0;			// 総判定回数をリセット5
 		player.form = Form::First;		// 変身形態を第1形態に戻す
-		player.type = PlayerType::None;	// タイプをリセット
+		player.type = PlayerType::None; // タイプをリセット
 		player.useSkill = false;		// スキル解除
 		player.useSpecial = false;		// スペシャル解除
 	}
