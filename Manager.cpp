@@ -1,14 +1,11 @@
 //======================================================
-//	manager.cpp[]
+//	Manager.cpp[]
 // 
 //	制作者：田中佑奈			日付：2024//
 //======================================================
-//Manager.cpp
-
 #include "direct3d.h"
 #include "Manager.h"
 #include "keyboard.h"
-
 #include "Game.h"
 #include "Title.h"
 #include "Start.h"
@@ -17,16 +14,14 @@
 #include "Result.h"
 #include "fade.h"
 #include "swipe.h"
-
 #include "shader.h"
 
-
 //グローバル変数
-static	SCENE	g_Scene = SCENE_NONE;	//現在のシーン番号
+static SCENE g_Scene = SCENE_NONE;		//現在のシーン番号
 static bool g_InitSettingOnce = false;	//最初だけ初期化したか
 static bool g_InitSoundOnce = false;	//最初だけ初期化したか
 
-void	Manager_Initialize()
+void Manager_Initialize()
 {
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
@@ -41,7 +36,7 @@ void	Manager_Initialize()
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 #ifdef _DEBUG
-	SetScene(SCENE_GAME);	//debug用に最初からゲームシーンへ
+	SetScene(SCENE_TITLE);	//debug用に最初からゲームシーンへ
 #else
 	SetScene(SCENE_TITLE);	//最初に動かすシーンに切り替える
 #endif

@@ -103,14 +103,13 @@ struct PLAYEROBJECT
 
 	Form form;								// 変身形態
 	PlayerType type;						// プレイヤーの属性タイプ
-	float evolutionGauge;						// 進化ゲージ
-	float evolutionGaugeRate;					// 進化ゲージ 倍率
+	float evolutionGauge;					// 進化ゲージ
+	float evolutionGaugeRate;				// 進化ゲージ 倍率
 	int breakCount_Glass;					// 破壊した数 ガラス
 	int breakCount_Concrete;				// 破壊した数 コンクリート
 	int breakCount_Plant;					// 破壊した数 植物
 	int breakCount_Electric;				// 破壊した数 電気
 	std::vector<BuildingType> brokenHistory;// 破壊した建物のリスト
-
 
 	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// 吹き飛ばし用の速度ベクトル
 	bool is_knocked_back = false;						// 吹き飛ばし中かどうか
