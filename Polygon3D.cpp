@@ -504,9 +504,9 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 void Polygon3D_Update()
 {
 	// 各プレイヤーに対応する発動キー
-	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER };
+	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V };
 
-	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_D9, KK_D0 };
+	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_F9, KK_F10, KK_F11, KK_F12 };
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
@@ -629,27 +629,18 @@ void Polygon3D_Update()
 				object[p].isAttacking = true;
 
 				// 第2・第3形態の場合、スキル使用フラグも立てる
-				if (object[p].type != PlayerType::None)
-				{
-					object[p].useSkill = true;
-				}
+				if (object[p].type != PlayerType::None)	object[p].useSkill = true;
 			}
 			if (g_Input[p].A)
 			{
 				object[p].isAttacking = true;
 
 				// 第2・第3形態の場合、スキル使用フラグも立てる
-				if (object[p].type != PlayerType::None)
-				{
-					object[p].useSkill = true;
-				}
+				if (object[p].type != PlayerType::None)	object[p].useSkill = true;
 			}
 
 			// 発動トリガー入力をチェックしてスペシャル使用フラグを立てる
-			if (Keyboard_IsKeyDownTrigger(specialKeys[p]))
-			{
-				object[p].useSpecial = true;
-			}
+			if (Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
 
 			// フラグが立ったら更新処理を呼び出す
 			if (object[p].useSkill)		Skill_Update(p);	// スキル
@@ -681,10 +672,10 @@ void Polygon3D_Update()
 			}
 			else if (p == 1) // プレイヤー2 (矢印キー)
 			{
-				if (g_Input[1].LStickX > 0.0f) { object[1].moveDir.x += 1.0f; object[1].isMoving = true; }
-				if (g_Input[1].LStickX < 0.0f) { object[1].moveDir.x -= 1.0f; object[1].isMoving = true; }
-				if (g_Input[1].LStickY > 0.0f) { object[1].moveDir.z -= 1.0f; object[1].isMoving = true; }
-				if (g_Input[1].LStickY < 0.0f) { object[1].moveDir.z += 1.0f; object[1].isMoving = true; }
+				if (g_Input[1].LStickX > 0.0f)		{ object[1].moveDir.x += 1.0f; object[1].isMoving = true; }
+				if (g_Input[1].LStickX < 0.0f)		{ object[1].moveDir.x -= 1.0f; object[1].isMoving = true; }
+				if (g_Input[1].LStickY > 0.0f)		{ object[1].moveDir.z -= 1.0f; object[1].isMoving = true; }
+				if (g_Input[1].LStickY < 0.0f)		{ object[1].moveDir.z += 1.0f; object[1].isMoving = true; }
 
 				if (Keyboard_IsKeyDown(KK_UP))		{object[1].moveDir.z += 1.0f; object[1].isMoving = true;}
 				if (Keyboard_IsKeyDown(KK_DOWN))	{object[1].moveDir.z -= 1.0f; object[1].isMoving = true;}
@@ -692,19 +683,25 @@ void Polygon3D_Update()
 				if (Keyboard_IsKeyDown(KK_RIGHT))	{object[1].moveDir.x += 1.0f; object[1].isMoving = true;}
 				if (object[1].moveDir.x == 0.0f && object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
 			}
-			else if (p == 2) // プレイヤー3
+			else if (p == 2) // プレイヤー3 (TFGH 攻撃V)
 			{
-				if (g_Input[2].LStickX > 0.0f) { object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
-				if (g_Input[2].LStickX < 0.0f) { object[2].moveDir.x -= 1.0f; object[2].isMoving = true; }
-				if (g_Input[2].LStickY > 0.0f) { object[2].moveDir.z -= 1.0f; object[2].isMoving = true; }
-				if (g_Input[2].LStickY < 0.0f) { object[2].moveDir.z += 1.0f; object[2].isMoving = true; }
+				if (g_Input[2].LStickX > 0.0f)	{ object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
+				if (g_Input[2].LStickX < 0.0f)	{ object[2].moveDir.x -= 1.0f; object[2].isMoving = true; }
+				if (g_Input[2].LStickY > 0.0f)	{ object[2].moveDir.z -= 1.0f; object[2].isMoving = true; }
+				if (g_Input[2].LStickY < 0.0f)	{ object[2].moveDir.z += 1.0f; object[2].isMoving = true; }
+
+				if (Keyboard_IsKeyDown(KK_T))	{ object[2].moveDir.z += 1.0f; object[2].isMoving = true; }
+				if (Keyboard_IsKeyDown(KK_G))	{ object[2].moveDir.z -= 1.0f; object[2].isMoving = true; }
+				if (Keyboard_IsKeyDown(KK_F))	{ object[2].moveDir.x -= 1.0f; object[2].isMoving = true; }
+				if (Keyboard_IsKeyDown(KK_H))	{ object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
+				if (object[2].moveDir.x == 0.0f && object[2].moveDir.z == 0.0f)	object[2].isMoving = false;
 			}
 			else if (p == 3) // プレイヤー4
 			{
-				if (g_Input[3].LStickX > 0.0f) { object[3].moveDir.x += 1.0f; object[3].isMoving = true; }
-				if (g_Input[3].LStickX < 0.0f) { object[3].moveDir.x -= 1.0f; object[3].isMoving = true; }
-				if (g_Input[3].LStickY > 0.0f) { object[3].moveDir.z -= 1.0f; object[3].isMoving = true; }
-				if (g_Input[3].LStickY < 0.0f) { object[3].moveDir.z += 1.0f; object[3].isMoving = true; }
+				if (g_Input[3].LStickX > 0.0f)	{ object[3].moveDir.x += 1.0f; object[3].isMoving = true; }
+				if (g_Input[3].LStickX < 0.0f)	{ object[3].moveDir.x -= 1.0f; object[3].isMoving = true; }
+				if (g_Input[3].LStickY > 0.0f)	{ object[3].moveDir.z -= 1.0f; object[3].isMoving = true; }
+				if (g_Input[3].LStickY < 0.0f)	{ object[3].moveDir.z += 1.0f; object[3].isMoving = true; }
 			}
 
 			// 現在のプレイヤー p だけを動かす
