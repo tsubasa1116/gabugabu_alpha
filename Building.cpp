@@ -249,18 +249,15 @@ void Building::LoadModelForPhase()
 		else										path = g_ModelName[2];
 		break;
 
-	case BuildingType::Tower:
-		if (Phase == BuildingPhase::New)		    path = g_ModelName[5];
-		else if (Phase == BuildingPhase::Damaged)	path = g_ModelName[5];
-		else										path = g_ModelName[5];
-		break;
+	//case BuildingType::Tower:
+	//	if		(Phase == BuildingPhase::New)		path = g_ModelName[5];
+	//	else if (Phase == BuildingPhase::Damaged)	path = g_ModelName[5];
+	//	else										path = g_ModelName[5];
+	//	break;
 	case BuildingType::a:
 		if (Phase == BuildingPhase::New)		    path = g_ModelName1[0];
 		else if (Phase == BuildingPhase::Damaged)	path = g_ModelName1[0];
 		else										path = g_ModelName1[0];
-		break;
-
-	
 		break;
 	default:
 		//path = "asset/build_default.fbx"; // デフォルトモデル
