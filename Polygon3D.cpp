@@ -585,9 +585,9 @@ void Polygon3D_Update()
 			if (Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
 
 			// フラグが立ったら更新処理を呼び出す
-			if (object[p].useSkill)		Skill_Update(p);	// スキル
-			if (object[p].isAttacking)	Attack_Update(p);	// 攻撃
-			if (object[p].useSpecial)	Special_Update(p);	// スペシャル
+			if (object[p].useSkill)		Skill_Update(p);								// スキル
+			if (object[p].isAttacking)	Attack_Update(p);	AttackPlayerCollisions();	// 攻撃
+			if (object[p].useSpecial)	Special_Update(p);								// スペシャル
 			// プレイヤーごとのスキルクールタイムを毎フレーム減算
 			if (object[p].skillCoolTimer > 0.0f)
 			{
@@ -936,9 +936,6 @@ void Polygon3D_Update()
 			}
 		}
 	}
-
-	// がぶがぶとプレイヤーの当たり判定
-	AttackPlayerCollisions();
 
 	// デバッグ用 ImGui ウィンドウ
 	ImGui::Begin("Player Debug");
