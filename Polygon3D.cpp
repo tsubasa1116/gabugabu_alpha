@@ -582,7 +582,7 @@ void Polygon3D_Update()
 			}
 
 			// 発動トリガー入力をチェックしてスペシャル使用フラグを立てる
-			if (Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
+			if (object[p].form == Form::Third && Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
 
 			// フラグが立ったら更新処理を呼び出す
 			if (object[p].useSkill)		Skill_Update(p);								// スキル

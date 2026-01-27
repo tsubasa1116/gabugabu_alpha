@@ -76,7 +76,6 @@ struct Circle
 {
 	XMFLOAT3 center;	// 中心座標
 	float radius;		// 半径
-	bool hasCollided;	// 一度判定したかどうか
 };
 
 /**
