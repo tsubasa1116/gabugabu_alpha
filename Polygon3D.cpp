@@ -156,8 +156,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].isMoving = false;
 	//object[0].form = Form::First;
 	//object[0].type = PlayerType::None;
-	object[0].form = Form::First;
-	object[0].type = PlayerType::None;
+	object[0].form = Form::Third;
+	object[0].type = PlayerType::Glass;
 	object[0].evolutionGauge = 0.0f;
 	object[0].evolutionGaugeRate = 1.0f;
 	object[0].breakCount_Glass = 1;
@@ -198,7 +198,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].lastDir = PlayerDir::Down; // 正面
 	object[1].isMoving = false;
 	object[1].form = Form::Third;
-	object[1].type = PlayerType::Electricity;
+	object[1].type = PlayerType::Concrete;
 	object[1].evolutionGauge = 0.0f;
 	object[1].evolutionGaugeRate = 1.0f;
 	object[1].breakCount_Glass = 1;
@@ -238,8 +238,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].downTimer = 0.0f;
 	object[2].lastDir = PlayerDir::Down; // 正面
 	object[2].isMoving = false;
-	object[2].form = Form::First;
-	object[2].type = PlayerType::None;
+	object[2].form = Form::Third;
+	object[2].type = PlayerType::Plant;
 	object[2].evolutionGauge = 0;
 	object[2].evolutionGaugeRate = 1.0f;
 	object[2].breakCount_Glass = 0;
@@ -279,8 +279,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].downTimer = 0.0f;
 	object[3].lastDir = PlayerDir::Down; // 正面
 	object[3].isMoving = false;
-	object[3].form = Form::First;
-	object[3].type = PlayerType::None;
+	object[3].form = Form::Third;
+	object[3].type = PlayerType::Electricity;
 	object[3].evolutionGauge = 0;
 	object[3].evolutionGaugeRate = 1.0f;
 	object[3].breakCount_Glass = 0;
@@ -1296,6 +1296,14 @@ void Polygon3D_Update()
 //======================================================
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 {
+	// 攻撃・スキル・スペシャル描画
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		if (object[p].active && object[p].isAttacking)	Attack_Draw(p);
+		if (object[p].active && object[p].useSkill)		Skill_Draw(p);
+		if (object[p].active && object[p].useSpecial)	Special_Draw(p);
+	}
+
 	LIGHT light{};
 	light.Enable = TRUE;
 	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
@@ -1309,21 +1317,9 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	// デバッグモード中のみキー入力を受け付ける
 	if (s_IsKonamiCodeEntered)
 	{
-		if (Keyboard_IsKeyDownTrigger(KK_D1))
-		{
-			input1 = !input1;	// フラグ反転
-		}
+		if (Keyboard_IsKeyDownTrigger(KK_D1)) input1 = !input1;	// フラグ反転
 	}
 	
-	// 攻撃描画
-	for (int p = 0; p < PLAYER_MAX; ++p)
-	{
-		if (object[p].active && object[p].isAttacking)
-		{
-			Attack_Draw(p);
-		}
-	}
-
 	Shader_Begin(); 
 
 	// ========================================================

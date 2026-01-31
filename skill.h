@@ -40,7 +40,7 @@ struct SKILL_GLASS
 void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Skill_Finalize();
 void Skill_Update(int playerIndex);
-void Skill_Draw();
+void Skill_Draw(int playerIndex);
 
 void Skill_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Skill_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

@@ -639,7 +639,7 @@ void Special_Electricity_Update(int playerIndex)
 				otherPlayer.hp -= SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense;
 
 				// スペシャルを使っていなければスタン
-				if (!otherPlayer.useSpecial) otherPlayer.stunGauge = 0.0f;
+				if (!otherPlayer.useSpecial) otherPlayer.stunGauge = 10.0f;
 
 				// HPが0以下にならないように
 				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
@@ -845,17 +845,35 @@ void Special_Electricity_Draw(int playerIndex)
 	}
 }
 
-void Special_Draw()
+void Special_Draw(int playerIndex)
 {
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
+	if (!player.useSpecial || player.isStunning) return;
+
 	// 1. 共通設定 (パイプラインステートの設定)
 	//    これを親で一度だけやることで処理落ちを防ぐ
 
 	// シェーダー開始
+	// スペシャル描画前にレンダリングステートをリセット
+	SetBlendState(BLENDSTATE_ALPHA);
 	Shader_Begin();
 
-	// ブレンドステート
-	SetBlendState(BLENDSTATE_NONE);
-	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+	// ライト設定をリセット
+	LIGHT light{};
+	light.Enable = TRUE;
+	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	Shader_SetLight(light);
+
+	SetDepthTest(false); // 深度テストを無効化
+	SetBlendState(BLENDSTATE_ALPHA); // アルファブレンディングを有効化
 
 	// 頂点バッファ・インデックスバッファのセット
 	UINT stride = sizeof(Vertex2);
@@ -864,7 +882,6 @@ void Special_Draw()
 	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// 頂点データ書き込み
 	// ※ プレイヤー本体の描画と同様に、ここで一度だけ頂点データをGPUに送ります
 	D3D11_MAPPED_SUBRESOURCE msr;
 	// (注意: g_VertexBuffer が D3D11_USAGE_DYNAMIC である必要があります)
@@ -874,54 +891,42 @@ void Special_Draw()
 	CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
 	g_pContext->Unmap(g_VertexBuffer, 0);
 
-	SetBlendState(BLENDSTATE_ALPHA);
+	// プレイヤーの番号に対応するテクスチャをセット
+	ID3D11ShaderResourceView* tex = g_Special_Texture[playerIndex];
+	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// スペシャル範囲表示の処理をここに追加
-	for (int p = 0; p < PLAYER_MAX; ++p)
+	// スプライトシートのUV座標を計算
+	int frame = g_animFrame[playerIndex];
+	int col = frame % SHEET_COLS;
+	int row = frame / SHEET_COLS;
+	float u0 = (float)col / (float)SHEET_COLS;
+	float v0 = (float)row / (float)SHEET_ROWS;
+	float u1 = u0 + 1.0f / (float)SHEET_COLS;
+	float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+	// 頂点データをバッファに直接書き込み、UVを調整 (+Y面のみ)
+	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	vertex = (Vertex2*)msr.pData;
+
+	// 全体のデータをコピー
+	CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+
+	// +Y面のUV座標を調整
+	vertex[16].tex = XMFLOAT2(u0, v0); // LEFT-TOP
+	vertex[17].tex = XMFLOAT2(u1, v0); // RIGHT-TOP
+	vertex[18].tex = XMFLOAT2(u0, v1); // LEFT-BOTTOM
+	vertex[19].tex = XMFLOAT2(u1, v1); // RIGHT-BOTTOM
+
+	g_pContext->Unmap(g_VertexBuffer, 0);
+
+	// プレイヤーのタイプに応じた描画処理
+	switch (player.type)
 	{
-		PLAYEROBJECT* playerObject = GetPlayer(p);
-		if (playerObject == nullptr) continue;
-		PLAYEROBJECT& player = *playerObject;
-
-		if (!player.useSpecial || player.isStunning) continue;
-
-		// プレイヤーの番号に対応するテクスチャをセット
-		ID3D11ShaderResourceView* tex = g_Special_Texture[p];
-		g_pContext->PSSetShaderResources(0, 1, &tex);
-
-		// スプライトシートのUV座標を計算
-		int frame = g_animFrame[p];
-		int col = frame % SHEET_COLS;
-		int row = frame / SHEET_COLS;
-		float u0 = (float)col / (float)SHEET_COLS;
-		float v0 = (float)row / (float)SHEET_ROWS;
-		float u1 = u0 + 1.0f / (float)SHEET_COLS;
-		float v1 = v0 + 1.0f / (float)SHEET_ROWS;
-
-		// 頂点データをバッファに直接書き込み、UVを調整 (+Y面のみ)
-		D3D11_MAPPED_SUBRESOURCE msr;
-		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-		Vertex2* vertex = (Vertex2*)msr.pData;
-
-		// 全体のデータをコピー
-		CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
-
-		// +Y面のUV座標を調整
-		vertex[16].tex = XMFLOAT2(u0, v0); // LEFT-TOP
-		vertex[17].tex = XMFLOAT2(u1, v0); // RIGHT-TOP
-		vertex[18].tex = XMFLOAT2(u0, v1); // LEFT-BOTTOM
-		vertex[19].tex = XMFLOAT2(u1, v1); // RIGHT-BOTTOM
-
-		g_pContext->Unmap(g_VertexBuffer, 0);
-
-		switch (player.type)
-		{
-		case PlayerType::Glass:			Special_Glass_Draw(p);			break;
-		case PlayerType::Concrete:		Special_Concrete_Draw(p);		break;
-		case PlayerType::Plant:			Special_Plant_Draw(p);			break;
-		case PlayerType::Electricity:	Special_Electricity_Draw(p);	break;
-		default: break;
-		}
+	case PlayerType::Glass:			Special_Glass_Draw(playerIndex);		break;
+	case PlayerType::Concrete:		Special_Concrete_Draw(playerIndex);		break;
+	case PlayerType::Plant:			Special_Plant_Draw(playerIndex);		break;
+	case PlayerType::Electricity:	Special_Electricity_Draw(playerIndex);	break;
+	default: break;
 	}
 }
 

@@ -9,7 +9,7 @@
 //#define SPECIAL_GLASS_TIME ミサイル全てのactiveがfalseになったら終了なので不要
 #define SPECIAL_CONCRETE_TIME		(1.5f)
 #define SPECIAL_PLANT_TIME			(10.0f)
-#define SPECIAL_ELECTRICITY_TIME	(55.0f)
+#define SPECIAL_ELECTRICITY_TIME	(5.0f)
 
 #define SPECIAL_GLASS_DAMAGE		(50.0f)	// ミサイル 1個あたりのダメージ量
 #define SPECIAL_CONCRETE_DAMAGE		(75.0f)	// 判定1回のみ
@@ -42,7 +42,7 @@ struct SPECIAL_OBJECT
 void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Finalize();
 void Special_Update(int playerIndex);
-void Special_Draw();
+void Special_Draw(int playerIndex);
 
 void Special_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

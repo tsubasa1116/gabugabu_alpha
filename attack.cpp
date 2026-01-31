@@ -637,8 +637,8 @@ void Attack_Draw(int playerIndex)
 	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
 	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
 	// 拡散光と環境光
-	light.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	light.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 	Shader_SetLight(light);
 
 	// シェーダーを描画パイプラインへ設定
