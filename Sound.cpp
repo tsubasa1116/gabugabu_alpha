@@ -52,7 +52,7 @@ void Sound_Update()
 	{
 		//フェードアウトさせてシーンを切り替える
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetSwipe(40.0f, color, SWIPE_OUT, SCENE_TITLE);
+		SetSwipe(40, color, SWIPE_OUT, SCENE_TITLE);
 	}
 
 }

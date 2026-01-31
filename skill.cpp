@@ -1,9 +1,8 @@
 ﻿// skill.cpp
 
-#include "DirectXMath.h"
-#include "d3d11.h"
+#include <DirectXMath.h>
+#include <d3d11.h>
 using namespace DirectX;
-
 #include "skill.h"
 #include "sprite.h"
 #include "shader.h"
@@ -355,7 +354,7 @@ void Skill_Finalize()
 
 void Skill_Glass_Update(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -369,6 +368,9 @@ void Skill_Glass_Update(int playerIndex)
 		player.skillTimer = 0.0f;
 		return;
 	}
+
+	// スキルタイマー更新
+	player.skillTimer += DELTA_TIME;
 
 	// ここで Radius の値を動的に計算する
 	float dynamicRadius = player.scaling.x; // scalingは等しいのでy,zでも可
@@ -456,7 +458,7 @@ void Skill_Glass_Update(int playerIndex)
 			if (col.isColliding)
 			{
 				// ダメージのみ（ノックバックは与えない） 防御率でダメージ軽減
-				otherPlayer.hp -= 0.01f * otherPlayer.defense;
+				otherPlayer.hp -= 0.1f * otherPlayer.defense;
 				// HPが0以下にならないように
 				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
 
@@ -465,9 +467,6 @@ void Skill_Glass_Update(int playerIndex)
 			}
 		}
 	}
-
-	// スキルタイマー更新
-	player.skillTimer += DELTA_TIME;
 
 	// スキルの効果時間が経過したらスキル終了
 	if (player.skillTimer >= SKILL_GLASS_TIME)
@@ -480,7 +479,7 @@ void Skill_Glass_Update(int playerIndex)
 
 void Skill_Concrete_Update(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -503,14 +502,6 @@ void Skill_Concrete_Update(int playerIndex)
 	// スキル効果： ダメージ0.8倍 (デフォルトは1.0f)
 	player.defense = 0.8f;
 
-	// スキルの初期位置をプレイヤーの位置に設定
-	skillConcrete.position.x = player.position.x;
-	skillConcrete.position.y = player.position.y;
-	skillConcrete.position.z = player.position.z;
-
-	// スキルタイマー更新
-	player.skillTimer += DELTA_TIME;
-
 	// スキルの効果時間が経過したらスキル終了
 	if (player.skillTimer >= SKILL_CONCRETE_TIME)
 	{
@@ -523,7 +514,7 @@ void Skill_Concrete_Update(int playerIndex)
 
 void Skill_Plant_Update(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -542,12 +533,12 @@ void Skill_Plant_Update(int playerIndex)
 	player.skillTimer += DELTA_TIME;
 
 	// スキル効果：進化ゲージ2倍（デフォルトは1）
-	player.evolutionGaugeRate = 2;
+	player.evolutionGaugeRate = 2.0f;
 
 	// スキルの効果時間が経過したらスキル終了
 	if (player.skillTimer >= SKILL_PLANT_TIME)
 	{
-		player.evolutionGaugeRate = 1;
+		player.evolutionGaugeRate = 1.0f;
 		player.useSkill = false;
 		player.skillTimer = 0.0f;
 		player.skillCoolTimer = SKILL_PLANT_COOLTIME;
@@ -571,9 +562,9 @@ void Skill_Electricity_Update(int playerIndex)
 		return;
 	}
 
-	float baseSpeed = 0.06f; // Normal
-	if (player.form == Form::Second) baseSpeed = 0.05f;
-	else if (player.form == Form::Third) baseSpeed = 0.04f;
+	float baseSpeed = 0.06f;								// 第1形態
+	if (player.form == Form::Second) baseSpeed = 0.05f;		// 第2形態
+	else if (player.form == Form::Third) baseSpeed = 0.04f;	// 第3形態
 
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;
@@ -593,7 +584,7 @@ void Skill_Electricity_Update(int playerIndex)
 
 void Skill_Update(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -605,9 +596,9 @@ void Skill_Update(int playerIndex)
 	{
 		switch (player.type)
 		{
-		case PlayerType::Glass:		Skill_Glass_Update(playerIndex);	break;
-		case PlayerType::Concrete:	Skill_Concrete_Update(playerIndex);	break;
-		case PlayerType::Plant:		Skill_Plant_Update(playerIndex);	break;
+		case PlayerType::Glass:			Skill_Glass_Update(playerIndex);	break;
+		case PlayerType::Concrete:		Skill_Concrete_Update(playerIndex);	break;
+		case PlayerType::Plant:			Skill_Plant_Update(playerIndex);	break;
 		case PlayerType::Electricity:	Skill_Electricity_Update(playerIndex);	break;
 		default: break;
 		}

@@ -3,7 +3,6 @@
 #include <DirectXMath.h>
 #include <d3d11.h>
 using namespace DirectX;
-
 #include "attack.h"
 #include "sprite.h"
 #include "shader.h"
@@ -287,7 +286,7 @@ void Attack_Finalize()
 
 void Attack_Update(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -347,7 +346,7 @@ void Attack_Update(int playerIndex)
 		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
 		MTV collision = CalculateAABBMTV(atttackObject.boundingBox, pStaticObjectAABB);
 
-		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V,};
+		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V, KK_SPACE };
 
 		// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
 		if (collision.isColliding)
@@ -362,7 +361,7 @@ void Attack_Update(int playerIndex)
 				case BuildingType::Glass:
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Glass += 1;						// ガラスを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -378,7 +377,7 @@ void Attack_Update(int playerIndex)
 				case BuildingType::Concrete:
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Concrete += 1;					// コンクリートを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -394,7 +393,7 @@ void Attack_Update(int playerIndex)
 				case BuildingType::Plant:					
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Plant += 1;						// 植物を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -427,8 +426,6 @@ void Attack_Update(int playerIndex)
 					break;
 				}
 			}
-
-
 
 			// 衝突していたら、MTVの分だけ位置を戻す
 			atttackObject.position.x += collision.translation.x;
@@ -526,10 +523,10 @@ void Attack_Update(int playerIndex)
 			// --- Step 3: 最終タイプ反映 ---
 			switch (maxIdx)
 			{
-			case 0: playerObject->type = PlayerType::Glass;			break;
-			case 1: playerObject->type = PlayerType::Concrete;		break;
-			case 2: playerObject->type = PlayerType::Plant;			break;
-			case 3: playerObject->type = PlayerType::Electricity;	break;
+			case 0: player.type = PlayerType::Glass;		break;
+			case 1: player.type = PlayerType::Concrete;		break;
+			case 2: player.type = PlayerType::Plant;		break;
+			case 3: player.type = PlayerType::Electricity;	break;
 			}
 		}
 
@@ -546,7 +543,7 @@ void Attack_Update(int playerIndex)
 		}*/
 
 		// 第3形態に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
-		if (playerObject->form == Form::Third && currentForm != Form::Third)
+		if (player.form == Form::Third && currentForm != Form::Third)
 		{
 			// プレイヤーごとの画面上のエフェクト位置
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
@@ -559,13 +556,13 @@ void Attack_Update(int playerIndex)
 
 			// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）
 			int effectTexNo = 0; // デフォルト
-			switch (playerObject->type)
+			switch (player.type)
 			{
-			case PlayerType::Glass:		effectTexNo = 0; break;
-			case PlayerType::Concrete:	effectTexNo = 1; break;
-			case PlayerType::Plant:		effectTexNo = 2; break;
+			case PlayerType::Glass:			effectTexNo = 0; break;
+			case PlayerType::Concrete:		effectTexNo = 1; break;
+			case PlayerType::Plant:			effectTexNo = 2; break;
 			case PlayerType::Electricity:	effectTexNo = 3; break;
-			default:					effectTexNo = 0; break;
+			default:						effectTexNo = 0; break;
 			}
 
 			// プレイヤー番号は playerIndex（0ベース）
@@ -584,10 +581,9 @@ void Attack_Update(int playerIndex)
 	}
 }
 
-
 void Attack_Draw(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	// 参照を取る
@@ -769,7 +765,7 @@ void AttackPlayerCollisions()
 				if (defender->hp < 0.0f) defender->hp = 0.0f;
 
 				// スタンゲージ増加
-				defender->stunGauge += 2.0f;
+				defender->stunGauge += 0.5f;
 
 				// ダメージ数字を表示（頭上にオフセット）
 				int dmgInt = static_cast<int>(rawDamage + 0.5f);

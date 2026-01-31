@@ -216,7 +216,6 @@ void Game_Draw()
 	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
     
-	Polygon3D_DrawEffect();
 	Effect_Draw();
 	Polygon3D_DrawHP();
 	

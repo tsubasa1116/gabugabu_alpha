@@ -1,17 +1,17 @@
 ﻿#pragma once
 
-#include "d3d11.h"
+#include <d3d11.h>
 #include "collider.h"
 
 // マクロ定義
-#define SKILL_GLASS_TIME	(10.0f)
-#define SKILL_CONCRETE_TIME	(10.0f)
-#define SKILL_PLANT_TIME	(10.0f)
+#define SKILL_GLASS_TIME		(10.0f)
+#define SKILL_CONCRETE_TIME		(10.0f)
+#define SKILL_PLANT_TIME		(10.0f)
 #define SKILL_ELECTRICITY_TIME	(10.0f)
 
-#define SKILL_GLASS_COOLTIME	(10.0f)
-#define SKILL_CONCRETE_COOLTIME	(10.0f)
-#define SKILL_PLANT_COOLTIME	(10.0f)
+#define SKILL_GLASS_COOLTIME		(10.0f)
+#define SKILL_CONCRETE_COOLTIME		(10.0f)
+#define SKILL_PLANT_COOLTIME		(10.0f)
 #define SKILL_ELECTRICITY_COOLTIME	(10.0f)
 
 struct SKILL_OBJECT
@@ -19,7 +19,6 @@ struct SKILL_OBJECT
 	XMFLOAT3 position;
 	XMFLOAT3 rotation;
 	XMFLOAT3 scaling;
-	//bool Use;
 
 	AABB boundingBox;
 };

@@ -18,6 +18,7 @@
 //	マクロ定義
 //======================================================
 #define BOX_NUM_VERTEX	(24)
+#define FIELD_TEX_MAX	(2)
 
 //======================================================
 //	グローバル変数
@@ -35,7 +36,6 @@ static	ID3D11DeviceContext* g_pContext = NULL;
 //static ID3D11ShaderResourceView* g_Texture;
 
 // FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
-#define FIELD_TEX_MAX 2 
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 
 // FIELD::no の値に対応するテクスチャファイル名
@@ -55,7 +55,7 @@ static const char* g_ModelName[] = {
 	"propsGlassSub_v2",			// ビル
 	"propsTreeSub_v2",			// 広葉樹
 	"build_glass_new"			// 変な建物
-	"propsTowerMain_v3"			//東京タワ-
+	"propsTowerMain_v3"			// 東京タワ-
 };
 static const char* g_ModelName1[] = {
 	"raibu",
@@ -267,9 +267,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	int tiles_count = count - 1; // 描画対象のタイル数
 	int col_max = tiles_count / NUM;
 
-	if (tiles_count % NUM != 0) {
-		col_max++;
-	}
+	if (tiles_count % NUM != 0)	col_max++;
 
 	// X軸の最大座標とZ軸の最大座標を計算
 	// X軸の最大位置 (最後のタイル位置)
@@ -532,7 +530,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			if (player.type == PlayerType::Plant || player.type == PlayerType::Concrete)
 			{
 				// 円の中心と半径を設定
-				XMFLOAT3 center = playerObject->position;
+				XMFLOAT3 center = player.position;
 				float radius = 5.0f;
 
 				// 赤色で円を描画
@@ -544,8 +542,8 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 				for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 				{
 					// 電気の円の中心と半径を取得
-					XMFLOAT3 center = electricityCircles[i].center;
-					float radius = electricityCircles[i].radius;
+					XMFLOAT3 center = player.electricityCircles[i].center;
+					float radius = player.electricityCircles[i].radius;
 
 					// 赤色で円を描画
 					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
@@ -554,7 +552,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			// ガラスのスペシャル
 			if (player.type == PlayerType::Glass)
 			{
-				for (const auto& box : glassBoxes)
+				for (const auto& box : player.glassBoxes)
 				{
 					// ガラスの円の中心と半径を設定
 					XMFLOAT3 center = box.position;
