@@ -182,6 +182,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="keyboard.cpp" />
+    <ClCompile Include="LoadingScreen.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="makeText.cpp" />
     <ClCompile Include="Manager.cpp" />
@@ -201,6 +202,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="Start.cpp" />
     <ClCompile Include="swipe.cpp" />
     <ClCompile Include="Title.cpp" />
+    <ClCompile Include="VideoTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attack.h" />
@@ -232,6 +234,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="imstb_truetype.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="keyboard.h" />
+    <ClInclude Include="LoadingScreen.h" />
     <ClInclude Include="makeText.h" />
     <ClInclude Include="Manager.h" />
     <ClInclude Include="model.h" />
@@ -250,6 +253,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="Start.h" />
     <ClInclude Include="swipe.h" />
     <ClInclude Include="Title.h" />
+    <ClInclude Include="VideoTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ps_hpber.hlsl">

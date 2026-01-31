@@ -83,7 +83,7 @@ static bool WorldToScreen(const XMFLOAT3& wp, float& outX, float& outY)
 	// 反転
 	outY = (1.0f - (ndcY * 0.5f + 0.5f)) * h;
 
-	// 画面外判定（Z が負、または NDC が ±1 を大きく外れる場合は非表示）
+	// 画面外判定（Zが負、またはNDCが±1を大きく外れる場合は非表示）
 	if (XMVectorGetZ(t) / tw < 0.0f) return false;
 	if (ndcX < -1.1f || ndcX > 1.1f || ndcY < -1.1f || ndcY > 1.1f) return false;
 

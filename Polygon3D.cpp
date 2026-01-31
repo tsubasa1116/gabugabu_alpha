@@ -378,10 +378,10 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{ 10, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 緑
 		{ 11, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 
 		{ 12, L"asset\\texture\\uiStockGreen_v4.png" },			// UI ストック 
-		{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
-		{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
-		{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
-		{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
+		//{ 13, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト ガラス
+		//{ 14, L"asset\\texture\\uiLightLoopBigConcrete_v1.png"},	// エフェクト コンクリート
+		//{ 15, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 植物
+		//{ 16, L"asset\\texture\\uiLightLoopBigGlass_v1.png"},		// エフェクト 電気
 	};
 
 	for (const auto& e : texList)

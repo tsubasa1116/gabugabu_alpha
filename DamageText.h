@@ -7,6 +7,7 @@
 
 enum TextColor;
 
+
 bool DamageText_Initialize();
 void DamageText_Finalize();
 void DamageText_Update();

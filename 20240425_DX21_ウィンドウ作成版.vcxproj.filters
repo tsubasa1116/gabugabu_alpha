@@ -55,6 +55,8 @@
     <ClCompile Include="Title.cpp" />
     <ClCompile Include="DamageText.cpp" />
     <ClCompile Include="swipe.cpp" />
+    <ClCompile Include="VideoTexture.cpp" />
+    <ClCompile Include="LoadingScreen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attack.h" />
@@ -104,6 +106,8 @@
     <ClInclude Include="Title.h" />
     <ClInclude Include="DamageText.h" />
     <ClInclude Include="swipe.h" />
+    <ClInclude Include="VideoTexture.h" />
+    <ClInclude Include="LoadingScreen.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />

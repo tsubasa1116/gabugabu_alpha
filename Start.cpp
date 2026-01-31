@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <cmath>
+#include "LoadingScreen.h"
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
 static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
@@ -99,8 +100,14 @@ void Start_Update()
 	//キー入力チェック
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
-		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_GAME);
+		// キー入力チェック（ロード中は受け付けない）
+		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
+		{
+			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
+
+			// ロード画面付きフェードでゲームシーンへ遷移
+			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\road.mp4");
+		}
 	}
 }
 
