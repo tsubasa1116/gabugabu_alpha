@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include "shader.h"
@@ -8,84 +8,85 @@
 using namespace DirectX;
 
 //=========================================
-// å»ºç‰©ã®ç¨®é¡
+// Œš•¨‚Ìí—Ş
 //=========================================
 enum class BuildingType {
-	None,		// æœªè¨­å®š
-	Glass,		// ã‚¬ãƒ©ã‚¹å»ºç‰©
-	Concrete,	// ã‚³ãƒ³ã‚¯ãƒªå»ºç‰©
-	Plant,		// æ¤ç‰©å»ºç‰©
-	Electricity,// é›»æ°—å»ºç‰©
+	None,		// –¢İ’è
+	Glass,		// ƒKƒ‰ƒXŒš•¨
+	Concrete,	// ƒRƒ“ƒNƒŠŒš•¨
+	Plant,		// A•¨Œš•¨
+	Electricity,// “d‹CŒš•¨
 	Max
 };
 
 //=========================================
-// å»ºç‰©ã®çŠ¶æ…‹ï¼ˆå°†æ¥æ‹¡å¼µç”¨ï¼‰
+// Œš•¨‚Ìó‘Ôi«—ˆŠg’£—pj
 //=========================================
 enum class BuildingPhase
 {
-	New,        // æ–°å“
-	Damaged,    // ç ´æ
-	Broken      // ç ´å£Š
+	New,        // V•i
+	Damaged,    // ”j‘¹
+	Broken      // ”j‰ó
 };
 
 //=========================================
-// Building ã‚¯ãƒ©ã‚¹
+// Building ƒNƒ‰ƒX
 //=========================================
 class Building
 {
 private:
-	// ãƒ¢ãƒ‡ãƒ«ï¼†ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ç•ªå·
-	// ï¼ˆåŒã˜ç•ªå·ã§ä¸¡æ–¹ã‚’ç®¡ç†ï¼‰
+	// ƒ‚ƒfƒ‹•ƒeƒNƒXƒ`ƒƒ‚Ì”Ô†
+	// i“¯‚¶”Ô†‚Å—¼•û‚ğŠÇ—j
 	int m_ModelIndex;
 
-	// ç¨®é¡ãƒ»ãƒ•ã‚§ãƒ¼ã‚ºã«å¿œã˜ã¦
-	// ãƒ¢ãƒ‡ãƒ«ã¨ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’èª­ã¿è¾¼ã‚€
+	// í—ŞEƒtƒF[ƒY‚É‰‚¶‚Ä
+	// ƒ‚ƒfƒ‹‚ÆƒeƒNƒXƒ`ƒƒ‚ğ“Ç‚İ‚Ş
 	void LoadModelForPhase();
 
 public:
-	// ãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ 
+
+	// ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€
 	XMFLOAT3 position;
 	XMFLOAT3 rotation;
 	XMFLOAT3 scaling;
 
-	// ç¨®é¡ãƒ»çŠ¶æ…‹
+	// í—ŞEó‘Ô
 	BuildingType  Type;
 	BuildingPhase Phase;
 
-	// å½“ãŸã‚Šåˆ¤å®šï¼ˆæœªä½¿ç”¨ï¼‰
+	// “–‚½‚è”»’èi–¢g—pj
 	AABB boundingBox;
 
-	// ãƒ¢ãƒ‡ãƒ«
+	// ƒ‚ƒfƒ‹
 	MODEL* m_Model;
 
-	// æœ‰åŠ¹ãƒ•ãƒ©ã‚°
+	// —LŒøƒtƒ‰ƒO
 	bool isActive;
 
 	//=================================
-	// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
 	//=================================
 	Building(BuildingType type, XMFLOAT3 pos, int modelIndex = 0);
 
-	// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+	// ƒfƒXƒgƒ‰ƒNƒ^
 	~Building();
 
-	// æ›´æ–°
+	// XV
 	void Update();
 
-	// æç”»
+	// •`‰æ
 	void Draw(bool s_IsKonamiCodeEntered);
 
-	// çŠ¶æ…‹å¤‰æ›´
+	// ó‘Ô•ÏX
 	void SetPhase(BuildingPhase phase);
 
-	// ã‚²ãƒƒã‚¿ãƒ¼
+	// ƒQƒbƒ^[
 	BuildingType  GetType()  const { return Type; }
 	BuildingPhase GetPhase() const { return Phase; }
 };
 
 //=========================================
-// Building ç®¡ç†ç”¨é–¢æ•°
+// Building ŠÇ——pŠÖ”
 //=========================================
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Building_Finalize();
