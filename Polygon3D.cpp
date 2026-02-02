@@ -514,7 +514,7 @@ void Polygon3D_Update()
 		ImGui::Text("Player %d", p + 1);
 		ImGui::Indent();
 
-		ImGui::SliderFloat("poisonTimer", &object[p].poisonTimer, 0.0f, 3.0f);
+		ImGui::SliderFloat("poisonTimer", &object[p].poisonTimer, 0.0f, 5.0f);
 		ImGui::BulletText("isPoisoned        : %d", object[p].isPoisoned);
 		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
 		ImGui::BulletText("EvolutionGauge    : %.1f", object[p].evolutionGauge);
@@ -708,10 +708,13 @@ void Polygon3D_Update()
 
 			// 発動トリガー入力をチェックしてスペシャル使用フラグを立てる
 			if (object[p].form == Form::Third && Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
+			
+			// ボタン入力をチェックしてスペシャル使用フラグを立てる
+			if (object[p].form == Form::Third && g_Input[p].ZR)	object[p].useSpecial = true;
 
 			// フラグが立ったら更新処理を呼び出す
-			if (object[p].useSkill)		Skill_Update(p);								// スキル
 			if (object[p].isAttacking)	Attack_Update(p);	AttackPlayerCollisions();	// 攻撃
+			if (object[p].useSkill)		Skill_Update(p);								// スキル
 			if (object[p].useSpecial)	Special_Update(p);								// スペシャル
 
 			// 現在のプレイヤー p の移動ベクトルだけをリセット
