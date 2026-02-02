@@ -485,7 +485,8 @@ void Special_Concrete_Update(int playerIndex)
 	else if (player.specialTimer > 0.75f && player.specialTimer <= 1.5f)
 	{
 		// 着地処理
-		player.position = player.oldPosition;
+		player.position.y = player.oldPosition.y + (3.0f * (1.0f - (player.specialTimer - 0.75f) / 0.15f)); // 線形補間でY座標を上げる
+		if (player.position.y <= player.oldPosition.y)	player.position.y = player.oldPosition.y;
 
 		// ダメージ処理（1回だけ実行）
 		if (player.specialTimer - DELTA_TIME < 0.75f) // 0.75秒を超えた瞬間に実行
