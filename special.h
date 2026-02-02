@@ -13,7 +13,7 @@
 
 #define SPECIAL_GLASS_DAMAGE		(50.0f)	// ミサイル 1個あたりのダメージ量
 #define SPECIAL_CONCRETE_DAMAGE		(75.0f)	// 判定1回のみ
-#define SPECIAL_PLANT_DAMAGE		(0.25f)	// スリップダメージ
+#define SPECIAL_PLANT_DAMAGE		(0.1f)	// スリップダメージ
 #define SPECIAL_ELECTRICITY_DAMAGE	(40.0f)	// 雷 1個あたりのダメージ量
 
 #define SPECIAL_GLASSBOX_QUANTITY		(3)	// ガラス 1プレイヤーに飛ばす箱の数

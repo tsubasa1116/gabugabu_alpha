@@ -186,6 +186,8 @@ void Effect_Draw()
 	Shader_Begin();
 	Shader_BeginUI();
 
+	Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
+
 	SetBlendState(BLENDSTATE_ALPHA);
 
 	for (int i = 0; i < EFFECT_MAX; ++i)

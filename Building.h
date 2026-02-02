@@ -24,9 +24,9 @@ enum class BuildingType {
 //=========================================
 enum class BuildingPhase
 {
-	New,        // V•i
-	Damaged,    // ”j‘¹
-	Broken      // ”j‰ó
+	New,		// V•i
+	Damaged,	// ”j‘¹
+	Broken		// ”j‰ó
 };
 
 //=========================================

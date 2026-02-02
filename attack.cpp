@@ -719,69 +719,71 @@ void AttackPlayerCollisions()
 		{
 			if (def == atk) continue; // 自分には当たらない
 
-			PLAYEROBJECT* defender = GetPlayer(def);
-			if (defender == nullptr) continue;
-			if (!defender->active) continue;
-			// 被弾中や無敵ならスキップ
-			if (defender->isInvincible) continue;
+			PLAYEROBJECT* defenderObject = GetPlayer(def);
+			if (defenderObject == nullptr) continue;
+			PLAYEROBJECT& defender = *defenderObject;
 
-			// --- defender の向きから短辺/長辺を決める（Polygon3D と同様） ---
-			float radDef = XMConvertToRadians(defender->rotation.y);
+			if (!defender.active) continue;
+			// 被弾中や無敵ならスキップ
+			if (defender.isInvincible) continue;
+
+			// defender の向きから短辺/長辺を決める
+			float radDef = XMConvertToRadians(defender.rotation.y);
 			float defFacingX = sinf(radDef);
 			float defFacingZ = cosf(radDef);
 			bool defFacingZDominant = fabsf(defFacingZ) >= fabsf(defFacingX);
 
-			float widthScale  = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
-			float depthScale  = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
+			float widthScale = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;		// X方向スケール
+			float depthScale = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
 
 			// 第2形態 第3形態はXとZ同じにする
-			if (defender->form == Form::Second || defender->form == Form::Third)
+			if (defender.form == Form::Second || defender.form == Form::Third)
 			{
-				widthScale = 0.25f;
-				depthScale = 0.25f;
+				widthScale = 0.3f;
+				depthScale = 0.3f;
 			}
 
 			// defender 用のヒットボックススケールを計算して AABB を作る
 			XMFLOAT3 defenderHitboxScaling =
 			{
-				defender->scaling.x * RENDER_SCALE * widthScale,
-				defender->scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
-				defender->scaling.z * RENDER_SCALE * depthScale
+				defender.scaling.x * RENDER_SCALE * widthScale,
+				defender.scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
+				defender.scaling.z * RENDER_SCALE * depthScale
 			};
-			CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+			CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);
 
 			// 判定（defender AABB と 攻撃オブジェクト AABB）
-			MTV col = CalculateAABBMTV(defender->boundingBox, attackObject.boundingBox);
+			MTV col = CalculateAABBMTV(defender.boundingBox, attackObject.boundingBox);
 
 			if (col.isColliding)
 			{
 				// ノックバック（攻撃者の向きと攻撃力を使用）
-				defender->position.x += attacker.dir.x * attacker.power;
-				// defender->position.y += attacker->power / 3.0f;
-				defender->position.z += attacker.dir.z * attacker.power;
+				defender.position.x += attacker.dir.x * attacker.power;
+				defender.position.y += attacker.power;
+				defender.position.z += attacker.dir.z * attacker.power;
 
 				// ダメージ用変数
-				float rawDamage = attacker.attack * defender->defense;
+				float rawDamage = attacker.attack * defender.defense;
 
 				// ダメージ（防御で軽減）
-				defender->hp -= rawDamage;
-				if (defender->hp < 0.0f) defender->hp = 0.0f;
+				defender.hp -= rawDamage;
+				if (defender.hp < 0.0f) defender.hp = 0.0f;
 
 				// スタンゲージ増加
-				defender->stunGauge += 0.5f;
+				defender.stunGauge += 0.5f;
 
 				// ダメージ数字を表示（頭上にオフセット）
 				int dmgInt = static_cast<int>(rawDamage + 0.5f);
-				XMFLOAT3 hitPos = defender->position;
-				hitPos.y += defender->scaling.y + 0.3f;
+				XMFLOAT3 hitPos = defender.position;
+				hitPos.y += defender.scaling.y + 0.3f;
 				SetDamageText(hitPos, dmgInt, TextColor::Blue);
 
 				// ダメージフラグ・タイマー（アニメ／UI 用）
-				defender->isAttacked = true;
-				defender->attackedTimer = 0.0f;
+				defender.isAttacked = true;
+				defender.attackedTimer = 0.0f;
 
 				// 再計算
-				CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+				CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);
 				CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
 			}
 		}

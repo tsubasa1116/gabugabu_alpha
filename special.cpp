@@ -260,7 +260,7 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[3]);
 	assert(g_Special_Texture[3]);
 	// ガラスミサイル
-	LoadFromWICFile(L"Asset\\Texture\\TileA3.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\ice.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[4]);
 	assert(g_Special_Texture[4]);
 
@@ -495,7 +495,8 @@ void Special_Concrete_Update(int playerIndex)
 	else if (player.specialTimer > 0.75f && player.specialTimer <= 1.5f)
 	{
 		// 着地処理
-		player.position = player.oldPosition;
+		player.position.y = player.oldPosition.y + (3.0f * (1.0f - (player.specialTimer - 0.75f) / 0.15f)); // 線形補間でY座標を上げる
+		if (player.position.y <= player.oldPosition.y)	player.position.y = player.oldPosition.y;
 
 		// ダメージ処理（1回だけ実行）
 		if (player.specialTimer - DELTA_TIME < 0.75f) // 0.75秒を超えた瞬間に実行
@@ -580,6 +581,9 @@ void Special_Plant_Update(int playerIndex)
 		// 円とAABBの衝突判定
 		if (CheckCircleAABBCollision(circle, otherPlayer.boundingBox))
 		{
+			otherPlayer.isPoisoned = true;	// 毒状態にする
+			otherPlayer.poisonTimer = POISON_TIME;
+
 			// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
 			otherPlayer.hp -= SPECIAL_PLANT_DAMAGE * otherPlayer.defense;
 
@@ -748,8 +752,17 @@ void Special_Glass_Draw(int playerIndex)
 		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 		Shader_SetMatrix(WVP);
 
+		// 箱のテクスチャを設定
+		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[4]);
+
+		// 明るさを強調するためにカラーを設定 (RGB値を2倍に設定)
+		Shader_SetColor(XMFLOAT4(2.0f, 2.0f, 2.0f, 1.0f)); // 明るさを強調
+
 		// 描画実行
 		g_pContext->DrawIndexed(6 * 6, 0, 0);
+
+		// 描画後にカラーをリセット
+		Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)); // デフォルトの明るさに戻す
 	}
 
 	// 攻撃範囲の描画
@@ -765,6 +778,9 @@ void Special_Glass_Draw(int playerIndex)
 
 		XMMATRIX rangeWVP = rangeWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 		Shader_SetMatrix(rangeWVP);
+
+		// 範囲のテクスチャを設定
+		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[playerIndex]);
 
 		// アルファブレンディングを有効化
 		SetBlendState(BLENDSTATE_ALPHA);
