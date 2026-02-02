@@ -3,7 +3,6 @@
 #include <DirectXMath.h>
 #include <d3d11.h>
 using namespace DirectX;
-
 #include "attack.h"
 #include "sprite.h"
 #include "shader.h"
@@ -287,7 +286,7 @@ void Attack_Finalize()
 
 void Attack_Update(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -347,7 +346,7 @@ void Attack_Update(int playerIndex)
 		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
 		MTV collision = CalculateAABBMTV(atttackObject.boundingBox, pStaticObjectAABB);
 
-		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V,};
+		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V, KK_SPACE };
 
 		// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
 		if (collision.isColliding)
@@ -362,7 +361,7 @@ void Attack_Update(int playerIndex)
 				case BuildingType::Glass:
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Glass += 1;						// ガラスを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -378,7 +377,7 @@ void Attack_Update(int playerIndex)
 				case BuildingType::Concrete:
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Concrete += 1;					// コンクリートを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -394,7 +393,7 @@ void Attack_Update(int playerIndex)
 				case BuildingType::Plant:					
 					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Plant += 1;						// 植物を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate * 10;	// 進化ゲージをプラス
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
 					// 効果音やエフェクトを再生
@@ -427,8 +426,6 @@ void Attack_Update(int playerIndex)
 					break;
 				}
 			}
-
-
 
 			// 衝突していたら、MTVの分だけ位置を戻す
 			atttackObject.position.x += collision.translation.x;
@@ -526,11 +523,14 @@ void Attack_Update(int playerIndex)
 			// --- Step 3: 最終タイプ反映 ---
 			switch (maxIdx)
 			{
-			case 0: playerObject->type = PlayerType::Glass;			break;
-			case 1: playerObject->type = PlayerType::Concrete;		break;
-			case 2: playerObject->type = PlayerType::Plant;			break;
-			case 3: playerObject->type = PlayerType::Electricity;	break;
+			case 0: player.type = PlayerType::Glass;		break;
+			case 1: player.type = PlayerType::Concrete;		break;
+			case 2: player.type = PlayerType::Plant;		break;
+			case 3: player.type = PlayerType::Electricity;	break;
 			}
+
+			// タイプが固定されたフラグを立てる
+			player.isTypeFixed = true;
 		}
 
 		// 4. リセット処理 (毎回実行)
@@ -546,26 +546,26 @@ void Attack_Update(int playerIndex)
 		}*/
 
 		// 第3形態に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
-		if (playerObject->form == Form::Third && currentForm != Form::Third)
+		if (player.form == Form::Third && currentForm != Form::Third)
 		{
 			// プレイヤーごとの画面上のエフェクト位置
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
 			{
-				{ 160.0f, 620.0f }, // プレイヤー1
-				{ 470.0f, 620.0f }, // プレイヤー2
-				{ 780.0f, 620.0f }, // プレイヤー3
-				{ 1090.0f, 620.0f }  // プレイヤー4
+				{ 175.0f, 620.0f }, // プレイヤー1
+				{ 490.0f, 620.0f }, // プレイヤー2
+				{ 805.0f, 620.0f }, // プレイヤー3
+				{ 1120.0f, 620.0f }  // プレイヤー4
 			};
 
 			// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）
 			int effectTexNo = 0; // デフォルト
-			switch (playerObject->type)
+			switch (player.type)
 			{
-			case PlayerType::Glass:		effectTexNo = 0; break;
-			case PlayerType::Concrete:	effectTexNo = 1; break;
-			case PlayerType::Plant:		effectTexNo = 2; break;
+			case PlayerType::Glass:			effectTexNo = 0; break;
+			case PlayerType::Concrete:		effectTexNo = 1; break;
+			case PlayerType::Plant:			effectTexNo = 2; break;
 			case PlayerType::Electricity:	effectTexNo = 3; break;
-			default:					effectTexNo = 0; break;
+			default:						effectTexNo = 0; break;
 			}
 
 			// プレイヤー番号は playerIndex（0ベース）
@@ -584,10 +584,9 @@ void Attack_Update(int playerIndex)
 	}
 }
 
-
 void Attack_Draw(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	// 参照を取る
@@ -641,8 +640,8 @@ void Attack_Draw(int playerIndex)
 	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
 	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
 	// 拡散光と環境光
-	light.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	light.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 	Shader_SetLight(light);
 
 	// シェーダーを描画パイプラインへ設定
@@ -720,69 +719,71 @@ void AttackPlayerCollisions()
 		{
 			if (def == atk) continue; // 自分には当たらない
 
-			PLAYEROBJECT* defender = GetPlayer(def);
-			if (defender == nullptr) continue;
-			if (!defender->active) continue;
-			// 被弾中や無敵ならスキップ
-			if (defender->isInvincible) continue;
+			PLAYEROBJECT* defenderObject = GetPlayer(def);
+			if (defenderObject == nullptr) continue;
+			PLAYEROBJECT& defender = *defenderObject;
 
-			// --- defender の向きから短辺/長辺を決める（Polygon3D と同様） ---
-			float radDef = XMConvertToRadians(defender->rotation.y);
+			if (!defender.active) continue;
+			// 被弾中や無敵ならスキップ
+			if (defender.isInvincible) continue;
+
+			// defender の向きから短辺/長辺を決める
+			float radDef = XMConvertToRadians(defender.rotation.y);
 			float defFacingX = sinf(radDef);
 			float defFacingZ = cosf(radDef);
 			bool defFacingZDominant = fabsf(defFacingZ) >= fabsf(defFacingX);
 
-			float widthScale  = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
-			float depthScale  = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
+			float widthScale = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;		// X方向スケール
+			float depthScale = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
 
 			// 第2形態 第3形態はXとZ同じにする
-			if (defender->form == Form::Second || defender->form == Form::Third)
+			if (defender.form == Form::Second || defender.form == Form::Third)
 			{
-				widthScale = 0.25f;
-				depthScale = 0.25f;
+				widthScale = 0.3f;
+				depthScale = 0.3f;
 			}
 
 			// defender 用のヒットボックススケールを計算して AABB を作る
 			XMFLOAT3 defenderHitboxScaling =
 			{
-				defender->scaling.x * RENDER_SCALE * widthScale,
-				defender->scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
-				defender->scaling.z * RENDER_SCALE * depthScale
+				defender.scaling.x * RENDER_SCALE * widthScale,
+				defender.scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
+				defender.scaling.z * RENDER_SCALE * depthScale
 			};
-			CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+			CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);
 
 			// 判定（defender AABB と 攻撃オブジェクト AABB）
-			MTV col = CalculateAABBMTV(defender->boundingBox, attackObject.boundingBox);
+			MTV col = CalculateAABBMTV(defender.boundingBox, attackObject.boundingBox);
 
 			if (col.isColliding)
 			{
 				// ノックバック（攻撃者の向きと攻撃力を使用）
-				defender->position.x += attacker.dir.x * attacker.power;
-				// defender->position.y += attacker->power / 3.0f;
-				defender->position.z += attacker.dir.z * attacker.power;
+				defender.position.x += attacker.dir.x * attacker.power;
+				defender.position.y += attacker.power;
+				defender.position.z += attacker.dir.z * attacker.power;
 
 				// ダメージ用変数
-				float rawDamage = attacker.attack * defender->defense;
+				float rawDamage = attacker.attack * defender.defense;
 
 				// ダメージ（防御で軽減）
-				defender->hp -= rawDamage;
-				if (defender->hp < 0.0f) defender->hp = 0.0f;
+				defender.hp -= rawDamage;
+				if (defender.hp < 0.0f) defender.hp = 0.0f;
 
 				// スタンゲージ増加
-				defender->stunGauge += 2.0f;
+				defender.stunGauge += 0.5f;
 
 				// ダメージ数字を表示（頭上にオフセット）
 				int dmgInt = static_cast<int>(rawDamage + 0.5f);
-				XMFLOAT3 hitPos = defender->position;
-				hitPos.y += defender->scaling.y + 0.3f;
+				XMFLOAT3 hitPos = defender.position;
+				hitPos.y += defender.scaling.y + 0.3f;
 				SetDamageText(hitPos, dmgInt, TextColor::Blue);
 
 				// ダメージフラグ・タイマー（アニメ／UI 用）
-				defender->isAttacked = true;
-				defender->attackedTimer = 0.0f;
+				defender.isAttacked = true;
+				defender.attackedTimer = 0.0f;
 
 				// 再計算
-				CalculateAABB(defender->boundingBox, defender->position, defenderHitboxScaling);
+				CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);
 				CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
 			}
 		}

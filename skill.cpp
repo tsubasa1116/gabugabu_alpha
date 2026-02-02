@@ -1,9 +1,8 @@
 ﻿// skill.cpp
 
-#include "DirectXMath.h"
-#include "d3d11.h"
+#include <DirectXMath.h>
+#include <d3d11.h>
 using namespace DirectX;
-
 #include "skill.h"
 #include "sprite.h"
 #include "shader.h"
@@ -355,7 +354,7 @@ void Skill_Finalize()
 
 void Skill_Glass_Update(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -369,6 +368,9 @@ void Skill_Glass_Update(int playerIndex)
 		player.skillTimer = 0.0f;
 		return;
 	}
+
+	// スキルタイマー更新
+	player.skillTimer += DELTA_TIME;
 
 	// ここで Radius の値を動的に計算する
 	float dynamicRadius = player.scaling.x; // scalingは等しいのでy,zでも可
@@ -456,7 +458,7 @@ void Skill_Glass_Update(int playerIndex)
 			if (col.isColliding)
 			{
 				// ダメージのみ（ノックバックは与えない） 防御率でダメージ軽減
-				otherPlayer.hp -= 0.01f * otherPlayer.defense;
+				otherPlayer.hp -= 0.1f * otherPlayer.defense;
 				// HPが0以下にならないように
 				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
 
@@ -465,9 +467,6 @@ void Skill_Glass_Update(int playerIndex)
 			}
 		}
 	}
-
-	// スキルタイマー更新
-	player.skillTimer += DELTA_TIME;
 
 	// スキルの効果時間が経過したらスキル終了
 	if (player.skillTimer >= SKILL_GLASS_TIME)
@@ -480,7 +479,7 @@ void Skill_Glass_Update(int playerIndex)
 
 void Skill_Concrete_Update(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -503,14 +502,6 @@ void Skill_Concrete_Update(int playerIndex)
 	// スキル効果： ダメージ0.8倍 (デフォルトは1.0f)
 	player.defense = 0.8f;
 
-	// スキルの初期位置をプレイヤーの位置に設定
-	skillConcrete.position.x = player.position.x;
-	skillConcrete.position.y = player.position.y;
-	skillConcrete.position.z = player.position.z;
-
-	// スキルタイマー更新
-	player.skillTimer += DELTA_TIME;
-
 	// スキルの効果時間が経過したらスキル終了
 	if (player.skillTimer >= SKILL_CONCRETE_TIME)
 	{
@@ -523,7 +514,7 @@ void Skill_Concrete_Update(int playerIndex)
 
 void Skill_Plant_Update(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -542,12 +533,12 @@ void Skill_Plant_Update(int playerIndex)
 	player.skillTimer += DELTA_TIME;
 
 	// スキル効果：進化ゲージ2倍（デフォルトは1）
-	player.evolutionGaugeRate = 2;
+	player.evolutionGaugeRate = 2.0f;
 
 	// スキルの効果時間が経過したらスキル終了
 	if (player.skillTimer >= SKILL_PLANT_TIME)
 	{
-		player.evolutionGaugeRate = 1;
+		player.evolutionGaugeRate = 1.0f;
 		player.useSkill = false;
 		player.skillTimer = 0.0f;
 		player.skillCoolTimer = SKILL_PLANT_COOLTIME;
@@ -571,9 +562,9 @@ void Skill_Electricity_Update(int playerIndex)
 		return;
 	}
 
-	float baseSpeed = 0.06f; // Normal
-	if (player.form == Form::Second) baseSpeed = 0.05f;
-	else if (player.form == Form::Third) baseSpeed = 0.04f;
+	float baseSpeed = 0.06f;								// 第1形態
+	if (player.form == Form::Second) baseSpeed = 0.05f;		// 第2形態
+	else if (player.form == Form::Third) baseSpeed = 0.04f;	// 第3形態
 
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;
@@ -593,7 +584,7 @@ void Skill_Electricity_Update(int playerIndex)
 
 void Skill_Update(int playerIndex)
 {
-	// 範囲チェック
+	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -605,9 +596,9 @@ void Skill_Update(int playerIndex)
 	{
 		switch (player.type)
 		{
-		case PlayerType::Glass:		Skill_Glass_Update(playerIndex);	break;
-		case PlayerType::Concrete:	Skill_Concrete_Update(playerIndex);	break;
-		case PlayerType::Plant:		Skill_Plant_Update(playerIndex);	break;
+		case PlayerType::Glass:			Skill_Glass_Update(playerIndex);	break;
+		case PlayerType::Concrete:		Skill_Concrete_Update(playerIndex);	break;
+		case PlayerType::Plant:			Skill_Plant_Update(playerIndex);	break;
 		case PlayerType::Electricity:	Skill_Electricity_Update(playerIndex);	break;
 		default: break;
 		}
@@ -710,67 +701,66 @@ void Skill_Electricity_Draw(int playerIndex)
 
 }
 
-void Skill_Draw()
+void Skill_Draw(int playerIndex)
 {
-	// ライトを設定（Polygon3D::Draw と同様のライト）
-	LIGHT light{};
-	light.Enable = TRUE;
-	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-	light.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	light.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
-	Shader_SetLight(light);
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	// 1. 共通設定 (パイプラインステートの設定)
-	//    これを親で一度だけやることで処理落ちを防ぐ
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
 
-	// シェーダー開始
-	Shader_Begin();
+	// そのプレイヤーがスキルを使っているかチェック
+	if (!player.useSkill) return;
 
-	// ブレンドステート
-	SetBlendState(BLENDSTATE_NONE); // または BLENDSTATE_ALPHA
-	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-
-	// 頂点バッファ・インデックスバッファのセット
-	UINT stride = sizeof(Vertex2);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	// 頂点データ書き込み
-	D3D11_MAPPED_SUBRESOURCE msr;
-	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	Vertex2* vertex = (Vertex2*)msr.pData;
-	CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
-	g_pContext->Unmap(g_VertexBuffer, 0);
-
-	// 2. プレイヤーごとの振り分け処理
-	for (int p = 0; p < PLAYER_MAX; ++p)
+	// プレイヤーがスタンしていない場合のみ描画
+	if (player.isStunning == false)
 	{
-		PLAYEROBJECT* playerObject = GetPlayer(p);
-		if (playerObject == nullptr) continue;
-		PLAYEROBJECT& player = *playerObject;
+		// ライトを設定
+		LIGHT light{};
+		light.Enable = TRUE;
+		light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+		light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+		light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+		Shader_SetLight(light);
 
-		// そのプレイヤーがスキルを使っているかチェック
-		if (!player.useSkill) continue;
+		// 1. 共通設定 (パイプラインステートの設定)
+		//    これを親で一度だけやることで処理落ちを防ぐ
 
-		// プレイヤーがスタンしていない場合のみ描画
-		if (player.isStunning == false)
+		// シェーダー開始
+		Shader_Begin();
+
+		// ブレンドステート
+		SetBlendState(BLENDSTATE_NONE); // または BLENDSTATE_ALPHA
+		Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+		// 頂点バッファ・インデックスバッファのセット
+		UINT stride = sizeof(Vertex2);
+		UINT offset = 0;
+		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		// 頂点データ書き込み
+		D3D11_MAPPED_SUBRESOURCE msr;
+		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		Vertex2* vertex = (Vertex2*)msr.pData;
+		CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+		g_pContext->Unmap(g_VertexBuffer, 0);
+
+		// プレイヤーのタイプに合わせて子関数を呼ぶ
+		switch (player.type)
 		{
-			// プレイヤーのタイプに合わせて子関数を呼ぶ
-			switch (player.type)
-			{
-		case PlayerType::Glass:		Skill_Glass_Draw(p);	break;
-		case PlayerType::Concrete:	Skill_Concrete_Draw(p);	break;
-		case PlayerType::Plant:		Skill_Plant_Draw(p);		break;
-		case PlayerType::Electricity:	Skill_Electricity_Draw(p);	break;
+		case PlayerType::Glass:			Skill_Glass_Draw(playerIndex);			break;
+		case PlayerType::Concrete:		Skill_Concrete_Draw(playerIndex);		break;
+		case PlayerType::Plant:			Skill_Plant_Draw(playerIndex);			break;
+		case PlayerType::Electricity:	Skill_Electricity_Draw(playerIndex);	break;
 		default: break;
-			}
 		}
-	}
 
-	// 3. 後始末
-	SetBlendState(BLENDSTATE_ALPHA);
+		// 3. 後始末
+		SetBlendState(BLENDSTATE_ALPHA);
+	}
 }
 
 SKILL_OBJECT* GetSkill(int playerIndex)

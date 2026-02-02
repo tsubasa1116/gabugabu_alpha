@@ -4,20 +4,22 @@
 
 #include <vector>
 #include <d3d11.h>
-#include "collider.h" // AABB を使うためにインクルード
-#include "Building.h" 
+#include "collider.h"
+#include "Building.h"
+#include "special.h"
 
 // マクロ定義
 #define	PLAYER_MAX				(4)	// プレイヤー最大数
 #define	DELTA_TIME	 (1.0f / 60.0f)	// デルタタイム（秒）
 
 #define	EVOLUTIONGAUGE_MAX	(1.0f)	// 進化ゲージ最大値
-#define	ATTACKING_TIME		(0.5f)	// 攻撃持続時間（秒）
+#define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間（秒）
 #define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間（秒）
 #define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間（秒）
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間（秒）
 #define	DOWN_TIME			(3.0f)	// ダウン持続時間（秒）
+#define	POISON_TIME			(5.0f)	// 毒持続時間（秒）
 
 enum class PlayerDir
 {
@@ -53,6 +55,7 @@ enum class PlayerType
 struct PLAYEROBJECT
 {
 	XMFLOAT3 position;		// 座標
+	XMFLOAT3 oldPosition;	// 過去の座標
 	XMFLOAT3 rotation;		// 回転角度
 	XMFLOAT3 scaling;		// 拡大率
 	AABB boundingBox;		// 当たり判定
@@ -90,6 +93,9 @@ struct PLAYEROBJECT
 	bool isDown;			// ダウン中かどうか
 	float downTimer;		// ダウンタイマー
 
+	bool isPoisoned;		// 毒状態かどうか
+	float poisonTimer;		// 毒タイマー
+
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	PlayerDir lastDir;							// 待機時の向き
@@ -97,6 +103,7 @@ struct PLAYEROBJECT
 
 	Form form;								// 変身形態
 	PlayerType type;						// プレイヤーの属性タイプ
+	bool isTypeFixed = false;				// 進化タイプが固定されたかどうか
 	float evolutionGauge;					// 進化ゲージ
 	float evolutionGaugeRate;				// 進化ゲージ 倍率
 	int breakCount_Glass;					// 破壊した数 ガラス
@@ -109,8 +116,11 @@ struct PLAYEROBJECT
 	bool is_knocked_back = false;						// 吹き飛ばし中かどうか
 	float knockback_duration = 0.0f;					// 吹き飛ばしの残り時間（フレーム数
 
-	XMFLOAT2 screenPos;     // テキスト描画用スクリーン座標
+	XMFLOAT2 screenPos;	// テキスト描画用スクリーン座標
 	bool isOnScreen;
+
+	Circle electricityCircles[SPECIAL_ELECTRICITY_QUANTITY]; // スペシャル 電気の円
+	std::vector<GLASS_BOX> glassBoxes; // スペシャル ガラスのミサイルリスト
 };
 
 void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -119,7 +129,6 @@ void Polygon3D_Finalize();
 void Polygon3D_Update();
 void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
 void Polygon3D_DrawHP();
-void Polygon3D_DrawEffect();
 
 // アニメーション関数
 static inline void LoopRange(int& animFrame, int start, int count, int advance = 1);

@@ -1,7 +1,5 @@
 ﻿//======================================================
-//	Manager.cpp[]
-// 
-//	制作者：田中佑奈			日付：2024//
+//	Manager.cpp
 //======================================================
 #include "direct3d.h"
 #include "Manager.h"
@@ -15,45 +13,45 @@
 #include "fade.h"
 #include "swipe.h"
 #include "shader.h"
+#include "LoadingScreen.h"  // 追加
 
 //グローバル変数
-static SCENE g_Scene = SCENE_NONE;		//現在のシーン番号
-static bool g_InitSettingOnce = false;	//最初だけ初期化したか
-static bool g_InitSoundOnce = false;	//最初だけ初期化したか
+static SCENE g_Scene = SCENE_NONE;
+static bool g_InitSettingOnce = false;
+static bool g_InitSoundOnce = false;
 
 void Manager_Initialize()
 {
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+	LoadingScreen_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());  // 追加
 
-	////本来はtitleの初期化でフェードインをセットする
-	//XMFLOAT4 color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	//SetFade(60.0f, color, FADE_STATE::FADE_IN, SCENE_GAME);
-	//SetScene(SCENE_GAME);	//最初に動かすシーンに切り替える
-
-
-	//本来の形
-	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
-	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 #ifdef _DEBUG
-	SetScene(SCENE_GAME);	//debug用に最初からゲームシーンへ
+	//SetScene(SCENE_TITLE);
+	SetScene(SCENE_GAME);
 #else
-	SetScene(SCENE_TITLE);	//最初に動かすシーンに切り替える
+	SetScene(SCENE_TITLE);
 #endif
-
-
 }
 
-void	Manager_Finalize()
+void Manager_Finalize()
 {
+	LoadingScreen_Finalize();  // 追加
 	Fade_Finalize();
 	Swipe_Finalize();
 	SetScene(SCENE_NONE);
 }
 
-void	Manager_Update()
+void Manager_Update()
 {
-	switch (g_Scene)	//現在シーンのアップデート関数を呼び出す
+	// ロード中は通常のシーン更新をスキップ
+	if (IsLoading())
+	{
+		LoadingScreen_Update();
+		return;
+	}
+
+	switch (g_Scene)
 	{
 	case SCENE_NONE:
 		break;
@@ -83,9 +81,16 @@ void	Manager_Update()
 	Swipe_Update();
 }
 
-void	Manager_Draw()
+void Manager_Draw()
 {
-	switch (g_Scene)	//現在シーンの描画関数を呼び出す
+	// ロード中はロード画面のみ描画
+	if (IsLoading())
+	{
+		LoadingScreen_Draw();
+		return;
+	}
+
+	switch (g_Scene)
 	{
 	case SCENE_NONE:
 		break;
@@ -115,10 +120,10 @@ void	Manager_Draw()
 	Swipe_Draw();
 }
 
-void	SetScene(SCENE scene) //シーンを切り替える
+void SetScene(SCENE scene)
 {
-	//実行中のシーンを終了させる
-	switch (g_Scene)	//現在シーンの終了関数を呼び出す
+	// 実行中のシーンを終了する
+	switch (g_Scene)
 	{
 	case SCENE_NONE:
 		break;
@@ -129,10 +134,8 @@ void	SetScene(SCENE scene) //シーンを切り替える
 		Start_Finalize();
 		break;
 	case SCENE_SETTING:
-		//Setting_Finalize();
 		break;
 	case SCENE_SOUND:
-		//Sound_Finalize();
 		break;
 	case SCENE_GAME:
 		Game_Finalize();
@@ -144,10 +147,10 @@ void	SetScene(SCENE scene) //シーンを切り替える
 		break;
 	}
 
-	g_Scene = scene;	//指定のシーンへ切り替える
+	g_Scene = scene;
 
-	//次のシーンを初期化する
-	switch (g_Scene)	//現在シーンの初期化関数を呼び出す
+	// 次のシーンを初期化する
+	switch (g_Scene)
 	{
 	case SCENE_NONE:
 		break;
@@ -161,14 +164,14 @@ void	SetScene(SCENE scene) //シーンを切り替える
 		if (!g_InitSettingOnce)
 		{
 			Setting_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
-			g_InitSettingOnce = true;   //初回だけ true にする
+			g_InitSettingOnce = true;
 		}
 		break;
 	case SCENE_SOUND:
-		if (!g_InitSettingOnce)
+		if (!g_InitSoundOnce)
 		{
 			Sound_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
-			g_InitSoundOnce = true;   //初回だけ true にする
+			g_InitSoundOnce = true;
 		}
 		break;
 	case SCENE_GAME:
@@ -180,5 +183,4 @@ void	SetScene(SCENE scene) //シーンを切り替える
 	default:
 		break;
 	}
-
 }

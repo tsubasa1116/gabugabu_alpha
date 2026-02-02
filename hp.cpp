@@ -38,19 +38,19 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
 	assert(g_Texture[1]);//読み込み失敗時にダイアログを表示
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v4.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
 	assert(g_Texture[2]);//読み込み失敗時にダイアログを表示
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v4.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
 	assert(g_Texture[3]);//読み込み失敗時にダイアログを表示
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v4.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
 	assert(g_Texture[4]);//読み込み失敗時にダイアログを表示
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v4.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
 	assert(g_Texture[5]);//読み込み失敗時にダイアログを表示
 }
@@ -150,7 +150,7 @@ void DrawHP(const hp* bar, int texNum)
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	Shader_BeginHpber();
-	Shader_SetHpber(color::blue, color::red, 0.3f, 0.5f);
+	Shader_SetHpber(color::white, color::yellow, 0.3f, 0.5f);
 	DrawSpriteUV(fillPosOK, fillSizeOK, bar->fillColor, uvMin, uvMax);
 
 	Shader_Begin();

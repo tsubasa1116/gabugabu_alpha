@@ -5,14 +5,14 @@
 #include "shader.h"
 #include "color.h"
 
-#define EFFECT_SPLIT_X 8
-#define EFFECT_SPLIT_Y 8
-#define EFFECT_FRAME_MAX 64
-#define EFFECT_SPEED 2.5
-#define EFFECT_TEX_MAX 8
-#define EFFECT_MAX 4
+#define EFFECT_SPRITE_X		(8)
+#define EFFECT_SPRITE_Y		(8)
+#define EFFECT_FRAME_MAX	(64)
+#define EFFECT_SPEED		(2.5f)
+#define EFFECT_TEX_MAX		(16)
+#define EFFECT_MAX			(16)
 
-//グローバル変数
+// グローバル変数
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
@@ -41,9 +41,7 @@ static void Effect_LoadTexture(int i, const wchar_t* num)
 	HRESULT hr = LoadFromWICFile(num, WIC_FLAGS_NONE, &metadata, image);
 	assert(SUCCEEDED(hr));
 
-	hr = CreateShaderResourceView(g_pDevice,
-		image.GetImages(), image.GetImageCount(),
-		metadata, &g_Texture[i]);
+	hr = CreateShaderResourceView(g_pDevice,image.GetImages(), image.GetImageCount(),metadata, &g_Texture[i]);
 	assert(SUCCEEDED(hr));
 	assert(g_Texture[i]);
 }
@@ -65,10 +63,22 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		effect[i].texNo = 0;
 	}
 
-	Effect_LoadTexture(0, L"Asset\\Texture\\uiLightBigGlass_v1.png");
-	Effect_LoadTexture(1, L"Asset\\Texture\\uiLightBigConcrete_v1.png");
-	Effect_LoadTexture(2, L"Asset\\Texture\\uiLightBigTree_v1.png");
-	Effect_LoadTexture(3, L"Asset\\Texture\\uiLightBigElectricity_v1.png");
+	Effect_LoadTexture( 0, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// 第2形態 エフェクト ガラス
+	Effect_LoadTexture( 1, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// 第2形態 エフェクト コンクリート
+	Effect_LoadTexture( 2, L"Asset\\Texture\\uiLightBigTree_v1.png");			// 第2形態 エフェクト 植物
+	Effect_LoadTexture( 3, L"Asset\\Texture\\uiLightBigElectricity_v1.png");	// 第2形態 エフェクト 電気
+	Effect_LoadTexture( 4, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// 第3形態 エフェクト ガラス
+	Effect_LoadTexture( 5, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// 第3形態 エフェクト コンクリート
+	Effect_LoadTexture( 6, L"Asset\\Texture\\uiLightBigTree_v1.png");			// 第3形態 エフェクト 植物
+	Effect_LoadTexture( 7, L"Asset\\Texture\\uiLightBigElectricity_v1.png");	// 第3形態 エフェクト 電気
+	Effect_LoadTexture( 8, L"Asset\\Texture\\effectSkillGlassConcrete_v2.png");	// スキル エフェクト ガラス・コンクリート
+	Effect_LoadTexture( 9, L"Asset\\Texture\\effectSkillTree_v2.png");			// スキル エフェクト 植物
+	Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// スキル エフェクト 電気
+	Effect_LoadTexture(11, L"Asset\\Texture\\effectHit01_v2.png");				// ヒット エフェクト コンクリートの建物・プレイヤーを攻撃した時
+	Effect_LoadTexture(12, L"Asset\\Texture\\effectHit02_v2.png");				// ヒット エフェクト 電気・ガラス・植物の建物を攻撃した時
+	Effect_LoadTexture(13, L"Asset\\Texture\\effectSmoke_20per.png");			// 建物 煙エフェクト 20%破壊
+	Effect_LoadTexture(14, L"Asset\\Texture\\effectSmoke_50per.png");			// 建物 煙エフェクト 50%破壊
+	Effect_LoadTexture(15, L"Asset\\Texture\\effectWin_v1.png");				// 撃墜 エフェクト
 }
 
 //===============================================
@@ -122,6 +132,36 @@ void Effect_Update()
 			}
 		}
 	}
+	//g_EffectTimer++;
+
+	//if (g_EffectTimer >= EFFECT_SPEED)
+	//{
+	//	g_EffectTimer = 0;
+	//	g_EffectFrame++;
+
+	//	if (!g_EffectLoopFlag)
+	//	{
+	//		g_EffectTimer++;
+	//		if (g_EffectFrame > 29)
+	//		{
+	//			g_EffectLoopFlag = true;
+	//			g_EffectFrame = 32;
+	//		}
+	//		if (g_EffectFrame >= EFFECT_FRAME_MAX)
+	//		{
+	//			g_EffectFrame = 0;
+	//		}
+	//	}
+	//	else
+	//	{
+	//		// ループ
+	//		g_EffectFrame++;
+	//		if (g_EffectFrame >= 61)
+	//		{
+	//			g_EffectFrame = 32;
+	//		}
+	//	}
+	//}
 }
 
 //===============================================
@@ -133,11 +173,11 @@ void Effect_Draw()
 	ID3D11ShaderResourceView* tex = g_Texture[g_CurrentTexNo];
 	if (!tex) return;
 
-	int fx = g_EffectFrame % EFFECT_SPLIT_X;
-	int fy = g_EffectFrame / EFFECT_SPLIT_X;
+	int fx = g_EffectFrame % EFFECT_SPRITE_X;
+	int fy = g_EffectFrame / EFFECT_SPRITE_X;
 
-	float u = 1.0f / EFFECT_SPLIT_X;
-	float v = 1.0f / EFFECT_SPLIT_Y;
+	float u = 1.0f / EFFECT_SPRITE_X;
+	float v = 1.0f / EFFECT_SPRITE_Y;
 	
 	XMFLOAT2 uvMin = { fx * u, fy * v };
 	XMFLOAT2 uvMax = { uvMin.x + u, uvMin.y + v };
@@ -145,6 +185,8 @@ void Effect_Draw()
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
 	Shader_BeginUI();
+
+	Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
 
 	SetBlendState(BLENDSTATE_ALPHA);
 
@@ -184,7 +226,7 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
 		}
 	}
 
- if (slot < 0) return;
+	if (slot < 0) return;
 
 	effect[slot].enable = true;
 	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
@@ -201,10 +243,10 @@ void Effect_Clear(int pIndex)
 	// プレイヤーごとのエフェクト位置
 	const XMFLOAT2 playerEffectPos[4] =
 	{
-		{ 160.0f, 620.0f }, // プレイヤー1
-		{ 470.0f, 620.0f },  // プレイヤー2
-		{ 780.0f, 620.0f }, // プレイヤー3
-		{ 1090.0f, 620.0f }  // プレイヤー4
+		{ 175.0f, 620.0f }, // プレイヤー1
+		{ 490.0f, 620.0f },  // プレイヤー2
+		{ 805.0f, 620.0f }, // プレイヤー3
+		{ 1120.0f, 620.0f }  // プレイヤー4
 	};
 
 	if (pIndex < 0 || pIndex >= 4) return;
@@ -216,20 +258,9 @@ void Effect_Clear(int pIndex)
 		if (!effect[i].enable) continue;
 
 		// 位置が一致するエフェクトを無効化
-		if (fabsf(effect[i].pos.x - targetPos.x) < 1.0f &&
-			fabsf(effect[i].pos.y - targetPos.y) < 1.0f)
+		if (fabsf(effect[i].pos.x - targetPos.x) < 1.0f &&fabsf(effect[i].pos.y - targetPos.y) < 1.0f)
 		{
 			effect[i].enable = false;
 		}
 	}
 }
-
-//void Effect_SetMultiple(ID3D11ShaderResourceView* tex, XMFLOAT2 basePos, XMFLOAT2 size, int count, float spacingX)
-//{
-//	if (count <= 0) count = 1;
-//	g_Texture = tex;
-//	g_EffectBasePos = basePos;
-//	g_EffectSize = size;
-//	g_EffectCount = count;
-//	g_EffectSpacingX = spacingX;
-//}

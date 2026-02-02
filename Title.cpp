@@ -15,6 +15,9 @@
 
 #include <chrono>
 #include <cmath>
+#include "VideoTexture.h"
+
+static VideoTexture g_VideoTex;
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;		//背景
 static	ID3D11ShaderResourceView* g_Texture2 = NULL;	//ゲームロゴ
@@ -89,6 +92,8 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(60.0f, color, FADE_IN, SCENE_START);
 	}
+
+
 }
 
 void Title_Finalize()
@@ -100,6 +105,7 @@ void Title_Finalize()
 }
 void Title_Update()
 {
+
 	// 時間差分更新
 	auto now = std::chrono::steady_clock::now();
 	std::chrono::duration<float> elapsed = now - g_TitleLastTime;
@@ -122,6 +128,7 @@ void Title_Update()
 
 void Title_Draw()
 {
+
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
 	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
@@ -203,4 +210,17 @@ void Title_Draw()
 		DrawSprite(buttonPos, buttonSize, buttonCol);
 		SetBlendState(BLENDSTATE_NONE);
 	}
+
+	//// 動画をテクスチャとして描画
+	//ID3D11ShaderResourceView* pVideoSRV = g_VideoTex.GetShaderResourceView();
+	//if (pVideoSRV)
+	//{
+	//	g_pContext->PSSetShaderResources(0, 1, &pVideoSRV);
+	//	SetBlendState(BLENDSTATE_NONE);
+	//	XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
+	//	XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
+	//	XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
+	//	g_VideoTex.SetPlaybackSpeed(1.0f);
+	//	DrawSprite(pos, size, col);
+	//}
 }

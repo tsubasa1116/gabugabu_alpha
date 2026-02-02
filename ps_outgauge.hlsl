@@ -37,6 +37,7 @@ float4 main(PS_INPUT input) : SV_Target
     angle = frac(angle / (2.0 * 3.14159265));
 
     // 進捗内ならゲージ色、外なら透明（テクスチャのアルファを掛ける）
+
     if (angle <= gaugeValue)
     {
         // テクスチャの色を乗算して柔らかく（テクスチャが白ならそのまま）

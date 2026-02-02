@@ -71,7 +71,7 @@ static bool WorldToScreen(const XMFLOAT3& wp, float& outX, float& outY)
 
 	if (tw == 0.0f) return false;
 
-	// NDC に正規化（/w）
+	// NDCに正規化（/w）
 	float ndcX = tx / tw;
 	float ndcY = ty / tw;
 
@@ -83,7 +83,7 @@ static bool WorldToScreen(const XMFLOAT3& wp, float& outX, float& outY)
 	// 反転
 	outY = (1.0f - (ndcY * 0.5f + 0.5f)) * h;
 
-	// 画面外判定（Z が負、または NDC が ±1 を大きく外れる場合は非表示）
+	// 画面外判定（Zが負、またはNDCが±1を大きく外れる場合は非表示）
 	if (XMVectorGetZ(t) / tw < 0.0f) return false;
 	if (ndcX < -1.1f || ndcX > 1.1f || ndcY < -1.1f || ndcY > 1.1f) return false;
 
@@ -128,10 +128,10 @@ void DamageText_Update()
 
 void DamageText_Draw()
 {
-	// DrawTextEx を使って全件描画
+	// DrawTextExを使って全件描画
 	for (auto& e : g_DamageList)
 	{
-		// フェードアウト効果（life に応じて文字サイズを少し縮小する、または色を変えるなどはここで調整可能）
+		// フェードアウト効果（lifeに応じて文字サイズを少し縮小する、または色を変えるなどはここで調整可能）
 		float size = e.size * (0.8f + 0.2f * (e.flame / 60.0f)); // life に応じてわずかに変化
 
 		// 画面外のものはスキップ
