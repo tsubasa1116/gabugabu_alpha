@@ -1,4 +1,4 @@
-﻿//======================================================
+//======================================================
 //	field.cpp[]
 //======================================================
 #include "field.h"
@@ -26,7 +26,7 @@
 MODEL* Test = NULL;//デバッグ
 
 ////グローバル変数
-//static	ID3D11Device* g_pDevice = NULL;
+static	ID3D11Device* g_pDevice = NULL;
 static	ID3D11DeviceContext* g_pContext = NULL;
 ////頂点バッファ
 //static	ID3D11Buffer* g_VertexBuffer = NULL;
@@ -36,6 +36,7 @@ static	ID3D11DeviceContext* g_pContext = NULL;
 //static ID3D11ShaderResourceView* g_Texture;
 
 // FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
+#define FIELD_TEX_MAX 2 
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 
 // FIELD::no の値に対応するテクスチャファイル名
@@ -55,7 +56,7 @@ static const char* g_ModelName[] = {
 	"propsGlassSub_v2",			// ビル
 	"propsTreeSub_v2",			// 広葉樹
 	"build_glass_new"			// 変な建物
-	"propsTowerMain_v3"			// 東京タワ-
+	"propsTowerMain_v3"			//東京タワ-
 };
 static const char* g_ModelName1[] = {
 	"raibu",
@@ -309,7 +310,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		//
 	}
 
-	//g_pDevice = pDevice;
+	g_pDevice = pDevice;
 	g_pContext = pContext;
 
 	// --------------------------------------------------------------------
@@ -321,7 +322,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		ScratchImage image;
 		// 配列に定義したパスからテクスチャを読み込む
 		LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(),
+		CreateShaderResourceView(g_pDevice, image.GetImages(),
 			image.GetImageCount(), metadata, &g_Texture[i]);
 		assert(g_Texture[i]);
 	}
@@ -513,7 +514,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	///////////////////////////////////////////////////////
 	// 取りあえずのテクスチャ再セット
 	// 建物のテクスチャは別で設定する
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
+	//g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	///////////////////////////////////////////////////////
 	Building_DrawAll(s_IsKonamiCodeEntered);
 
@@ -530,7 +531,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			if (player.type == PlayerType::Plant || player.type == PlayerType::Concrete)
 			{
 				// 円の中心と半径を設定
-				XMFLOAT3 center = player.position;
+				XMFLOAT3 center = playerObject->position;
 				float radius = 5.0f;
 
 				// 赤色で円を描画
@@ -542,8 +543,8 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 				for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 				{
 					// 電気の円の中心と半径を取得
-					XMFLOAT3 center = player.electricityCircles[i].center;
-					float radius = player.electricityCircles[i].radius;
+					XMFLOAT3 center = electricityCircles[i].center;
+					float radius = electricityCircles[i].radius;
 
 					// 赤色で円を描画
 					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
