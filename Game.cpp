@@ -105,8 +105,6 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	//BallInitialize(pDevice, pContext);
 	//P_Initialize(pDevice, pContext);		// プレイヤーの初期化
-	//Player_Initialize(pDevice, pContext);	// ポリゴンの初期化
-	//Block_Initialize(pDevice, pContext);
 	//Score_Initialize(pDevice, pContext);
 
 	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// サウンドロード
@@ -145,13 +143,10 @@ void Game_Finalize()
 	
 	//BallFinalize();
 	//P_Finalize();
-	//Block_Finalize();
-	//Player_Finalize();	// ポリゴンの終了処理
 	//Score_Finalize();
 
 	UnloadAudio(g_BgmID);	// サウンドの解放
 	DamageText_Finalize();
-
 }
 
 //======================================================
@@ -180,8 +175,6 @@ void Game_Update()
 
 	//BallUpdate();
 	//P_Update();
-	//Player_Update();
-	//Block_Update();
 	//Score_Update();
 	DamageText_Update();
 
@@ -206,17 +199,12 @@ void Game_Draw()
 	Camera_Draw();	// Drawの最初で呼ぶ！
 	Field_Draw(s_IsKonamiCodeEntered);
 	Polygon3D_Draw(s_IsKonamiCodeEntered);
-	Skill_Draw();
-	Special_Draw();
-	
-	//BallDraw();
 
 	//2D描画
 	Light.SetEnable(FALSE);			// ライティングOFF
 	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
     
-	Polygon3D_DrawEffect();
 	Effect_Draw();
 	Polygon3D_DrawHP();
 	
@@ -231,8 +219,5 @@ void Game_Draw()
 	//);
 	
 	//P_Draw();
-	//Block_Draw();
-	//Player_Draw();
-	//Score_Draw();
 }
 

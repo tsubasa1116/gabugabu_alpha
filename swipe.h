@@ -29,5 +29,5 @@ void Swipe_Finalize();
 void Swipe_Update();
 void Swipe_Draw();
 
-void SetSwipe(int frame, XMFLOAT4 color, SWIPE_STATE state, SCENE scene);
+void SetSwipe(float frame, XMFLOAT4 color, SWIPE_STATE state, SCENE scene);
 SWIPE_STATE GetSwipeState();

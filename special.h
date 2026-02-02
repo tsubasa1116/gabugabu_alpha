@@ -11,16 +11,13 @@
 #define SPECIAL_PLANT_TIME			(10.0f)
 #define SPECIAL_ELECTRICITY_TIME	(5.0f)
 
-#define SPECIAL_GLASS_DAMAGE		(15.0f)	// ミサイル 1個あたりのダメージ量
-#define SPECIAL_CONCRETE_DAMAGE		(30.0f)	// 判定1回のみ
-#define SPECIAL_PLANT_DAMAGE		(0.05f)	// スリップダメージ
-#define SPECIAL_ELECTRICITY_DAMAGE	(20.0f)	// 雷 1個あたりのダメージ量
+#define SPECIAL_GLASS_DAMAGE		(50.0f)	// ミサイル 1個あたりのダメージ量
+#define SPECIAL_CONCRETE_DAMAGE		(75.0f)	// 判定1回のみ
+#define SPECIAL_PLANT_DAMAGE		(0.25f)	// スリップダメージ
+#define SPECIAL_ELECTRICITY_DAMAGE	(40.0f)	// 雷 1個あたりのダメージ量
 
 #define SPECIAL_GLASSBOX_QUANTITY		(3)	// ガラス 1プレイヤーに飛ばす箱の数
 #define SPECIAL_ELECTRICITY_QUANTITY	(4)	// 電気 落雷の数
-
-// electricityCircles を外部から参照可能にする
-extern Circle electricityCircles[SPECIAL_ELECTRICITY_QUANTITY];
 
 // ガラススペシャル ミサイルオブジェクト
 struct GLASS_BOX
@@ -32,9 +29,6 @@ struct GLASS_BOX
 	XMFLOAT3 targetPosition;	// 目標位置
 	bool active;				// 有効状態
 };
-
-// ガラススペシャル ミサイルリストを外部から参照可能にする
-extern std::vector<GLASS_BOX> glassBoxes;
 
 struct SPECIAL_OBJECT
 {
@@ -48,7 +42,7 @@ struct SPECIAL_OBJECT
 void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Finalize();
 void Special_Update(int playerIndex);
-void Special_Draw();
+void Special_Draw(int playerIndex);
 
 void Special_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

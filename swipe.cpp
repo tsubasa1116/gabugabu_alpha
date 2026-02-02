@@ -99,7 +99,7 @@ void Swipe_Draw()
     }
 }
 
-void SetSwipe(int frame, XMFLOAT4 color, SWIPE_STATE state, SCENE scene)
+void SetSwipe(float frame, XMFLOAT4 color, SWIPE_STATE state, SCENE scene)
 {
     g_Swipe.frame = frame;
     g_Swipe.color = color;
