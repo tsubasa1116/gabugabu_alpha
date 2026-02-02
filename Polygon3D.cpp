@@ -157,10 +157,10 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].poisonTimer = 0.0f;
 	object[0].lastDir = PlayerDir::Down; // 正面
 	object[0].isMoving = false;
-	//object[0].form = Form::First;
-	//object[0].type = PlayerType::None;
-	object[0].form = Form::Third;
-	object[0].type = PlayerType::Plant;
+	object[0].form = Form::First;
+	object[0].type = PlayerType::None;
+	//object[0].form = Form::Third;
+	//object[0].type = PlayerType::Plant;
 	object[0].evolutionGauge = 0.0f;
 	object[0].evolutionGaugeRate = 1.0f;
 	object[0].breakCount_Glass = 1;
@@ -639,7 +639,7 @@ void Polygon3D_Update()
 		if (object[p].poisonTimer > 0.0f)
 		{
 			// 毒状態の間、ダメージを与える
-			object[p].hp -= SPECIAL_PLANT_DAMAGE;
+			object[p].hp -= SPECIAL_PLANT_DAMAGE * object[p].defense;
 
 			// 毒タイマーを進める
 			object[p].poisonTimer -= DELTA_TIME;
