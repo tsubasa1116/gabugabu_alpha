@@ -754,7 +754,7 @@ void AttackPlayerCollisions()
 			{
 				// ノックバック（攻撃者の向きと攻撃力を使用）
 				defender->position.x += attacker.dir.x * attacker.power;
-				// defender->position.y += attacker->power / 3.0f;
+				defender->position.y += attacker.power;
 				defender->position.z += attacker.dir.z * attacker.power;
 
 				// ダメージ用変数

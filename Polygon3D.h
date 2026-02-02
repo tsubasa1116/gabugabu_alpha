@@ -13,7 +13,7 @@
 #define	DELTA_TIME	 (1.0f / 60.0f)	// デルタタイム（秒）
 
 #define	EVOLUTIONGAUGE_MAX	(1.0f)	// 進化ゲージ最大値
-#define	ATTACKING_TIME		(0.5f)	// 攻撃持続時間（秒）
+#define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間（秒）
 #define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間（秒）
 #define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間（秒）
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
