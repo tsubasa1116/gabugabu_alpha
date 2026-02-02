@@ -258,7 +258,7 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[3]);
 	assert(g_Special_Texture[3]);
 	// ガラスミサイル
-	LoadFromWICFile(L"Asset\\Texture\\TileA3.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\ice.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[4]);
 	assert(g_Special_Texture[4]);
 
@@ -700,51 +700,63 @@ void Special_Update(int playerIndex)
 // Glass専用描画
 void Special_Glass_Draw(int playerIndex)
 {
-	// 範囲チェック
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+    // 範囲チェック
+    if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
-	if (playerObject == nullptr) return;
-	PLAYEROBJECT& player = *playerObject;
+    PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+    if (playerObject == nullptr) return;
+    PLAYEROBJECT& player = *playerObject;
 
-	// 箱の描画
-	for (const auto& box : player.glassBoxes)
-	{
-		if (!box.active) continue; // 非アクティブな箱は描画しない
+    // 箱の描画
+    for (const auto& box : player.glassBoxes)
+    {
+        if (!box.active) continue; // 非アクティブな箱は描画しない
 
-		XMMATRIX WorldMatrix =
-			XMMatrixScaling(box.scaling.x, box.scaling.y, box.scaling.z) *
-			XMMatrixRotationRollPitchYaw(XMConvertToRadians(box.rotation.x), XMConvertToRadians(box.rotation.y), XMConvertToRadians(box.rotation.z)) *
-			XMMatrixTranslation(box.position.x, box.position.y, box.position.z);
+        XMMATRIX WorldMatrix =
+            XMMatrixScaling(box.scaling.x, box.scaling.y, box.scaling.z) *
+            XMMatrixRotationRollPitchYaw(XMConvertToRadians(box.rotation.x), XMConvertToRadians(box.rotation.y), XMConvertToRadians(box.rotation.z)) *
+            XMMatrixTranslation(box.position.x, box.position.y, box.position.z);
 
-		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-		Shader_SetMatrix(WVP);
+        XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+        Shader_SetMatrix(WVP);
 
-		// 描画実行
-		g_pContext->DrawIndexed(6 * 6, 0, 0);
-	}
+        // 箱のテクスチャを設定
+        g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[4]);
 
-	// 攻撃範囲の描画
-	for (const auto& box : player.glassBoxes)
-	{
-		if (!box.active) continue; // 非アクティブな箱は描画しない
+        // 明るさを強調するためにカラーを設定 (RGB値を2倍に設定)
+        Shader_SetColor(XMFLOAT4(2.0f, 2.0f, 2.0f, 1.0f)); // 明るさを強調
 
-		// targetPositionに基づいて描画
-		XMMATRIX rangeWorldMatrix =
-			XMMatrixScaling(1.0f, 1.0f, 1.0f) *
-			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			XMMatrixTranslation(box.targetPosition.x, box.targetPosition.y + 0.1f, box.targetPosition.z - 0.5f); // Y座標を少し上げて地面と重ならないようにする カメラの向きに考慮してZ座標をずらす
+        // 描画実行
+        g_pContext->DrawIndexed(6 * 6, 0, 0);
 
-		XMMATRIX rangeWVP = rangeWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-		Shader_SetMatrix(rangeWVP);
+        // 描画後にカラーをリセット
+        Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)); // デフォルトの明るさに戻す
+    }
 
-		// アルファブレンディングを有効化
-		SetBlendState(BLENDSTATE_ALPHA);
+    // 攻撃範囲の描画
+    for (const auto& box : player.glassBoxes)
+    {
+        if (!box.active) continue; // 非アクティブな箱は描画しない
 
-		// 描画実行 (+Y面の一枚だけ描画)
-		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP); // トポロジーを三角形ストリップに設定
-		g_pContext->Draw(4, 16); // +Y面の4頂点 (16, 17, 18, 19) を描画
-	}
+        // targetPositionに基づいて描画
+        XMMATRIX rangeWorldMatrix =
+            XMMatrixScaling(1.0f, 1.0f, 1.0f) *
+            XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+            XMMatrixTranslation(box.targetPosition.x, box.targetPosition.y + 0.1f, box.targetPosition.z - 0.5f); // Y座標を少し上げて地面と重ならないようにする カメラの向きに考慮してZ座標をずらす
+
+        XMMATRIX rangeWVP = rangeWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+        Shader_SetMatrix(rangeWVP);
+
+        // 範囲のテクスチャを設定
+        g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[playerIndex]);
+
+        // アルファブレンディングを有効化
+        SetBlendState(BLENDSTATE_ALPHA);
+
+        // 描画実行 (+Y面の一枚だけ描画)
+        g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP); // トポロジーを三角形ストリップに設定
+        g_pContext->Draw(4, 16); // +Y面の4頂点 (16, 17, 18, 19) を描画
+    }
 }
 
 // Concrete専用描画

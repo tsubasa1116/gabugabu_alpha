@@ -24,9 +24,9 @@ enum class BuildingType {
 //=========================================
 enum class BuildingPhase
 {
-	New,        // 新品
-	Damaged,    // 破損
-	Broken      // 破壊
+	New,		// 新品
+	Damaged,	// 破損
+	Broken		// 破壊
 };
 
 //=========================================
