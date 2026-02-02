@@ -160,11 +160,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//object[0].form = Form::Third;
 	//object[0].type = PlayerType::Glass;
 	object[0].evolutionGauge = 0.0f;
-	object[0].evolutionGaugeRate = 1.0f;
-	object[0].breakCount_Glass = 1;
-	object[0].breakCount_Concrete = 1;
-	object[0].breakCount_Plant = 1;
-	object[0].breakCount_Electricity = 1;
+	object[0].evolutionGaugeRate = 0.3f;
+	object[0].breakCount_Glass = 0;
+	object[0].breakCount_Concrete = 0;
+	object[0].breakCount_Plant = 0;
+	object[0].breakCount_Electricity = 0;
 
 	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	object[1].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -201,11 +201,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].form = Form::First;
 	object[1].type = PlayerType::None;
 	object[1].evolutionGauge = 0.0f;
-	object[1].evolutionGaugeRate = 1.0f;
-	object[1].breakCount_Glass = 1;
-	object[1].breakCount_Concrete = 1;
-	object[1].breakCount_Plant = 1;
-	object[1].breakCount_Electricity = 1;
+	object[1].evolutionGaugeRate = 0.3f;
+	object[1].breakCount_Glass =       0;
+	object[1].breakCount_Concrete =    0;
+	object[1].breakCount_Plant =       0;
+	object[1].breakCount_Electricity = 0;
 
 	object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	object[2].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -242,7 +242,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].form = Form::First;
 	object[2].type = PlayerType::None;
 	object[2].evolutionGauge = 0;
-	object[2].evolutionGaugeRate = 1.0f;
+	object[2].evolutionGaugeRate = 0.3f;
 	object[2].breakCount_Glass = 0;
 	object[2].breakCount_Concrete = 0;
 	object[2].breakCount_Plant = 0;
@@ -283,7 +283,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].form = Form::First;
 	object[3].type = PlayerType::None;
 	object[3].evolutionGauge = 0;
-	object[3].evolutionGaugeRate = 1.0f;
+	object[3].evolutionGaugeRate = 0.3f;
 	object[3].breakCount_Glass = 0;
 	object[3].breakCount_Concrete = 0;
 	object[3].breakCount_Plant = 0;
@@ -682,7 +682,7 @@ void Polygon3D_Update()
 			if (g_Input[p].X)	if (object[p].type != PlayerType::None)	object[p].useSkill = true;
 
 			// 発動トリガー入力をチェックしてスペシャル使用フラグを立てる
-			if (object[p].form == Form::Third && Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
+			if (object[p].form == Form::Third && (Keyboard_IsKeyDownTrigger(specialKeys[p]) || g_Input->ZR))	object[p].useSpecial = true;
 
 			// フラグが立ったら更新処理を呼び出す
 			if (object[p].useSkill)		Skill_Update(p);								// スキル
@@ -1539,7 +1539,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 void Polygon3D_DrawHP()
 {
 	Shader_Begin();
-	
+
 	// 個別UIステータス描画
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
@@ -1548,8 +1548,32 @@ void Polygon3D_DrawHP()
 		DrawHP(&HPBar[i], i + 2);
 		XMFLOAT2 hp = HPBar[i].pos;
 
-		Gauge_Set(i, object[i].breakCount_Glass, object[i].breakCount_Concrete, object[i].breakCount_Plant, object[i].breakCount_Electricity,
-			object[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y});
+		// 進化が固定されたら、タイプのゲージを最大値で表示する
+		if (object[i].isTypeFixed)
+		{
+			float glass = 0.0f;
+			float concrete = 0.0f; 
+			float plant = 0.0f; 
+			float electricity = 0.0f;
+
+			switch (object[i].type)
+			{
+			case PlayerType::Glass:			glass = 1.0f;		break;
+			case PlayerType::Concrete:		concrete = 1.0f;	break;
+			case PlayerType::Plant:			plant = 1.0f;		break;
+			case PlayerType::Electricity:	electricity = 1.0f;	break;
+			default: break;
+			}
+
+			Gauge_Set(i, glass, concrete, plant, electricity,
+				object[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y });
+		}
+		else
+		{
+			// 固定前はカウント数をそのまま表示する
+			Gauge_Set(i, object[i].breakCount_Glass, object[i].breakCount_Concrete, object[i].breakCount_Plant, object[i].breakCount_Electricity,
+				object[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y });
+		}
 
 		Gauge_Draw(i);
 

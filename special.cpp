@@ -13,6 +13,8 @@ using namespace DirectX;
 #include "debug_ostream.h"
 #include "Polygon3D.h"
 #include "keyboard.h"
+#include "DamageText.h"
+#include "Effect.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -427,8 +429,15 @@ void Special_Glass_Update(int playerIndex)
 						// 箱とプレイヤーの衝突判定
 						if (CheckCircleAABBCollision(boxCollider, otherPlayer.boundingBox))
 						{
+							float rawDamage = SPECIAL_GLASS_DAMAGE * otherPlayer.defense;;
 							// 衝突している場合、ダメージを与える
-							otherPlayer.hp -= SPECIAL_GLASS_DAMAGE * otherPlayer.defense;
+							otherPlayer.hp -= rawDamage;
+
+							// ダメージ数字を表示（頭上にオフセット）
+							int dmgInt = static_cast<int>(rawDamage + 0.5f);
+							XMFLOAT3 hitPos = otherPlayer.position;
+							hitPos.y += otherPlayer.scaling.y + 0.3f;
+							SetDamageText(hitPos, dmgInt, TextColor::Red);
 
 							// HPが0以下にならないように
 							if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
@@ -459,6 +468,7 @@ void Special_Glass_Update(int playerIndex)
 		player.type = PlayerType::None;		// タイプをリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
+        Effect_Clear(playerIndex);          // エフェクトクリア
 	}
 }
 
@@ -506,8 +516,15 @@ void Special_Concrete_Update(int playerIndex)
 				// 円とAABBの衝突判定
 				if (CheckCircleAABBCollision(circle, otherPlayer.boundingBox))
 				{
+					float rawDamage = SPECIAL_CONCRETE_DAMAGE * otherPlayer.defense;
 					// 衝突している場合、ダメージを与える
-					otherPlayer.hp -= SPECIAL_CONCRETE_DAMAGE * otherPlayer.defense;
+					otherPlayer.hp -= rawDamage;
+
+					// ダメージ数字を表示（頭上にオフセット）
+					int dmgInt = static_cast<int>(rawDamage + 0.5f);
+					XMFLOAT3 hitPos = otherPlayer.position;
+					hitPos.y += otherPlayer.scaling.y + 0.3f;
+					SetDamageText(hitPos, dmgInt, TextColor::Red);
 
 					// HPが0以下にならないように
 					if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
@@ -530,6 +547,7 @@ void Special_Concrete_Update(int playerIndex)
 		player.defense = 1.0f;				// スキルの防御バフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
+		Effect_Clear(playerIndex);          // エフェクトクリア
 	}
 }
 
@@ -582,6 +600,7 @@ void Special_Plant_Update(int playerIndex)
 		player.evolutionGaugeRate = 1.0f;	// スキルの進化ゲージバフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
+		Effect_Clear(playerIndex);          // エフェクトクリア
 	}
 }
 
@@ -635,8 +654,16 @@ void Special_Electricity_Update(int playerIndex)
 			// 円とAABBの衝突判定
 			if (CheckCircleAABBCollision(player.electricityCircles[i], otherPlayer.boundingBox))
 			{
+				float rawDamage = SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense;
+
 				// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
-				otherPlayer.hp -= SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense;
+				otherPlayer.hp -= rawDamage;
+
+				// ダメージ数字を表示（頭上にオフセット）
+				int dmgInt = static_cast<int>(rawDamage + 0.5f);
+				XMFLOAT3 hitPos = otherPlayer.position;
+				hitPos.y += otherPlayer.scaling.y + 0.3f;
+				SetDamageText(hitPos, dmgInt, TextColor::Red);
 
 				// スペシャルを使っていなければスタン
 				if (!otherPlayer.useSpecial) otherPlayer.stunGauge = 10.0f;
@@ -663,6 +690,7 @@ void Special_Electricity_Update(int playerIndex)
 		player.speed = 0.06f;				// スキルのスピードバフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
+		Effect_Clear(playerIndex);          // エフェクトクリア
 	}
 }
 

@@ -99,6 +99,7 @@ struct PLAYEROBJECT
 
 	Form form;								// 変身形態
 	PlayerType type;						// プレイヤーの属性タイプ
+	bool isTypeFixed = false;				// 進化タイプが固定されたかどうか
 	float evolutionGauge;					// 進化ゲージ
 	float evolutionGaugeRate;				// 進化ゲージ 倍率
 	int breakCount_Glass;					// 破壊した数 ガラス
