@@ -27,7 +27,8 @@ void Manager_Initialize()
 	LoadingScreen_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());  // ’Ç‰Á
 
 #ifdef _DEBUG
-	SetScene(SCENE_TITLE);
+	//SetScene(SCENE_TITLE);
+	SetScene(SCENE_GAME);
 #else
 	SetScene(SCENE_TITLE);
 #endif
