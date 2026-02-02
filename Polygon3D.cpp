@@ -153,12 +153,14 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[0].stunTimer = 0.0f;
 	object[0].isDown = false;
 	object[0].downTimer = 0.0f;
+	object[0].isPoisoned = false;
+	object[0].poisonTimer = 0.0f;
 	object[0].lastDir = PlayerDir::Down; // 正面
 	object[0].isMoving = false;
 	//object[0].form = Form::First;
 	//object[0].type = PlayerType::None;
 	object[0].form = Form::Third;
-	object[0].type = PlayerType::Glass;
+	object[0].type = PlayerType::Plant;
 	object[0].evolutionGauge = 0.0f;
 	object[0].evolutionGaugeRate = 1.0f;
 	object[0].breakCount_Glass = 1;
@@ -196,6 +198,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[1].stunTimer = 0.0f;
 	object[1].isDown = false;
 	object[1].downTimer = 0.0f;
+	object[1].isPoisoned = false;
+	object[1].poisonTimer = 0.0f;
 	object[1].lastDir = PlayerDir::Down; // 正面
 	object[1].isMoving = false;
 	object[1].form = Form::First;
@@ -237,6 +241,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[2].stunTimer = 0.0f;
 	object[2].isDown = false;
 	object[2].downTimer = 0.0f;
+	object[2].isPoisoned = false;
+	object[2].poisonTimer = 0.0f;
 	object[2].lastDir = PlayerDir::Down; // 正面
 	object[2].isMoving = false;
 	object[2].form = Form::First;
@@ -278,6 +284,8 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	object[3].stunTimer = 0.0f;
 	object[3].isDown = false;
 	object[3].downTimer = 0.0f;
+	object[3].isPoisoned = false;
+	object[3].poisonTimer = 0.0f;
 	object[3].lastDir = PlayerDir::Down; // 正面
 	object[3].isMoving = false;
 	object[3].form = Form::First;
@@ -506,8 +514,8 @@ void Polygon3D_Update()
 		ImGui::Text("Player %d", p + 1);
 		ImGui::Indent();
 
-		ImGui::BulletText("rank              : %d", object[p].rank);
-		ImGui::BulletText("lastDir           : %d", object[p].lastDir);
+		ImGui::SliderFloat("poisonTimer", &object[p].poisonTimer, 0.0f, 3.0f);
+		ImGui::BulletText("isPoisoned        : %d", object[p].isPoisoned);
 		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
 		ImGui::BulletText("EvolutionGauge    : %.1f", object[p].evolutionGauge);
 		ImGui::BulletText("EvolutionGaugeRate: %.1f", object[p].evolutionGaugeRate);
@@ -627,6 +635,23 @@ void Polygon3D_Update()
 			break;
 		}
 
+		// 毒の処理
+		if (object[p].poisonTimer > 0.0f)
+		{
+			// 毒状態の間、ダメージを与える
+			object[p].hp -= SPECIAL_PLANT_DAMAGE;
+
+			// 毒タイマーを進める
+			object[p].poisonTimer -= DELTA_TIME;
+
+			// 毒タイマーが0になったら毒状態を解除
+			if (object[p].poisonTimer <= 0.0f)
+			{
+				object[p].isPoisoned = false;
+				object[p].poisonTimer = 0.0f;
+			}
+		}
+
 		// スタンゲージが最大でスタンフラグを立てる
 		if (object[p].stunGauge >= STUNGAUGE_MAX)
 		{
@@ -639,7 +664,7 @@ void Polygon3D_Update()
 			// スタンタイマーを進める
 			object[p].stunTimer += DELTA_TIME;
 
-			// スタン時間経過でスタン解除
+			// 時間経過でスタン解除
 			if (object[p].stunTimer >= STUN_TIME)
 			{
 				object[p].isStunning = false;	// スタン解除
@@ -1468,7 +1493,15 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 
-		Shader_SetColor({ 1,1,1,1 });
+		// プレイヤーが毒状態なら色を紫に
+		if (object[idx].isPoisoned)
+		{
+			Shader_SetColor({ 0.8f, 0.4f, 0.8f, 1.0f });
+		}
+		else
+		{
+			Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
+		}
 
 		// バッファセット & 描画
 		UINT stride = sizeof(Vertex2);
@@ -1509,7 +1542,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	// ソート順（遠いものから描画）
 	for (auto& p : list)	DrawPlayerInternal(p.second);
 
-	// 3Dオブジェクトは深度テストを有効にして描画
+	// 3Dオブジェクトは深度テストを無効にして描画
 	SetDepthTest(false);
 
 	if (s_IsKonamiCodeEntered)
@@ -1593,6 +1626,7 @@ void Polygon3D_Respawn(int playerIndex)
 		object[playerIndex].stunTimer = 0.0f;
 		object[playerIndex].isDown = false;
 		object[playerIndex].downTimer = 0.0f;
+		object[playerIndex].isPoisoned = false;
 		object[playerIndex].lastDir = PlayerDir::Down; // 正面
 		object[playerIndex].isMoving = false;
 		object[playerIndex].form = Form::First;

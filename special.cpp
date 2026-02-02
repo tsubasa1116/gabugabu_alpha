@@ -562,6 +562,9 @@ void Special_Plant_Update(int playerIndex)
 		// 円とAABBの衝突判定
 		if (CheckCircleAABBCollision(circle, otherPlayer.boundingBox))
 		{
+			otherPlayer.isPoisoned = true;	// 毒状態にする
+			otherPlayer.poisonTimer = POISON_TIME;
+
 			// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
 			otherPlayer.hp -= SPECIAL_PLANT_DAMAGE * otherPlayer.defense;
 
@@ -577,8 +580,8 @@ void Special_Plant_Update(int playerIndex)
 		player.specialTimer = 0.0f;
 		g_animFrame[playerIndex] = 0;		// アニメーションリセット
 		g_animTimer[playerIndex] = 0.0f;
-		player.form = Form::First;			// 変身形態を第1形態に戻す
-		player.type = PlayerType::None;		// タイプをリセット
+		//player.form = Form::First;			// 変身形態を第1形態に戻す
+		//player.type = PlayerType::None;		// タイプをリセット
 		player.evolutionGaugeRate = 1.0f;	// スキルの進化ゲージバフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除

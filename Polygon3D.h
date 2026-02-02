@@ -19,6 +19,7 @@
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間（秒）
 #define	DOWN_TIME			(3.0f)	// ダウン持続時間（秒）
+#define	POISON_TIME			(5.0f)	// 毒持続時間（秒）
 
 enum class PlayerDir
 {
@@ -91,6 +92,9 @@ struct PLAYEROBJECT
 
 	bool isDown;			// ダウン中かどうか
 	float downTimer;		// ダウンタイマー
+
+	bool isPoisoned;		// 毒状態かどうか
+	float poisonTimer;		// 毒タイマー
 
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
