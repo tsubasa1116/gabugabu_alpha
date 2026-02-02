@@ -18,7 +18,11 @@ enum TextColor
 	Red,
 	Green,
 	Blue,
-	Yellow
+	Yellow,
+	P1color,
+	P2color,
+	P3color,
+	P4color,
 };
 
 //namespace FontList

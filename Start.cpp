@@ -106,7 +106,7 @@ void Start_Update()
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
 			// ロード画面付きフェードでゲームシーンへ遷移
-			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\road.mp4");
+			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\uiRored.mp4");
 		}
 	}
 }

@@ -1651,16 +1651,16 @@ void Polygon3D_DrawText()
 		switch (p)
 		{
 		case 0:
-			textColor = TextColor::Red;
+			textColor = TextColor::P1color;
 			break;
 		case 1:
-			textColor = TextColor::Blue;
+			textColor = TextColor::P2color;
 			break;
 		case 2:
-			textColor = TextColor::Yellow;
+			textColor = TextColor::P3color;
 			break;
 		case 3:
-			textColor = TextColor::Green;
+			textColor = TextColor::P4color;
 			break;
 		default:
 			textColor = TextColor::White;

@@ -9,6 +9,8 @@
 #include "fade.h"
 #include "color.h"
 
+using namespace DirectX;
+
 //======================================================
 // グローバル変数
 //======================================================
@@ -29,10 +31,22 @@ LoadingScreen::~LoadingScreen()
 
 bool LoadingScreen::Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, const wchar_t* videoPath)
 {
+    m_pDevice = pDevice;
     m_pContext = pContext;
     m_LoadComplete = false;
     m_VideoFinished = false;
     m_IsLoading = false;
+    m_IsFadingOut = false;
+    m_FadeOutStarted = false;
+    m_FadeOutCounter = 0;
+    m_FadeOutDuration = 30;
+
+    // フェード用テクスチャ読み込み
+    TexMetadata metadata;
+    ScratchImage image;
+    LoadFromWICFile(L"asset\\texture\\fade.bmp", WIC_FLAGS_NONE, &metadata, image);
+    CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &m_pFadeTexture);
+    assert(&m_pFadeTexture);
 
     // 動画の初期化
     return m_Video.Initialize(pDevice, pContext, videoPath);
@@ -47,7 +61,15 @@ void LoadingScreen::Finalize()
     }
 
     m_Video.Finalize();
+    
+    if (m_pFadeTexture)
+    {
+        m_pFadeTexture->Release();
+        m_pFadeTexture = nullptr;
+    }
+    
     m_IsLoading = false;
+    m_IsFadingOut = false;
 }
 
 void LoadingScreen::StartLoading(SCENE nextScene, std::function<void()> loadTask, bool waitForVideo)
@@ -57,6 +79,9 @@ void LoadingScreen::StartLoading(SCENE nextScene, std::function<void()> loadTask
     m_LoadComplete = false;
     m_VideoFinished = false;
     m_IsLoading = true;
+    m_IsFadingOut = false;
+    m_FadeOutStarted = false;
+    m_FadeOutCounter = 0;
 
     // 動画を最初から再生
     m_Video.Reset();
@@ -64,7 +89,7 @@ void LoadingScreen::StartLoading(SCENE nextScene, std::function<void()> loadTask
     // 別スレッドでロード処理を実行
     m_LoadThread = std::thread([this, loadTask]()
     {
-        // ロード処理を実（重い処理はここで行う）
+        // ロード処理を実行
         if (loadTask)
         {
             loadTask();
@@ -79,34 +104,36 @@ bool LoadingScreen::Update()
 {
     if (!m_IsLoading) return false;
 
-    // 動画フレームを更新
+    // 動画フレームを更新（フェードアウト中もループするようにする）
     bool stillPlaying = m_Video.Update();
 
-    if (!m_WaitForVideo && m_LoadComplete)
-    {
-        m_IsLoading = false;
-        return false;  // ロード完了
-    }
-    // 動画が終了したかチェック
+    // 動画が終了したらループ再生（ロード中・フェードアウト中どちらも）
     if (!stillPlaying || m_Video.IsFinished())
     {
-        if (m_LoadComplete)
-        {
-            // ロード完了・動画終了で遷移
-            m_VideoFinished = true;
-        }
-        else
-        {
-            // ロードがまだ終わっていない → 動画をループ再生
-            m_Video.Reset();
-        }
+        m_Video.Reset();
     }
 
-    // 完了判定
-    if (IsLoadingComplete())
+    // フェードアウト中の場合
+    if (m_IsFadingOut)
     {
-        m_IsLoading = false;
-        return false;  // ロード完了
+        m_FadeOutCounter++;
+        
+        // フェードアウト完了
+        if (m_FadeOutCounter > m_FadeOutDuration)
+        {
+            m_IsLoading = false;
+            return false;  // ロード画面終了
+        }
+        return true;  // フェードアウト中は継続
+    }
+
+    // ロード完了チェック（フェードは一度だけ）
+    if (m_LoadComplete && !m_FadeOutStarted)
+    {
+        // フェードアウト（fade.cppではなく独自にしました）
+        m_IsFadingOut = true;
+        m_FadeOutStarted = true;
+        m_FadeOutCounter = 0;
     }
 
     return true;  // まだロード中
@@ -116,12 +143,12 @@ void LoadingScreen::Draw()
 {
     if (!m_IsLoading) return;
 
+    const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
+    const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
+
     // シェーダー設定
     Shader_Begin();
     Shader_SetColor(color::white);
-
-    const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
-    const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
     // UI用の直交投影行列を設定
     Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
@@ -134,11 +161,28 @@ void LoadingScreen::Draw()
         m_pContext->PSSetShaderResources(0, 1, &pSRV);
         SetBlendState(BLENDSTATE_NONE);
 
-        // 画面全体に動画を描画
         XMFLOAT2 pos = { SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f };
         XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
         XMFLOAT4 col = color::white;
         DrawSprite(pos, size, col);
+    }
+
+    // フェードアウト中は白いオーバーレイを描画
+    if (m_IsFadingOut && m_pFadeTexture)
+    {
+        // アルファ値を調整してしっかり白くフェードアウトさせる
+        float alpha = (float)m_FadeOutCounter / (float)m_FadeOutDuration;
+        if (alpha > 1.0f) alpha = 1.0f;
+        
+        XMFLOAT4 fadeCol = { 1.0f, 1.0f, 1.0f, alpha };
+        
+        // フェード用テクスチャを設定
+        m_pContext->PSSetShaderResources(0, 1, &m_pFadeTexture);
+        SetBlendState(BLENDSTATE_ALPHA);
+        
+        XMFLOAT2 pos = { SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f };
+        XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
+        DrawSprite(pos, size, fadeCol);
     }
 }
 
@@ -146,12 +190,10 @@ bool LoadingScreen::IsLoadingComplete() const
 {
     if (m_WaitForVideo)
     {
-        // 動画終了を待つ場合、ロード完了・動画終了
         return m_LoadComplete && m_VideoFinished;
     }
     else
     {
-        // 動画終了を待たない場合、ロード完了のみでOK
         return m_LoadComplete.load();
     }
 }
@@ -184,7 +226,7 @@ bool LoadingScreen_Update()
 
     if (!stillLoading)
     {
-        // ロード完了で次のシーンへ遷移
+        // フェードアウト完了で次のシーンへ遷移
         SCENE nextScene = g_pLoadingScreen->GetNextScene();
 
         // LoadingScreenを解放
@@ -193,8 +235,8 @@ bool LoadingScreen_Update()
         // 次のシーンを設定
         SetScene(nextScene);
 
-        // フェードイン
-        SetFade(100, color::white, FADE_IN, nextScene);
+        // フェードイン開始
+        SetFade(60, color::white, FADE_IN, nextScene);
     }
 
     return stillLoading;
@@ -239,34 +281,24 @@ void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath)
         return;
     }
 
-    // ロード処理を定義（シーンごとに必要なリソースをロード）
+    // ロード処理を定義
     std::function<void()> loadTask = [nextScene]()
     {
-        // ここにシーンごとのリソース読み込み処理を追加
-        // DirectXリソースの作成はメインスレッドで行う必要がある場合あり
-        // ファイル読み込みや計算処理をここで行う
-
         switch (nextScene)
         {
         case SCENE_GAME:
-            // ゲームシーン用のリソース読み込み
-            // LoadGameResources();
-            // 重い処理をシミュレート（実際は削除）
             std::this_thread::sleep_for(std::chrono::seconds(5));
             break;
 
         case SCENE_TITLE:
-            // タイトル用リソース読み込み
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
             break;
 
         default:
-            // その他のシーン
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
             break;
         }
     };
 
-    // ロード開始（動画が終わるまで待つ: true / ロード完了次第遷移: false）
     g_pLoadingScreen->StartLoading(nextScene, loadTask, true);
 }
