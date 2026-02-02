@@ -66,16 +66,16 @@ static const char* g_ModelName1[] = {
 MAPDATA Map[] =
 {
 	// 地面
-	{ {},{}, FIELD::FIELD_Plant,0 },	// 配列番号[0]の確認
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,2 },	// 配列番号[0]の確認
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
 	{ {},{}, FIELD::FIELD_BOX },	// 10
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -99,7 +99,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX },	// 30
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electricity,4},
+	{ {},{}, FIELD::FIELD_BOX},
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -112,7 +112,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Glass },
+	{ {},{}, FIELD::FIELD_Glass,0 },
 	{ {},{}, FIELD::FIELD_BOX},
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -226,16 +226,16 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
 
 
 	//{ {},{}, FIELD::FIELD_BOX },	// 120
