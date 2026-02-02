@@ -730,7 +730,7 @@ void AttackPlayerCollisions()
 			float defFacingZ = cosf(radDef);
 			bool defFacingZDominant = fabsf(defFacingZ) >= fabsf(defFacingX);
 
-			float widthScale = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
+			float widthScale = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;		// X方向スケール
 			float depthScale = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
 
 			// 第2形態 第3形態はXとZ同じにする
