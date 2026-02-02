@@ -32,7 +32,7 @@ float4 main(PS_INPUT i) : SV_TARGET
     float4 base = g_Texture.Sample(g_Sampler, i.uv) * i.color;
 	
 	// uv内での位置を20倍に拡大する
-	float2 p = i.uv * 20.0;
+	float2 p = i.uv * 10.0;
 	// 時間経過で動かす（速度を掛けて調整）
 	p += time.x * speed;
 

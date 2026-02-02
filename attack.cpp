@@ -528,6 +528,9 @@ void Attack_Update(int playerIndex)
 			case 2: player.type = PlayerType::Plant;		break;
 			case 3: player.type = PlayerType::Electricity;	break;
 			}
+
+			// タイプが固定されたフラグを立てる
+			player.isTypeFixed = true;
 		}
 
 		// 4. リセット処理 (毎回実行)
@@ -548,10 +551,10 @@ void Attack_Update(int playerIndex)
 			// プレイヤーごとの画面上のエフェクト位置
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
 			{
-				{ 160.0f, 620.0f }, // プレイヤー1
-				{ 470.0f, 620.0f }, // プレイヤー2
-				{ 780.0f, 620.0f }, // プレイヤー3
-				{ 1090.0f, 620.0f }  // プレイヤー4
+				{ 175.0f, 620.0f }, // プレイヤー1
+				{ 490.0f, 620.0f }, // プレイヤー2
+				{ 805.0f, 620.0f }, // プレイヤー3
+				{ 1120.0f, 620.0f }  // プレイヤー4
 			};
 
 			// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）

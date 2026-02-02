@@ -225,7 +225,10 @@ void Building::LoadModelForPhase()
 	case BuildingType::Plant:		modelName = g_PlantModels[m_ModelIndex];	break;
 	case BuildingType::Electricity:	modelName = g_ElectricModels[m_ModelIndex];	break;
 
-	default: return;
+	return;
+	default:
+		//path = "asset/build_default.fbx"; // デフォルトモデル
+		break;
 	}
 
 	// パス組み立て

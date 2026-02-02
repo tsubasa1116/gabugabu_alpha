@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <cmath>
+#include "LoadingScreen.h"
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//å¾“æ¥ã®ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³UIãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼ˆå¿…è¦ãªã‚‰æ®‹ã™ï¼‰
 static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//å¾“æ¥ã®ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³UIãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼ˆå¿…è¦ãªã‚‰æ®‹ã™ï¼‰
@@ -99,8 +100,14 @@ void Start_Update()
 	//ã‚­ãƒ¼å…¥åŠ›ãƒã‚§ãƒƒã‚¯
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
-		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_GAME);
+		// ƒL[“ü—Íƒ`ƒFƒbƒNiƒ[ƒh’†‚Íó‚¯•t‚¯‚È‚¢j
+		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
+		{
+			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
+
+			// ƒ[ƒh‰æ–Ê•t‚«ƒtƒF[ƒh‚ÅƒQ[ƒ€ƒV[ƒ“‚Ö‘JˆÚ
+			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\uiRored.mp4");
+		}
 	}
 }
 

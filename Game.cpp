@@ -208,8 +208,9 @@ void Game_Draw()
 	Effect_Draw();
 	Polygon3D_DrawHP();
 	
-	DamageText_Draw();
+	
 	Polygon3D_DrawText();
+	DamageText_Draw();
 	//DrawTextEx(
 	//	L"こんにちは世界",			// 表示する文字
 	//	600, 400,					// 位置
