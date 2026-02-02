@@ -1,5 +1,5 @@
-// DamageText.cpp
-// ƒ_ƒ[ƒW•\‹LŠÇ——p
+ï»¿// DamageText.cpp
+// ãƒ€ãƒ¡ãƒ¼ã‚¸è¡¨è¨˜ç®¡ç†ç”¨
 
 #include "DamageText.h"
 #include "makeText.h"
@@ -15,18 +15,18 @@ using namespace DirectX;
 
 struct DamageText
 {
-	std::wstring text; // •\¦‚·‚é•¶š—ñ
-	XMFLOAT3 worldPos; // ƒ[ƒ‹ƒhÀ•W
-	float screenX;   // ƒXƒNƒŠ[ƒ“À•WX
-	float screenY;   // ƒXƒNƒŠ[ƒ“À•WY
-	float vy;        // Y•ûŒü‚Ì‘¬“x
-	float flame;     // ƒtƒŒ[ƒ€”
-	float size;      // •¶šƒTƒCƒY
-	TextColor color; // •¶šF
-	bool alive;	     // g—pƒtƒ‰ƒO
+	std::wstring text; // è¡¨ç¤ºã™ã‚‹æ–‡å­—åˆ—
+	XMFLOAT3 worldPos; // ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™
+	float screenX;   // ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™X
+	float screenY;   // ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™Y
+	float vy;        // Yæ–¹å‘ã®é€Ÿåº¦
+	float flame;     // ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+	float size;      // æ–‡å­—ã‚µã‚¤ã‚º
+	TextColor color; // æ–‡å­—è‰²
+	bool alive;	     // ä½¿ç”¨ãƒ•ãƒ©ã‚°
 };
 
-// ƒ_ƒ[ƒW•\‹LƒŠƒXƒg
+// ãƒ€ãƒ¡ãƒ¼ã‚¸è¡¨è¨˜ãƒªã‚¹ãƒˆ
 static std::vector<DamageText> g_DamageList;
 
 bool DamageText_Initialize()
@@ -45,8 +45,8 @@ void SetDamageText(const XMFLOAT3& worldPos, int damage, TextColor color)
 	DamageText e;
 	e.text = std::to_wstring(damage);
 	e.worldPos = worldPos;
-	e.vy = 0.05f; // ã‚É‚ä‚Á‚­‚èˆÚ“®
-	e.flame = 100.0f; // ƒtƒŒ[ƒ€”‚ÅÁ‚·
+	e.vy = 0.05f; // ä¸Šã«ã‚†ã£ãã‚Šç§»å‹•
+	e.flame = 100.0f; // ãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã§æ¶ˆã™
 	e.size = 36.0f;
 	e.color = color;
 	e.alive = true;
@@ -57,7 +57,7 @@ void SetDamageText(const XMFLOAT3& worldPos, int damage, TextColor color)
 
 static bool WorldToScreen(const XMFLOAT3& wp, float& outX, float& outY)
 {
-	// View~Projection ‚Å•ÏŠ·
+	// ViewÃ—Projection ã§å¤‰æ›
 	XMMATRIX view = GetViewMatrix();
 	XMMATRIX proj = GetProjectionMatrix();
 	XMMATRIX vp = XMMatrixMultiply(view, proj);
@@ -71,19 +71,19 @@ static bool WorldToScreen(const XMFLOAT3& wp, float& outX, float& outY)
 
 	if (tw == 0.0f) return false;
 
-	// NDC‚É³‹K‰»i/wj
+	// NDCã«æ­£è¦åŒ–ï¼ˆ/wï¼‰
 	float ndcX = tx / tw;
 	float ndcY = ty / tw;
 
-	// ƒXƒNƒŠ[ƒ“‚Ö•ÏŠ·
+	// ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã¸å¤‰æ›
 	float w = (float)Direct3D_GetBackBufferWidth();
 	float h = (float)Direct3D_GetBackBufferHeight();
 
 	outX = (ndcX * 0.5f + 0.5f) * w;
-	// ”½“]
+	// åè»¢
 	outY = (1.0f - (ndcY * 0.5f + 0.5f)) * h;
 
-	// ‰æ–ÊŠO”»’èiZ‚ª•‰A‚Ü‚½‚ÍNDC‚ª}1‚ğ‘å‚«‚­ŠO‚ê‚éê‡‚Í”ñ•\¦j
+	// ç”»é¢å¤–åˆ¤å®šï¼ˆZãŒè² ã€ã¾ãŸã¯NDCãŒÂ±1ã‚’å¤§ããå¤–ã‚Œã‚‹å ´åˆã¯éè¡¨ç¤ºï¼‰
 	if (XMVectorGetZ(t) / tw < 0.0f) return false;
 	if (ndcX < -1.1f || ndcX > 1.1f || ndcY < -1.1f || ndcY > 1.1f) return false;
 
@@ -92,14 +92,14 @@ static bool WorldToScreen(const XMFLOAT3& wp, float& outX, float& outY)
 
 void DamageText_Update()
 {
-	// ƒtƒŒ[ƒ€–ˆXViˆÚ“®Eõ–½j
+	// ãƒ•ãƒ¬ãƒ¼ãƒ æ¯æ›´æ–°ï¼ˆç§»å‹•ãƒ»å¯¿å‘½ï¼‰
 	for (size_t i = 0; i < g_DamageList.size(); )
 	{
 		auto& e = g_DamageList[i];
-		// ƒ[ƒ‹ƒhã‚Åã‚ÖˆÚ“®
+		// ãƒ¯ãƒ¼ãƒ«ãƒ‰ä¸Šã§ä¸Šã¸ç§»å‹•
 		e.worldPos.y += e.vy;
 
-		// ƒXƒNƒŠ[ƒ“ˆÊ’u‚ğŒvZi•\¦”»’èŠÜ‚Şj
+		// ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ä½ç½®ã‚’è¨ˆç®—ï¼ˆè¡¨ç¤ºåˆ¤å®šå«ã‚€ï¼‰
 		float sx, sy;
 		if (WorldToScreen(e.worldPos, sx, sy))
 		{
@@ -108,7 +108,7 @@ void DamageText_Update()
 		}
 		else
 		{
-			// Œ©‚¦‚È‚¢‚È‚ç‰æ–ÊŠO‚Ö
+			// è¦‹ãˆãªã„ãªã‚‰ç”»é¢å¤–ã¸
 			e.screenX = -10000.0f;
 			e.screenY = -10000.0f;
 		}
@@ -116,7 +116,7 @@ void DamageText_Update()
 		e.flame -= 1.0f;
 		if (e.flame <= 0.0f)
 		{
-			// íœ
+			// å‰Šé™¤
 			g_DamageList.erase(g_DamageList.begin() + i);
 		}
 		else
@@ -128,13 +128,13 @@ void DamageText_Update()
 
 void DamageText_Draw()
 {
-	// DrawTextEx‚ğg‚Á‚Ä‘SŒ•`‰æ
+	// DrawTextExã‚’ä½¿ã£ã¦å…¨ä»¶æç”»
 	for (auto& e : g_DamageList)
 	{
-		// ƒtƒF[ƒhƒAƒEƒgŒø‰Êilife‚É‰‚¶‚Ä•¶šƒTƒCƒY‚ğ­‚µk¬‚·‚éA‚Ü‚½‚ÍF‚ğ•Ï‚¦‚é‚È‚Ç‚Í‚±‚±‚Å’²®‰Â”\j
-		float size = e.size * (0.8f + 0.2f * (e.flame / 60.0f)); // life ‚É‰‚¶‚Ä‚í‚¸‚©‚É•Ï‰»
+		// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆåŠ¹æœï¼ˆlifeã«å¿œã˜ã¦æ–‡å­—ã‚µã‚¤ã‚ºã‚’å°‘ã—ç¸®å°ã™ã‚‹ã€ã¾ãŸã¯è‰²ã‚’å¤‰ãˆã‚‹ãªã©ã¯ã“ã“ã§èª¿æ•´å¯èƒ½ï¼‰
+		float size = e.size * (0.8f + 0.2f * (e.flame / 60.0f)); // life ã«å¿œã˜ã¦ã‚ãšã‹ã«å¤‰åŒ–
 
-		// ‰æ–ÊŠO‚Ì‚à‚Ì‚ÍƒXƒLƒbƒv
+		// ç”»é¢å¤–ã®ã‚‚ã®ã¯ã‚¹ã‚­ãƒƒãƒ—
 		if (e.screenX < -1000.0f || e.screenY < -1000.0f) continue;
 
 		DrawTextEx(

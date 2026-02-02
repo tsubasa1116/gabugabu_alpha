@@ -1,113 +1,110 @@
-#include "d3d11.h"
-#include "DirectXMath.h"
-
+ï»¿#include <d3d11.h>
+#include <DirectXMath.h>
 using namespace DirectX;
-
 #include "collider.h"
-
-
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+
 // ==============================================================================
 // AABB
 // ------------------------------------------------------------------------------
-// ƒIƒuƒWƒFƒNƒg‚Ì‰ñ“]‚É’Ç]‚µ‚È‚¢ƒRƒ‰ƒCƒ_[
-// ‚Â‚Ü‚èƒRƒ‰ƒCƒ_[‚Í‰ñ“]‚µ‚È‚¢
+// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å›è»¢ã«è¿½å¾“ã—ãªã„ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼
+// ã¤ã¾ã‚Šã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã¯å›è»¢ã—ãªã„
 // 
-// ˆê”ÔƒVƒ“ƒvƒ‹
-// ƒ}ƒCƒNƒ‰‚Ì“–‚½‚è”»’è
+// ä¸€ç•ªã‚·ãƒ³ãƒ—ãƒ«
+// ãƒã‚¤ã‚¯ãƒ©ã®å½“ãŸã‚Šåˆ¤å®š
 // ==============================================================================
-void CalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& scaling) // V‚µ‚¢ŠÖ”
+void CalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& scaling) // æ–°ã—ã„é–¢æ•°
 {
-	XMFLOAT3 s = scaling;	// ƒIƒuƒWƒFƒNƒg‚ÌƒXƒP[ƒ‹
-	XMFLOAT3 p = position;	// ƒIƒuƒWƒFƒNƒg‚Ì’†SÀ•W
-	XMFLOAT3 half;	// ”¼•ªƒTƒCƒY
+	XMFLOAT3 s = scaling;	// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ã‚¹ã‚±ãƒ¼ãƒ«
+	XMFLOAT3 p = position;	// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ä¸­å¿ƒåº§æ¨™
+	XMFLOAT3 half;	// åŠåˆ†ã‚µã‚¤ã‚º
 
-	// ƒ[ƒ‹ƒh‹óŠÔ‚Å‚Ìƒ{ƒbƒNƒX‚Ìu”¼•ª‚ÌƒTƒCƒYv‚ğŒvZ
+	// ãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ã§ã®ãƒœãƒƒã‚¯ã‚¹ã®ã€ŒåŠåˆ†ã®ã‚µã‚¤ã‚ºã€ã‚’è¨ˆç®—
 	half.x = 0.5f * s.x;
 	half.y = 0.5f * s.y;
 	half.z = 0.5f * s.z;
 
-	// AABB‚ÌÅ¬“_ (Min) ‚Í ’†SÀ•W - ”¼•ª‚ÌƒTƒCƒY
-	// pObject->boundingBox.Min.x = p.x - half.x; // ŒÃ‚¢ˆ—
-	boundingBox.Min.x = p.x - half.x; // V‚µ‚¢ˆ— (ˆø”‚Åó‚¯æ‚Á‚½AABB‚ğXV)
+	// AABBã®æœ€å°ç‚¹ (Min) ã¯ ä¸­å¿ƒåº§æ¨™ - åŠåˆ†ã®ã‚µã‚¤ã‚º
+	// pObject->boundingBox.Min.x = p.x - half.x; // å¤ã„å‡¦ç†
+	boundingBox.Min.x = p.x - half.x; // æ–°ã—ã„å‡¦ç† (å¼•æ•°ã§å—ã‘å–ã£ãŸAABBã‚’æ›´æ–°)
 	boundingBox.Min.y = p.y - half.y;
 	boundingBox.Min.z = p.z - half.z;
 
-	// AABB‚ÌÅ‘å“_ (Max) ‚Í ’†SÀ•W + ”¼•ª‚ÌƒTƒCƒY
-	// pObject->boundingBox.Max.x = p.x + half.x; // ŒÃ‚¢ˆ—
-	boundingBox.Max.x = p.x + half.x; // V‚µ‚¢ˆ—
+	// AABBã®æœ€å¤§ç‚¹ (Max) ã¯ ä¸­å¿ƒåº§æ¨™ + åŠåˆ†ã®ã‚µã‚¤ã‚º
+	// pObject->boundingBox.Max.x = p.x + half.x; // å¤ã„å‡¦ç†
+	boundingBox.Max.x = p.x + half.x; // æ–°ã—ã„å‡¦ç†
 	boundingBox.Max.y = p.y + half.y;
 	boundingBox.Max.z = p.z + half.z;
 }
 
-void FieldCalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& scaling) // ŒÃ‚¢ƒtƒB[ƒ‹ƒhƒRƒ‰ƒCƒ_[ŠÖ”
+void FieldCalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& scaling) // å¤ã„ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼é–¢æ•°
 {
-	XMFLOAT3 s = scaling;	// ƒIƒuƒWƒFƒNƒg‚ÌƒXƒP[ƒ‹
-	XMFLOAT3 p = position;	// ƒIƒuƒWƒFƒNƒg‚Ì’†SÀ•W
-	XMFLOAT3 half;	// ”¼•ªƒTƒCƒY
+	XMFLOAT3 s = scaling;	// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ã‚¹ã‚±ãƒ¼ãƒ«
+	XMFLOAT3 p = position;	// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ä¸­å¿ƒåº§æ¨™
+	XMFLOAT3 half;	// åŠåˆ†ã‚µã‚¤ã‚º
 
-	// ƒ[ƒ‹ƒh‹óŠÔ‚Å‚Ìƒ{ƒbƒNƒX‚Ìu”¼•ª‚ÌƒTƒCƒYv‚ğŒvZ
+	// ãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ã§ã®ãƒœãƒƒã‚¯ã‚¹ã®ã€ŒåŠåˆ†ã®ã‚µã‚¤ã‚ºã€ã‚’è¨ˆç®—
 	half.x = 0.5f * s.x;
 	half.y = 0.5f * s.y;
 	half.z = 0.5f * s.z;
 
-	// AABB‚ÌÅ¬“_ (Min) ‚Í ’†SÀ•W - ”¼•ª‚ÌƒTƒCƒY
-	// pObject->boundingBox.Min.x = p.x - half.x; // ŒÃ‚¢ˆ—
-	boundingBox.Min.x = p.x - half.x; // V‚µ‚¢ˆ— (ˆø”‚Åó‚¯æ‚Á‚½AABB‚ğXV)
+	// AABBã®æœ€å°ç‚¹ (Min) ã¯ ä¸­å¿ƒåº§æ¨™ - åŠåˆ†ã®ã‚µã‚¤ã‚º
+	// pObject->boundingBox.Min.x = p.x - half.x; // å¤ã„å‡¦ç†
+	boundingBox.Min.x = p.x - half.x; // æ–°ã—ã„å‡¦ç† (å¼•æ•°ã§å—ã‘å–ã£ãŸAABBã‚’æ›´æ–°)
 	boundingBox.Min.y = p.y - half.y;
 	boundingBox.Min.z = p.z - half.z;
 
-	// AABB‚ÌÅ‘å“_ (Max) ‚Í ’†SÀ•W + ”¼•ª‚ÌƒTƒCƒY
-	// pObject->boundingBox.Max.x = p.x + half.x; // ŒÃ‚¢ˆ—
-	boundingBox.Max.x = p.x + half.x; // V‚µ‚¢ˆ—
+	// AABBã®æœ€å¤§ç‚¹ (Max) ã¯ ä¸­å¿ƒåº§æ¨™ + åŠåˆ†ã®ã‚µã‚¤ã‚º
+	// pObject->boundingBox.Max.x = p.x + half.x; // å¤ã„å‡¦ç†
+	boundingBox.Max.x = p.x + half.x; // æ–°ã—ã„å‡¦ç†
 	boundingBox.Max.y = p.y + half.y;
 	boundingBox.Max.z = p.z + half.z;
 }
 
 // ==============================================================================
-// AABB“¯m‚ÌÕ“Ë”»’èŠÖ”
+// AABBåŒå£«ã®è¡çªåˆ¤å®šé–¢æ•°
 // ------------------------------------------------------------------------------
-// Õ“Ë‚µ‚Ä‚¢‚ê‚Î true ‚ğ•Ô‚·
+// è¡çªã—ã¦ã„ã‚Œã° true ã‚’è¿”ã™
 // ==============================================================================
 bool CheckAABBCollision(const AABB& a, const AABB& b)
 {
-	// d‚È‚Á‚Ä‚¢‚È‚¯‚ê‚Î false ‚ğ•Ô‚·
-	if (a.Max.x < b.Min.x || a.Min.x > b.Max.x) return false;	// X²‚Å‚Ìd‚È‚è‚ğƒ`ƒFƒbƒN
-	if (a.Max.y < b.Min.y || a.Min.y > b.Max.y) return false;	// Y²‚Å‚Ìd‚È‚è‚ğƒ`ƒFƒbƒN
-	if (a.Max.z < b.Min.z || a.Min.z > b.Max.z) return false;	// Z²‚Å‚Ìd‚È‚è‚ğƒ`ƒFƒbƒN
+	// é‡ãªã£ã¦ã„ãªã‘ã‚Œã° false ã‚’è¿”ã™
+	if (a.Max.x < b.Min.x || a.Min.x > b.Max.x) return false;	// Xè»¸ã§ã®é‡ãªã‚Šã‚’ãƒã‚§ãƒƒã‚¯
+	if (a.Max.y < b.Min.y || a.Min.y > b.Max.y) return false;	// Yè»¸ã§ã®é‡ãªã‚Šã‚’ãƒã‚§ãƒƒã‚¯
+	if (a.Max.z < b.Min.z || a.Min.z > b.Max.z) return false;	// Zè»¸ã§ã®é‡ãªã‚Šã‚’ãƒã‚§ãƒƒã‚¯
 
-	// ‚·‚×‚Ä‚Ì²‚Åd‚È‚Á‚Ä‚¢‚ê‚ÎÕ“ËI
+	// ã™ã¹ã¦ã®è»¸ã§é‡ãªã£ã¦ã„ã‚Œã°è¡çªï¼
 	return true;
 }
 
 // ==============================================================================
-// AABB‚ÆAABB‚ÌÕ“ËŒŸo‚ÆÅ¬ˆÚ“®ƒxƒNƒgƒ‹‚ÌŒvZ
-//	pMovingObject: “®‚­ƒIƒuƒWƒFƒNƒg‚ÌAABB (object.boundingBox)
-//	pStaticObject: “®‚©‚È‚¢ƒIƒuƒWƒFƒNƒg‚ÌAABB
+// AABBã¨AABBã®è¡çªæ¤œå‡ºã¨æœ€å°ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«ã®è¨ˆç®—
+//	pMovingObject: å‹•ãã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®AABB (object.boundingBox)
+//	pStaticObject: å‹•ã‹ãªã„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®AABB
 // ==============================================================================
 MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject)
 {
 	MTV result = { {0.0f, 0.0f, 0.0f}, 0.0f, false };
 
 	// --------------------------------------------------------------------------
-	// --- Še²‚Å‚Ìd‚È‚è”ÍˆÍ‚ğŒvZ ---
+	// --- å„è»¸ã§ã®é‡ãªã‚Šç¯„å›²ã‚’è¨ˆç®— ---
 	// --------------------------------------------------------------------------
-	// Min‚ÆMax‚Ì·•ª‚©‚çA—¼AABB‚Ì’†SŠÔ‹——£‚ğˆø‚­‚±‚Æ‚Åd‚È‚è‚ğŒvZ‚·‚é
+	// Minã¨Maxã®å·®åˆ†ã‹ã‚‰ã€ä¸¡AABBã®ä¸­å¿ƒé–“è·é›¢ã‚’å¼•ãã“ã¨ã§é‡ãªã‚Šã‚’è¨ˆç®—ã™ã‚‹
 
-	// X²
+	// Xè»¸
 	float centerDiffX = pStaticObject.Min.x + (pStaticObject.Max.x - pStaticObject.Min.x) / 2.0f
 		- (pMovingObject.Min.x + (pMovingObject.Max.x - pMovingObject.Min.x) / 2.0f);
 
 	float halfExtentX = (pStaticObject.Max.x - pStaticObject.Min.x) / 2.0f
 		+ (pMovingObject.Max.x - pMovingObject.Min.x) / 2.0f;
 
-	// X²‚Ìd‚È‚è (³‚Ì’l‚È‚çd‚È‚Á‚Ä‚¢‚é)
+	// Xè»¸ã®é‡ãªã‚Š (æ­£ã®å€¤ãªã‚‰é‡ãªã£ã¦ã„ã‚‹)
 	float overlapX = halfExtentX - fabsf(centerDiffX);
 
 
-	// Y²
+	// Yè»¸
 	float centerDiffY = pStaticObject.Min.y + (pStaticObject.Max.y - pStaticObject.Min.y) / 2.0f
 		- (pMovingObject.Min.y + (pMovingObject.Max.y - pMovingObject.Min.y) / 2.0f);
 
@@ -117,7 +114,7 @@ MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject)
 	float overlapY = halfExtentY - fabsf(centerDiffY);
 
 
-	// Z²
+	// Zè»¸
 	float centerDiffZ = pStaticObject.Min.z + (pStaticObject.Max.z - pStaticObject.Min.z) / 2.0f
 		- (pMovingObject.Min.z + (pMovingObject.Max.z - pMovingObject.Min.z) / 2.0f);
 
@@ -127,41 +124,41 @@ MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject)
 	float overlapZ = halfExtentZ - fabsf(centerDiffZ);
 
 	// --------------------------------------------------------------------------
-	// --- Õ“Ë”»’è ---
+	// --- è¡çªåˆ¤å®š ---
 	// --------------------------------------------------------------------------
-	// ˆê‚Â‚Å‚àd‚È‚è‚ª‚È‚¯‚ê‚ÎÕ“Ë‚µ‚Ä‚¢‚È‚¢
+	// ä¸€ã¤ã§ã‚‚é‡ãªã‚ŠãŒãªã‘ã‚Œã°è¡çªã—ã¦ã„ãªã„
 	if (overlapX <= 0.0f || overlapY <= 0.0f || overlapZ <= 0.0f)
 	{
 		result.isColliding = false;
 		return result;
 	}
 
-	// Õ“Ë‚ ‚è
+	// è¡çªã‚ã‚Š
 	result.isColliding = true;
 
 	// --------------------------------------------------------------------------
-	// --- Å¬d‚È‚è²‚Ì“Á’è (MTV‚ÌŒvZ) ---
+	// --- æœ€å°é‡ãªã‚Šè»¸ã®ç‰¹å®š (MTVã®è¨ˆç®—) ---
 	// --------------------------------------------------------------------------
 	if (overlapX < overlapY && overlapX < overlapZ)
 	{
-		// X²‚ªÅ¬‚Ìd‚È‚è
+		// Xè»¸ãŒæœ€å°ã®é‡ãªã‚Š
 		result.overlap = overlapX;
 
-		// ‰Ÿ‚µ–ß‚µ•ûŒü‚ÌŒˆ’è (’†S“_‚Ì·•ª‚ÅA+X•ûŒü‚©-X•ûŒü‚©‚ğŒˆ‚ß‚é)
+		// æŠ¼ã—æˆ»ã—æ–¹å‘ã®æ±ºå®š (ä¸­å¿ƒç‚¹ã®å·®åˆ†ã§ã€+Xæ–¹å‘ã‹-Xæ–¹å‘ã‹ã‚’æ±ºã‚ã‚‹)
 		if (centerDiffX > 0)
 		{
-			// Ã“IƒIƒuƒWƒFƒNƒg‚ª“®“IƒIƒuƒWƒFƒNƒg‚æ‚è+X•ûŒü‚É‚¢‚é -> “®“IƒIƒuƒWƒFƒNƒg‚ğ-X‚É‰Ÿ‚·
+			// é™çš„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒå‹•çš„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚ˆã‚Š+Xæ–¹å‘ã«ã„ã‚‹ -> å‹•çš„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’-Xã«æŠ¼ã™
 			result.translation = { -overlapX, 0.0f, 0.0f };
 		}
 		else
 		{
-			// Ã“IƒIƒuƒWƒFƒNƒg‚ª“®“IƒIƒuƒWƒFƒNƒg‚æ‚è-X•ûŒü‚É‚¢‚é -> “®“IƒIƒuƒWƒFƒNƒg‚ğ+X‚É‰Ÿ‚·
+			// é™çš„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒå‹•çš„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚ˆã‚Š-Xæ–¹å‘ã«ã„ã‚‹ -> å‹•çš„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’+Xã«æŠ¼ã™
 			result.translation = { overlapX, 0.0f, 0.0f };
 		}
 	}
 	else if (overlapY < overlapZ)
 	{
-		// Y²‚ªÅ¬‚Ìd‚È‚è
+		// Yè»¸ãŒæœ€å°ã®é‡ãªã‚Š
 		result.overlap = overlapY;
 
 		if (centerDiffY > 0)
@@ -175,7 +172,7 @@ MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject)
 	}
 	else
 	{
-		// Z²‚ªÅ¬‚Ìd‚È‚è
+		// Zè»¸ãŒæœ€å°ã®é‡ãªã‚Š
 		result.overlap = overlapZ;
 
 		if (centerDiffZ > 0)
@@ -194,74 +191,74 @@ MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject)
 
 
 // ==============================================================================
-// “_‚Æ˜ZŠp’Œ‚ÌÕ“Ë”»’è
+// ç‚¹ã¨å…­è§’æŸ±ã®è¡çªåˆ¤å®š
 // ------------------------------------------------------------------------------
-// “ü—Í: point (”»’è‚µ‚½‚¢“_‚ÌÀ•W), hex (˜ZŠp’Œƒf[ƒ^)
-// o—Í: true = ’†‚É“ü‚Á‚Ä‚¢‚é, false = “ü‚Á‚Ä‚¢‚È‚¢
+// å…¥åŠ›: point (åˆ¤å®šã—ãŸã„ç‚¹ã®åº§æ¨™), hex (å…­è§’æŸ±ãƒ‡ãƒ¼ã‚¿)
+// å‡ºåŠ›: true = ä¸­ã«å…¥ã£ã¦ã„ã‚‹, false = å…¥ã£ã¦ã„ãªã„
 // ==============================================================================
 bool CheckPointHexCollision(const XMFLOAT3& point, const HexCollider& hex)
 {
-	// ˜ZŠp’Œ‚Ì’ê–Ê‚©‚çã–Ê‚ÌŠÔ‚É‚ ‚é‚©
+	// å…­è§’æŸ±ã®åº•é¢ã‹ã‚‰ä¸Šé¢ã®é–“ã«ã‚ã‚‹ã‹
 	float halfH = hex.height / 2.0f;
 
-	// ˜ZŠp’Œ‚Ìã–Ê‚Æ’ê–Ê‚ÌyÀ•W
+	// å…­è§’æŸ±ã®ä¸Šé¢ã¨åº•é¢ã®yåº§æ¨™
 	float max_y = hex.center.y + halfH;
 	float min_y = hex.center.y - halfH;
 
 	if (
-		point.y < min_y ||	// ƒvƒŒƒCƒ„[‚ª’Œ‚æ‚è‰º
-		point.y > max_y)	// ƒvƒŒƒCƒ„[‚ª’Œ‚æ‚èã
+		point.y < min_y ||	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæŸ±ã‚ˆã‚Šä¸‹
+		point.y > max_y)	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæŸ±ã‚ˆã‚Šä¸Š
 	{
-		return false; // ‚‚³‚ª‡‚í‚È‚¢‚È‚çÕ“Ë‚µ‚Ä‚¢‚È‚¢
+		return false; // é«˜ã•ãŒåˆã‚ãªã„ãªã‚‰è¡çªã—ã¦ã„ãªã„
 	}
 
-	// •½–Ê(XZ•½–Ê)‚Å‚Ì˜ZŠpŒ`”»’è
-	// ˜ZŠpŒ`‚Í‘ÎÌ‚È‚Ì‚ÅAâ‘Î’l‚ğg‚Á‚Ä‘æ1ÛŒÀ‚¾‚¯‚ÅŒvZ‚Å‚«‚é
+	// å¹³é¢(XZå¹³é¢)ã§ã®å…­è§’å½¢åˆ¤å®š
+	// å…­è§’å½¢ã¯å¯¾ç§°ãªã®ã§ã€çµ¶å¯¾å€¤ã‚’ä½¿ã£ã¦ç¬¬1è±¡é™ã ã‘ã§è¨ˆç®—ã§ãã‚‹
 
-	// “_‚Æ˜ZŠp’Œ‚Ì‹——£‚Ìâ‘Î’l‚ğ‚Æ‚é
+	// ç‚¹ã¨å…­è§’æŸ±ã®è·é›¢ã®çµ¶å¯¾å€¤ã‚’ã¨ã‚‹
 	float dx = fabsf(point.x - hex.center.x);
 	float dz = fabsf(point.z - hex.center.z);
 
 	float sin60 = sinf(XMConvertToRadians(60.0f));
 
-	float max_x = hex.radius;		// ˜ZŠp‚ÌÅ‘åxÀ•W
-	float max_z = max_x * sin60;	// ˜ZŠp‚ÌÅ‘åzÀ•W
+	float max_x = hex.radius;		// å…­è§’ã®æœ€å¤§xåº§æ¨™
+	float max_z = max_x * sin60;	// å…­è§’ã®æœ€å¤§zåº§æ¨™
 
-	// ˜ZŠpŒ`‚ª“àÚ‚µ‚Ä‚¢‚é’·•ûŒ`‚Ì”ÍˆÍŠO‚È‚çœŠO
+	// å…­è§’å½¢ãŒå†…æ¥ã—ã¦ã„ã‚‹é•·æ–¹å½¢ã®ç¯„å›²å¤–ãªã‚‰é™¤å¤–
 	if (dx > max_x || dz > max_z) return false;
 
-	// Î‚ß‚Ì•Ó‚É‘Î‚µ‚Ä‚’¼‚ÈƒxƒNƒgƒ‹F
-	//	‰EÎ‚ß‚Ì•Ó‚Æx²‚Ì‚È‚·Šp 120“x - 90“x = 30“x
+	// æ–œã‚ã®è¾ºã«å¯¾ã—ã¦å‚ç›´ãªãƒ™ã‚¯ãƒˆãƒ«ï¼š
+	//	å³æ–œã‚ã®è¾ºã¨xè»¸ã®ãªã™è§’ 120åº¦ - 90åº¦ = 30åº¦
 	float nx = cosf(XMConvertToRadians(30.0f));
 	//float ny = sinf(XMConvertToRadians(30.0f));
-	float ny = 0.5f;	// sin30 ‚Í 0.5 ‚É‚È‚é
+	float ny = 0.5f;	// sin30 ã¯ 0.5 ã«ãªã‚‹
 
-	// –@ü n ‚Æ’²‚×‚é“_ d ‚Æ‚Ì“àÏ
-	// i–@ü n ‚Í’PˆÊƒxƒNƒgƒ‹‚¾‚©‚ç“àÏ‚Í dcosƒÓ iƒÓ ‚Í n ‚Æ d ‚Ì‚È‚·Špj‚É‚È‚éj
-	//	‚Â‚Ü‚èƒxƒNƒgƒ‹ d ‚ğ–@ü n ‚ÉË‰e‚µ‚½‚ÌƒxƒNƒgƒ‹‚ªo‚Ä‚­‚é‚±‚Æ‚É‚È‚é
+	// æ³•ç·š n ã¨èª¿ã¹ã‚‹ç‚¹ d ã¨ã®å†…ç©
+	// ï¼ˆæ³•ç·š n ã¯å˜ä½ãƒ™ã‚¯ãƒˆãƒ«ã ã‹ã‚‰å†…ç©ã¯ dcosÏ† ï¼ˆÏ† ã¯ n ã¨ d ã®ãªã™è§’ï¼‰ã«ãªã‚‹ï¼‰
+	//	ã¤ã¾ã‚Šãƒ™ã‚¯ãƒˆãƒ« d ã‚’æ³•ç·š n ã«å°„å½±ã—ãŸæ™‚ã®ãƒ™ã‚¯ãƒˆãƒ«ãŒå‡ºã¦ãã‚‹ã“ã¨ã«ãªã‚‹
 	float dn = dx * nx + dz * ny;
 
-	// ˜ZŠpŒ`‚Ì’†S‚©‚çÎ‚ß‚Ì•Ó‚Ü‚Å‚Ì‹——£
-	// iƒAƒ|ƒZƒ€Fi‘½ŠpŒ`‚Ì’†Sj‚©‚çi‘½ŠpŒ`‚ÌŠe•Ó‚Ì’†“_j‚Ü‚Å‚Ì‹——£j
-	//	–@ü n ‚Ì•ûŒü‚ÉƒxƒNƒgƒ‹‚ğL‚Î‚µ‚ÄAÎ‚ß‚Ì•Ó‚É“–‚½‚é‚Ü‚Å‚Ì’·‚³‚ÌƒxƒNƒgƒ‹‚É‚È‚é
+	// å…­è§’å½¢ã®ä¸­å¿ƒã‹ã‚‰æ–œã‚ã®è¾ºã¾ã§ã®è·é›¢
+	// ï¼ˆã‚¢ãƒã‚»ãƒ ï¼šï¼ˆå¤šè§’å½¢ã®ä¸­å¿ƒï¼‰ã‹ã‚‰ï¼ˆå¤šè§’å½¢ã®å„è¾ºã®ä¸­ç‚¹ï¼‰ã¾ã§ã®è·é›¢ï¼‰
+	//	æ³•ç·š n ã®æ–¹å‘ã«ãƒ™ã‚¯ãƒˆãƒ«ã‚’ä¼¸ã°ã—ã¦ã€æ–œã‚ã®è¾ºã«å½“ãŸã‚‹ã¾ã§ã®é•·ã•ã®ãƒ™ã‚¯ãƒˆãƒ«ã«ãªã‚‹
 	// 
-	// ƒAƒ|ƒZƒ€Fi”¼Œaj*icosƒÆj‚æ‚èA
+	// ã‚¢ãƒã‚»ãƒ ï¼šï¼ˆåŠå¾„ï¼‰*ï¼ˆcosÎ¸ï¼‰ã‚ˆã‚Šã€
 	//		float apothem = hex.radius * cosf(XMConvertToRadians(30.0f));
 	// 
-	// cos30 ‚Í sin60 ‚Æ“™‚µ‚¢icos(90 - 30) = sin60j‚É‚È‚é
-	// ‚Â‚¢‚Å‚É hex.radiusi”¼Œaj‚Í max_x ‚Æ’u‚¯‚é
+	// cos30 ã¯ sin60 ã¨ç­‰ã—ã„ï¼ˆcos(90 - 30) = sin60ï¼‰ã«ãªã‚‹
+	// ã¤ã„ã§ã« hex.radiusï¼ˆåŠå¾„ï¼‰ã¯ max_x ã¨ç½®ã‘ã‚‹
 	// 
-	// ‚Â‚Ü‚èƒAƒ|ƒZƒ€‚Í max_x * sin60 = max_z ‚ÌŒvZ‚Æˆê’v‚·‚é‚½‚ßA
-	//		float apothm = max_z; // ‚ÆA’u‚¯‚é
+	// ã¤ã¾ã‚Šã‚¢ãƒã‚»ãƒ ã¯ max_x * sin60 = max_z ã®è¨ˆç®—ã¨ä¸€è‡´ã™ã‚‹ãŸã‚ã€
+	//		float apothm = max_z; // ã¨ã€ç½®ã‘ã‚‹
 
-	if (dn <= max_z)	// –@ü‚ÉË‰e‚³‚ê‚½’²‚×‚½‚¢“_ ‚Æ apothm ‚Ì”äŠr
+	if (dn <= max_z)	// æ³•ç·šã«å°„å½±ã•ã‚ŒãŸèª¿ã¹ãŸã„ç‚¹ ã¨ apothm ã®æ¯”è¼ƒ
 	{
-		return true; // “à‘¤I
+		return true; // å†…å´ï¼
 	}
 
-	// ˆÀ‘S‚Ì‚½‚ß‚ÌÅŒã‚Ìƒ`ƒFƒbƒN
-	// ’·•ûŒ`•”•ª‚Ìƒ`ƒFƒbƒN (’†S•t‹ß)
-	//if (dx <= max_x * 0.5f) // ”¼•ª‚Ì•ˆÈ“à‚È‚çA‚‚³ƒ`ƒFƒbƒN‚¾‚¯‚ÅOKiã‚Å’Ê‰ßÏ‚İj
+	// å®‰å…¨ã®ãŸã‚ã®æœ€å¾Œã®ãƒã‚§ãƒƒã‚¯
+	// é•·æ–¹å½¢éƒ¨åˆ†ã®ãƒã‚§ãƒƒã‚¯ (ä¸­å¿ƒä»˜è¿‘)
+	//if (dx <= max_x * 0.5f) // åŠåˆ†ã®å¹…ä»¥å†…ãªã‚‰ã€é«˜ã•ãƒã‚§ãƒƒã‚¯ã ã‘ã§OKï¼ˆä¸Šã§é€šéæ¸ˆã¿ï¼‰
 	//{
 	//	return true;
 	//}
@@ -269,43 +266,43 @@ bool CheckPointHexCollision(const XMFLOAT3& point, const HexCollider& hex)
 	return false;
 }
 
-// collider.cpp ‚Ì––”ö‚É’Ç‰Á
+// collider.cpp ã®æœ«å°¾ã«è¿½åŠ 
 
 // ==============================================================================
-// AABB‚Æ˜ZŠp’Œ‚ÌÕ“Ë”»’èi‘«ê”»’è—pj
+// AABBã¨å…­è§’æŸ±ã®è¡çªåˆ¤å®šï¼ˆè¶³å ´åˆ¤å®šç”¨ï¼‰
 // ------------------------------------------------------------------------------
-// AABB‚Ì’ê–Ê‚Ìl‹÷‚Ì‚¢‚¸‚ê‚©‚ª˜ZŠpŒ`‚É“ü‚Á‚Ä‚¢‚ê‚Î true ‚ğ•Ô‚·
-// ‚±‚ê‚É‚æ‚èuƒMƒŠƒMƒŠ’[‚Á‚±‚Éæ‚Á‚Ä‚¢‚évó‘Ô‚ğ”»’è‚Å‚«‚Ü‚·B
+// AABBã®åº•é¢ã®å››éš…ã®ã„ãšã‚Œã‹ãŒå…­è§’å½¢ã«å…¥ã£ã¦ã„ã‚Œã° true ã‚’è¿”ã™
+// ã“ã‚Œã«ã‚ˆã‚Šã€Œã‚®ãƒªã‚®ãƒªç«¯ã£ã“ã«ä¹—ã£ã¦ã„ã‚‹ã€çŠ¶æ…‹ã‚’åˆ¤å®šã§ãã¾ã™ã€‚
 // ==============================================================================
 bool CheckAABBHexCollision(const AABB& box, const HexCollider& hex)
 {
-	//// 1. Y²i‚‚³j‚Ì”»’è
-	//// ˜ZŠpŒ`‚ÌY”ÍˆÍ‚ğæ“¾
+	//// 1. Yè»¸ï¼ˆé«˜ã•ï¼‰ã®åˆ¤å®š
+	//// å…­è§’å½¢ã®Yç¯„å›²ã‚’å–å¾—
 	//float hexMinY = hex.center.y - hex.height / 2.0f;
 	//float hexMaxY = hex.center.y + hex.height / 2.0f;
 
-	//// AABB‚Ì‘«Œ³(Min.y)‚©‚ç“ª(Max.y)‚ªA˜ZŠpŒ`‚Ì‚‚³”ÍˆÍ‚Æ‚©‚·‚Á‚Ä‚¢‚é‚©Šm”F
-	//// ¦­‚µ—]—T(+0.5f)‚ğ‚½‚¹‚È‚¢‚ÆA’…’n‚µ‚½uŠÔ‚É”»’è‚ªŠO‚ê‚é‚±‚Æ‚ª‚ ‚è‚Ü‚·
-	//if (box.Min.y > hexMaxY + 0.5f) return false;	// ƒvƒŒƒCƒ„[‚ª‚‚·‚¬‚é
-	//if (box.Max.y < hexMinY) return false;			// ƒvƒŒƒCƒ„[‚ª’á‚·‚¬‚é
+	//// AABBã®è¶³å…ƒ(Min.y)ã‹ã‚‰é ­(Max.y)ãŒã€å…­è§’å½¢ã®é«˜ã•ç¯„å›²ã¨ã‹ã™ã£ã¦ã„ã‚‹ã‹ç¢ºèª
+	//// â€»å°‘ã—ä½™è£•(+0.5f)ã‚’æŒãŸã›ãªã„ã¨ã€ç€åœ°ã—ãŸç¬é–“ã«åˆ¤å®šãŒå¤–ã‚Œã‚‹ã“ã¨ãŒã‚ã‚Šã¾ã™
+	//if (box.Min.y > hexMaxY + 0.5f) return false;	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒé«˜ã™ãã‚‹
+	//if (box.Max.y < hexMinY) return false;			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒä½ã™ãã‚‹
 
-	// 2. XZ•½–Êi…•½•ûŒüj‚Ì”»’è
-	// AABB‚Ì’ê–Ê‚Ì4‚Â‚ÌŠp‚ÌÀ•W‚ğì¬
+	// 2. XZå¹³é¢ï¼ˆæ°´å¹³æ–¹å‘ï¼‰ã®åˆ¤å®š
+	// AABBã®åº•é¢ã®4ã¤ã®è§’ã®åº§æ¨™ã‚’ä½œæˆ
 	XMFLOAT3 corners[5];
 
-	corners[0] = XMFLOAT3(box.Min.x, box.Min.y, box.Max.z); // ¶‰œ
-	corners[1] = XMFLOAT3(box.Max.x, box.Min.y, box.Max.z); // ‰E‰œ
-	corners[2] = XMFLOAT3(box.Min.x, box.Min.y, box.Min.z); // ¶è‘O
-	corners[3] = XMFLOAT3(box.Max.x, box.Min.y, box.Min.z); // ‰Eè‘O
+	corners[0] = XMFLOAT3(box.Min.x, box.Min.y, box.Max.z); // å·¦å¥¥
+	corners[1] = XMFLOAT3(box.Max.x, box.Min.y, box.Max.z); // å³å¥¥
+	corners[2] = XMFLOAT3(box.Min.x, box.Min.y, box.Min.z); // å·¦æ‰‹å‰
+	corners[3] = XMFLOAT3(box.Max.x, box.Min.y, box.Min.z); // å³æ‰‹å‰
 
-	// ’†S‚à”O‚Ì‚½‚ßƒ`ƒFƒbƒNiƒvƒŒƒCƒ„[‚ª˜ZŠpŒ`‚æ‚è‹‘å‚Èê‡—pj
+	// ä¸­å¿ƒã‚‚å¿µã®ãŸã‚ãƒã‚§ãƒƒã‚¯ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒå…­è§’å½¢ã‚ˆã‚Šå·¨å¤§ãªå ´åˆç”¨ï¼‰
 	corners[4] = XMFLOAT3(
 		(box.Min.x + box.Max.x) * 0.5f, 
-		//(box.Min.y + box.Max.y) * 0.5f,	// AABB‚ÌyÀ•W‚Ì’†S
-		(box.Min.y),						// AABB‚Ì’ê–Ê‚ÌyÀ•W
+		//(box.Min.y + box.Max.y) * 0.5f,	// AABBã®yåº§æ¨™ã®ä¸­å¿ƒ
+		(box.Min.y),						// AABBã®åº•é¢ã®yåº§æ¨™
 		(box.Min.z + box.Max.z) * 0.5f);
 
-	// ‚¢‚¸‚ê‚©‚Ì“_‚ª˜ZŠpŒ`‚Ì’†‚É‚ ‚ê‚Îuæ‚Á‚Ä‚¢‚év‚Æ‚İ‚È‚·
+	// ã„ãšã‚Œã‹ã®ç‚¹ãŒå…­è§’å½¢ã®ä¸­ã«ã‚ã‚Œã°ã€Œä¹—ã£ã¦ã„ã‚‹ã€ã¨ã¿ãªã™
 	for (int i = 0; i < 5; i++)
 	{
 		if (CheckPointHexCollision(corners[i], hex))
@@ -315,4 +312,27 @@ bool CheckAABBHexCollision(const AABB& box, const HexCollider& hex)
 	}
 
 	return false;
+}
+
+// ==============================================================================
+// å††ã¨AABBã®è¡çªåˆ¤å®š
+// ------------------------------------------------------------------------------
+// å…¥åŠ›: circle (å††ã®ä¸­å¿ƒåº§æ¨™ã¨åŠå¾„), box (AABBãƒ‡ãƒ¼ã‚¿)
+// å‡ºåŠ›: true = è¡çªã—ã¦ã„ã‚‹, false = è¡çªã—ã¦ã„ãªã„
+// ==============================================================================
+bool CheckCircleAABBCollision(const Circle& circle, const AABB& box)
+{
+	// å††ã®ä¸­å¿ƒã¨AABBã®æœ€ã‚‚è¿‘ã„ç‚¹ã‚’è¨ˆç®—
+	float closestX = max(box.Min.x, min(circle.center.x, box.Max.x));
+	float closestY = max(box.Min.y, min(circle.center.y, box.Max.y));
+	float closestZ = max(box.Min.z, min(circle.center.z, box.Max.z));
+	
+	// å††ã®ä¸­å¿ƒã¨æœ€ã‚‚è¿‘ã„ç‚¹ã¨ã®è·é›¢ã‚’è¨ˆç®—
+	float dx = circle.center.x - closestX;
+	float dy = circle.center.y - closestY;
+	float dz = circle.center.z - closestZ;
+	
+	// è¡çªåˆ¤å®š: è·é›¢ãŒå††ã®åŠå¾„ä»¥ä¸‹ã§ã‚ã‚Œã°è¡çª
+	float distanceSquared = dx * dx + dy * dy + dz * dz;
+	return distanceSquared <= (circle.radius * circle.radius);
 }

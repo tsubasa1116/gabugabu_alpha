@@ -1,81 +1,62 @@
-#pragma once
+ï»¿#pragma once
 
 #include <d3d11.h>
 #include "collider.h"
 #include <DirectXMath.h>
 #include <vector>
 
-// ƒ}ƒNƒ’è‹`
-#define SPECIAL_GLASS_TIME			(10.0f)	// 
-#define SPECIAL_GLASS_LOCKON_TIME	(3.0f)	// ƒXƒyƒVƒƒƒ‹ ƒKƒ‰ƒX ƒƒbƒNƒIƒ“ŠÔ
-#define SPECIAL_CONCRETE_TIME		(10.0f)	// 
-#define SPECIAL_PLANT_TIME			(10.0f)	// 
-#define SPECIAL_ELECTRIC_TIME		(10.0f)	// 
+// ãƒã‚¯ãƒ­å®šç¾©
+//#define SPECIAL_GLASS_TIME ãƒŸã‚µã‚¤ãƒ«å…¨ã¦ã®activeãŒfalseã«ãªã£ãŸã‚‰çµ‚äº†ãªã®ã§ä¸è¦
+#define SPECIAL_CONCRETE_TIME		(1.5f)
+#define SPECIAL_PLANT_TIME			(10.0f)
+#define SPECIAL_ELECTRICITY_TIME	(5.0f)
+
+#define SPECIAL_GLASS_DAMAGE		(50.0f)	// ãƒŸã‚µã‚¤ãƒ« 1å€‹ã‚ãŸã‚Šã®ãƒ€ãƒ¡ãƒ¼ã‚¸é‡
+#define SPECIAL_CONCRETE_DAMAGE		(75.0f)	// åˆ¤å®š1å›ã®ã¿
+#define SPECIAL_PLANT_DAMAGE		(0.25f)	// ã‚¹ãƒªãƒƒãƒ—ãƒ€ãƒ¡ãƒ¼ã‚¸
+#define SPECIAL_ELECTRICITY_DAMAGE	(40.0f)	// é›· 1å€‹ã‚ãŸã‚Šã®ãƒ€ãƒ¡ãƒ¼ã‚¸é‡
+
+#define SPECIAL_GLASSBOX_QUANTITY		(3)	// ã‚¬ãƒ©ã‚¹ 1ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«é£›ã°ã™ç®±ã®æ•°
+#define SPECIAL_ELECTRICITY_QUANTITY	(4)	// é›»æ°— è½é›·ã®æ•°
+
+// ã‚¬ãƒ©ã‚¹ã‚¹ãƒšã‚·ãƒ£ãƒ« ãƒŸã‚µã‚¤ãƒ«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+struct GLASS_BOX
+{
+	XMFLOAT3 position;			// ä½ç½®
+	XMFLOAT3 rotation;			// å›è»¢
+	XMFLOAT3 scaling;			// ã‚¹ã‚±ãƒ¼ãƒ«
+	XMFLOAT3 dir;				// ç§»å‹•æ–¹å‘
+	XMFLOAT3 targetPosition;	// ç›®æ¨™ä½ç½®
+	bool active;				// æœ‰åŠ¹çŠ¶æ…‹
+};
 
 struct SPECIAL_OBJECT
 {
 	XMFLOAT3 position;
 	XMFLOAT3 rotation;
 	XMFLOAT3 scaling;
-	//bool Use;
 
 	AABB boundingBox;
-};
-
-// ƒ~ƒTƒCƒ‹iGlassj\‘¢‘Ì
-struct GLASS_MISSILE
-{
-	bool	active = false;
-	XMFLOAT3 pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	XMFLOAT3 vel = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	XMFLOAT3 target = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	float	speed = 0.0f;
-};
-
-// Glassê—p‚ÌƒXƒLƒ‹ŠÇ—\‘¢‘Ìi5‚Â‚Ì” ‚Ìî•ñ‚ğŠi”[‚·‚éj
-struct SPECIAL_GLASS
-{
-	// GlassƒXƒLƒ‹‚ª¶¬‚·‚é5‚Â‚Ì” 
-	SPECIAL_OBJECT boxes[5];
-
-	// ƒXƒLƒ‹‚ÌŒ»İ‚Ìó‘Ô
-	bool isActive = false;
-	float duration = 0.0f;
-
-	// ƒXƒLƒ‹‚Ì‘S‘Ì“I‚ÈeÀ•W‚ª•K—v‚Èê‡
-	XMFLOAT3 parentPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
-
-	// ‘¼ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğŠi”[‚·‚é”z—ñiƒƒbƒNƒIƒ“‚Éˆê“x‚¾‚¯•Û‘¶j
-	std::vector<XMFLOAT3> lockedTargets;
-
-	// ”­ËÏ‚İƒtƒ‰ƒOiƒƒbƒNƒIƒ“Œã‚Éˆê“x‚¾‚¯”­Ëj
-	bool hasSpawned = false;
-
-	// ƒƒbƒNƒIƒ“Ï‚İƒtƒ‰ƒOiƒƒbƒNƒIƒ“ƒf[ƒ^‚ğ•Û‘¶‚µ‚½‚©j
-	bool locked = false;
-
-	// ƒ~ƒTƒCƒ‹”z—ñ
-	GLASS_MISSILE missiles[5];
 };
 
 void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Finalize();
 void Special_Update(int playerIndex);
-void Special_Draw();
+void Special_Draw(int playerIndex);
 
 void Special_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-void Special_Electric_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+void Special_Electricity_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
 void Special_Glass_Update(int playerIndex);
 void Special_Concrete_Update(int playerIndex);
 void Special_Plant_Update(int playerIndex);
-void Special_Electric_Update(int playerIndex);
+void Special_Electricity_Update(int playerIndex);
 
 void Special_Glass_Draw(int playerIndex);
 void Special_Concrete_Draw(int playerIndex);
 void Special_Plant_Draw(int playerIndex);
-void Special_Electric_Draw(int playerIndex);
+void Special_Electricity_Draw(int playerIndex);
 
 SPECIAL_OBJECT* GetSpecial(int playerIndex);

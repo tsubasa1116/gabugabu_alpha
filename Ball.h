@@ -1,43 +1,40 @@
+ï»¿// Ball.h
+
 #pragma once
 
-//Ball.h
-
-#include	<d3d11.h>
-#include	<DirectXMath.h>
-#include	"direct3d.h"
+#include <d3d11.h>
+#include <DirectXMath.h>
+#include "direct3d.h"
 using namespace DirectX;
+#include "model.h"
 
-#include	"model.h"
-
-void	BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-void	BallFinalize();
-void	BallUpdate();
-void	BallDraw();
+void BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+void BallFinalize();
+void BallUpdate();
+void BallDraw();
 
 XMFLOAT3 GetBallPosition();
 
-
-//ƒ{[ƒ‹‚Ìó‘Ô
+//ãƒœãƒ¼ãƒ«ã®çŠ¶æ…‹
 enum BALL_STATE
 {
-	BALL_STATE_IDLE = 0,	//‰½‚à‚µ‚È‚¢
-	BALL_STATE_MOVE,		//ˆÚ“®
-	BALL_STATE_DIRECTION,	//•ûŒüw¦
-	BALL_STATE_POWER,		//ˆĞ—Íw¦
+	BALL_STATE_IDLE = 0,	//ä½•ã‚‚ã—ãªã„
+	BALL_STATE_MOVE,		//ç§»å‹•
+	BALL_STATE_DIRECTION,	//æ–¹å‘æŒ‡ç¤º
+	BALL_STATE_POWER,		//å¨åŠ›æŒ‡ç¤º
 };
 
-//ƒ{[ƒ‹\‘¢‘Ì
+//ãƒœãƒ¼ãƒ«æ§‹é€ ä½“
 class BALL
 {
-	public:
-		XMFLOAT3	position;	//•\¦À•W
-		XMFLOAT3	Rotation;	//‰ñ“]Šp
-		XMFLOAT3	Scaling;	//Šg‘å—¦
-		XMFLOAT3	Velocity;	//‘¬“x
+public:
+	XMFLOAT3	position;	//è¡¨ç¤ºåº§æ¨™
+	XMFLOAT3	Rotation;	//å›è»¢è§’
+	XMFLOAT3	Scaling;	//æ‹¡å¤§ç‡
+	XMFLOAT3	Velocity;	//é€Ÿåº¦
 
-		BALL_STATE	State;		//ó‘Ô
-		MODEL*		Model;		//ƒ‚ƒfƒ‹ƒf[ƒ^]
-
+	BALL_STATE	State;		//çŠ¶æ…‹
+	MODEL*		Model;		//ãƒ¢ãƒ‡ãƒ«ãƒ‡ãƒ¼ã‚¿
 };
 
 

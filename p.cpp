@@ -1,6 +1,6 @@
-/*==============================================================================
+ï»¿/*==============================================================================
 
-   ƒ|ƒŠƒSƒ“•`‰æ [p.cpp]
+   ãƒãƒªã‚´ãƒ³æç”» [p.cpp]
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -18,71 +18,71 @@
 #define HPBER_SIZE_X (180.0f)
 #define HPBER_SIZE_Y (25.0f)
 
-static HP g_HPBar[PLAYER_MAX];
+static hp g_HPBar[PLAYER_MAX];
 
 static ID3D11ShaderResourceView* g_Texture[5];
 
-static constexpr int NUM_VERTEX = 24; // g—p‚Å‚«‚éÅ‘å’¸“_”
+static constexpr int NUM_VERTEX = 24; // ä½¿ç”¨ã§ãã‚‹æœ€å¤§é ‚ç‚¹æ•°
 
-static ID3D11Buffer* g_pVertexBuffer = nullptr; // ’¸“_ƒoƒbƒtƒ@
-static ID3D11Buffer* g_pIndexBuffer = nullptr; // ’¸“_ƒoƒbƒtƒ@
+static ID3D11Buffer* g_pVertexBuffer = nullptr; // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
+static ID3D11Buffer* g_pIndexBuffer = nullptr; // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
 static ID3D11Buffer* g_pCubeVertexBuffer = nullptr;
 
-// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
+// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 static ID3D11DeviceContext* g_pContext2 = nullptr;
 
 P p[PLAYER_MAX];
 
-XMFLOAT3 g_Eye = { 0.0f, 10.0f, 15.0f }; // ƒJƒƒ‰ˆÊ’u
-XMFLOAT3 g_At = { 0.0f, 0.0f, 0.0f }; // ’‹“_
-XMFLOAT3 g_Up = { 0.0f, 1.0f, 0.0f }; // ã•ûŒü
-// ƒJƒƒ‰‚Æ‚Ì‹——£
+XMFLOAT3 g_Eye = { 0.0f, 10.0f, 15.0f }; // ã‚«ãƒ¡ãƒ©ä½ç½®
+XMFLOAT3 g_At = { 0.0f, 0.0f, 0.0f }; // æ³¨è¦–ç‚¹
+XMFLOAT3 g_Up = { 0.0f, 1.0f, 0.0f }; // ä¸Šæ–¹å‘
+// ã‚«ãƒ¡ãƒ©ã¨ã®è·é›¢
 XMFLOAT3 g_CamOffset = { 0.0f, 10.0f, 15.0f };
 
-// 8’¸“_
+// 8é ‚ç‚¹
 Vertex cubeVertices[] =
 {
-	{{-1,-1,-1}, {1,1,1,1}, {0,1}}, // 0: ¶‰ºè‘O
-	{{-1, 1,-1}, {1,1,1,1}, {0,0}}, // 1: ¶ãè‘O
-	{{ 1, 1,-1}, {1,1,1,1}, {1,0}}, // 2: ‰Eãè‘O
-	{{ 1,-1,-1}, {1,1,1,1}, {1,1}}, // 3: ‰E‰ºè‘O
-	{{-1,-1, 1}, {1,1,1,1}, {0,1}}, // 4: ¶‰º‰œ
-	{{-1, 1, 1}, {1,1,1,1}, {0,0}}, // 5: ¶ã‰œ
-	{{ 1, 1, 1}, {1,1,1,1}, {1,0}}, // 6: ‰Eã‰œ
-	{{ 1,-1, 1}, {1,1,1,1}, {1,1}}, // 7: ‰E‰º‰œ
+	{{-1,-1,-1}, {1,1,1,1}, {0,1}}, // 0: å·¦ä¸‹æ‰‹å‰
+	{{-1, 1,-1}, {1,1,1,1}, {0,0}}, // 1: å·¦ä¸Šæ‰‹å‰
+	{{ 1, 1,-1}, {1,1,1,1}, {1,0}}, // 2: å³ä¸Šæ‰‹å‰
+	{{ 1,-1,-1}, {1,1,1,1}, {1,1}}, // 3: å³ä¸‹æ‰‹å‰
+	{{-1,-1, 1}, {1,1,1,1}, {0,1}}, // 4: å·¦ä¸‹å¥¥
+	{{-1, 1, 1}, {1,1,1,1}, {0,0}}, // 5: å·¦ä¸Šå¥¥
+	{{ 1, 1, 1}, {1,1,1,1}, {1,0}}, // 6: å³ä¸Šå¥¥
+	{{ 1,-1, 1}, {1,1,1,1}, {1,1}}, // 7: å³ä¸‹å¥¥
 };
 
-// 36ƒCƒ“ƒfƒbƒNƒXi12OŠpŒ`j
+// 36ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ï¼ˆ12ä¸‰è§’å½¢ï¼‰
 unsigned short cubeIndices[] =
 {
-	0,1,2, 0,2,3,   // ‘O
-	4,6,5, 4,7,6,   // Œã
-	4,5,1, 4,1,0,   // ¶
-	3,2,6, 3,6,7,   // ‰E
-	1,5,6, 1,6,2,   // ã
-	4,0,3, 4,3,7    // ‰º
+	0,1,2, 0,2,3,   // å‰
+	4,6,5, 4,7,6,   // å¾Œ
+	4,5,1, 4,1,0,   // å·¦
+	3,2,6, 3,6,7,   // å³
+	1,5,6, 1,6,2,   // ä¸Š
+	4,0,3, 4,3,7    // ä¸‹
 };
 
 static bool debug = false;
 
 //====================================================================================
-// ‰Šú‰»
+// åˆæœŸåŒ–
 //====================================================================================
 void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìƒ`ƒFƒbƒN
+	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ãƒã‚§ãƒƒã‚¯
 	if (!pDevice || !pContext)
 	{
-		hal::dout << "P_Initialize() : —^‚¦‚ç‚ê‚½ƒfƒoƒCƒX‚©ƒRƒ“ƒeƒLƒXƒg‚ª•s³‚Å‚·" << std::endl;
+		hal::dout << "P_Initialize() : ä¸ãˆã‚‰ã‚ŒãŸãƒ‡ãƒã‚¤ã‚¹ã‹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãŒä¸æ­£ã§ã™" << std::endl;
 		return;
 	}
 
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		p[i].HP    = 10.0f;
-		p[i].MaxHP = 10.0f;
+		p[i].hp = 10.0f;
+		p[i].maxHp = 10.0f;
 		p[i].stock = 3;
 		p[i].scale = { 1.0f, 1.0f, 1.0f };
 		p[i].color = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -102,40 +102,40 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	p[3].pos = { 9.0f, 1.0f, 0.0f };
 
 
-	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ì•Û‘¶
-	g_pDevice  = pDevice;
+	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ä¿å­˜
+	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// ’¸“_ƒoƒbƒtƒ@¶¬
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// ƒoƒbƒtƒ@‚ÌƒTƒCƒY@\‘¢‘Ì~’¸“_”
+	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚ºã€€æ§‹é€ ä½“Ã—é ‚ç‚¹æ•°
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	g_pDevice->CreateBuffer(&bd, NULL, &g_pVertexBuffer);
 
-	// ’¸“_ƒoƒbƒtƒ@(3D)
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡(3D)
 	D3D11_BUFFER_DESC vbd = {};
-	vbd.ByteWidth = sizeof(cubeVertices);      // 8’¸“_‚Ô‚ñ
+	vbd.ByteWidth = sizeof(cubeVertices);      // 8é ‚ç‚¹ã¶ã‚“
 	vbd.Usage = D3D11_USAGE_DEFAULT;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	D3D11_SUBRESOURCE_DATA initV = { cubeVertices };
 	g_pDevice->CreateBuffer(&vbd, &initV, &g_pCubeVertexBuffer);
 
-	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
+	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
 	D3D11_BUFFER_DESC ibd = {};
 	ibd.ByteWidth = sizeof(cubeIndices);
 	ibd.Usage = D3D11_USAGE_DEFAULT;
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	D3D11_SUBRESOURCE_DATA initI = { cubeIndices };
 	g_pDevice->CreateBuffer(&ibd, &initI, &g_pIndexBuffer);
-    
+
 
 	TexMetadata  metadata;
 	ScratchImage image;
 
-	
-    LoadFromWICFile(L"asset\\texture\\uiStockYellow_v1.png", WIC_FLAGS_NONE, &metadata, image);
+
+	LoadFromWICFile(L"asset\\texture\\uiStockYellow_v1.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
 	assert(g_Texture[0]);
 
@@ -150,25 +150,20 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"asset\\texture\\uiStockGreen_v1.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
 	assert(g_Texture[3]);
-	
+
 	LoadFromWICFile(L"asset\\texture\\texture.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
 	assert(g_Texture[4]);
 
-	
-
-	// HPƒo[‰Šú‰»
+	// HPãƒãƒ¼åˆæœŸåŒ–
 	InitializeHP(pDevice, pContext, &g_HPBar[0], { 200.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
 	InitializeHP(pDevice, pContext, &g_HPBar[1], { 500.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
 	InitializeHP(pDevice, pContext, &g_HPBar[2], { 800.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
 	InitializeHP(pDevice, pContext, &g_HPBar[3], { 1100.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
-
 }
 
-
-
 //====================================================================================
-// I—¹
+// çµ‚äº†
 //====================================================================================
 void P_Finalize(void)
 {
@@ -179,9 +174,8 @@ void P_Finalize(void)
 	//g_Texture->Release();
 }
 
-
 //====================================================================================
-// •`‰æ
+// æç”»
 //====================================================================================
 void P_Update()
 {
@@ -189,61 +183,59 @@ void P_Update()
 	{
 		const float moveSpeed = 0.1f;
 
-		// ƒvƒŒƒCƒ„[‚ÌˆÚ“®
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç§»å‹•
 		if (Keyboard_IsKeyDown(KK_W)) p[i].pos.z -= moveSpeed;
 		if (Keyboard_IsKeyDown(KK_S)) p[i].pos.z += moveSpeed;
 		if (Keyboard_IsKeyDown(KK_A)) p[i].pos.x += moveSpeed;
 		if (Keyboard_IsKeyDown(KK_D)) p[i].pos.x -= moveSpeed;
 
-		// ƒJƒƒ‰‚ğƒvƒŒƒCƒ„[‚ÌˆÊ’u‚É’Ç]
+		// ã‚«ãƒ¡ãƒ©ã‚’ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã«è¿½å¾“
 		g_Eye.x = p[i].pos.x + g_CamOffset.x;
 		g_Eye.y = p[i].pos.y + g_CamOffset.y;
 		g_Eye.z = p[i].pos.z + g_CamOffset.z;
 
-		// ƒJƒƒ‰‚ªŒ©‚é’‹“_‚ÍƒvƒŒƒCƒ„[©g
+		// ã‚«ãƒ¡ãƒ©ãŒè¦‹ã‚‹æ³¨è¦–ç‚¹ã¯ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼è‡ªèº«
 		g_At = p[i].pos;
 
-		// “–‚½‚è”»’èæ“¾
+		// å½“ãŸã‚Šåˆ¤å®šå–å¾—
 		Player_UpdateAABB();
 
-		// HP‚ª0‚É‚È‚Á‚½‚çcŠî‚ğŒ¸‚ç‚µAHP‚ğ‚à‚»‚·
-		if (p[i].HP <= 0 && p[i].active)
+		// HPãŒ0ã«ãªã£ãŸã‚‰æ®‹åŸºã‚’æ¸›ã‚‰ã—ã€HPã‚’ã‚‚ãã™
+		if (p[i].hp <= 0 && p[i].active)
 		{
 			p[i].stock--;
 
-			// cŠî‚ª‚ ‚ê‚Î•œŠˆ
+			// æ®‹åŸºãŒã‚ã‚Œã°å¾©æ´»
 			if (p[i].stock > 0)
 			{
-				p[i].HP = p[i].MaxHP;
+				p[i].hp = p[i].maxHp;
 
-				// ƒŠƒXƒ|[ƒ“
-
+				// ãƒªã‚¹ãƒãƒ¼ãƒ³
 			}
 			else
 			{
-				// cŠî‚ª‚È‚¯‚ê‚Îfalse
+				// æ®‹åŸºãŒãªã‘ã‚Œã°false
 				p[i].active = false;
 			}
 		}
 
-		SetHPValue(&g_HPBar[i], (int)p[i].HP, (int)p[i].MaxHP);
+		SetHPValue(&g_HPBar[i], (int)p[i].hp, (int)p[i].maxHp);
 		UpdateHP(&g_HPBar[i]);
-
 	}
 
-	//==================== ImGui ƒfƒoƒbƒO•\¦ ====================//
+	//==================== ImGui ãƒ‡ãƒãƒƒã‚°è¡¨ç¤º ====================//
 	{
 		ImGui::Begin("P Debug");
 
 		// HP
-		ImGui::SliderInt("1p:HP", &p[0].HP, 0.0f, p[0].MaxHP);
-		ImGui::SliderInt("2p:HP", &p[1].HP, 0.0f, p[1].MaxHP);
-		ImGui::SliderInt("3p:HP", &p[2].HP, 0.0f, p[2].MaxHP);
-		ImGui::SliderInt("4p:HP", &p[3].HP, 0.0f, p[3].MaxHP);
+		ImGui::SliderFloat("1p:HP", &p[0].hp, 0.0f, p[0].maxHp);
+		ImGui::SliderFloat("2p:HP", &p[1].hp, 0.0f, p[1].maxHp);
+		ImGui::SliderFloat("3p:HP", &p[2].hp, 0.0f, p[2].maxHp);
+		ImGui::SliderFloat("4p:HP", &p[3].hp, 0.0f, p[3].maxHp);
 
 		if (ImGui::Button("hp -1"))
 		{
-			p[0].HP -= 0.1f;
+			p[0].hp -= 0.1f;
 		}
 
 		if (ImGui::Button("fi +1"))
@@ -268,28 +260,25 @@ void P_Update()
 		ImGui::End();
 	}
 	//============================================================//
-
 }
 
-
-
 //====================================================================================
-// cŠî•`‰æ
+// æ®‹åŸºæç”»
 //====================================================================================
 void PStock_Draw(int i)
 {
 	Shader_Begin();
 	Shader_BeginUI();
 
-	// HPƒo[ˆÊ’uæ“¾EƒQ[ƒWÀ•Wİ’è
+	// HPãƒãƒ¼ä½ç½®å–å¾—ãƒ»ã‚²ãƒ¼ã‚¸åº§æ¨™è¨­å®š
 	float bx = g_HPBar[i].pos.x + 40.0f;
 	float by = g_HPBar[i].pos.y - 10.0f;
 
-	// ƒvƒŒƒCƒ„[‚²‚Æ‚ÌƒXƒgƒbƒN•`‰æ
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®ã‚¹ãƒˆãƒƒã‚¯æç”»
 	for (int j = 0; j < p[i].stock; j++)
 	{
-		// ƒXƒgƒbƒN•`‰æ•Ï”
-		XMFLOAT2 pos = { bx + j * 30.0f, by }; // ‰¡•À‚Ñ
+		// ã‚¹ãƒˆãƒƒã‚¯æç”»å¤‰æ•°
+		XMFLOAT2 pos = { bx + j * 30.0f, by }; // æ¨ªä¸¦ã³
 		XMFLOAT2 size = { 300.0f, 100.0f };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
@@ -299,60 +288,57 @@ void PStock_Draw(int i)
 	}
 }
 
-
-
-
 //====================================================================================
-// •`‰æ
+// æç”»
 //====================================================================================
 void P_Draw(void)
 {
-	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 	Shader_Begin();
 
-	// ŒÂ•ÊUIƒXƒe[ƒ^ƒX•`‰æ
+	// å€‹åˆ¥UIã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹æç”»
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		// HPƒo[•`‰æ
+		// HPãƒãƒ¼æç”»
 		//DrawHP(&g_HPBar[i]);
 		XMFLOAT2 hp = g_HPBar[i].pos;
 
-		// ƒQ[ƒW•`‰æ—pİ’è
+		// ã‚²ãƒ¼ã‚¸æç”»ç”¨è¨­å®š
 		Gauge_Set(i, p[i].fi, p[i].wa, p[i].wi, p[i].ea,
-			      p[i].gaugeOuter, { hp.x - 120.0f , hp.y});
+			p[i].gaugeOuter, { hp.x - 120.0f , hp.y });
 
-		// ƒQ[ƒW•`‰æ
+		// ã‚²ãƒ¼ã‚¸æç”»
 		Gauge_Draw(i);
 
-		// ƒVƒF[ƒ_[ƒŠƒZƒbƒg
+		// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒªã‚»ãƒƒãƒˆ
 		Shader_Begin();
 
 		PStock_Draw(i);
 	}
 
-	// ‰æ–ÊƒTƒCƒYæ“¾
+	// ç”»é¢ã‚µã‚¤ã‚ºå–å¾—
 	float w = (float)Direct3D_GetBackBufferWidth();
 	float h = (float)Direct3D_GetBackBufferHeight();
 
-	// ƒJƒƒ‰İ’è
+	// ã‚«ãƒ¡ãƒ©è¨­å®š
 	XMVECTOR Eye = XMVectorSet(g_Eye.x, g_Eye.y, g_Eye.z, 1.0f);
-	XMVECTOR At  = XMVectorSet(g_At.x, g_At.y, g_At.z, 1.0f);
-	XMVECTOR Up  = XMVectorSet(g_Up.x, g_Up.y, g_Up.z, 0.0f);
+	XMVECTOR At = XMVectorSet(g_At.x, g_At.y, g_At.z, 1.0f);
+	XMVECTOR Up = XMVectorSet(g_Up.x, g_Up.y, g_Up.z, 0.0f);
 
-	// ’¸“_ƒoƒbƒtƒ@‚ğƒƒbƒN‚·‚é
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ãƒ­ãƒƒã‚¯ã™ã‚‹
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 
-	// ’¸“_ƒoƒbƒtƒ@‚Ö‚Ì‰¼‘zƒ|ƒCƒ“ƒ^‚ğæ“¾
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã¸ã®ä»®æƒ³ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
 	Vertex* v = (Vertex*)msr.pData;
 
-	// ’¸“_ƒoƒbƒtƒ@‚ÌƒƒbƒN‚ğ‰ğœ
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®ãƒ­ãƒƒã‚¯ã‚’è§£é™¤
 	g_pContext->Unmap(g_pVertexBuffer, 0);
 
-	{// ƒvƒŒƒCƒ„[
+	{// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼
 		for (int i = 0; i < PLAYER_MAX; i++)
 		{
-			// ’¸“_ƒoƒbƒtƒ@‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+			// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 			UINT stride = sizeof(Vertex);
 			UINT offset = 0;
 			g_pContext->IASetVertexBuffers(0, 1, &g_pCubeVertexBuffer, &stride, &offset);
@@ -360,45 +346,40 @@ void P_Draw(void)
 
 			XMMATRIX view = XMMatrixLookAtLH(Eye, At, Up);
 
-			// “§‹“Š‰e
+			// é€è¦–æŠ•å½±
 			XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), w / h, 0.1f, 100.0f);
 
-			// ƒIƒuƒWƒFƒNƒg‚Ìƒ[ƒ‹ƒh•ÏŠ·
+			// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ¯ãƒ¼ãƒ«ãƒ‰å¤‰æ›
 			static float angle = 0.0f;
 			angle += 0.01f;
 			XMMATRIX world =
 				/*XMMatrixRotationY(angle) **/
 				XMMatrixTranslation(p[i].pos.x, p[i].pos.y, p[i].pos.z);
 
-			// ÅI“I‚Ès—ñ
+			// æœ€çµ‚çš„ãªè¡Œåˆ—
 			XMMATRIX wvp = world * view * proj;
 
-			// ’è”ƒoƒbƒtƒ@‚É‘—M
+			// å®šæ•°ãƒãƒƒãƒ•ã‚¡ã«é€ä¿¡
 			Shader_SetMatrix(wvp);
 
-			// OŠpŒ`ƒŠƒXƒg‚Å•`‰æ
+			// ä¸‰è§’å½¢ãƒªã‚¹ãƒˆã§æç”»
 			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[4]);
 
-			// •`‰æ–½—ß
+			// æç”»å‘½ä»¤
 			SetBlendState(BLENDSTATE_NONE);
 			//g_pContext->DrawIndexed(36, 0, 0);
 			//g_pContext->Draw(NUM_VERTEX, 0);
 
-			// ’¸“_ƒVƒF[ƒ_[‚É•ÏŠ·s—ñ‚ğİ’è
+			// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«å¤‰æ›è¡Œåˆ—ã‚’è¨­å®š
 			//Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 1.0f));
 		}
-
 	}
-   
-
 }
 
-
-
 //====================================================================================
-// ƒvƒŒƒCƒ„[”»’è
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼åˆ¤å®š
 //====================================================================================
 void Player_UpdateAABB()
 {
@@ -411,14 +392,19 @@ void Player_UpdateAABB()
 		float py = p[i].pos.y;
 		float pz = p[i].pos.z;
 
-
 		p[i].box.Min = { px - sx * COLL, py - sy * COLL, pz - sz * COLL };
 		p[i].box.Max = { px + sx * COLL, py + sy * COLL, pz + sz * COLL };
 	}
 }
 
-
-P* GetP() 
+P* GetP()
 {
-	for (int i = 0; i < PLAYER_MAX; i++) return &p[i]; 
+	for (int i = 0; i < PLAYER_MAX; i++)
+	{
+		if (p[i].active) // æ¡ä»¶ã‚’è¿½åŠ ã—ã¦ã€ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’è¿”ã™
+		{
+			return &p[i];
+		}
+	}
+	return nullptr; // ã™ã¹ã¦ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒéã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã®å ´åˆã€nullptrã‚’è¿”ã™
 }

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -11,69 +11,65 @@
 using namespace DirectX;
 
 //=========================================
-// MAP\¬ƒuƒƒbƒN‚Ìí—Ş
+// MAPæ§‹æˆãƒ–ãƒ­ãƒƒã‚¯ã®ç¨®é¡
 //=========================================
 
 enum FIELD
 {
-    FIELD_BOX = 0,        // ” 
-    FIELD_BUILDING,       // Œš•¨iBuildingj
-    FIELD_MAX
+	FIELD_BOX = 0,	// ç®±
+	FIELD_BUILDING,	// å»ºç‰©ï¼ˆBuildingï¼‰
+	FIELD_MAX
 };
 
 //=========================================
-// MAPƒf[ƒ^\‘¢‘Ìi1ƒ}ƒX•ªj
+// MAPãƒ‡ãƒ¼ã‚¿æ§‹é€ ä½“ï¼ˆ1ãƒã‚¹åˆ†ï¼‰
 //=========================================
 
 class Glass
 {
 public:
-    XMFLOAT3 pos;         // À•W
-    AABB boundingBox;     // “–‚½‚è”»’è
-    FIELD GL;
+	XMFLOAT3 pos;		// åº§æ¨™
+	AABB boundingBox;	// å½“ãŸã‚Šåˆ¤å®š
+	FIELD GL;
 
-    bool isActive = true;
-    // --- ‚±‚±‚ğ’Ç‰ÁI ---
-    BuildingType type = BuildingType::Glass;
-
+	bool isActive = true;
+	// --- ã“ã“ã‚’è¿½åŠ ï¼ ---
+	BuildingType type = BuildingType::Glass;
 };
 
 class Concrete
 {
 public:
-    XMFLOAT3 pos;         // À•W
-    AABB boundingBox;     // “–‚½‚è”»’è
-    FIELD Co;
+	XMFLOAT3 pos;		// åº§æ¨™
+	AABB boundingBox;	// å½“ãŸã‚Šåˆ¤å®š
+	FIELD Co;
 
-    bool isActive = true;
-    // --- ‚±‚±‚ğ’Ç‰ÁI ---
-    BuildingType type = BuildingType::Concrete;
-
+	bool isActive = true;
+	// --- ã“ã“ã‚’è¿½åŠ ï¼ ---
+	BuildingType type = BuildingType::Concrete;
 };
 
 class Plant
 {
 public:
-    XMFLOAT3 pos;         // À•W
-    AABB boundingBox;     // “–‚½‚è”»’è
-    FIELD Pl;
+	XMFLOAT3 pos;		// åº§æ¨™
+	AABB boundingBox;	// å½“ãŸã‚Šåˆ¤å®š
+	FIELD Pl;
 
-    bool isActive = true;
-    // --- ‚±‚±‚ğ’Ç‰ÁI ---
-    BuildingType type = BuildingType::Plant;
-
+	bool isActive = true;
+	// --- ã“ã“ã‚’è¿½åŠ ï¼ ---
+	BuildingType type = BuildingType::Plant;
 };
 
-class ELECTRIC
+class ELECTRICITY
 {
 public:
-    XMFLOAT3 pos;         // À•W
-    AABB boundingBox;     // “–‚½‚è”»’è
-    FIELD El;
-    bool isActive = true;
-    // --- ‚±‚±‚ğ’Ç‰ÁI ---
-    BuildingType type = BuildingType::Electric;
-
+	XMFLOAT3 pos;		// åº§æ¨™
+	AABB boundingBox;	// å½“ãŸã‚Šåˆ¤å®š
+	FIELD El;
+	bool isActive = true;
+	// --- ã“ã“ã‚’è¿½åŠ ï¼ ---
+	BuildingType type = BuildingType::Electricity;
 };
 
 
