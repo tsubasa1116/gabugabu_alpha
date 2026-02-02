@@ -36,7 +36,6 @@ static	ID3D11DeviceContext* g_pContext = NULL;
 //static ID3D11ShaderResourceView* g_Texture;
 
 // FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
-#define FIELD_TEX_MAX 2 
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 
 // FIELD::no の値に対応するテクスチャファイル名
@@ -543,8 +542,8 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 				for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 				{
 					// 電気の円の中心と半径を取得
-					XMFLOAT3 center = electricityCircles[i].center;
-					float radius = electricityCircles[i].radius;
+					XMFLOAT3 center = player.electricityCircles[i].center;
+					float radius = player.electricityCircles[i].radius;
 
 					// 赤色で円を描画
 					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
