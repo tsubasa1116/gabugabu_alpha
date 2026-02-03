@@ -10,7 +10,7 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 //プレイヤー関連変数
 static	ID3D11ShaderResourceView* g_Texture[6];
 
-HP HPBar[HPBER_MAX];
+hp HPBar[HPBER_MAX];
 
 // HPバーのスムーズ減少速度
 #define HPBAR_SPEED 3.0f
@@ -216,7 +216,7 @@ void SetHPValue(hp* bar, int currentHP, int maxHP)
 }
 
 // シェイク
-void SetHPShake(HP* bar, float amplitude, float duration, float speed)
+void SetHPShake(hp* bar, float amplitude, float duration, float speed)
 {
 	if (!bar) return;
 	if (duration <= 0.0f)
@@ -248,7 +248,7 @@ void FinalizeHP(hp* bar)
 	bar->use = false;
 }
 
-HP* GetHPBar(int HPIndex)
+hp* GetHPBar(int HPIndex)
 {
 	if (HPIndex < 0 || HPIndex >= HPBER_MAX) return nullptr;
 	return &HPBar[HPIndex];

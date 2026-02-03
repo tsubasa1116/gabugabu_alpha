@@ -10,7 +10,7 @@ using namespace DirectX;
 #define HPBER_MAX (4)         // HPバー最大数
 #define HPBAR_SPEED (3.0f)    // HPバーのスムーズ減少速度
 
-struct HP {
+struct hp {
 	XMFLOAT2 pos;      // 位置
 	XMFLOAT2 size;     // サイズ
 	float current;     // 現在のHPバー幅
@@ -37,6 +37,6 @@ void SetHPValue(hp* bar, int currentHP, int maxHP);
 void FinalizeHP(hp* bar);
 
 // シェイク　フレーム単位（duration）とピクセル（amplitude）
-void SetHPShake(HP* bar, float amplitude = 8.0f, float duration = 15.0f, float speed = 1.5f);
-HP* GetHPBar(int HPIndex);
+void SetHPShake(hp* bar, float amplitude = 8.0f, float duration = 15.0f, float speed = 1.5f);
+hp* GetHPBar(int HPIndex);
 
