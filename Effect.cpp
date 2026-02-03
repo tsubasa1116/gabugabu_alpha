@@ -4,6 +4,7 @@
 #include "sprite.h"
 #include "shader.h"
 #include "color.h"
+#include "Polygon3D.h"
 
 #define EFFECT_SPRITE_X		(8)
 #define EFFECT_SPRITE_Y		(8)
@@ -11,6 +12,41 @@
 #define EFFECT_SPEED		(2.5f)
 #define EFFECT_TEX_MAX		(16)
 #define EFFECT_MAX			(16)
+
+// 頂点配列
+static Vertex2 effect_vdata[NUM_VERTEX] =
+{
+	{// 頂点0 LEFT-TOP
+		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),	// 座標
+		XMFLOAT3(0.0f, 0.0f, -1.0f),				// 法線ベクトル
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),			// カラー
+		XMFLOAT2(0.0f, 0.0f)						// テクスチャ座標
+	},
+	{// 頂点1 RIGHT-TOP
+		XMFLOAT3(COORDINATE, COORDINATE, 0.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(TEXCOORD, 0.0f)
+	},
+	{// 頂点2 LEFT-BOTTOM
+		XMFLOAT3(-COORDINATE, -COORDINATE, 0.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(0.0f, TEXCOORD)
+	},
+	{// 頂点3 RIGHT-BOTTOM
+		XMFLOAT3(COORDINATE, -COORDINATE, 0.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT2(TEXCOORD, TEXCOORD)
+	},
+};
+
+// インデックス配列
+static UINT effect_idxdata[6]
+{
+	 0, 1, 2, 2, 1, 3, // -Z面
+};
 
 // グローバル変数
 // 注意！初期化で外部から設定されるもの。Release不要。
@@ -63,6 +99,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		effect[i].texNo = 0;
 	}
 
+	// UI画面
 	Effect_LoadTexture( 0, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// 第2形態 エフェクト ガラス
 	Effect_LoadTexture( 1, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// 第2形態 エフェクト コンクリート
 	Effect_LoadTexture( 2, L"Asset\\Texture\\uiLightBigTree_v1.png");			// 第2形態 エフェクト 植物
@@ -71,6 +108,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture( 5, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// 第3形態 エフェクト コンクリート
 	Effect_LoadTexture( 6, L"Asset\\Texture\\uiLightBigTree_v1.png");			// 第3形態 エフェクト 植物
 	Effect_LoadTexture( 7, L"Asset\\Texture\\uiLightBigElectricity_v1.png");	// 第3形態 エフェクト 電気
+	// ゲーム内
 	Effect_LoadTexture( 8, L"Asset\\Texture\\effectSkillGlassConcrete_v2.png");	// スキル エフェクト ガラス・コンクリート
 	Effect_LoadTexture( 9, L"Asset\\Texture\\effectSkillTree_v2.png");			// スキル エフェクト 植物
 	Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// スキル エフェクト 電気

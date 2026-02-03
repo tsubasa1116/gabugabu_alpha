@@ -21,6 +21,10 @@
 #define	DOWN_TIME			(3.0f)	// ダウン持続時間（秒）
 #define	POISON_TIME			(5.0f)	// 毒持続時間（秒）
 
+#define	NUM_VERTEX	(6)		// 一面のみの頂点数
+#define COORDINATE	(0.5f)	// デフォルト (0.5f)
+#define TEXCOORD	(1.0f)	// デフォルト (1.0f)
+
 enum class PlayerDir
 {
 	Down = 0,

@@ -38,7 +38,6 @@ using namespace DirectX;
 //======================================================
 //	マクロ定義
 //======================================================
-#define	NUM_VERTEX		(6)			// 一面のみの頂点数
 #define HPBER_SIZE_X	(270.0f)	// HPバーのサイズ
 #define HPBER_SIZE_Y	(270.0f)	// 〃
 #define GAUGE_POS_X		(69.0f)		// HPバーを基準としたゲージの位置調整
@@ -76,9 +75,6 @@ static bool g_specialAnimStarted[PLAYER_MAX] = { false, false, false, false };
 
 // 順位・死亡順の管理
 static std::vector<int> g_deathOrder;	// 死亡したプレイヤーのインデックス（先に死んだ者が先頭）
-
-#define COORDINATE	(0.5f)	// デフォルト (0.5f)
-#define TEXCOORD	(1.0f)	// デフォルト (1.0f)
 
 // 頂点配列
 static Vertex2 vdata[NUM_VERTEX] =
