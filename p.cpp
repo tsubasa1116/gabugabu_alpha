@@ -7,7 +7,7 @@
 #include "p.h"
 #include "keyboard.h"
 #include "polygon.h"
-#include "polygon3d.h"
+#include "player.h"
 #include "shader.h"
 #include "color.h"
 #include "sprite.h"
