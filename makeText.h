@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <d2d1_1.h>
 #include <dwrite.h>
@@ -18,7 +18,11 @@ enum TextColor
 	Red,
 	Green,
 	Blue,
-	Yellow
+	Yellow,
+	P1color,
+	P2color,
+	P3color,
+	P4color,
 };
 
 //namespace FontList

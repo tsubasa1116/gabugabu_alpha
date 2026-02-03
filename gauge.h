@@ -1,7 +1,6 @@
-#pragma once
-/*==============================================================================
+ï»¿/*==============================================================================
 
-   ƒ|ƒŠƒSƒ“•`‰æ [gauge.h]
+   ãƒãƒªã‚´ãƒ³æç”» [gauge.h]
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -15,7 +14,7 @@ using namespace DirectX;
 #include "shader.h"
 #include "debug_ostream.h"
 
-#define GAUGE_PLAYER_MAX 4
+#define GAUGE_PLAYER_MAX (4)
 
 struct GaugeData
 {
@@ -33,12 +32,10 @@ void Gauge_Finalize(void);
 void Gauge_Update(void);
 
 //==========================================
-// •`‰æƒZƒbƒgiSet‚Åİ’è‚µDraw‚Å•`‰æ‚·‚éj
+// æç”»ã‚»ãƒƒãƒˆï¼ˆSetã§è¨­å®šã—Drawã§æç”»ã™ã‚‹ï¼‰
 //==========================================
-void Gauge_Set(int i, float fire, float water, float wind, float earth,
-               float outer, const XMFLOAT2& pos);
+void Gauge_Set(int i, float fire, float water, float wind, float earth, float outer, const XMFLOAT2& pos);
 void Gauge_Draw(int i);
 void Gauge_SetShakeOffset(int i, const XMFLOAT2& offset);
-
 
 #endif // gauge_H

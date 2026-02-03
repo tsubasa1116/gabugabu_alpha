@@ -1,7 +1,7 @@
-//======================================================
+ï»¿//======================================================
 //	score.cpp[]
 // 
-//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
+//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
 //======================================================
 //score.cpp
 
@@ -9,21 +9,21 @@
 #include	"sprite.h"
 #include	"score.h"
 
-#define		SCORE_MAX	(5)		//•\¦Œ…”
+#define		SCORE_MAX	(5)		//è¡¨ç¤ºæ¡æ•°
 
-//ƒOƒ[ƒoƒ‹•Ï”
-// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
+//ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 static ID3D11ShaderResourceView* g_Texture = NULL;
 
-static	float	Score;			//ƒXƒRƒA’l
-static	float	ScoreBuffer;	//ƒXƒRƒA’lƒoƒbƒtƒ@
+static	float	Score;			//ã‚¹ã‚³ã‚¢å€¤
+static	float	ScoreBuffer;	//ã‚¹ã‚³ã‚¢å€¤ãƒãƒƒãƒ•ã‚¡
 
 
 void Score_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 { 
-	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ì•Û‘¶
+	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ä¿å­˜
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
@@ -32,31 +32,31 @@ void Score_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	ScoreBuffer = 0.0f;
 
 	//
-	//ƒeƒNƒXƒ`ƒƒ‰æ‘œ“Ç‚İ‚İ
+	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ç”»åƒèª­ã¿è¾¼ã¿
 	TexMetadata		metadata;
 	ScratchImage	image;
 	LoadFromWICFile(L"asset\\texture\\number000.png", 
-		WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
+		WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
 	CreateShaderResourceView(pDevice, image.GetImages(),
 		image.GetImageCount(), metadata, &g_Texture);
-	assert(g_Texture);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+	assert(g_Texture);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 
 }
 void Score_Finalize(void)
 { 
 	if (g_Texture != NULL)
 	{
-		g_Texture->Release();//ƒeƒNƒXƒ`ƒƒ‚ğ‰ğ•ú
+		g_Texture->Release();//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’è§£æ”¾
 		g_Texture = NULL;
 	}
 
 }
 void Score_Update()
 { 
-	if (ScoreBuffer > 0.0f)//ƒoƒbƒtƒ@‚ÉƒXƒRƒA‚ª—­‚Ü‚Á‚Ä‚¢‚é
+	if (ScoreBuffer > 0.0f)//ãƒãƒƒãƒ•ã‚¡ã«ã‚¹ã‚³ã‚¢ãŒæºœã¾ã£ã¦ã„ã‚‹
 	{
-		Score += 0.5f;			//ƒoƒbƒtƒ@‚Ì’†g‚ğScore‚Ö­‚µ‚¸‚Â
-		ScoreBuffer -= 0.5f;	//ˆÚ‚µ‚Ä‚¢‚­
+		Score += 0.5f;			//ãƒãƒƒãƒ•ã‚¡ã®ä¸­èº«ã‚’Scoreã¸å°‘ã—ãšã¤
+		ScoreBuffer -= 0.5f;	//ç§»ã—ã¦ã„ã
 	}
 	else
 	{
@@ -66,31 +66,31 @@ void Score_Update()
 }
 void Score_Draw(void)
 { 
-	//Œ…•ª‰ğ
-	int		PatNo[5] = { 0,0,0,0,0 };//•ª‰ğ‚µ‚½Œ‹‰Ê‚ğŠi”[
+	//æ¡åˆ†è§£
+	int		PatNo[5] = { 0,0,0,0,0 };//åˆ†è§£ã—ãŸçµæœã‚’æ ¼ç´
 
 	int		temp = (int)Score;
-	PatNo[0] = temp / 10000;			//‚P–œ‚ÌˆÊ
-	PatNo[1] = (temp % 10000) / 1000;	//ç‚ÌˆÊ
-	PatNo[2] = (temp % 1000) / 100;		//•S‚ÌˆÊ
-	PatNo[3] = (temp % 100) / 10;		//\‚ÌˆÊ
-	PatNo[4] = (temp % 10);				//‚P‚ÌˆÊ
+	PatNo[0] = temp / 10000;			//ï¼‘ä¸‡ã®ä½
+	PatNo[1] = (temp % 10000) / 1000;	//åƒã®ä½
+	PatNo[2] = (temp % 1000) / 100;		//ç™¾ã®ä½
+	PatNo[3] = (temp % 100) / 10;		//åã®ä½
+	PatNo[4] = (temp % 10);				//ï¼‘ã®ä½
 
 	XMFLOAT3	position = XMFLOAT3(100.0f, 100.0f, 0.0f);
 	XMFLOAT2	size = XMFLOAT2(50.0f, 80.0f);
 	XMFLOAT4	color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	//ƒeƒNƒXƒ`ƒƒ‚ÌƒZƒbƒg
+	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ã‚»ãƒƒãƒˆ
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
 
-	//‰æ–ÊƒTƒCƒYæ“¾
+	//ç”»é¢ã‚µã‚¤ã‚ºå–å¾—
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
-	//ƒVƒF[ƒ_[‚ÌƒZƒbƒg
+	//ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®ã‚»ãƒƒãƒˆ
 	Shader_Begin();
 
-	//ƒVƒF[ƒ_[‚É‚QD•`‰æ‚Ìİ’è‚ğ‚·‚é
+	//ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«ï¼’Dæç”»ã®è¨­å®šã‚’ã™ã‚‹
 	XMMATRIX	projection = XMMatrixOrthographicOffCenterLH(
 		0.0f,
 		SCREEN_WIDTH,
@@ -100,45 +100,45 @@ void Score_Draw(void)
 		1.0f
 	);
 
-	//ƒXƒRƒA•\¦i‚TŒ…•ªj
+	//ã‚¹ã‚³ã‚¢è¡¨ç¤ºï¼ˆï¼•æ¡åˆ†ï¼‰
 	for (int i = 0; i < SCORE_MAX; i++)
 	{
 
-		//•½sˆÚ“® •\¦À•W
+		//å¹³è¡Œç§»å‹• è¡¨ç¤ºåº§æ¨™
 		XMMATRIX	Translation =
 			XMMatrixTranslation(position.x, position.y, 0.0f);
-		//‰ñ“]
+		//å›è»¢
 		XMMATRIX	Rotation = XMMatrixRotationZ(XMConvertToRadians(0.0f));
-		//Šg‘å—¦i0‚Í‚¾‚ßj
+		//æ‹¡å¤§ç‡ï¼ˆ0ã¯ã ã‚ï¼‰
 		XMMATRIX	Scaling = XMMatrixScaling(1.0f, 1.0f, 1.0f);
-		//ƒ[ƒ‹ƒhs—ñ
+		//ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—
 		XMMATRIX	World = Scaling * Rotation * Translation;
-		//ƒXƒNƒ[ƒ‹—ps—ñì¬
+		//ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ç”¨è¡Œåˆ—ä½œæˆ
 		XMMATRIX	mat = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 
 		mat = World * mat * projection;
 
-		//ƒVƒF[ƒ_[‚Ös—ñ‚ğƒZƒbƒg
+		//ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¸è¡Œåˆ—ã‚’ã‚»ãƒƒãƒˆ
 		Shader_SetMatrix(mat);
 
-		//ƒuƒŒƒ“ƒh–³‚µ
+		//ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—
 		SetBlendState(BLENDSTATE_ALPHA);
 
-		//ƒXƒvƒ‰ƒCƒg•`‰æ
+		//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆæç”»
 		DrawSprite(size, color, PatNo[i], 10, 1);
 
-		position.x += size.x;//•\¦À•W‚ğ‚PŒ…•ª‚¸‚ç‚·
+		position.x += size.x;//è¡¨ç¤ºåº§æ¨™ã‚’ï¼‘æ¡åˆ†ãšã‚‰ã™
 
 	}
 
 }
 
-void	AddScore(int sc)	//ƒXƒRƒA‚É‰ÁZ‚·‚é
+void	AddScore(int sc)	//ã‚¹ã‚³ã‚¢ã«åŠ ç®—ã™ã‚‹
 { 
 	ScoreBuffer += sc;
 }
 
-float	GetScore()			//ƒXƒRƒA’læ“¾
+float	GetScore()			//ã‚¹ã‚³ã‚¢å€¤å–å¾—
 { 
 	return Score;
 }

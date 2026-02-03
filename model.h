@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 //#define NOMINMAX
 #include <unordered_map>
 
@@ -13,7 +13,6 @@
 using namespace DirectX;
 #include	"direct3d.h"
 
-
 struct MODEL
 {
 	const aiScene* AiScene = nullptr;
@@ -23,7 +22,6 @@ struct MODEL
 
 	std::unordered_map<std::string, ID3D11ShaderResourceView*> Texture;
 };
-
 
 MODEL* ModelLoad(const char* FileName);
 void ModelRelease(MODEL* model);

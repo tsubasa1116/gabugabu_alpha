@@ -1,10 +1,8 @@
-
-//fade.h
+ï»¿// fade.h
 
 #pragma once
 
 #include "direct3d.h"
-
 #include "sprite.h"
 #include "Manager.h"
 
@@ -13,18 +11,17 @@ enum FADE_STATE
 	FADE_NONE = 0,
 	FADE_IN,
 	FADE_OUT,
-
 };
 
 struct FadeObject
 {
-	FADE_STATE	state;			// ƒtƒF[ƒhˆ—ó‘Ô
-	float		count;			// ƒJƒEƒ“ƒ^[
-	float		frame;			// ƒtƒF[ƒhŠ—vŠÔ
-	XMFLOAT4	fadecolor;		// ƒtƒF[ƒhF
-	SCENE		scene;			// Ÿ‚ÉØ‚è‘Ö‚¦‚éƒV[ƒ“
-	bool		useLoading;		// ƒ[ƒh‰æ–Ê‚ğg—p‚·‚é‚©i’Ç‰Áj
-	const wchar_t* loadingVideo;// ƒ[ƒh‰æ–Ê—p“®‰æƒpƒXi’Ç‰Áj
+	FADE_STATE	state;			// ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†çŠ¶æ…‹
+	float		count;			// ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
+	float		frame;			// ãƒ•ã‚§ãƒ¼ãƒ‰æ‰€è¦æ™‚é–“
+	XMFLOAT4	fadecolor;		// ãƒ•ã‚§ãƒ¼ãƒ‰è‰²
+	SCENE		scene;			// æ¬¡ã«åˆ‡ã‚Šæ›¿ãˆã‚‹ã‚·ãƒ¼ãƒ³
+	bool		useLoading;		// ãƒ­ãƒ¼ãƒ‰ç”»é¢ã‚’ä½¿ç”¨ã™ã‚‹ã‹ï¼ˆè¿½åŠ ï¼‰
+	const wchar_t* loadingVideo;// ãƒ­ãƒ¼ãƒ‰ç”»é¢ç”¨å‹•ç”»ãƒ‘ã‚¹ï¼ˆè¿½åŠ ï¼‰
 };
 
 void Fade_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -33,7 +30,7 @@ void Fade_Update();
 void Fade_Draw();
 void SetFade(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene);
 
-// ƒ[ƒh‰æ–Ê•t‚«ƒtƒF[ƒh
+// ãƒ­ãƒ¼ãƒ‰ç”»é¢ä»˜ããƒ•ã‚§ãƒ¼ãƒ‰
 void SetFadeWithLoading(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene, 
 						const wchar_t* videoPath = L"asset\\movie\\road.mp4");
 

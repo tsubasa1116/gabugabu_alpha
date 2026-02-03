@@ -1,4 +1,4 @@
-
+Ôªø
 //swipe.h
 
 #pragma once
@@ -17,7 +17,7 @@ struct SwipeObject
 {
     SWIPE_STATE state;
     float frame;
-    float progress;     // 0.0 Å® 1.0
+    float progress;     // 0.0 ‚Üí 1.0
     XMFLOAT4 color;
     SCENE scene;
 
@@ -29,5 +29,5 @@ void Swipe_Finalize();
 void Swipe_Update();
 void Swipe_Draw();
 
-void SetSwipe(int frame, XMFLOAT4 color, SWIPE_STATE state, SCENE scene);
+void SetSwipe(float frame, XMFLOAT4 color, SWIPE_STATE state, SCENE scene);
 SWIPE_STATE GetSwipeState();

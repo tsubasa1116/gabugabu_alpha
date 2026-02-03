@@ -1,6 +1,6 @@
-/*==============================================================================
+ï»¿/*==============================================================================
 
-   ƒ|ƒŠƒSƒ“•`‰æ [gauge.cpp]
+   ãƒãƒªã‚´ãƒ³æç”» [gauge.cpp]
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -15,23 +15,22 @@ static GaugeData g_Gauge[GAUGE_PLAYER_MAX];
 
 static ID3D11ShaderResourceView* g_Texture = NULL;
 
-// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
+// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
-
 //====================================================================================
-// ‰Šú‰»
+// åˆæœŸåŒ–
 //====================================================================================
 void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìƒ`ƒFƒbƒN
+	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ãƒã‚§ãƒƒã‚¯
 	if (!pDevice || !pContext) {
-		hal::dout << "Gauge_Initialize() : —^‚¦‚ç‚ê‚½ƒfƒoƒCƒX‚©ƒRƒ“ƒeƒLƒXƒg‚ª•s³‚Å‚·" << std::endl;
+		hal::dout << "Gauge_Initialize() : ä¸ãˆã‚‰ã‚ŒãŸãƒ‡ãƒã‚¤ã‚¹ã‹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãŒä¸æ­£ã§ã™" << std::endl;
 		return;
 	}
 
-	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ì•Û‘¶
+	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ä¿å­˜
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
@@ -43,14 +42,15 @@ void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Gauge[i].earth = 1;
 		g_Gauge[i].outer = 1;
 		g_Gauge[i].pos   = { 0,0 };
-		g_Gauge[i].shakeOffset = { 0.0f, 0.0f };  // ƒVƒFƒCƒNƒIƒtƒZƒbƒg‰Šú‰»
+		g_Gauge[i].shakeOffset = { 0.0f, 0.0f };  // ã‚·ã‚§ã‚¤ã‚¯ã‚ªãƒ•ã‚»ãƒƒãƒˆåˆæœŸåŒ–
 	}
+
 
 }
 
 
 //====================================================================================
-// I—¹
+// çµ‚äº†
 //====================================================================================
 void Gauge_Finalize(void)
 {
@@ -59,7 +59,7 @@ void Gauge_Finalize(void)
 
 
 //====================================================================================
-// XV
+// æ›´æ–°
 //====================================================================================
 void Gauge_Update(void)
 {
@@ -68,10 +68,9 @@ void Gauge_Update(void)
 
 
 //====================================================================================
-// ‘¼‚Ìƒtƒ@ƒCƒ‹‚ÅƒQ[ƒW‚ğƒZƒbƒg‚·‚éŠÖ”
+// ä»–ã®ãƒ•ã‚¡ã‚¤ãƒ«ã§ã‚²ãƒ¼ã‚¸ã‚’ã‚»ãƒƒãƒˆã™ã‚‹é–¢æ•°
 //====================================================================================
-void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricity,
-	           float outer, const XMFLOAT2& pos)
+void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricity, float outer, const XMFLOAT2& pos)
 {
 	if (i < 0 || i >= GAUGE_PLAYER_MAX) return;
 
@@ -83,21 +82,20 @@ void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricit
 	g_Gauge[i].pos   = pos;
 }
 
-
 //====================================================================================
-// •`‰æ
+// æç”»
 //====================================================================================
 void Gauge_Draw(int i)
 {
 	const GaugeData& g = g_Gauge[i];
 
-	// ƒVƒFƒCƒNƒIƒtƒZƒbƒg‚ğ“K—p‚µ‚½•`‰æˆÊ’u
+	// ã‚·ã‚§ã‚¤ã‚¯ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’é©ç”¨ã—ãŸæç”»ä½ç½®
 	XMFLOAT2 drawPos = { g.pos.x + g.shakeOffset.x, g.pos.y + g.shakeOffset.y };
 
-	// UI—pƒVƒF[ƒ_[İ’è
+	// UIç”¨ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼è¨­å®š
 	Shader_BeginUI();
 
-	// “àƒQ[ƒW•`‰æ
+	// å†…ã‚²ãƒ¼ã‚¸æç”»
 	Shader_BeginGauge();
 	Shader_SetGaugeMulti(g.fire, g.water, g.wind, g.earth);
 	Shader_SetGaugeTextures();
@@ -105,7 +103,7 @@ void Gauge_Draw(int i)
 
 	DrawSprite(drawPos, { 55,55 }, color::white);
 
-	// ŠOƒQ[ƒW•`‰æ
+	// å¤–ã‚²ãƒ¼ã‚¸æç”»
 	Shader_BeginOutGauge();
 	Shader_SetOutGauge(g.outer, color::white);
 	Shader_SetOutGaugeTextures();
@@ -119,7 +117,7 @@ void Gauge_Draw(int i)
 }
 
 //====================================================================================
-// ƒVƒFƒCƒNƒIƒtƒZƒbƒgİ’è
+// ã‚·ã‚§ã‚¤ã‚¯ã‚ªãƒ•ã‚»ãƒƒãƒˆè¨­å®š
 //====================================================================================
 void Gauge_SetShakeOffset(int i, const XMFLOAT2& offset)
 {

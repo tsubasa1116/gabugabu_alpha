@@ -1,7 +1,7 @@
+ï»¿// score.h
 
 #pragma once
 
-//score.h
 #include <d3d11.h>
 #include "direct3d.h"
 #include <DirectXMath.h>
@@ -12,8 +12,8 @@ void Score_Finalize(void);
 void Score_Update();
 void Score_Draw(void);
 
-void	AddScore(int sc);	//ƒXƒRƒA‚É‰ÁZ‚·‚é
-float	GetScore();			//ƒXƒRƒA’læ“¾
+void	AddScore(int sc);	//ã‚¹ã‚³ã‚¢ã«åŠ ç®—ã™ã‚‹
+float	GetScore();			//ã‚¹ã‚³ã‚¢å€¤å–å¾—
 
 
 

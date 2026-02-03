@@ -24,6 +24,7 @@ public:
     void Draw();
 
     bool IsLoadingComplete() const; // ロード完了判定
+    bool IsFadingOut() const { return m_IsFadingOut; }  // フェードアウト中か
 
     SCENE GetNextScene() const { return m_NextScene; }
 
@@ -34,9 +35,15 @@ private:
     bool m_VideoFinished = false;               // 動画再生完了フラグ
     bool m_WaitForVideo = false;                // 動画終了を待つかどうか
     bool m_IsLoading = false;                   // ロード中フラグ
+    bool m_IsFadingOut = false;                 // フェードアウト中フラグ
+    bool m_FadeOutStarted = false;              // フェード開始済みフラグ（追加）
+    int m_FadeOutCounter = 0;                   // フェードアウトカウンター
+    int m_FadeOutDuration = 60;                 // フェードアウト所要フレーム数
     SCENE m_NextScene = SCENE_NONE;             // 遷移先シーン
 
     ID3D11DeviceContext* m_pContext = nullptr;  // 描画用コンテキスト
+    ID3D11Device* m_pDevice = nullptr;          // デバイス
+    ID3D11ShaderResourceView* m_pFadeTexture = nullptr;  // フェード用白テクスチャ
 };
 
 // グローバル関数

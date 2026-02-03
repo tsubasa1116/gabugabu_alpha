@@ -1,45 +1,45 @@
-//======================================================
+ï»¿//======================================================
 //	debug_render.cpp[]
 // 
-//	§ìÒF‘O–ì—ƒ			“ú•tF2025//
+//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2025//
 //======================================================
 #include "debug_render.h"
 #include "direct3d.h"
 #include "shader.h"
-
-
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-
 using namespace DirectX;
+#include <vector>
+#include <cmath>
+
 //======================================================
-//	ƒOƒ[ƒoƒ‹•Ï”
+//	ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 //======================================================
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
 static ID3D11Buffer* g_pVertexBuffer = NULL;
 
 //======================================================
-//	ŠÖ”
+//	é–¢æ•°
 //======================================================
-// ‰Šú‰»
+// åˆæœŸåŒ–
 void Debug_Initialize(ID3D11Device* device, ID3D11DeviceContext* context)
 {
 	g_pDevice = device;
 	g_pContext = context;
 
-	// ƒ‰ƒCƒ“•`‰æ—p‚Ì“®“I’¸“_ƒoƒbƒtƒ@‚ğì¬i­‚µ‘½‚ß‚ÉŠm•Ûj
+	// ãƒ©ã‚¤ãƒ³æç”»ç”¨ã®å‹•çš„é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ä½œæˆï¼ˆå°‘ã—å¤šã‚ã«ç¢ºä¿ï¼‰
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(DebugVertex) * 100; // ˆê“x‚É•`‰æ‚·‚éÅ‘å’¸“_”
+	bd.ByteWidth = sizeof(DebugVertex) * 100; // ä¸€åº¦ã«æç”»ã™ã‚‹æœ€å¤§é ‚ç‚¹æ•°
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	g_pDevice->CreateBuffer(&bd, NULL, &g_pVertexBuffer);
 }
 
-// I—¹ˆ—
+// çµ‚äº†å‡¦ç†
 void Debug_Finalize()
 {
 	if (g_pVertexBuffer) {
@@ -48,12 +48,12 @@ void Debug_Finalize()
 	}
 }
 
-// ”Ä—pƒ‰ƒCƒ“•`‰æŠÖ”i“à•”g—pj
+// æ±ç”¨ãƒ©ã‚¤ãƒ³æç”»é–¢æ•°ï¼ˆå†…éƒ¨ä½¿ç”¨ï¼‰
 void DrawLines(DebugVertex* vertices, int vertexCount)
 {
 	if (!g_pVertexBuffer) return;
 
-	// ƒoƒbƒtƒ@‚Éƒf[ƒ^‚ğ‘‚«‚Ş
+	// ãƒãƒƒãƒ•ã‚¡ã«ãƒ‡ãƒ¼ã‚¿ã‚’æ›¸ãè¾¼ã‚€
 	D3D11_MAPPED_SUBRESOURCE msr;
 	if (SUCCEEDED(g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr)))
 	{
@@ -61,72 +61,72 @@ void DrawLines(DebugVertex* vertices, int vertexCount)
 		g_pContext->Unmap(g_pVertexBuffer, 0);
 	}
 
-	// ƒeƒNƒXƒ`ƒƒ‚ğg‚í‚È‚¢ƒfƒoƒbƒOê—pƒVƒF[ƒ_[‚ğƒZƒbƒg‚·‚é
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ä½¿ã‚ãªã„ãƒ‡ãƒãƒƒã‚°å°‚ç”¨ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ã‚»ãƒƒãƒˆã™ã‚‹
 	Shader_BeginDebugColor();
 
-	// ƒpƒCƒvƒ‰ƒCƒ“İ’è
+	// ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³è¨­å®š
 	UINT stride = sizeof(DebugVertex);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 
-	// ƒgƒ|ƒƒW[‚ğuƒ‰ƒCƒ“ƒŠƒXƒgv‚É•ÏX
+	// ãƒˆãƒãƒ­ã‚¸ãƒ¼ã‚’ã€Œãƒ©ã‚¤ãƒ³ãƒªã‚¹ãƒˆã€ã«å¤‰æ›´
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-	// ƒVƒF[ƒ_[‚Ìİ’èiŠù‘¶‚ÌƒeƒNƒXƒ`ƒƒ‚È‚µƒVƒF[ƒ_[‚ª‚ ‚ê‚Î‚»‚ê‚ğg‚¤‚Ì‚ªƒxƒXƒgj
-	// ‚±‚±‚Å‚Í‚·‚Å‚ÉShader_Begin()‚³‚ê‚Ä‚¢‚é‘O’ñ‚ÅA”’ƒeƒNƒXƒ`ƒƒ‚È‚Ç‚ğƒoƒCƒ“ƒh‚µ‚Ä‚¨‚­‚Æ—Ç‚¢‚Å‚·
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®è¨­å®šï¼ˆæ—¢å­˜ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ãªã—ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãŒã‚ã‚Œã°ãã‚Œã‚’ä½¿ã†ã®ãŒãƒ™ã‚¹ãƒˆï¼‰
+	// ã“ã“ã§ã¯ã™ã§ã«Shader_Begin()ã•ã‚Œã¦ã„ã‚‹å‰æã§ã€ç™½ãƒ†ã‚¯ã‚¹ãƒãƒ£ãªã©ã‚’ãƒã‚¤ãƒ³ãƒ‰ã—ã¦ãŠãã¨è‰¯ã„ã§ã™
 
-	// •`‰æ
+	// æç”»
 	g_pContext->Draw(vertexCount, 0);
 
-	// ƒgƒ|ƒƒW[‚ğuƒgƒ‰ƒCƒAƒ“ƒOƒ‹ƒŠƒXƒgv‚É–ß‚µ‚Ä‚¨‚­i‘¼‚Ì•`‰æ‚Ö‚Ì‰e‹¿‚ğ–h‚®j
+	// ãƒˆãƒãƒ­ã‚¸ãƒ¼ã‚’ã€Œãƒˆãƒ©ã‚¤ã‚¢ãƒ³ã‚°ãƒ«ãƒªã‚¹ãƒˆã€ã«æˆ»ã—ã¦ãŠãï¼ˆä»–ã®æç”»ã¸ã®å½±éŸ¿ã‚’é˜²ãï¼‰
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	Shader_Begin(); // ƒƒCƒ“ƒVƒF[ƒ_[‚É–ß‚·
+	Shader_Begin(); // ãƒ¡ã‚¤ãƒ³ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«æˆ»ã™
 }
 
-// AABB•`‰æ
+// AABBæç”»
 void Debug_DrawAABB(const AABB& box, XMFLOAT4 color)
 {
-	// ’¼•û‘Ì‚ÌƒƒCƒ„[ƒtƒŒ[ƒ€‚Í12–{‚ÌüA24’¸“_•K—v
+	// ç›´æ–¹ä½“ã®ãƒ¯ã‚¤ãƒ¤ãƒ¼ãƒ•ãƒ¬ãƒ¼ãƒ ã¯12æœ¬ã®ç·šã€24é ‚ç‚¹å¿…è¦
 	DebugVertex v[24];
 
 	XMFLOAT3 corners[8] = {
-		{ box.Min.x, box.Min.y, box.Min.z }, // 0: è‘OE¶E‰º
-		{ box.Max.x, box.Min.y, box.Min.z }, // 1: è‘OE‰EE‰º
-		{ box.Min.x, box.Max.y, box.Min.z }, // 2: è‘OE¶Eã
-		{ box.Max.x, box.Max.y, box.Min.z }, // 3: è‘OE‰EEã
-		{ box.Min.x, box.Min.y, box.Max.z }, // 4: ‰œE¶E‰º
-		{ box.Max.x, box.Min.y, box.Max.z }, // 5: ‰œE‰EE‰º
-		{ box.Min.x, box.Max.y, box.Max.z }, // 6: ‰œE¶Eã
-		{ box.Max.x, box.Max.y, box.Max.z }  // 7: ‰œE‰EEã
+		{ box.Min.x, box.Min.y, box.Min.z }, // 0: æ‰‹å‰ãƒ»å·¦ãƒ»ä¸‹
+		{ box.Max.x, box.Min.y, box.Min.z }, // 1: æ‰‹å‰ãƒ»å³ãƒ»ä¸‹
+		{ box.Min.x, box.Max.y, box.Min.z }, // 2: æ‰‹å‰ãƒ»å·¦ãƒ»ä¸Š
+		{ box.Max.x, box.Max.y, box.Min.z }, // 3: æ‰‹å‰ãƒ»å³ãƒ»ä¸Š
+		{ box.Min.x, box.Min.y, box.Max.z }, // 4: å¥¥ãƒ»å·¦ãƒ»ä¸‹
+		{ box.Max.x, box.Min.y, box.Max.z }, // 5: å¥¥ãƒ»å³ãƒ»ä¸‹
+		{ box.Min.x, box.Max.y, box.Max.z }, // 6: å¥¥ãƒ»å·¦ãƒ»ä¸Š
+		{ box.Max.x, box.Max.y, box.Max.z }  // 7: å¥¥ãƒ»å³ãƒ»ä¸Š
 	};
 
-	// ƒCƒ“ƒfƒbƒNƒX‚ğg‚í‚¸‹ğ’¼‚Éü‚ğ’è‹`
+	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’ä½¿ã‚ãšæ„šç›´ã«ç·šã‚’å®šç¾©
 	int idx = 0;
 	auto AddLine = [&](int a, int b) {
 		v[idx].pos = corners[a]; v[idx].color = color; v[idx].uv = { 0,0 }; idx++;
 		v[idx].pos = corners[b]; v[idx].color = color; v[idx].uv = { 0,0 }; idx++;
 		};
 
-	// è‘O‚ÌlŠp
+	// æ‰‹å‰ã®å››è§’
 	AddLine(0, 1); AddLine(1, 3); AddLine(3, 2); AddLine(2, 0);
-	// ‰œ‚ÌlŠp
+	// å¥¥ã®å››è§’
 	AddLine(4, 5); AddLine(5, 7); AddLine(7, 6); AddLine(6, 4);
-	// Œq‚®ü
+	// ç¹‹ãç·š
 	AddLine(0, 4); AddLine(1, 5); AddLine(2, 6); AddLine(3, 7);
 
 	DrawLines(v, 24);
 }
 
-// ˜ZŠp’Œ•`‰æ
+// å…­è§’æŸ±æç”»
 void Debug_DrawHex(const HexCollider& hex, XMFLOAT4 color)
 {
-	// ã–Ê‚Æ’ê–Ê‚Ì’¸“_ŒvZ
-	// Flat Topped (’¸“_‚ªX²•ûŒü) ‚© Pointy Topped (’¸“_‚ªZ²•ûŒü) ‚©‚É‡‚í‚¹‚Ä’²®‚ª•K—v
-	// field.cpp‚ÌƒƒWƒbƒN‚É‡‚í‚¹‚Ä Flat Topped ‚ÅŒvZ‚µ‚Ü‚·
+	// ä¸Šé¢ã¨åº•é¢ã®é ‚ç‚¹è¨ˆç®—
+	// Flat Topped (é ‚ç‚¹ãŒXè»¸æ–¹å‘) ã‹ Pointy Topped (é ‚ç‚¹ãŒZè»¸æ–¹å‘) ã‹ã«åˆã‚ã›ã¦èª¿æ•´ãŒå¿…è¦
+	// field.cppã®ãƒ­ã‚¸ãƒƒã‚¯ã«åˆã‚ã›ã¦ Flat Topped ã§è¨ˆç®—ã—ã¾ã™
 
 	const int segments = 6;
-	DebugVertex v[36]; // ã–Ê6–{ + ’ê–Ê6–{ + ’Œ6–{ = 18–{ * 2’¸“_ = 36
+	DebugVertex v[36]; // ä¸Šé¢6æœ¬ + åº•é¢6æœ¬ + æŸ±6æœ¬ = 18æœ¬ * 2é ‚ç‚¹ = 36
 
 	float halfH = hex.height / 2.0f;
 	float topY = hex.center.y + halfH;
@@ -136,33 +136,72 @@ void Debug_DrawHex(const HexCollider& hex, XMFLOAT4 color)
 
 	for (int i = 0; i < segments; i++)
 	{
-		//  360 ‚ğ $6 ƒZƒOƒƒ“ƒg‚ÅŠ„‚Á‚½ 60“x ‚²‚Æ‚ÉŠp“x‚ğŒvZ
+		//  360 ã‚’ $6 ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã§å‰²ã£ãŸ 60åº¦ ã”ã¨ã«è§’åº¦ã‚’è¨ˆç®—
 		float radd1 = XMConvertToRadians(i * 60.0f);
 		float radd2 = XMConvertToRadians((i + 1) * 60.0f);
 
-		// ’¸“_À•WŒvZ (Flat Topped‚È‚ç30“x‚¸‚ç‚·“™‚Ì’²®‚ª•K—v‚¾‚ªAˆê’U•W€“I‚È‰ñ“]‚Å)
-		// field.cpp‚Ì¶¬ƒƒWƒbƒN‚ÆƒYƒŒ‚ª‚ ‚éê‡‚Í +30.0f ‚È‚Ç‚µ‚Ä
+		// é ‚ç‚¹åº§æ¨™è¨ˆç®— (Flat Toppedãªã‚‰30åº¦ãšã‚‰ã™ç­‰ã®èª¿æ•´ãŒå¿…è¦ã ãŒã€ä¸€æ—¦æ¨™æº–çš„ãªå›è»¢ã§)
+		// field.cppã®ç”Ÿæˆãƒ­ã‚¸ãƒƒã‚¯ã¨ã‚ºãƒ¬ãŒã‚ã‚‹å ´åˆã¯ +30.0f ãªã©ã—ã¦
 
-		// radd1 ‚ÌÀ•W
+		// radd1 ã®åº§æ¨™
 		float x1 = cos(radd1) * hex.radius;
 		float z1 = sin(radd1) * hex.radius;
 
-		// radd2 ‚ÌÀ•W
+		// radd2 ã®åº§æ¨™
 		float x2 = cos(radd2) * hex.radius;
 		float z2 = sin(radd2) * hex.radius;
 
-		// ã–Ê‚Ìü
+		// ä¸Šé¢ã®ç·š
 		v[idx].pos = { hex.center.x + x1, topY, hex.center.z + z1 };	v[idx].color = color; v[idx].uv = { 0,0 }; idx++;
 		v[idx].pos = { hex.center.x + x2, topY, hex.center.z + z2 };	v[idx].color = color; v[idx].uv = { 0,0 }; idx++;
 
-		// ’ê–Ê‚Ìü
+		// åº•é¢ã®ç·š
 		v[idx].pos = { hex.center.x + x1, bottomY, hex.center.z + z1 };	v[idx].color = color; v[idx].uv = { 0,0 }; idx++;
 		v[idx].pos = { hex.center.x + x2, bottomY, hex.center.z + z2 };	v[idx].color = color; v[idx].uv = { 0,0 }; idx++;
 
-		// c‚Ì’Œ
+		// ç¸¦ã®æŸ±
 		v[idx].pos = { hex.center.x + x1, topY, hex.center.z + z1 };	v[idx].color = color; v[idx].uv = { 0,0 }; idx++;
 		v[idx].pos = { hex.center.x + x1, bottomY, hex.center.z + z1 };	v[idx].color = color; v[idx].uv = { 0,0 }; idx++;
 	}
 
 	DrawLines(v, 36);
+}
+
+// å††æç”»
+void Debug_DrawCircle(const XMFLOAT3& center, float radius, const XMFLOAT4& color)
+{
+	const int segments = 36; // å††ã‚’æ§‹æˆã™ã‚‹ã‚»ã‚°ãƒ¡ãƒ³ãƒˆæ•°
+	const float angleStep = XM_2PI / segments;
+
+	std::vector<XMFLOAT3> points;
+	for (int i = 0; i <= segments; ++i)
+	{
+		float angle = i * angleStep;
+		float x = center.x + radius * cosf(angle);
+		float z = center.z + radius * sinf(angle);
+		points.push_back(XMFLOAT3(x, center.y, z));
+	}
+
+	// ç·šã‚’æç”»
+	for (size_t i = 0; i < points.size() - 1; ++i)
+	{
+		Debug_DrawLine(points[i], points[i + 1], color);
+	}
+}
+
+// ç·šæç”»
+void Debug_DrawLine(const XMFLOAT3& start, const XMFLOAT3& end, const XMFLOAT4& color)
+{
+	// 2ã¤ã®é ‚ç‚¹ã‚’å®šç¾©
+	DebugVertex vertices[2];
+	vertices[0].pos = start;
+	vertices[0].color = color;
+	vertices[0].uv = { 0.0f, 0.0f };
+
+	vertices[1].pos = end;
+	vertices[1].color = color;
+	vertices[1].uv = { 0.0f, 0.0f };
+
+	// ãƒ©ã‚¤ãƒ³ã‚’æç”»
+	DrawLines(vertices, 2);
 }

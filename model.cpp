@@ -5,13 +5,10 @@
 //======================================================
 #define NOMINMAX
 
-
 //#include "directx.h"
 //#include "texture.h"
 #include "model.h"
-
 //#include "renderer.h"
-
 
 //======================================================
 //	ロード
@@ -20,15 +17,13 @@ MODEL* ModelLoad( const char *FileName )
 {
 	MODEL* model = new MODEL;
 
-
 	const std::string modelPath( FileName );
 
 	model->AiScene = aiImportFile(FileName, aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded);
 	assert(model->AiScene);
 
-	model->VertexBuffer = new ID3D11Buffer*[model->AiScene->mNumMeshes];//頂点データポインター
-	model->IndexBuffer = new ID3D11Buffer*[model->AiScene->mNumMeshes];//インデックスデータポインター
-
+	model->VertexBuffer = new ID3D11Buffer*[model->AiScene->mNumMeshes];	// 頂点データポインター
+	model->IndexBuffer = new ID3D11Buffer*[model->AiScene->mNumMeshes];		// インデックスデータポインター
 
 	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++)
 	{
@@ -36,7 +31,7 @@ MODEL* ModelLoad( const char *FileName )
 
 		// 頂点バッファ生成
 		{
-			Vertex3D* vertex = new Vertex3D[mesh->mNumVertices];//頂点数分の配列領域作成
+			Vertex3D* vertex = new Vertex3D[mesh->mNumVertices];	// 頂点数分の配列領域作成
 
 			for (unsigned int v = 0; v < mesh->mNumVertices; v++)
 			{
@@ -62,10 +57,9 @@ MODEL* ModelLoad( const char *FileName )
 			delete[] vertex;
 		}
 
-
 		// インデックスバッファ生成
 		{
-			unsigned int* index = new unsigned int[mesh->mNumFaces * 3];//ポリゴン数数*3
+			unsigned int* index = new unsigned int[mesh->mNumFaces * 3];	// ポリゴン数*3
 
 			for (unsigned int f = 0; f < mesh->mNumFaces; f++)
 			{
@@ -93,12 +87,9 @@ MODEL* ModelLoad( const char *FileName )
 
 			delete[] index;
 		}
-
 	}
 
-
-
-	//テクスチャ読み込み
+	// テクスチャ読み込み
 	for(int i = 0; i < model->AiScene->mNumTextures; i++)
 	{
 		aiTexture* aitexture = model->AiScene->mTextures[i];
@@ -113,12 +104,8 @@ MODEL* ModelLoad( const char *FileName )
 		model->Texture[aitexture->mFilename.data] = texture;
 	}
 
-
-
 	return model;
 }
-
-
 
 //======================================================
 //	解放
@@ -134,15 +121,12 @@ void ModelRelease(MODEL* model)
 	delete[] model->VertexBuffer;
 	delete[] model->IndexBuffer;
 
-
 	for (std::pair<const std::string, ID3D11ShaderResourceView*> pair : model->Texture)
 	{
 		pair.second->Release();
 	}
 
-
 	aiReleaseImport(model->AiScene);
-
 
 	delete model;
 }
@@ -154,7 +138,6 @@ void ModelDraw(MODEL* model)
 {
 	// プリミティブトポロジ設定
 	Direct3D_GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 
 	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++)
 	{
@@ -180,6 +163,3 @@ void ModelDraw(MODEL* model)
 		Direct3D_GetDeviceContext()->DrawIndexed(mesh->mNumFaces * 3, 0, 0);
 	}
 }
-
-
-
