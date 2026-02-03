@@ -7,7 +7,7 @@
 #include "Camera.h"
 #include "keyboard.h"
 #include "Ball.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "input.h"
 
 // グローバル変数

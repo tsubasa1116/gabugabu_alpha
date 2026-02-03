@@ -1,4 +1,4 @@
-﻿// Polygon3D.h
+﻿// Player.h
 
 #pragma once
 
@@ -123,24 +123,24 @@ struct PLAYEROBJECT
 	std::vector<GLASS_BOX> glassBoxes; // スペシャル ガラスのミサイルリスト
 };
 
-void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 static void LoadTextureList(ID3D11Device* pDevice);
-void Polygon3D_Finalize();
-void Polygon3D_Update();
-void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
-void Polygon3D_DrawHP();
+void Player_Finalize();
+void Player_Update();
+void Player_Draw(bool s_IsKonamiCodeEntered);
+void Player_DrawHP();
 
 // アニメーション関数
 static inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
 
 void Ranking(int playerIndex);
 
-void Polygon3D_Respawn(int playerIndex);
+void Player_Respawn(int playerIndex);
 
-void Polygon3D_DrawStock(int i);
+void Player_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int playerIndex);
 
-void Polygon3D_DrawText();
+void Player_DrawText();
 
 void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float speed);
 

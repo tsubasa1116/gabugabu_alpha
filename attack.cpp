@@ -11,7 +11,7 @@ using namespace DirectX;
 #include "field.h"
 #include "Building.h"
 #include "debug_ostream.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "keyboard.h"
 #include "DamageText.h"
 #include "Effect.h"
@@ -711,7 +711,7 @@ void AttackPlayerCollisions()
 		// --- プレイヤー側で使っている描画スケール・ヒットボックス比率と合わせる ---
 		const float RENDER_SCALE = 2.0f;
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
-		// Polygon3D と同じ短辺/長辺定義を使う
+		// Player と同じ短辺/長辺定義を使う
 		const float HITBOX_SHORT = 0.35f;
 		const float HITBOX_LONG  = 0.65f;
 

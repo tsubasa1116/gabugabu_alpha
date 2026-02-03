@@ -8,7 +8,7 @@
 #include "debug_render.h"
 #include "model.h"
 #include "Building.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "special.h"
 #include "imgui.h"
 #include "imgui_impl_win32.h"
@@ -66,16 +66,16 @@ static const char* g_ModelName1[] = {
 MAPDATA Map[] =
 {
 	// 地面
-	{ {},{}, FIELD::FIELD_Plant,0 },	// 配列番号[0]の確認
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,2 },	// 配列番号[0]の確認
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
 	{ {},{}, FIELD::FIELD_BOX },	// 10
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -99,7 +99,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX },	// 30
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electricity,4},
+	{ {},{}, FIELD::FIELD_BOX},
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -112,7 +112,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Glass },
+	{ {},{}, FIELD::FIELD_Glass,0 },
 	{ {},{}, FIELD::FIELD_BOX},
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
@@ -226,16 +226,16 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
 	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
-	{ {},{}, FIELD::FIELD_Plant,0 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
+	{ {},{}, FIELD::FIELD_Plant,2 },
 
 
 	//{ {},{}, FIELD::FIELD_BOX },	// 120
@@ -336,7 +336,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 
 		// 全てのマップオブジェクトに対してAABBを計算する
-		// Polygon3D_CalculateAABB(&map[i]); // 古い呼び出し
+		// Player_CalculateAABB(&map[i]); // 古い呼び出し
 		//CalculateAABB(Map[i].boundingBox, Map[i].pos, XMFLOAT3{ 1.0f, 1.0f, 1.0f }); // ★新しい呼び出し
 
 		i++;

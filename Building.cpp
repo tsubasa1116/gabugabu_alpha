@@ -17,13 +17,21 @@ static Building* Buildings[300];
 static int BuildingCount = 0;
 
 // ★テクスチャのパス用意
-#define FIELD_TEX_MAX 3
+#define FIELD_TEX_MAX 10
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"Asset\\Texture\\gure.jpg",
-	L"Asset\\Texture\\textureGlassMain_v1.png",	// ★とりあえず今はこれを張ってる
+	L"Asset\\Texture\\とんがり木.png",   // ← togeki専用
+	L"Asset\\Texture\\ライブ.png",
+	L"Asset\\Texture\\美術館.png",
+	L"Asset\\Texture\\こんくり三段.png",
+	L"Asset\\Texture\\３個のコンクリ.png",
+	L"Asset\\Texture\\４つのガラス.png",
+	L"Asset\\Texture\\信号.png",
+	L"Asset\\Texture\\２この丸ガラス.png",
 	L"Asset\\Texture\\fade.bmp"
 };
+
 
 //=========================================
 // モデル定義（複数対応）
@@ -59,7 +67,7 @@ static const char* g_PlantModels[] = {
 // 電気建物
 static const char* g_ElectricModels[] = {
 	"singou",
-	"tawa-",
+	"taw-",
 	"raibu",
 	"denki1kaba-",
 	"denki3kaba-"
@@ -268,10 +276,8 @@ void Building::Draw(bool)
 
 	Shader_Begin();
 
-	// View × Projection
 	XMMATRIX VP = GetViewMatrix() * GetProjectionMatrix();
 
-	// World行列
 	XMMATRIX World =
 		XMMatrixScaling(scaling.x, scaling.y, scaling.z) *
 		XMMatrixRotationRollPitchYaw(
@@ -283,11 +289,64 @@ void Building::Draw(bool)
 	Shader_SetWorldMatrix(World);
 	Shader_SetMatrix(World * VP);
 
-	// ★テクスチャセット
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
+	//===========================
+	// ★ テクスチャ選択
+	//===========================
+	ID3D11ShaderResourceView* tex = g_Texture[0]; // デフォルト
+
+	// Plant 
+	if (Type == BuildingType::Plant &&
+		strcmp(g_PlantModels[m_ModelIndex], "togeki") == 0)
+	{
+		tex = g_Texture[1]; // とんがり木
+	}
+
+	// Electricity 
+	else if (Type == BuildingType::Electricity &&
+		strcmp(g_ElectricModels[m_ModelIndex], "raibu") == 0)
+	{
+		tex = g_Texture[2]; // ライブ
+	}
+	else if (Type == BuildingType::Electricity &&
+		strcmp(g_ElectricModels[m_ModelIndex], "singou") == 0)
+	{
+		tex = g_Texture[7]; 
+	}
+
+	// Concrete 
+	else if (Type == BuildingType::Concrete &&
+		strcmp(g_ConcreteModels[m_ModelIndex], "bizyutukan") == 0)
+	{
+		tex = g_Texture[3]; // 美術館
+	}
+	else if (Type == BuildingType::Concrete &&
+		strcmp(g_ConcreteModels[m_ModelIndex], "biru3dannkonkuri") == 0)
+	{
+		tex = g_Texture[4]; 
+	}
+	else if (Type == BuildingType::Concrete &&
+		strcmp(g_ConcreteModels[m_ModelIndex], "3biltateconkuri") == 0)
+	{
+		tex = g_Texture[5];
+	}
+	// Glass 
+	else if (Type == BuildingType::Glass &&
+		strcmp(g_GlassModels[m_ModelIndex], "3birugarsu") == 0)
+	{
+		tex = g_Texture[6];
+	}
+	else if (Type == BuildingType::Glass &&
+		strcmp(g_GlassModels[m_ModelIndex], "2marugarasu") == 0)
+	{
+		tex = g_Texture[8];
+	}
+
+
+	g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	ModelDraw(m_Model);
 }
+
 
 //=========================================
 // ゲッター

@@ -11,7 +11,7 @@ using namespace DirectX;
 #include "field.h"
 #include "building.h"
 #include "debug_ostream.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "keyboard.h"
 
 // グローバル変数
