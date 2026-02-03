@@ -124,178 +124,61 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	// ポリゴン表示の初期化
 	object[0].position = XMFLOAT3(-3.0f, 4.0f, 0.0f);
-	object[0].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[0].maxHp = 500.0f;
-	object[0].hp = object[0].maxHp;
-	object[0].attack = 0.0f;
-	object[0].power = 0.0f;
-	object[0].speed = 0.0f;
-	object[0].defense = 1.0f;
-	object[0].stock = 3;
-	object[0].rank = 0;
-	object[0].active = true;
-	object[0].isAttacking = false;
-	object[0].attackTimer = 0.0f;
-	object[0].isAttacked = false;
-	object[0].attackedTimer = 0.0f;
-	object[0].useSkill = false;
-	object[0].skillTimer = 0.0f;
-	object[0].skillCoolTimer = 0.0f;
-	object[0].useSpecial = false;
-	object[0].specialTimer = 0.0f;
-	object[0].isInvincible = false;
-	object[0].invincibleTimer = 0.0f;
-	object[0].stunGauge = 0.0f;
-	object[0].isStunning = false;
-	object[0].stunTimer = 0.0f;
-	object[0].isDown = false;
-	object[0].downTimer = 0.0f;
-	object[0].isPoisoned = false;
-	object[0].poisonTimer = 0.0f;
-	object[0].lastDir = PlayerDir::Down; // 正面
-	object[0].isMoving = false;
+	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
+	object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
+	object[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
+
 	object[0].form = Form::First;
 	object[0].type = PlayerType::None;
-	//object[0].form = Form::Third;
-	//object[0].type = PlayerType::Plant;
-	object[0].evolutionGauge = 0.0f;
-	object[0].evolutionGaugeRate = 1.0f;
-	object[0].breakCount_Glass = 1;
-	object[0].breakCount_Concrete = 1;
-	object[0].breakCount_Plant = 1;
-	object[0].breakCount_Electricity = 1;
-
-	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
-	object[1].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[1].maxHp = 500.0f;
-	object[1].hp = object[1].maxHp;
-	object[1].attack = 0.0f;
-	object[1].power = 0.0f;
-	object[1].speed = 0.0f;
-	object[1].defense = 1.0f;
-	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[1].stock = 3;
-	object[1].rank = 0;
-	object[1].active = true;
-	object[1].isAttacking = false;
-	object[1].attackTimer = 0.0f;
-	object[1].isAttacked = false;
-	object[1].attackedTimer = 0.0f;
-	object[1].useSkill = false;
-	object[1].skillTimer = 0.0f;
-	object[1].skillCoolTimer = 0.0f;
-	object[1].useSpecial = false;
-	object[1].specialTimer = 0.0f;
-	object[1].isInvincible = false;
-	object[1].invincibleTimer = 0.0f;
-	object[1].stunGauge = 0.0f;
-	object[1].isStunning = false;
-	object[1].stunTimer = 0.0f;
-	object[1].isDown = false;
-	object[1].downTimer = 0.0f;
-	object[1].isPoisoned = false;
-	object[1].poisonTimer = 0.0f;
-	object[1].lastDir = PlayerDir::Down; // 正面
-	object[1].isMoving = false;
 	object[1].form = Form::First;
 	object[1].type = PlayerType::None;
-	object[1].evolutionGauge = 0.0f;
-	object[1].evolutionGaugeRate = 1.0f;
-	object[1].breakCount_Glass = 1;
-	object[1].breakCount_Concrete = 1;
-	object[1].breakCount_Plant = 1;
-	object[1].breakCount_Electricity = 1;
-
-	object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
-	object[2].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[2].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[2].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[2].maxHp = 500.0f;
-	object[2].hp = object[2].maxHp;
-	object[2].attack = 0.0f;
-	object[2].power = 0.0f;
-	object[2].speed = 0.0f;
-	object[2].defense = 1.0f;
-	object[2].stock = 3;
-	object[2].rank = 0;
-	object[2].active = true;
-	object[2].isAttacking = false;
-	object[2].attackTimer = 0.0f;
-	object[2].isAttacked = false;
-	object[2].attackedTimer = 0.0f;
-	object[2].useSkill = false;
-	object[2].skillTimer = 0.0f;
-	object[2].skillCoolTimer = 0.0f;
-	object[2].useSpecial = false;
-	object[2].specialTimer = 0.0f;
-	object[2].isInvincible = false;
-	object[2].invincibleTimer = 0.0f;
-	object[2].stunGauge = 0.0f;
-	object[2].isStunning = false;
-	object[2].stunTimer = 0.0f;
-	object[2].isDown = false;
-	object[2].downTimer = 0.0f;
-	object[2].isPoisoned = false;
-	object[2].poisonTimer = 0.0f;
-	object[2].lastDir = PlayerDir::Down; // 正面
-	object[2].isMoving = false;
 	object[2].form = Form::First;
 	object[2].type = PlayerType::None;
-	object[2].evolutionGauge = 0;
-	object[2].evolutionGaugeRate = 1.0f;
-	object[2].breakCount_Glass = 0;
-	object[2].breakCount_Concrete = 0;
-	object[2].breakCount_Plant = 0;
-	object[2].breakCount_Electricity = 0;
-
-	object[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
-	object[3].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[3].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[3].maxHp = 500.0f;
-	object[3].hp = object[3].maxHp;
-	object[3].attack = 0.0f;
-	object[3].power = 0.0f;
-	object[3].speed = 0.0f;
-	object[3].defense = 1.0f;
-	object[3].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[3].stock = 3;
-	object[3].rank = 0;
-	object[3].active = true;
-	object[3].isAttacking = false;
-	object[3].attackTimer = 0.0f;
-	object[3].isAttacked = false;
-	object[3].attackedTimer = 0.0f;
-	object[3].useSkill = false;
-	object[3].skillTimer = 0.0f;
-	object[3].skillCoolTimer = 0.0f;
-	object[3].useSpecial = false;
-	object[3].specialTimer = 0.0f;
-	object[3].isInvincible = false;
-	object[3].invincibleTimer = 0.0f;
-	object[3].stunGauge = 0.0f;
-	object[3].isStunning = false;
-	object[3].stunTimer = 0.0f;
-	object[3].isDown = false;
-	object[3].downTimer = 0.0f;
-	object[3].isPoisoned = false;
-	object[3].poisonTimer = 0.0f;
-	object[3].lastDir = PlayerDir::Down; // 正面
-	object[3].isMoving = false;
 	object[3].form = Form::First;
 	object[3].type = PlayerType::None;
-	object[3].evolutionGauge = 0;
-	object[3].evolutionGaugeRate = 1.0f;
-	object[3].breakCount_Glass = 0;
-	object[3].breakCount_Concrete = 0;
-	object[3].breakCount_Plant = 0;
-	object[3].breakCount_Electricity = 0;
+	
+	for (int p = 0; p < PLAYER_MAX; p++)
+	{
+		object[p].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[p].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[p].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		object[p].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		object[p].maxHp = 500.0f;
+		object[p].hp = object[p].maxHp;
+		object[p].attack = 0.0f;
+		object[p].power = 0.0f;
+		object[p].speed = 0.0f;
+		object[p].defense = 1.0f;
+		object[p].stock = 3;
+		object[p].rank = 0;
+		object[p].active = true;
+		object[p].isAttacking = false;
+		object[p].attackTimer = 0.0f;
+		object[p].isAttacked = false;
+		object[p].attackedTimer = 0.0f;
+		object[p].useSkill = false;
+		object[p].skillTimer = 0.0f;
+		object[p].skillCoolTimer = 0.0f;
+		object[p].useSpecial = false;
+		object[p].specialTimer = 0.0f;
+		object[p].isInvincible = false;
+		object[p].invincibleTimer = 0.0f;
+		object[p].stunGauge = 0.0f;
+		object[p].isStunning = false;
+		object[p].stunTimer = 0.0f;
+		object[p].isDown = false;
+		object[p].downTimer = 0.0f;
+		object[p].isPoisoned = false;
+		object[p].poisonTimer = 0.0f;
+		object[p].lastDir = PlayerDir::Down; // 正面
+		object[p].isMoving = false;
+		object[p].evolutionGauge = 0.0f;
+		object[p].evolutionGaugeRate = 1.0f;
+		object[p].breakCount_Glass = 1;
+		object[p].breakCount_Concrete = 1;
+		object[p].breakCount_Plant = 1;
+		object[p].breakCount_Electricity = 1;
+	}
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
@@ -609,25 +492,23 @@ void Polygon3D_Update()
 			object[p].scaling.x = 0.5f;
 			object[p].scaling.y = 0.5f;
 			object[p].scaling.z = 0.5f;
-			object[p].attack = 10.0f;
+			object[p].attack = 20.0f;
 			object[p].power = 1.0f;
 			object[p].speed = 0.06f;
 			break;
-
 		case Form::Second: // 第2形態
-			object[p].scaling.x = 0.8f;
-			object[p].scaling.y = 0.8f;
-			object[p].scaling.z = 0.8f;
-			object[p].attack = 15.0f;
+			object[p].scaling.x = 0.9f;
+			object[p].scaling.y = 0.9f;
+			object[p].scaling.z = 0.9f;
+			object[p].attack = 30.0f;
 			object[p].power = 1.5f;
 			object[p].speed = 0.05f;
 			break;
-
 		case Form::Third: // 第3形態
-			object[p].scaling.x = 1.2f;
-			object[p].scaling.y = 1.2f;
-			object[p].scaling.z = 1.2f;
-			object[p].attack = 20.0f;
+			object[p].scaling.x = 1.5f;
+			object[p].scaling.y = 1.5f;
+			object[p].scaling.z = 1.5f;
+			object[p].attack = 40.0f;
 			object[p].power = 2.0f;
 			object[p].speed = 0.04f;
 			break;
@@ -1401,7 +1282,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	{
 		if (!object[idx].active) return;
 
-		const float spriteScale = 2.0f;	// 表示倍率
+		const float spriteScale = 3.5f;	// 表示倍率
 
 		// ワールド行列（ビルボード風の既存ロジックを踏襲）
 		XMMATRIX ScalingMatrix = XMMatrixScaling(
