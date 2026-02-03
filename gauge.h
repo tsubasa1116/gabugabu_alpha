@@ -23,6 +23,7 @@ struct GaugeData
     float outer;
     XMFLOAT2 pos;
     XMFLOAT4 outercolor;
+    XMFLOAT2 shakeOffset;
 };
 
 extern GaugeData g_Gauge[GAUGE_PLAYER_MAX];
@@ -37,6 +38,7 @@ void Gauge_Update(void);
 void Gauge_Set(int i, float fire, float water, float wind, float earth,
                float outer, const XMFLOAT2& pos);
 void Gauge_Draw(int i);
+void Gauge_SetShakeOffset(int i, const XMFLOAT2& offset);
 
 
 #endif // gauge_H

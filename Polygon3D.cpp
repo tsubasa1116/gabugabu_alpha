@@ -346,6 +346,11 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	InitializeHP(pDevice, pContext, &HPBar[2], { 800.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 	InitializeHP(pDevice, pContext, &HPBar[3], { 1120.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 
+	HPBar[0].gaugeIndex = 0;
+	HPBar[1].gaugeIndex = 1;
+	HPBar[2].gaugeIndex = 2;
+	HPBar[3].gaugeIndex = 3;
+
 	// アニメーションの初期化
 	for (int i = 0; i < PLAYER_MAX; ++i)
 	{
@@ -1712,4 +1717,12 @@ int GetPlayerRank(int playerIndex)
 {
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return 0;
 	return object[playerIndex].rank;
+}
+
+void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float speed)
+{
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	SetHPShake(&HPBar[playerIndex], amplitude, duration, speed);
 }

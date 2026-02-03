@@ -139,4 +139,6 @@ PLAYEROBJECT* GetPlayer(int playerIndex);
 
 void Polygon3D_DrawText();
 
+void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float speed);
+
 

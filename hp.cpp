@@ -1,5 +1,7 @@
 #include "color.h"
 #include "hp.h"
+#include <cmath> 
+#include "gauge.h"
 
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
@@ -7,6 +9,8 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 
 //プレイヤー関連変数
 static	ID3D11ShaderResourceView* g_Texture[6];
+
+HP HPBar[HPBER_MAX];
 
 // HPバーのスムーズ減少速度
 #define HPBAR_SPEED 3.0f
@@ -24,6 +28,14 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HP* bar,
 	bar->use = true;
 	bar->backColor = backColor;
 	bar->fillColor = fillColor;
+
+	// シェイク初期化
+	bar->shakeOffset = { 0.0f, 0.0f };
+	bar->shakeTimer = 0.0f;
+	bar->shakeDuration = 0.0f;
+	bar->shakeAmplitude = 0.0f;
+	bar->shakeSpeed = 0.0f;
+	bar->gaugeIndex = -1;
 
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -84,43 +96,41 @@ void UpdateHP(HP* bar)
 			bar->current = bar->target;
 		}
 	}
+
+	// シェイク更新（フレーム単位で減らす）
+	if (bar->shakeTimer > 0.0f && bar->shakeDuration > 0.0f)
+	{
+		// このHPバーに対応するゲージのみシェイクさせる
+		if (bar->gaugeIndex >= 0)
+		{
+			Gauge_SetShakeOffset(bar->gaugeIndex, bar->shakeOffset);
+		}
+
+		// 残りフレームを1減らす
+		bar->shakeTimer -= 1.0f;
+		if (bar->shakeTimer < 0.0f) bar->shakeTimer = 0.0f;
+
+		// 正規化された残り
+		float t = bar->shakeTimer / bar->shakeDuration; // 減衰用
+		// 経過フレーム数に速度を掛ける
+		float elapsed = bar->shakeDuration - bar->shakeTimer;
+		float phase = elapsed * bar->shakeSpeed * 0.5f; // 調整
+		// X方向をsin、Y方向をcosで振動させる
+		float x = sinf(phase) * bar->shakeAmplitude * t;
+		float y = cosf(phase * 1.3f) * (bar->shakeAmplitude * 0.5f) * t; // Yは少し小さめ
+
+		bar->shakeOffset = { x, y };
+	}
+	else
+	{
+		bar->shakeOffset = { 0.0f, 0.0f };
+	}
 }
 
 
 // -------------------------------------------------------------
 // 描画
 // -------------------------------------------------------------
-// 旧バージョnnン：ポリゴン版HPバー
-//void DrawHP(const HP* bar)
-//{
-//	if (!bar->use) return;
-//
-//	Shader_BeginUI();
-//
-//	Shader_SetColor(color::white);
-//
-//	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
-//
-//	const float border = 3.0f; // 外枠の太さ
-//
-//	XMFLOAT2 borderPos = bar->pos;
-//	XMFLOAT2 borderSize = { bar->size.x + border * 2, bar->size.y + border * 2 };
-//
-//	DrawSprite(borderPos, borderSize, color::black);
-//    
-//	// 残量（current分だけ横幅を縮める）
-//	XMFLOAT2 fillPos = {
-//	 bar->pos.x - (bar->size.x / 2.0f) + (bar->current / 2.0f),
-//	 bar->pos.y
-//	};
-//    DrawSprite(bar->pos, bar->size, bar->backColor);
-//	
-//	// 背景（固定幅）
-//	XMFLOAT2 fillSize = { bar->current, bar->size.y };
-//	DrawSprite(fillPos, fillSize, bar->fillColor);
-//
-//}
-
 void DrawHP(const HP* bar, int texNum)
 {
 	if (!bar->use) return;
@@ -137,16 +147,20 @@ void DrawHP(const HP* bar, int texNum)
 	XMFLOAT2 uvMax = { ratio, 1.0f };
     
 	XMFLOAT2 backSize = { bar->size.x, bar->size.y };
-	XMFLOAT2 backPos = { bar->pos.x - (bar->size.x / 2.0f) + backSize.x / 2.0f, bar->pos.y
+
+	// 描画位置にシェイクオフセットを加える（元の位置はそのまま保持）
+	XMFLOAT2 drawPos = { bar->pos.x + bar->shakeOffset.x, bar->pos.y + bar->shakeOffset.y };
+
+	XMFLOAT2 backPos = { drawPos.x - (bar->size.x / 2.0f) + backSize.x / 2.0f, drawPos.y
 	};
 	
 	XMFLOAT2 fillSize = { bar->size.x * ratio, bar->size.y };
-	XMFLOAT2 fillPos = { bar->pos.x - (bar->size.x / 2.0f) + (fillSize.x / 2.0f), bar->pos.y
+	XMFLOAT2 fillPos = { drawPos.x - (bar->size.x / 2.0f) + (fillSize.x / 2.0f), drawPos.y
 	};
 
 	//// サイズ・位置調整（ごり押し）
 	XMFLOAT2 fillSizeOK = { fillSize.x / 1.88f, fillSize.y};
-	XMFLOAT2 fillPosOK = {bar->pos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, bar->pos.y};
+	XMFLOAT2 fillPosOK = { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, drawPos.y};
 	
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNum]);
 	DrawSprite(backPos, backSize, bar->backColor);
@@ -157,11 +171,7 @@ void DrawHP(const HP* bar, int texNum)
 	DrawSpriteUV(fillPosOK, fillSizeOK, bar->fillColor, uvMin, uvMax);
 
 	Shader_Begin();
-
-	/*g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
-	DrawSprite({ 74, 647 }, {110, 110}, XMFLOAT4(1, 1, 1, 0.6));*/
 }
-
 
 
 // -------------------------------------------------------------
@@ -176,6 +186,29 @@ void SetHPValue(HP* bar, int currentHP, int maxHP)
 	bar->target = bar->size.x * ratio;
 }
 
+// シェイク
+void SetHPShake(HP* bar, float amplitude, float duration, float speed)
+{
+	if (!bar) return;
+	if (duration <= 0.0f)
+	{
+		// 無効ならすぐクリア
+		bar->shakeTimer = 0.0f;
+		bar->shakeDuration = 0.0f;
+		bar->shakeAmplitude = 0.0f;
+		bar->shakeSpeed = 0.0f;
+		bar->shakeOffset = { 0.0f, 0.0f };
+		return;
+	}
+
+	bar->shakeAmplitude = amplitude;
+	bar->shakeDuration = duration;
+	bar->shakeSpeed = speed;
+	bar->shakeTimer = duration; // 残りフレームをdurationでセット
+	// 初期オフセットはUpdateHPで設定される
+}
+
+
 
 
 // -------------------------------------------------------------
@@ -186,4 +219,8 @@ void FinalizeHP(HP* bar)
 	bar->use = false;
 }
 
-
+HP* GetHPBar(int HPIndex)
+{
+	if (HPIndex < 0 || HPIndex >= HPBER_MAX) return nullptr;
+	return &HPBar[HPIndex];
+}

@@ -17,6 +17,7 @@ using namespace DirectX;
 #include "DamageText.h"
 #include "Effect.h"
 #include "input.h"
+#include "hp.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -767,6 +768,8 @@ void AttackPlayerCollisions()
 				// ダメージ（防御で軽減）
 				defender->hp -= rawDamage;
 				if (defender->hp < 0.0f) defender->hp = 0.0f;
+
+				TriggerbyHPShake(def, 8.0f,10.0f,1.5f);
 
 				// スタンゲージ増加
 				defender->stunGauge += 0.5f;

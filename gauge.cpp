@@ -43,6 +43,7 @@ void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Gauge[i].earth = 1;
 		g_Gauge[i].outer = 1;
 		g_Gauge[i].pos   = { 0,0 };
+		g_Gauge[i].shakeOffset = { 0.0f, 0.0f };  // シェイクオフセット初期化
 	}
 
 }
@@ -90,6 +91,9 @@ void Gauge_Draw(int i)
 {
 	const GaugeData& g = g_Gauge[i];
 
+	// シェイクオフセットを適用した描画位置
+	XMFLOAT2 drawPos = { g.pos.x + g.shakeOffset.x, g.pos.y + g.shakeOffset.y };
+
 	// UI用シェーダー設定
 	Shader_BeginUI();
 
@@ -99,7 +103,7 @@ void Gauge_Draw(int i)
 	Shader_SetGaugeTextures();
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	DrawSprite(g.pos, { 55,55 }, color::white);
+	DrawSprite(drawPos, { 55,55 }, color::white);
 
 	// 外ゲージ描画
 	Shader_BeginOutGauge();
@@ -107,10 +111,18 @@ void Gauge_Draw(int i)
 	Shader_SetOutGaugeTextures();
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	DrawSprite(g.pos, { 62,62 }, color::white);
+	DrawSprite(drawPos, { 62,62 }, color::white);
 
 	/*SetBlendState(BLENDSTATE_ALFA);
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
 	DrawSprite({ 10, 10 }, { 10, 10 }, color::white);*/
 }
 
+//====================================================================================
+// シェイクオフセット設定
+//====================================================================================
+void Gauge_SetShakeOffset(int i, const XMFLOAT2& offset)
+{
+	if (i < 0 || i >= GAUGE_PLAYER_MAX) return;
+	g_Gauge[i].shakeOffset = offset;
+}
