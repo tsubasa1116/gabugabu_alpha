@@ -513,12 +513,12 @@ void Player_Update()
 		ImGui::Text("Player %d", p + 1);
 		ImGui::Indent();
 
-		ImGui::SliderFloat("poisonTimer", &object[p].poisonTimer, 0.0f, 5.0f);
-		ImGui::BulletText("isPoisoned        : %d", object[p].isPoisoned);
-		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
-		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
-		ImGui::BulletText("EvolutionGauge    : %.1f", object[p].evolutionGauge);
-		ImGui::BulletText("EvolutionGaugeRate: %.1f", object[p].evolutionGaugeRate);
+		ImGui::SliderFloat("poisonTimer", &player[p].poisonTimer, 0.0f, 5.0f);
+		ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
+		ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
+		ImGui::BulletText("useSkill          : %d", player[p].useSkill);
+		ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
+		ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
 
 		if (ImGui::Button("hp -1"))			player[p].hp -= 0.1f;
 		if (ImGui::Button("gl +1"))			player[p].breakCount_Glass += 1;
@@ -1496,7 +1496,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		}
 
 		// スペシャル使用中は専用テクスチャ
-		if (object[idx].useSpecial)			srv = g_Texture[12];
+		if (player[idx].useSpecial)			srv = g_Texture[12];
 
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 
