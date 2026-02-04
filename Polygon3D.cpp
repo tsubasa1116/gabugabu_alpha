@@ -60,7 +60,7 @@ static ID3D11Buffer* g_VertexBuffer = NULL;
 static ID3D11Buffer* g_IndexBuffer = NULL;
 
 // テクスチャ変数
-static ID3D11ShaderResourceView* g_Texture[14];
+static ID3D11ShaderResourceView* g_Texture[17];
 
 // プレイヤー アニメーション用変数
 static int   g_animFrame[PLAYER_MAX] = { 0 };
@@ -77,7 +77,7 @@ static bool g_specialAnimStarted[PLAYER_MAX] = { false, false, false, false };
 static std::vector<int> g_deathOrder;	// 死亡したプレイヤーのインデックス（先に死んだ者が先頭）
 
 // 頂点配列
-static Vertex2 vdata[NUM_VERTEX] =
+static Vertex2 vdata[PLAYER_VERTEX] =
 {
 	{// 頂点0 LEFT-TOP
 		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),	// 座標
@@ -297,7 +297,7 @@ void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));// 0でクリア
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// 格納できる頂点数*頂点サイズ
+	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// 格納できる頂点数*頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -363,20 +363,23 @@ static void LoadTextureList(ID3D11Device* pDevice)
 	struct TexEntry { int idx; const wchar_t* path;};
 
 	const TexEntry texList[] = {
-		{  0, L"asset\\texture\\characterMini_v2.png"},				// 第1形態
-		{  1, L"asset\\texture\\characterMidGlass_v1.png"},			// 第2形態 ガラス
-		{  2, L"asset\\texture\\characterMidConcrete_v1.png" },		// 第2形態 コンクリート
-		{  3, L"asset\\texture\\characterMidTree_v1.png" },			// 第2形態 植物
-		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
-		{  5, L"asset\\texture\\characterBigGlass_v2.png" },		// 第3形態 ガラス
-		{  6, L"asset\\texture\\characterBigConcrete_v2.png" },		// 第3形態 コンクリート
-		{  7, L"asset\\texture\\characterBigTree_v2.png" },			// 第3形態 植物
-		{  8, L"asset\\texture\\characterBigElectricity_v2.png" },	// 第3形態 電気
-		{  9, L"asset\\texture\\characterBigSP_v2.png" },			// 第3形態 スペシャル
-		{ 10, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 赤
-		{ 11, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 青
-		{ 12, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 黄
-		{ 13, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ストック 緑
+		{  0, L"asset\\texture\\characterMiniRed_v1.png"},			// 第1形態 P1 赤
+		{  1, L"asset\\texture\\characterMiniBlue_v1.png"},			// 第1形態 P2 青
+		{  2, L"asset\\texture\\characterMiniYellow_v1.png"},		// 第1形態 P3 黄
+		{  3, L"asset\\texture\\characterMiniGreen_v1.png"},		// 第1形態 P4 緑
+		{  4, L"asset\\texture\\characterMidGlass_v1.png"},			// 第2形態 ガラス
+		{  5, L"asset\\texture\\characterMidConcrete_v1.png" },		// 第2形態 コンクリート
+		{  6, L"asset\\texture\\characterMidTree_v1.png" },			// 第2形態 植物
+		{  7, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
+		{  8, L"asset\\texture\\characterBigGlass_v2.png" },		// 第3形態 ガラス
+		{  9, L"asset\\texture\\characterBigConcrete_v2.png" },		// 第3形態 コンクリート
+		{ 10, L"asset\\texture\\characterBigTree_v2.png" },			// 第3形態 植物
+		{ 11, L"asset\\texture\\characterBigElectricity_v2.png" },	// 第3形態 電気
+		{ 12, L"asset\\texture\\characterBigSP_v2.png" },			// 第3形態 スペシャル
+		{ 13, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 赤
+		{ 14, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 青
+		{ 15, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 黄
+		{ 16, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ストック 緑
 	};
 
 	for (const auto& e : texList)
@@ -513,6 +516,7 @@ void Polygon3D_Update()
 		ImGui::SliderFloat("poisonTimer", &object[p].poisonTimer, 0.0f, 5.0f);
 		ImGui::BulletText("isPoisoned        : %d", object[p].isPoisoned);
 		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
+		ImGui::BulletText("useSkill          : %d", object[p].useSkill);
 		ImGui::BulletText("EvolutionGauge    : %.1f", object[p].evolutionGauge);
 		ImGui::BulletText("EvolutionGaugeRate: %.1f", object[p].evolutionGaugeRate);
 
@@ -1431,8 +1435,8 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		D3D11_MAPPED_SUBRESOURCE msr;
 
 		// コピー元のvdata をローカル配列にコピーして UV を調整
-		Vertex2 localV[NUM_VERTEX];
-		CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+		Vertex2 localV[PLAYER_VERTEX];
+		CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
 
 		// 現在のフレームから UV を計算
 		int frame = g_animFrame[idx];
@@ -1452,7 +1456,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		// バッファへ書き込み
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex2* vertex = (Vertex2*)msr.pData;
-		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * NUM_VERTEX);
+		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
 		g_pContext->Unmap(g_VertexBuffer, 0);
 
 		ID3D11ShaderResourceView* srv = nullptr;
@@ -1461,15 +1465,19 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		switch (object[idx].form)
 		{
 		// 第1形態
-		case Form::First:					srv = g_Texture[0];	break;
-		// 第2形態
+		case Form::First:
+				 if(idx == 0)	{ srv = g_Texture[0];	break; }
+			else if(idx == 1)	{ srv = g_Texture[1];	break; }
+			else if(idx == 2)	{ srv = g_Texture[2];	break; }
+			else if(idx == 3)	{ srv = g_Texture[3];	break; }
+			// 第2形態
 		case Form::Second:
 			switch (object[idx].type)
 			{
-			case PlayerType::Glass:			srv = g_Texture[1];	break;				
-			case PlayerType::Concrete:		srv = g_Texture[2];	break;
-			case PlayerType::Plant:			srv = g_Texture[3];	break;
-			case PlayerType::Electricity:	srv = g_Texture[4];	break;
+			case PlayerType::Glass:			srv = g_Texture[4];	break;				
+			case PlayerType::Concrete:		srv = g_Texture[5];	break;
+			case PlayerType::Plant:			srv = g_Texture[6];	break;
+			case PlayerType::Electricity:	srv = g_Texture[7];	break;
 			default: break;
 			}
 			break;
@@ -1477,10 +1485,10 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		case Form::Third:
 			switch (object[idx].type)
 			{
-			case PlayerType::Glass:			srv = g_Texture[5];	break;
-			case PlayerType::Concrete:		srv = g_Texture[6];	break;
-			case PlayerType::Plant:			srv = g_Texture[7];	break;
-			case PlayerType::Electricity:	srv = g_Texture[8];	break;
+			case PlayerType::Glass:			srv = g_Texture[8];		break;
+			case PlayerType::Concrete:		srv = g_Texture[9];		break;
+			case PlayerType::Plant:			srv = g_Texture[10];	break;
+			case PlayerType::Electricity:	srv = g_Texture[11];	break;
 			default: break;
 			}
 			break;
@@ -1488,7 +1496,7 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		}
 
 		// スペシャル使用中は専用テクスチャ
-		if (object[idx].useSpecial)			srv = g_Texture[9];
+		if (object[idx].useSpecial)			srv = g_Texture[12];
 
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 
@@ -1655,7 +1663,7 @@ void Polygon3D_Respawn(int playerIndex)
 		object[playerIndex].form = Form::First;
 		object[playerIndex].type = PlayerType::None;
 		object[playerIndex].evolutionGauge = 0;
-		object[playerIndex].evolutionGaugeRate = 1.0f;
+		object[playerIndex].evolutionGaugeRate = 0.3f;
 		object[playerIndex].breakCount_Glass = 0;
 		object[playerIndex].breakCount_Concrete = 0;
 		object[playerIndex].breakCount_Plant = 0;
@@ -1698,7 +1706,7 @@ void Polygon3D_DrawStock(int i)
 		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
 		XMFLOAT2 size = { 260.0f, 260.0f };
 
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 10]);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 13]);
 	
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);

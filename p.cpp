@@ -7,7 +7,7 @@
 #include "p.h"
 #include "keyboard.h"
 #include "polygon.h"
-#include "polygon3d.h"
+#include "Polygon3D.h"
 #include "shader.h"
 #include "color.h"
 #include "sprite.h"
@@ -21,8 +21,6 @@
 static hp g_HPBar[PLAYER_MAX];
 
 static ID3D11ShaderResourceView* g_Texture[5];
-
-static constexpr int NUM_VERTEX = 24; // 使用できる最大頂点数
 
 static ID3D11Buffer* g_pVertexBuffer = nullptr; // 頂点バッファ
 static ID3D11Buffer* g_pIndexBuffer = nullptr; // 頂点バッファ
@@ -109,7 +107,7 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// 頂点バッファ生成
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// バッファのサイズ　構造体×頂点数
+	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// バッファのサイズ　構造体×頂点数
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	g_pDevice->CreateBuffer(&bd, NULL, &g_pVertexBuffer);

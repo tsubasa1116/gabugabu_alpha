@@ -5,6 +5,8 @@
 #include "shader.h"
 #include "color.h"
 #include "Polygon3D.h"
+#include "Camera.h"
+#include "debug_render.h"
 
 #define EFFECT_SPRITE_X		(8)
 #define EFFECT_SPRITE_Y		(8)
@@ -14,7 +16,7 @@
 #define EFFECT_MAX			(16)
 
 // 頂点配列
-static Vertex2 effect_vdata[NUM_VERTEX] =
+static Vertex2 effect_vdata[PLAYER_VERTEX] =
 {
 	{// 頂点0 LEFT-TOP
 		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),	// 座標
@@ -53,6 +55,12 @@ static UINT effect_idxdata[6]
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
+// 頂点バッファ
+static ID3D11Buffer* g_VertexBuffer = NULL;
+
+// インデックスバッファ
+static ID3D11Buffer* g_IndexBuffer = NULL;
+
 static ID3D11ShaderResourceView* g_Texture[EFFECT_TEX_MAX] = {};
 static bool g_ReleaseOwned[EFFECT_TEX_MAX] = {};
 static int g_CurrentTexNo = 0;
@@ -63,6 +71,12 @@ static int g_EffectFrame = 0;
 static int g_EffectTimer = 0;
 
 static bool g_EffectLoopFlag = false;
+
+static int   g_animFrame[PLAYER_MAX] = { 0 };
+static float g_animTimer[PLAYER_MAX] = { 0.0f };
+static const float ANIM_FRAME_TIME = 0.15f;	// 1フレームあたりの秒数
+static const int   SHEET_COLS = 8;
+static const int   SHEET_ROWS = 8;
 
 //===============================================
 //　テクスチャセット用関数
@@ -117,6 +131,41 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(13, L"Asset\\Texture\\effectSmoke_20per.png");			// 建物 煙エフェクト 20%破壊
 	Effect_LoadTexture(14, L"Asset\\Texture\\effectSmoke_50per.png");			// 建物 煙エフェクト 50%破壊
 	Effect_LoadTexture(15, L"Asset\\Texture\\effectWin_v1.png");				// 撃墜 エフェクト
+
+	// 頂点バッファ作成
+	D3D11_BUFFER_DESC bd;
+	ZeroMemory(&bd, sizeof(bd));// 0でクリア
+	bd.Usage = D3D11_USAGE_DYNAMIC;
+	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// 格納できる頂点数*頂点サイズ
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
+
+	g_pDevice = pDevice;
+	g_pContext = pContext;
+
+	// インデックスバッファ作成
+	{
+		D3D11_BUFFER_DESC	bd;
+		ZeroMemory(&bd, sizeof(bd));	// 0でクリア
+		bd.Usage = D3D11_USAGE_DYNAMIC;
+		bd.ByteWidth = sizeof(UINT) * 6 * 6;
+		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
+
+		// インデックスバッファへ書き込み
+		D3D11_MAPPED_SUBRESOURCE msr;
+		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		UINT* index = (UINT*)msr.pData;
+
+		// インデックスデータをバッファへコピー
+		CopyMemory(&index[0], &effect_idxdata[0], sizeof(UINT) * 6 * 6);
+		pContext->Unmap(g_IndexBuffer, 0);
+	}
+	// デバッグレンダラー初期化
+	Debug_Initialize(pDevice, pContext);
+
 }
 
 //===============================================
@@ -243,6 +292,188 @@ void Effect_Draw()
 		g_pContext->PSSetShaderResources(0, 1, &tex);
 		DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
 	}
+}
+
+//===============================================
+//　描画（プレイヤー用）
+//===============================================
+void Effect_DrawForPlayer(int playerIndex, const XMFLOAT2& playerPos, const XMFLOAT2& playerSize)
+{
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
+	LIGHT light{};
+	light.Enable = TRUE;
+	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
+	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	// 拡散光と環境光
+	light.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	light.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	Shader_SetLight(light);
+
+	Shader_Begin();
+
+	// ========================================================
+	// 奥のプレイヤーが手前のプレイヤーに隠れないように描画
+	// ========================================================
+
+	// プロジェクション・ビュー行列を先に取得
+	XMMATRIX projection = GetProjectionMatrix();
+	XMMATRIX view = GetViewMatrix();
+
+	// カメラ位置を算出（View の逆行列の r[3] がワールド空間のカメラ位置）
+	XMMATRIX invView = XMMatrixInverse(nullptr, view);
+	XMFLOAT3 camPos;
+	camPos.x = invView.r[3].m128_f32[0];
+	camPos.y = invView.r[3].m128_f32[1];
+	camPos.z = invView.r[3].m128_f32[2];
+
+	// プレイヤーを描画するラムダ（Projection, View をキャプチャ）
+	auto DrawPlayerInternal = [&](int idx)
+		{
+			if (!player.active) return;
+
+			const float spriteScale = 2.0f;	// 表示倍率
+
+			// ワールド行列（ビルボード風の既存ロジックを踏襲）
+			XMMATRIX ScalingMatrix = XMMatrixScaling(
+				player.scaling.x * spriteScale,
+				player.scaling.y * spriteScale,
+				player.scaling.z * spriteScale
+			);
+
+			XMMATRIX vm = GetViewMatrix();	// カメラの行列
+			vm.r[3].m128_f32[0] = 0.0f;
+			vm.r[3].m128_f32[1] = 0.0f;
+			vm.r[3].m128_f32[2] = 0.0f;
+			vm.r[3].m128_f32[3] = 1.0f;
+			vm = XMMatrixTranspose(vm);
+			vm.r[3].m128_f32[0] = player.position.x;
+			vm.r[3].m128_f32[1] = player.position.y;
+			vm.r[3].m128_f32[2] = player.position.z;
+			vm.r[3].m128_f32[3] = 1.0f;
+
+			// World 行列（ビルボード用）をシェーダーに渡す
+			XMMATRIX WorldMatrix = ScalingMatrix * vm;
+			Shader_SetWorldMatrix(WorldMatrix);
+
+			XMMATRIX WVP = ScalingMatrix * vm * view * projection;
+
+			Shader_SetMatrix(WVP);
+			Shader_Begin();
+			SetBlendState(BLENDSTATE_ALPHA);
+
+			// 頂点バッファにデータコピー（フレームに応じてUVを書き換える）
+			D3D11_MAPPED_SUBRESOURCE msr;
+
+			// コピー元のvdata をローカル配列にコピーして UV を調整
+			Vertex2 localV[PLAYER_VERTEX];
+			CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+
+			// 現在のフレームから UV を計算
+			int frame = g_animFrame[idx];
+			int col = frame % SHEET_COLS;
+			int row = frame / SHEET_COLS;
+			float u0 = (float)col / (float)SHEET_COLS;
+			float v0 = (float)row / (float)SHEET_ROWS;
+			float u1 = u0 + 1.0f / (float)SHEET_COLS;
+			float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+			// 頂点のテクスチャ座標を上書き
+			localV[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+			localV[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+			localV[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+			localV[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
+
+			// バッファへ書き込み
+			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+			Vertex2* vertex = (Vertex2*)msr.pData;
+			CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
+			g_pContext->Unmap(g_VertexBuffer, 0);
+
+			ID3D11ShaderResourceView* srv = nullptr;
+
+			//// 形態とタイプに応じたテクスチャを設定
+			//switch (player.form)
+			//{
+			//	// 第1形態
+			//case Form::First:					srv = g_Texture[0];	break;
+			//	// 第2形態
+			//case Form::Second:
+			//	switch (player.type)
+			//	{
+			//	case PlayerType::Glass:			srv = g_Texture[1];	break;
+			//	case PlayerType::Concrete:		srv = g_Texture[2];	break;
+			//	case PlayerType::Plant:			srv = g_Texture[3];	break;
+			//	case PlayerType::Electricity:	srv = g_Texture[4];	break;
+			//	default: break;
+			//	}
+			//	break;
+			//	// 第3形態
+			//case Form::Third:
+			//	switch (player.type)
+			//	{
+			//	case PlayerType::Glass:			srv = g_Texture[5];	break;
+			//	case PlayerType::Concrete:		srv = g_Texture[6];	break;
+			//	case PlayerType::Plant:			srv = g_Texture[7];	break;
+			//	case PlayerType::Electricity:	srv = g_Texture[8];	break;
+			//	default: break;
+			//	}
+			//	break;
+			//default: break;
+			//}
+
+			//// スペシャル使用中は専用テクスチャ
+			//if (player.useSpecial)			srv = g_Texture[9];
+
+			//g_pContext->PSSetShaderResources(0, 1, &srv);
+
+			// バッファセット & 描画
+			UINT stride = sizeof(Vertex2);
+			UINT offset = 0;
+			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+			g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			g_pContext->DrawIndexed(6, 0, 0);
+		};
+
+	// -----------------------------------
+	// 透明描画のためのソート（遠い順）
+	// -----------------------------------
+	std::vector<std::pair<float, int>> list;	// (距離二乗, index)
+	list.reserve(PLAYER_MAX);
+
+	//for (int p = 0; p < PLAYER_MAX; ++p)
+	//{
+	//	if (!object[p].active) continue;
+
+	//	float dx = object[p].position.x - camPos.x;
+	//	float dy = object[p].position.y - camPos.y;
+	//	float dz = object[p].position.z - camPos.z;
+	//	float dist2 = dx * dx + dy * dy + dz * dz;
+	//	list.emplace_back(dist2, p);
+	//}
+
+	// 遠い順（大きい順）にソート
+	std::sort(list.begin(), list.end(), [](const std::pair<float, int>& a, const std::pair<float, int>& b)
+		{
+			return a.first > b.first;
+		});
+
+	// 透過レンダリング：深度テストは有効、深度書き込みは無効（SetDepthReadOnly を使用）
+	SetDepthTest(true);
+	SetDepthReadOnly();	// 深度テストはするが深度バッファへの書き込みはしない
+
+	// ソート順（遠いものから描画）
+	for (auto& p : list)	DrawPlayerInternal(p.second);
+
+	// 3Dオブジェクトは深度テストを無効にして描画
+	SetDepthTest(false);
+
+
+
+
 }
 
 //===============================================
