@@ -124,14 +124,14 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 
-	player[0].form = Form::Second;
-	player[1].form = Form::Second;
-	player[2].form = Form::Second;
-	player[3].form = Form::Second;
-	player[0].type = PlayerType::Glass;
-	player[1].type = PlayerType::Concrete;
-	player[2].type = PlayerType::Plant;
-	player[3].type = PlayerType::Electricity;
+	player[0].form = Form::First;
+	player[1].form = Form::First;
+	player[2].form = Form::First;
+	player[3].form = Form::First;
+	player[0].type = PlayerType::None;
+	player[1].type = PlayerType::None;
+	player[2].type = PlayerType::None;
+	player[3].type = PlayerType::None;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{

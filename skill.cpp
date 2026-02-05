@@ -596,9 +596,9 @@ void Skill_Update(int playerIndex)
 	{
 		switch (player.type)
 		{
-		case PlayerType::Glass:			Skill_Glass_Update(playerIndex);	break;
-		case PlayerType::Concrete:		Skill_Concrete_Update(playerIndex);	break;
-		case PlayerType::Plant:			Skill_Plant_Update(playerIndex);	break;
+		case PlayerType::Glass:			Skill_Glass_Update(playerIndex);		break;
+		case PlayerType::Concrete:		Skill_Concrete_Update(playerIndex);		break;
+		case PlayerType::Plant:			Skill_Plant_Update(playerIndex);		break;
 		case PlayerType::Electricity:	Skill_Electricity_Update(playerIndex);	break;
 		default: break;
 		}
