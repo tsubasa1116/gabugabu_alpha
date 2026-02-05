@@ -458,12 +458,12 @@ void Skill_Glass_Update(int playerIndex)
 			if (col.isColliding)
 			{
 				// ダメージのみ（ノックバックは与えない） 防御率でダメージ軽減
-				otherPlayer.hp -= 0.1f * otherPlayer.defense;
+				otherPlayer.hp -= SKILL_GLASS_DAMAGE * otherPlayer.defense;
 				// HPが0以下にならないように
 				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
 
 				// スタンゲージ増加
-				otherPlayer.stunGauge += 0.01f;
+				otherPlayer.stunGauge += 0.03f;
 			}
 		}
 	}

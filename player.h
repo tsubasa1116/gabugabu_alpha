@@ -14,7 +14,7 @@
 
 #define	EVOLUTIONGAUGE_MAX	(1.0f)	// 進化ゲージ最大値
 #define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間（秒）
-#define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間（秒）
+#define	ATTACKED_TIME		(10.5f)	// ダメージ持続時間（秒）
 #define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間（秒）
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間（秒）
@@ -135,7 +135,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered);
 void Player_DrawHP();
 
 // アニメーション関数
-static inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
+inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
 
 void Ranking(int playerIndex);
 
@@ -145,5 +145,3 @@ void Player_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int playerIndex);
 
 void Player_DrawText();
-
-
