@@ -65,183 +65,158 @@ static const char* g_ModelName1[] = {
 //マップデータ配列
 MAPDATA Map[] =
 {
-	// 地面
-	{ {},{}, FIELD::FIELD_Plant,2 },	// 配列番号[0]の確認
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_BOX },	// 10
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 20
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 30
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 40
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Glass,0 },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Plant,2 },	// 50
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_Concrete,1 },
-	{ {},{}, FIELD::FIELD_Concrete,2},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Plant,2 },		// 60
-	{ {},{}, FIELD::FIELD_Concrete,0 },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electricity,0 },
-	{ {},{}, FIELD::FIELD_Glass },
-	{ {},{}, FIELD::FIELD_Concrete,1 },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },// 70
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_Electricity,1},//
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 80
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electricity,0 },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 90
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX},//
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Electricity,0 },
-	{ {},{}, FIELD::FIELD_Electricity,0 },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 100
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Concrete,1},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 110
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Concrete,2 },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Plant,2},  //
-	{ {},{}, FIELD::FIELD_Plant,2},  //
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },	// 118
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Glass,1 },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Glass, },
-	{ {},{}, FIELD::FIELD_Glass, },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Plant,2 },//
-	{ {},{}, FIELD::FIELD_Electricity ,2},//
-	{ {},{}, FIELD::FIELD_Plant,2 },//
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX},
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_BOX },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
-	{ {},{}, FIELD::FIELD_Plant,2 },
+	// ===== 地面・特殊 =====			 
+	{ {},{}, FIELD::FIELD_Electricity,1}, // 1
+	{ {},{}, FIELD::FIELD_Electricity,0}, // 2
+	{ {},{}, FIELD::FIELD_Electricity,0},           // 3
+	{ {},{}, FIELD::FIELD_Electricity,0},           // 4
+	{ {},{}, FIELD::FIELD_Electricity,0}, // 5
+	{ {},{}, FIELD::FIELD_Electricity,0},           // 6
+	{ {},{}, FIELD::FIELD_Electricity,0},           // 7
+	{ {},{}, FIELD::FIELD_Electricity,0},           // 8
+	{ {},{}, FIELD::FIELD_Electricity,0},           // 9
+	{ {},{}, FIELD::FIELD_Electricity,0},           // 10
+						  
+	// ===== BOX 10 ===== 
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 11
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 12
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 13
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 14
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 15
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 16
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 17
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 18
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 19
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 20
+						  
+	// ===== BOX 20 ===== 
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 21
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 22
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 23
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 24
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 25
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 26
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 27
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 28
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 29
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 30
+						 
+	// ===== BOX 30 =====
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 31
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 32
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 33
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 34
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 35
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 36
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 37
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 38
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 39
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 40
+						 
+	// ===== BOX 40 =====
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 41
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 42
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 43
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 44
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 45
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 46
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 47
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 48
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 49
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 50
+						 
+	// ===== BOX 50 =====
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 51
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 52
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 53
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 54
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 55
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 56
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 57
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 58
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 59
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 60
+						  
+	// ===== BOX 60 ===== 
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 61
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 62
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 63
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 64
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 65
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 66
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 67
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 68
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 69
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 70
+						 
+	// ===== BOX 70 =====
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 71
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 72
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 73
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 74
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 75
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 76
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 77
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 78
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 79
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 80
+						  
+	// ===== BOX 80 ===== 
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 81
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 82
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 83
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 84
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 85
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 86
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 87
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 88
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 89
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 90
+						  
+	// ===== BOX 90 ===== 
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 91
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 92
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 93
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 94
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 95
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 96
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 97
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 98
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 99
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 100
+						  
+	// ===== BOX 100 =====
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 101
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 102  いまのままだとここまでしかモデルが置けない
+	{ {},{}, FIELD::FIELD_BOX }, // 103
+	{ {},{}, FIELD::FIELD_BOX }, // 104
+	{ {},{}, FIELD::FIELD_BOX }, // 105
+	{ {},{}, FIELD::FIELD_BOX }, // 106
+	{ {},{}, FIELD::FIELD_BOX }, // 107
+	{ {},{}, FIELD::FIELD_BOX }, // 108
+	{ {},{}, FIELD::FIELD_BOX }, // 109
+	{ {},{}, FIELD::FIELD_BOX }, // 110
+						  
+	// ===== BOX 110 ==== BOX
+	{ {},{}, FIELD::FIELD_BOX }, // 111
+	{ {},{}, FIELD::FIELD_BOX }, // 112
+	{ {},{}, FIELD::FIELD_BOX }, // 113
+	{ {},{}, FIELD::FIELD_BOX }, // 114
+	{ {},{}, FIELD::FIELD_BOX }, // 115
+	{ {},{}, FIELD::FIELD_BOX }, // 116
+	{ {},{}, FIELD::FIELD_BOX }, // 117
+	{ {},{}, FIELD::FIELD_BOX }, // 118
+	{ {},{}, FIELD::FIELD_BOX }, // 119
+	{ {},{}, FIELD::FIELD_BOX }, // 120
 
 
-	//{ {},{}, FIELD::FIELD_BOX },	// 120
 
-	{ XMFLOAT3(2.0f,-1.0f,	5.0f), {}, FIELD::FIELD_MAX }	// MAPデータ終了
+	
+
+	// ===== 終了マーカー（カウントしない）=====
+	{ XMFLOAT3(2.0f,-1.0f,5.0f), {}, FIELD::FIELD_MAX }
 };
+
 
 //======================================================
 //	初期化関数
@@ -253,61 +228,159 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	Test = ModelLoad(modelPath);//デバッグ
 
-	const int NUM = 10;		// 1行/列あたりのfieldの個数
-	//int count = sizeof(Map) / sizeof(Map[0]);	// 配列の要素数
+	// 配列要素数（終了マーカー FIELD_MAX を含まない）
 	int count = GetFieldObjectCount();
-
-	float sin60 = sinf(XMConvertToRadians(60.0f)); // 60度のcos値
-
-	// ----------------------------------------------------
-	// 中央補正のためのオフセット計算
-	// ----------------------------------------------------
-
-	// Z軸方向の列数を確定 (FIELD_MAXを除くため count-1 で考えるのが確実)
-	int tiles_count = count - 1; // 描画対象のタイル数
-	int col_max = tiles_count / NUM;
-
-	if (tiles_count % NUM != 0)	col_max++;
-
-	// X軸の最大座標とZ軸の最大座標を計算
-	// X軸の最大位置 (最後のタイル位置)
-	float max_x_pos = (NUM - 1) * Map->radius * 3.0f;
-	// Z軸の最大位置 (最後のタイル位置)
-	float max_z_pos = (col_max - 1) * (sin60 * Map->radius);
-
-	// 中心オフセットを決定 (全体の最大位置の半分を引く)
-	float offset_x = max_x_pos / 2.0f;
-	float offset_z = max_z_pos / 2.0f;
-
-	for (int i = 0; i < count; i++)
+	if (count <= 1)
 	{
-		int row = i % NUM;	// 行番号
-		int col = i / NUM;	// 列番号
-
-		// もしアクティブじゃなかったら次へ
-		if (Map[i].no == FIELD::FIELD_MAX) continue;
-
-		// 行
-		if (col % 2 == 0)	Map[i].pos.x = row * Map->radius * 3.0f;	// 偶数行
-		else				Map[i].pos.x = row * Map->radius * 3.0f + Map->radius * 1.5f;	// 奇数行 
-
-		// 列
-		Map[i].pos.z = col * (sin60 * Map->radius);
-
-		// y 座標
-		Map[i].pos.y = -1.0f;
-
-		// 計算した座標から、中心オフセットを引く
-		Map[i].pos.x -= offset_x;
-		Map[i].pos.z -= offset_z;
-
-
-
-		//// 穴デバッグ
-		//if (i % 7 == 0)
-		//	Map[i].isActive = false;
-		//
+		g_pDevice = pDevice;
+		g_pContext = pContext;
+		Building_Initialize(pDevice, pContext);
+		return;
 	}
+
+	// ====== 六角格子候補を多数生成し、中心に近いものから N 個選んで「より円形」に配置 ======
+	// MAPDATA::radius を hex size（center->corner）と見なす（flat-top）
+	const float size = Map->radius;
+	const float sqrt3 = sqrtf(3.0f);
+
+	// 横方向スケール（必要なら調整）
+	const float horizontalScale = 1.0f;
+
+	// 候補を生成するためのリング数（余裕を持たせる）
+	// count 個を丸く選ぶため、候補は多少多めに生成する（marginFactor）
+	const float marginFactor =5.0f; // 1.0 = 最低限, 1.25 = 余裕 25%
+	int rings = 1;
+	while (1 + 3 * rings * (rings + 1) < static_cast<int>(count * marginFactor))
+		++rings;
+
+	// 軸座標(q,r)を同心リングで生成（totalCandidates >= count）
+	int totalCandidates = 1 + 3 * rings * (rings + 1);
+
+	// ヘルパー構造体（ローカル）
+	struct Candidate { int q; int r; float wx; float wz; float dist; };
+
+	// 動的確保（ローカルに vector を使わない形にしてインクルード不要に）
+	Candidate* candidates = new Candidate[totalCandidates];
+
+	// 中心
+	int idx = 0;
+	candidates[idx].q = 0;
+	candidates[idx].r = 0;
+	candidates[idx].wx = 0.0f;
+	candidates[idx].wz = 0.0f;
+	candidates[idx].dist = 0.0f;
+	++idx;
+
+	// 6方向ベクトル（axial coords）
+	const int dirQ[6] = { 1, 1, 0, -1, -1, 0 };
+	const int dirR[6] = { 0, -1, -1, 0, 1, 1 };
+
+	for (int k = 1; idx < totalCandidates; ++k)
+	{
+		int q = -k;
+		int r = k;
+		for (int side = 0; side < 6 && idx < totalCandidates; ++side)
+		{
+			for (int step = 0; step < k && idx < totalCandidates; ++step)
+			{
+				float wx = size * 1.5f * static_cast<float>(q) * horizontalScale;
+				float wz = size * sqrt3 * (static_cast<float>(r) + static_cast<float>(q) * 0.5f);
+				float d = sqrtf(wx * wx + wz * wz);
+
+				candidates[idx].q = q;
+				candidates[idx].r = r;
+				candidates[idx].wx = wx;
+				candidates[idx].wz = wz;
+				candidates[idx].dist = d;
+				++idx;
+
+				q += dirQ[side];
+				r += dirR[side];
+			}
+		}
+	}
+
+	// 中心に近い順に count 個を選ぶ（簡易選択ソートライク）
+	// 選択数 N = count（Map 配列の要素数）
+	int N = count;
+	// 安全策: N が候補数を超えないように
+	if (N > totalCandidates) N = totalCandidates;
+
+	// 部分選択：先頭 N 件を初期選択し，残りを走査してより近ければ入れ替える（O(M*N)だが候補はそこまで大きくない）
+	// まず先頭 N を selected とする（配列内操作）
+	Candidate* selected = new Candidate[N];
+	for (int i = 0; i < N; ++i) selected[i] = candidates[i];
+
+	// 現在の最遠インデックスを求める関数
+	auto findWorstIndex = [&](int limit) -> int {
+		int worst = 0;
+		float maxd = selected[0].dist;
+		for (int j = 1; j < limit; ++j)
+		{
+			if (selected[j].dist > maxd)
+			{
+				maxd = selected[j].dist;
+				worst = j;
+			}
+		}
+		return worst;
+		};
+
+	int worstIdx = findWorstIndex(N);
+
+	// 残り候補を検査
+	for (int i = N; i < totalCandidates; ++i)
+	{
+		if (candidates[i].dist < selected[worstIdx].dist)
+		{
+			// 置換
+			selected[worstIdx] = candidates[i];
+			// worstIndex を再計算
+			worstIdx = findWorstIndex(N);
+		}
+	}
+
+	// ここで selected[] は中心に近い N 個の候補（ただし順序は任意）なので、中心に近い順に並べ替えることで見た目がより自然に
+	// 簡易的にバブルソート（N が小さいので十分）
+	for (int a = 0; a < N - 1; ++a)
+	{
+		for (int b = 0; b < N - 1 - a; ++b)
+		{
+			if (selected[b].dist > selected[b + 1].dist)
+			{
+				Candidate tmp = selected[b];
+				selected[b] = selected[b + 1];
+				selected[b + 1] = tmp;
+			}
+		}
+	}
+
+	// Map 配列へ割り当て：中心に近い順に配置していく
+	int assign = 0;
+	for (int i = 0; i < count; ++i)
+	{
+		if (Map[i].no == FIELD::FIELD_MAX) break;
+
+		if (assign < N)
+		{
+			Map[i].pos.x = selected[assign].wx;
+			Map[i].pos.z = selected[assign].wz;
+			Map[i].pos.y = -1.0f;
+			Map[i].isActive = true;
+			++assign;
+		}
+		else
+		{
+			// 割り当てられなかった残りは非表示
+			Map[i].isActive = false;
+		}
+	}
+
+	// 解放
+	delete[] candidates;
+	delete[] selected;
+
+	// ====================================================
 
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -344,7 +417,6 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	Building_Initialize(pDevice, pContext);
 }
-
 //======================================================
 //	終了処理関数
 //======================================================
@@ -467,8 +539,8 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		}
 
 		//// テクスチャをパイプラインから解除
-		//ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-		//g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
+		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
 		////------------------------------------------------
 
 		if (s_IsKonamiCodeEntered)
