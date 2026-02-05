@@ -38,7 +38,6 @@ using namespace DirectX;
 //======================================================
 //	マクロ定義
 //======================================================
-#define	NUM_VERTEX		(6)			// 一面のみの頂点数
 #define HPBER_SIZE_X	(270.0f)	// HPバーのサイズ
 #define HPBER_SIZE_Y	(270.0f)	// 〃
 #define GAUGE_POS_X		(69.0f)		// HPバーを基準としたゲージの位置調整
@@ -61,7 +60,7 @@ static ID3D11Buffer* g_VertexBuffer = NULL;
 static ID3D11Buffer* g_IndexBuffer = NULL;
 
 // テクスチャ変数
-static ID3D11ShaderResourceView* g_Texture[14];
+static ID3D11ShaderResourceView* g_Texture[17];
 
 // プレイヤー アニメーション用変数
 static int   g_animFrame[PLAYER_MAX] = { 0 };
@@ -77,11 +76,8 @@ static bool g_specialAnimStarted[PLAYER_MAX] = { false, false, false, false };
 // 順位・死亡順の管理
 static std::vector<int> g_deathOrder;	// 死亡したプレイヤーのインデックス（先に死んだ者が先頭）
 
-#define COORDINATE	(0.5f)	// デフォルト (0.5f)
-#define TEXCOORD	(1.0f)	// デフォルト (1.0f)
-
 // 頂点配列
-static Vertex2 vdata[NUM_VERTEX] =
+static Vertex2 vdata[PLAYER_VERTEX] =
 {
 	{// 頂点0 LEFT-TOP
 		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),	// 座標
@@ -128,14 +124,14 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 
-	player[0].form = Form::First;
-	player[0].type = PlayerType::None;
-	player[1].form = Form::First;
-	player[1].type = PlayerType::None;
-	player[2].form = Form::First;
-	player[2].type = PlayerType::None;
-	player[3].form = Form::First;
-	player[3].type = PlayerType::None;
+	player[0].form = Form::Second;
+	player[1].form = Form::Second;
+	player[2].form = Form::Second;
+	player[3].form = Form::Second;
+	player[0].type = PlayerType::Glass;
+	player[1].type = PlayerType::Concrete;
+	player[2].type = PlayerType::Plant;
+	player[3].type = PlayerType::Electricity;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
@@ -173,7 +169,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].lastDir = PlayerDir::Down; // 正面
 		player[p].isMoving = false;
 		player[p].evolutionGauge = 0.0f;
-		player[p].evolutionGaugeRate = 0.3f;
+		player[p].evolutionGaugeRate = 0.5f;
 		player[p].breakCount_Glass = 0;
 		player[p].breakCount_Concrete = 0;
 		player[p].breakCount_Plant = 0;
@@ -184,7 +180,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));// 0でクリア
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// 格納できる頂点数*頂点サイズ
+	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// 格納できる頂点数*頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -249,21 +245,25 @@ static void LoadTextureList(ID3D11Device* pDevice)
 
 	struct TexEntry { int idx; const wchar_t* path;};
 
-	const TexEntry texList[] = {
-		{  0, L"asset\\texture\\characterMini_v2.png"},				// 第1形態
-		{  1, L"asset\\texture\\characterMidGlass_v1.png"},			// 第2形態 ガラス
-		{  2, L"asset\\texture\\characterMidConcrete_v1.png" },		// 第2形態 コンクリート
-		{  3, L"asset\\texture\\characterMidTree_v1.png" },			// 第2形態 植物
-		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
-		{  5, L"asset\\texture\\characterBigGlass_v2.png" },		// 第3形態 ガラス
-		{  6, L"asset\\texture\\characterBigConcrete_v2.png" },		// 第3形態 コンクリート
-		{  7, L"asset\\texture\\characterBigTree_v2.png" },			// 第3形態 植物
-		{  8, L"asset\\texture\\characterBigElectricity_v2.png" },	// 第3形態 電気
-		{  9, L"asset\\texture\\characterBigSP_v2.png" },			// 第3形態 スペシャル
-		{ 10, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 赤
-		{ 11, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 青
-		{ 12, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 黄
-		{ 13, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ストック 緑
+	const TexEntry texList[] = 
+	{
+		{  0, L"asset\\texture\\characterMiniRed_v2.png"},			// 第1形態 P1 赤
+		{  1, L"asset\\texture\\characterMiniBlue_v1.png"},			// 第1形態 P2 青
+		{  2, L"asset\\texture\\characterMiniYellow_v1.png"},		// 第1形態 P3 黄
+		{  3, L"asset\\texture\\characterMiniGreen_v1.png"},		// 第1形態 P4 緑
+		{  4, L"asset\\texture\\characterMidGlass_v1.png"},			// 第2形態 ガラス
+		{  5, L"asset\\texture\\characterMidConcrete_v1.png" },		// 第2形態 コンクリート
+		{  6, L"asset\\texture\\characterMidTree_v1.png" },			// 第2形態 植物
+		{  7, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
+		{  8, L"asset\\texture\\characterBigGlass_v2.png" },		// 第3形態 ガラス
+		{  9, L"asset\\texture\\characterBigConcrete_v2.png" },		// 第3形態 コンクリート
+		{ 10, L"asset\\texture\\characterBigTree_v2.png" },			// 第3形態 植物
+		{ 11, L"asset\\texture\\characterBigElectricity_v2.png" },	// 第3形態 電気
+		{ 12, L"asset\\texture\\characterBigSP_v2.png" },			// 第3形態 スペシャル
+		{ 13, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 赤
+		{ 14, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 青
+		{ 15, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 黄
+		{ 16, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ストック 緑
 	};
 
 	for (const auto& e : texList)
@@ -398,8 +398,11 @@ void Player_Update()
 		ImGui::Indent();
 
 		ImGui::SliderFloat("poisonTimer", &player[p].poisonTimer, 0.0f, 5.0f);
+		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
+		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
 		ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
 		ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
+		ImGui::BulletText("useSkill          : %d", player[p].useSkill);
 		ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
 		ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
 
@@ -983,6 +986,8 @@ void Player_Update()
 				else if (player[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 156, 6, advance);	//  右  156～161
 				else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 182, 6, advance);	// 右下 182～187		
 			}
+			// エフェクト アニメーション
+			Effect_UpdateForPlayer(p);
 		}
 	
 		static XMFLOAT3 posBuff = player[p].position;	// デバッグ表示座標
@@ -1004,8 +1009,8 @@ void Player_Update()
 		float facingZ = cosf(radFacing);
 		bool facingZDominant = fabsf(facingZ) >= fabsf(facingX);
 
-		float widthScale  = facingZDominant ? HITBOX_SHORT : HITBOX_LONG; // X方向スケール
-		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT; // Z方向スケール
+		float widthScale  = facingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
+		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
 
 		// 第2形態 第3形態はXとZ同じにする
 		if (player[p].form == Form::Second || player[p].form == Form::Third)
@@ -1026,18 +1031,6 @@ void Player_Update()
 		// y軸の移動量 (重力 + ジャンプ)
 		// 重力加速度のない簡易的な重力
 		player[p].position.y += -0.1f;
-
-		//// デバッグ出力
-		//if (posBuff.x != object[p].position.x ||
-		//	posBuff.y != object[p].position.y ||
-		//	posBuff.z != object[p].position.z)
-		//{
-		//	hal::dout << "x : " << object[p].position.x << std::endl;
-		//	hal::dout << "y : " << object[p].position.y << std::endl;
-		//	hal::dout << "z : " << object[p].position.z << std::endl;
-		//}
-
-		//hal::dout << vdata[0].position.x << std::endl;
 
 		posBuff = player[p].position;
 
@@ -1146,7 +1139,6 @@ void Player_Update()
 		// -------------------------------------------------------------
 		// プレイヤーオブジェクト同士の当たり判定（PLAYER_MAX分対応）
 		// -------------------------------------------------------------
-		// object[p] の AABB は既に計算済み（前方で CalculateAABB(object[p].boundingBox, ... ) を呼んでいる前提）
 		for (int otherIndex = p + 1; otherIndex < PLAYER_MAX; ++otherIndex)
 		{
 			// 非アクティブは無視
@@ -1242,7 +1234,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
 		if (player[p].active && player[p].isAttacking)	Attack_Draw(p);
-		if (player[p].active && player[p].useSkill)		Skill_Draw(p);
+		//if (player[p].active && player[p].useSkill)		Skill_Draw(p);
 		if (player[p].active && player[p].useSpecial)	Special_Draw(p);
 	}
 
@@ -1318,8 +1310,8 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		D3D11_MAPPED_SUBRESOURCE msr;
 
 		// コピー元のvdata をローカル配列にコピーして UV を調整
-		Vertex2 localV[NUM_VERTEX];
-		CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+		Vertex2 localV[PLAYER_VERTEX];
+		CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
 
 		// 現在のフレームから UV を計算
 		int frame = g_animFrame[idx];
@@ -1339,7 +1331,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		// バッファへ書き込み
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex2* vertex = (Vertex2*)msr.pData;
-		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * NUM_VERTEX);
+		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
 		g_pContext->Unmap(g_VertexBuffer, 0);
 
 		ID3D11ShaderResourceView* srv = nullptr;
@@ -1348,15 +1340,19 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		switch (player[idx].form)
 		{
 		// 第1形態
-		case Form::First:					srv = g_Texture[0];	break;
-		// 第2形態
+		case Form::First:
+				 if(idx == 0)	{ srv = g_Texture[0];	break; }
+			else if(idx == 1)	{ srv = g_Texture[1];	break; }
+			else if(idx == 2)	{ srv = g_Texture[2];	break; }
+			else if(idx == 3)	{ srv = g_Texture[3];	break; }
+			// 第2形態
 		case Form::Second:
 			switch (player[idx].type)
 			{
-			case PlayerType::Glass:			srv = g_Texture[1];	break;				
-			case PlayerType::Concrete:		srv = g_Texture[2];	break;
-			case PlayerType::Plant:			srv = g_Texture[3];	break;
-			case PlayerType::Electricity:	srv = g_Texture[4];	break;
+			case PlayerType::Glass:			srv = g_Texture[4];	break;				
+			case PlayerType::Concrete:		srv = g_Texture[5];	break;
+			case PlayerType::Plant:			srv = g_Texture[6];	break;
+			case PlayerType::Electricity:	srv = g_Texture[7];	break;
 			default: break;
 			}
 			break;
@@ -1364,10 +1360,10 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		case Form::Third:
 			switch (player[idx].type)
 			{
-			case PlayerType::Glass:			srv = g_Texture[5];	break;
-			case PlayerType::Concrete:		srv = g_Texture[6];	break;
-			case PlayerType::Plant:			srv = g_Texture[7];	break;
-			case PlayerType::Electricity:	srv = g_Texture[8];	break;
+			case PlayerType::Glass:			srv = g_Texture[8];		break;
+			case PlayerType::Concrete:		srv = g_Texture[9];		break;
+			case PlayerType::Plant:			srv = g_Texture[10];	break;
+			case PlayerType::Electricity:	srv = g_Texture[11];	break;
 			default: break;
 			}
 			break;
@@ -1375,19 +1371,23 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		}
 
 		// スペシャル使用中は専用テクスチャ
-		if (player[idx].useSpecial)			srv = g_Texture[9];
+		if (player[idx].useSpecial)			srv = g_Texture[12];
 
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 
-		// プレイヤーが毒状態なら色を紫に
+		// プレイヤーごとに異なる色を設定
 		if (player[idx].isPoisoned)
 		{
-			Shader_SetColor({ 0.8f, 0.4f, 0.8f, 1.0f });
+			switch (idx)
+			{
+			case 0:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
+			case 1:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
+			case 2:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
+			case 3:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
+			default:	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); break;
+			}
 		}
-		else
-		{
-			Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
-		}
+		else			Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // 通常色
 
 		// バッファセット & 描画
 		UINT stride = sizeof(Vertex2);
@@ -1396,6 +1396,9 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6, 0, 0);
+
+		// エフェクト描画
+		Effect_DrawForPlayer(idx);
 	};
 
 	// -----------------------------------
@@ -1559,7 +1562,7 @@ void Player_Respawn(int playerIndex)
 	if (playerIndex == 3) player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 }
 
-static inline void LoopRange(int& animFrame, int start, int count, int advance)
+inline void LoopRange(int& animFrame, int start, int count, int advance)
 {
 	int relative = (animFrame - start + advance) % count;
 	if (relative < 0) relative += count;
@@ -1585,7 +1588,7 @@ void Player_DrawStock(int i)
 		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
 		XMFLOAT2 size = { 260.0f, 260.0f };
 
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 10]);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 13]);
 	
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);
