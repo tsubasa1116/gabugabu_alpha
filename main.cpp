@@ -19,7 +19,7 @@
 #include "keyboard.h"
 #include "Effect.h"
 #include "score.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "Manager.h"
 #include "Audio.h"
 #include "input.h"

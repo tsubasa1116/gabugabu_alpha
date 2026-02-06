@@ -17,7 +17,7 @@
 #include "Audio.h"
 #include "gauge.h"
 #include "Polygon.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "Camera.h"
 #include "Ball.h"
 #include "attack.h"
@@ -94,7 +94,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Initialize_MakeText();
 	CreateRenderTarget_MakeText();
 
-	Polygon3D_Initialize(pDevice, pContext);
+	Player_Initialize(pDevice, pContext);
 	Field_Initialize(pDevice, pContext);
 	Effect_Initialize(pDevice, pContext);
 	Attack_Initialize(pDevice, pContext);
@@ -135,7 +135,7 @@ void Game_Finalize()
 {
 	Field_Finalize();
 	Effect_Finalize();
-	Polygon3D_Finalize();
+	Player_Finalize();
 	Camera_Finalize();
 	Attack_Finalize();
 	Skill_Finalize();
@@ -167,7 +167,7 @@ void Game_Update()
 	// ------------------------------------
 	// 更新処理
 	// ------------------------------------
-	Polygon3D_Update();
+	Player_Update();
 	Field_Update();
 	Effect_Update();
 	Gauge_Update();
@@ -198,7 +198,7 @@ void Game_Draw()
 
 	Camera_Draw();	// Drawの最初で呼ぶ！
 	Field_Draw(s_IsKonamiCodeEntered);
-	Polygon3D_Draw(s_IsKonamiCodeEntered);
+	Player_Draw(s_IsKonamiCodeEntered);
 
 	//2D描画
 	Light.SetEnable(FALSE);			// ライティングOFF
@@ -206,10 +206,10 @@ void Game_Draw()
 	SetDepthTest(FALSE);
     
 	Effect_Draw();
-	Polygon3D_DrawHP();
+	Player_DrawHP();
 	
 	
-	Polygon3D_DrawText();
+	Player_DrawText();
 	DamageText_Draw();
 	//DrawTextEx(
 	//	L"こんにちは世界",			// 表示する文字

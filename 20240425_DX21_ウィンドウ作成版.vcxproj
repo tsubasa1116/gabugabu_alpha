@@ -188,7 +188,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="model.cpp" />
     <ClCompile Include="p.cpp" />
     <ClCompile Include="polygon.cpp" />
-    <ClCompile Include="Polygon3D.cpp" />
+    <ClCompile Include="player.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="score.cpp" />
     <ClCompile Include="Setting.cpp" />
@@ -237,7 +237,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="model.h" />
     <ClInclude Include="p.h" />
     <ClInclude Include="polygon.h" />
-    <ClInclude Include="Polygon3D.h" />
+    <ClInclude Include="player.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="score.h" />
     <ClInclude Include="Setting.h" />
@@ -311,6 +311,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Effect" />
     <None Include="imgui.ini" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

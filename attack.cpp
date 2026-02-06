@@ -11,7 +11,7 @@ using namespace DirectX;
 #include "field.h"
 #include "Building.h"
 #include "debug_ostream.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "keyboard.h"
 #include "DamageText.h"
 #include "Effect.h"
@@ -34,9 +34,9 @@ static ID3D11ShaderResourceView* g_Attack_Texture[PLAYER_MAX];
 static ATTACK_OBJECT Attack[PLAYER_MAX];
 
 // マクロ定義
-#define NUM_VERTEX (24)
+#define ATTACK_VERTEX (24)
 
-static Vertex2 Attack_vdata[NUM_VERTEX] =
+static Vertex2 Attack_vdata[ATTACK_VERTEX] =
 {
 	// -Z面 (法線: 0,0,-1)
 	{// 頂点0 LEFT-TOP
@@ -219,7 +219,7 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex2) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
+	bd.ByteWidth = sizeof(Vertex2) * ATTACK_VERTEX; // 格納できる頂点数 * 頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -657,7 +657,7 @@ void Attack_Draw(int playerIndex)
 	Vertex2* vertex = (Vertex2*)msr.pData;
 
 	// 頂点データを頂点バッファへコピーする
-	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * ATTACK_VERTEX);
 
 	// コピー完了
 	g_pContext->Unmap(g_VertexBuffer, 0);
@@ -710,7 +710,7 @@ void AttackPlayerCollisions()
 		// --- プレイヤー側で使っている描画スケール・ヒットボックス比率と合わせる ---
 		const float RENDER_SCALE = 2.0f;
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
-		// Polygon3D と同じ短辺/長辺定義を使う
+		// Player と同じ短辺/長辺定義を使う
 		const float HITBOX_SHORT = 0.35f;
 		const float HITBOX_LONG  = 0.65f;
 

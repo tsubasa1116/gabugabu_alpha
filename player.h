@@ -1,4 +1,4 @@
-﻿// Polygon3D.h
+﻿// Player.h
 
 #pragma once
 
@@ -14,12 +14,16 @@
 
 #define	EVOLUTIONGAUGE_MAX	(1.0f)	// 進化ゲージ最大値
 #define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間（秒）
-#define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間（秒）
+#define	ATTACKED_TIME		(10.5f)	// ダメージ持続時間（秒）
 #define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間（秒）
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間（秒）
 #define	DOWN_TIME			(3.0f)	// ダウン持続時間（秒）
 #define	POISON_TIME			(5.0f)	// 毒持続時間（秒）
+
+#define	PLAYER_VERTEX	(6)		// 一面のみの頂点数
+#define COORDINATE		(0.5f)	// デフォルト (0.5f)
+#define TEXCOORD		(1.0f)	// デフォルト (1.0f)
 
 enum class PlayerDir
 {
@@ -123,23 +127,21 @@ struct PLAYEROBJECT
 	std::vector<GLASS_BOX> glassBoxes; // スペシャル ガラスのミサイルリスト
 };
 
-void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 static void LoadTextureList(ID3D11Device* pDevice);
-void Polygon3D_Finalize();
-void Polygon3D_Update();
-void Polygon3D_Draw(bool s_IsKonamiCodeEntered);
-void Polygon3D_DrawHP();
+void Player_Finalize();
+void Player_Update();
+void Player_Draw(bool s_IsKonamiCodeEntered);
+void Player_DrawHP();
 
 // アニメーション関数
-static inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
+inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
 
 void Ranking(int playerIndex);
 
-void Polygon3D_Respawn(int playerIndex);
+void Player_Respawn(int playerIndex);
 
-void Polygon3D_DrawStock(int i);
+void Player_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int playerIndex);
 
-void Polygon3D_DrawText();
-
-
+void Player_DrawText();

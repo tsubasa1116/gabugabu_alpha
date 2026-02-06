@@ -40,7 +40,6 @@
     <ClCompile Include="model.cpp" />
     <ClCompile Include="p.cpp" />
     <ClCompile Include="polygon.cpp" />
-    <ClCompile Include="Polygon3D.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="score.cpp" />
     <ClCompile Include="Setting.cpp" />
@@ -55,6 +54,7 @@
     <ClCompile Include="swipe.cpp" />
     <ClCompile Include="VideoTexture.cpp" />
     <ClCompile Include="LoadingScreen.cpp" />
+    <ClCompile Include="player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attack.h" />
@@ -89,7 +89,6 @@
     <ClInclude Include="model.h" />
     <ClInclude Include="p.h" />
     <ClInclude Include="polygon.h" />
-    <ClInclude Include="Polygon3D.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="score.h" />
     <ClInclude Include="Setting.h" />
@@ -104,8 +103,10 @@
     <ClInclude Include="swipe.h" />
     <ClInclude Include="VideoTexture.h" />
     <ClInclude Include="LoadingScreen.h" />
+    <ClInclude Include="player.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
+    <None Include="Effect" />
   </ItemGroup>
 </Project>

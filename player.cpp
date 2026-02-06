@@ -1,5 +1,5 @@
 ﻿// =====================================================
-//	polygon3D.cpp
+//	player.cpp
 // 
 //	制作者：平岡颯馬			日付：2026/01/27
 //======================================================
@@ -15,7 +15,7 @@ using namespace DirectX;
 #include "hp.h"
 #include "gauge.h"
 #include "Effect.h"
-#include "polygon3D.h"
+#include "player.h"
 #include "Camera.h"
 #include "input.h"
 #include "skill.h"
@@ -38,7 +38,6 @@ using namespace DirectX;
 //======================================================
 //	マクロ定義
 //======================================================
-#define	NUM_VERTEX		(6)			// 一面のみの頂点数
 #define HPBER_SIZE_X	(270.0f)	// HPバーのサイズ
 #define HPBER_SIZE_Y	(270.0f)	// 〃
 #define GAUGE_POS_X		(69.0f)		// HPバーを基準としたゲージの位置調整
@@ -48,7 +47,7 @@ using namespace DirectX;
 //	グローバル変数
 //======================================================
 // オブジェクト
-PLAYEROBJECT object[PLAYER_MAX];
+PLAYEROBJECT player[PLAYER_MAX];
 
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
@@ -61,7 +60,7 @@ static ID3D11Buffer* g_VertexBuffer = NULL;
 static ID3D11Buffer* g_IndexBuffer = NULL;
 
 // テクスチャ変数
-static ID3D11ShaderResourceView* g_Texture[14];
+static ID3D11ShaderResourceView* g_Texture[17];
 
 // プレイヤー アニメーション用変数
 static int   g_animFrame[PLAYER_MAX] = { 0 };
@@ -77,11 +76,8 @@ static bool g_specialAnimStarted[PLAYER_MAX] = { false, false, false, false };
 // 順位・死亡順の管理
 static std::vector<int> g_deathOrder;	// 死亡したプレイヤーのインデックス（先に死んだ者が先頭）
 
-#define COORDINATE	(0.5f)	// デフォルト (0.5f)
-#define TEXCOORD	(1.0f)	// デフォルト (1.0f)
-
 // 頂点配列
-static Vertex2 vdata[NUM_VERTEX] =
+static Vertex2 vdata[PLAYER_VERTEX] =
 {
 	{// 頂点0 LEFT-TOP
 		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),	// 座標
@@ -120,188 +116,71 @@ static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
 //======================================================
 //	初期化関数
 //======================================================
-void Polygon3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// ポリゴン表示の初期化
-	object[0].position = XMFLOAT3(-3.0f, 4.0f, 0.0f);
-	object[0].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[0].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[0].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[0].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[0].maxHp = 500.0f;
-	object[0].hp = object[0].maxHp;
-	object[0].attack = 0.0f;
-	object[0].power = 0.0f;
-	object[0].speed = 0.0f;
-	object[0].defense = 1.0f;
-	object[0].stock = 3;
-	object[0].rank = 0;
-	object[0].active = true;
-	object[0].isAttacking = false;
-	object[0].attackTimer = 0.0f;
-	object[0].isAttacked = false;
-	object[0].attackedTimer = 0.0f;
-	object[0].useSkill = false;
-	object[0].skillTimer = 0.0f;
-	object[0].skillCoolTimer = 0.0f;
-	object[0].useSpecial = false;
-	object[0].specialTimer = 0.0f;
-	object[0].isInvincible = false;
-	object[0].invincibleTimer = 0.0f;
-	object[0].stunGauge = 0.0f;
-	object[0].isStunning = false;
-	object[0].stunTimer = 0.0f;
-	object[0].isDown = false;
-	object[0].downTimer = 0.0f;
-	object[0].isPoisoned = false;
-	object[0].poisonTimer = 0.0f;
-	object[0].lastDir = PlayerDir::Down; // 正面
-	object[0].isMoving = false;
-	object[0].form = Form::First;
-	object[0].type = PlayerType::None;
-	//object[0].form = Form::Third;
-	//object[0].type = PlayerType::Plant;
-	object[0].evolutionGauge = 0.0f;
-	object[0].evolutionGaugeRate = 0.3f;
-	object[0].breakCount_Glass = 0;
-	object[0].breakCount_Concrete = 0;
-	object[0].breakCount_Plant = 0;
-	object[0].breakCount_Electricity = 0;
+	// プレイヤー表示の初期化
+	player[0].position = XMFLOAT3(-3.0f, 4.0f, 0.0f);
+	player[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
+	player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
+	player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 
-	object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
-	object[1].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[1].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[1].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[1].maxHp = 500.0f;
-	object[1].hp = object[1].maxHp;
-	object[1].attack = 0.0f;
-	object[1].power = 0.0f;
-	object[1].speed = 0.0f;
-	object[1].defense = 1.0f;
-	object[1].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[1].stock = 3;
-	object[1].rank = 0;
-	object[1].active = true;
-	object[1].isAttacking = false;
-	object[1].attackTimer = 0.0f;
-	object[1].isAttacked = false;
-	object[1].attackedTimer = 0.0f;
-	object[1].useSkill = false;
-	object[1].skillTimer = 0.0f;
-	object[1].skillCoolTimer = 0.0f;
-	object[1].useSpecial = false;
-	object[1].specialTimer = 0.0f;
-	object[1].isInvincible = false;
-	object[1].invincibleTimer = 0.0f;
-	object[1].stunGauge = 0.0f;
-	object[1].isStunning = false;
-	object[1].stunTimer = 0.0f;
-	object[1].isDown = false;
-	object[1].downTimer = 0.0f;
-	object[1].isPoisoned = false;
-	object[1].poisonTimer = 0.0f;
-	object[1].lastDir = PlayerDir::Down; // 正面
-	object[1].isMoving = false;
-	object[1].form = Form::First;
-	object[1].type = PlayerType::None;
-	object[1].evolutionGauge = 0.0f;
-	object[1].evolutionGaugeRate = 0.3f;
-	object[1].breakCount_Glass =       0;
-	object[1].breakCount_Concrete =    0;
-	object[1].breakCount_Plant =       0;
-	object[1].breakCount_Electricity = 0;
+	player[0].form = Form::Second;
+	player[1].form = Form::Second;
+	player[2].form = Form::Second;
+	player[3].form = Form::Second;
+	player[0].type = PlayerType::Glass;
+	player[1].type = PlayerType::Concrete;
+	player[2].type = PlayerType::Plant;
+	player[3].type = PlayerType::Electricity;
 
-	object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
-	object[2].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[2].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[2].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[2].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[2].maxHp = 500.0f;
-	object[2].hp = object[2].maxHp;
-	object[2].attack = 0.0f;
-	object[2].power = 0.0f;
-	object[2].speed = 0.0f;
-	object[2].defense = 1.0f;
-	object[2].stock = 3;
-	object[2].rank = 0;
-	object[2].active = true;
-	object[2].isAttacking = false;
-	object[2].attackTimer = 0.0f;
-	object[2].isAttacked = false;
-	object[2].attackedTimer = 0.0f;
-	object[2].useSkill = false;
-	object[2].skillTimer = 0.0f;
-	object[2].skillCoolTimer = 0.0f;
-	object[2].useSpecial = false;
-	object[2].specialTimer = 0.0f;
-	object[2].isInvincible = false;
-	object[2].invincibleTimer = 0.0f;
-	object[2].stunGauge = 0.0f;
-	object[2].isStunning = false;
-	object[2].stunTimer = 0.0f;
-	object[2].isDown = false;
-	object[2].downTimer = 0.0f;
-	object[2].isPoisoned = false;
-	object[2].poisonTimer = 0.0f;
-	object[2].lastDir = PlayerDir::Down; // 正面
-	object[2].isMoving = false;
-	object[2].form = Form::First;
-	object[2].type = PlayerType::None;
-	object[2].evolutionGauge = 0;
-	object[2].evolutionGaugeRate = 0.3f;
-	object[2].breakCount_Glass = 0;
-	object[2].breakCount_Concrete = 0;
-	object[2].breakCount_Plant = 0;
-	object[2].breakCount_Electricity = 0;
-
-	object[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
-	object[3].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[3].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[3].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	object[3].maxHp = 500.0f;
-	object[3].hp = object[3].maxHp;
-	object[3].attack = 0.0f;
-	object[3].power = 0.0f;
-	object[3].speed = 0.0f;
-	object[3].defense = 1.0f;
-	object[3].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	object[3].stock = 3;
-	object[3].rank = 0;
-	object[3].active = true;
-	object[3].isAttacking = false;
-	object[3].attackTimer = 0.0f;
-	object[3].isAttacked = false;
-	object[3].attackedTimer = 0.0f;
-	object[3].useSkill = false;
-	object[3].skillTimer = 0.0f;
-	object[3].skillCoolTimer = 0.0f;
-	object[3].useSpecial = false;
-	object[3].specialTimer = 0.0f;
-	object[3].isInvincible = false;
-	object[3].invincibleTimer = 0.0f;
-	object[3].stunGauge = 0.0f;
-	object[3].isStunning = false;
-	object[3].stunTimer = 0.0f;
-	object[3].isDown = false;
-	object[3].downTimer = 0.0f;
-	object[3].isPoisoned = false;
-	object[3].poisonTimer = 0.0f;
-	object[3].lastDir = PlayerDir::Down; // 正面
-	object[3].isMoving = false;
-	object[3].form = Form::First;
-	object[3].type = PlayerType::None;
-	object[3].evolutionGauge = 0;
-	object[3].evolutionGaugeRate = 0.3f;
-	object[3].breakCount_Glass = 0;
-	object[3].breakCount_Concrete = 0;
-	object[3].breakCount_Plant = 0;
-	object[3].breakCount_Electricity = 0;
+	for (int p = 0; p < PLAYER_MAX; p++)
+	{
+		player[p].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		player[p].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		player[p].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		player[p].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		player[p].maxHp = 500.0f;
+		player[p].hp = player[0].maxHp;
+		player[p].attack = 0.0f;
+		player[p].power = 0.0f;
+		player[p].speed = 0.0f;
+		player[p].defense = 1.0f;
+		player[p].stock = 3;
+		player[p].rank = 0;
+		player[p].active = true;
+		player[p].isAttacking = false;
+		player[p].attackTimer = 0.0f;
+		player[p].isAttacked = false;
+		player[p].attackedTimer = 0.0f;
+		player[p].useSkill = false;
+		player[p].skillTimer = 0.0f;
+		player[p].skillCoolTimer = 0.0f;
+		player[p].useSpecial = false;
+		player[p].specialTimer = 0.0f;
+		player[p].isInvincible = false;
+		player[p].invincibleTimer = 0.0f;
+		player[p].stunGauge = 0.0f;
+		player[p].isStunning = false;
+		player[p].stunTimer = 0.0f;
+		player[p].isDown = false;
+		player[p].downTimer = 0.0f;
+		player[p].isPoisoned = false;
+		player[p].poisonTimer = 0.0f;
+		player[p].lastDir = PlayerDir::Down; // 正面
+		player[p].isMoving = false;
+		player[p].evolutionGauge = 0.0f;
+		player[p].evolutionGaugeRate = 0.5f;
+		player[p].breakCount_Glass = 0;
+		player[p].breakCount_Concrete = 0;
+		player[p].breakCount_Plant = 0;
+		player[p].breakCount_Electricity = 0;
+	}
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));// 0でクリア
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * NUM_VERTEX;// 格納できる頂点数*頂点サイズ
+	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// 格納できる頂点数*頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -366,21 +245,25 @@ static void LoadTextureList(ID3D11Device* pDevice)
 
 	struct TexEntry { int idx; const wchar_t* path;};
 
-	const TexEntry texList[] = {
-		{  0, L"asset\\texture\\characterMini_v2.png"},				// 第1形態
-		{  1, L"asset\\texture\\characterMidGlass_v1.png"},			// 第2形態 ガラス
-		{  2, L"asset\\texture\\characterMidConcrete_v1.png" },		// 第2形態 コンクリート
-		{  3, L"asset\\texture\\characterMidTree_v1.png" },			// 第2形態 植物
-		{  4, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
-		{  5, L"asset\\texture\\characterBigGlass_v2.png" },		// 第3形態 ガラス
-		{  6, L"asset\\texture\\characterBigConcrete_v2.png" },		// 第3形態 コンクリート
-		{  7, L"asset\\texture\\characterBigTree_v2.png" },			// 第3形態 植物
-		{  8, L"asset\\texture\\characterBigElectricity_v2.png" },	// 第3形態 電気
-		{  9, L"asset\\texture\\characterBigSP_v2.png" },			// 第3形態 スペシャル
-		{ 10, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 赤
-		{ 11, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 青
-		{ 12, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 黄
-		{ 13, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ストック 緑
+	const TexEntry texList[] = 
+	{
+		{  0, L"asset\\texture\\characterMiniRed_v2.png"},			// 第1形態 P1 赤
+		{  1, L"asset\\texture\\characterMiniBlue_v1.png"},			// 第1形態 P2 青
+		{  2, L"asset\\texture\\characterMiniYellow_v1.png"},		// 第1形態 P3 黄
+		{  3, L"asset\\texture\\characterMiniGreen_v1.png"},		// 第1形態 P4 緑
+		{  4, L"asset\\texture\\characterMidGlass_v1.png"},			// 第2形態 ガラス
+		{  5, L"asset\\texture\\characterMidConcrete_v1.png" },		// 第2形態 コンクリート
+		{  6, L"asset\\texture\\characterMidTree_v1.png" },			// 第2形態 植物
+		{  7, L"asset\\texture\\characterMidElectricity_v1.png" },	// 第2形態 電気
+		{  8, L"asset\\texture\\characterBigGlass_v2.png" },		// 第3形態 ガラス
+		{  9, L"asset\\texture\\characterBigConcrete_v2.png" },		// 第3形態 コンクリート
+		{ 10, L"asset\\texture\\characterBigTree_v2.png" },			// 第3形態 植物
+		{ 11, L"asset\\texture\\characterBigElectricity_v2.png" },	// 第3形態 電気
+		{ 12, L"asset\\texture\\characterBigSP_v2.png" },			// 第3形態 スペシャル
+		{ 13, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 赤
+		{ 14, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 青
+		{ 15, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 黄
+		{ 16, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ストック 緑
 	};
 
 	for (const auto& e : texList)
@@ -412,7 +295,7 @@ static void LoadTextureList(ID3D11Device* pDevice)
 //======================================================
 //	終了処理関数
 //======================================================
-void Polygon3D_Finalize()
+void Player_Finalize()
 {
 	// シェーダーにバインドされている SRV をアンバインド（安全のため全要素分）
 	const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
@@ -459,7 +342,7 @@ void Polygon3D_Finalize()
 // ------------------------------------------------------
 // 移動ベクトルと向いている方向ベクトルは別で持った方がいい
 // ======================================================
-void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
+void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 {
 	// 進みたい方向（3平方）
 	float length = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
@@ -475,28 +358,28 @@ void Move(PLAYEROBJECT& object, XMFLOAT3 moveDir)
 		targetAngle = XMConvertToDegrees(targetAngle);		// ラジアン -> 度
 
 		// 差分を調整（180度超えないように）
-		float diff = targetAngle - object.moveAngle;	// 角度差
+		float diff = targetAngle - player.moveAngle;	// 角度差
 		if (diff > 180.0f) diff -= 360.0f;
 		if (diff < -180.0f) diff += 360.0f;
 
 		static float angSpeed = 0.5f;
 
 		// スムーズに補間（0.1fが補間スピード）
-		object.moveAngle += diff * angSpeed;
+		player.moveAngle += diff * angSpeed;
 
-		object.rotation.y = object.moveAngle;	// 角度の反映
+		player.rotation.y = player.moveAngle;	// 角度の反映
 
 		// 前進
-		float rad = XMConvertToRadians(object.moveAngle);
-		object.position.x += sinf(rad) * object.speed;
-		object.position.z += cosf(rad) * object.speed;
+		float rad = XMConvertToRadians(player.moveAngle);
+		player.position.x += sinf(rad) * player.speed;
+		player.position.z += cosf(rad) * player.speed;
 	}
 }
 
 //======================================================
 // 更新関数
 //======================================================
-void Polygon3D_Update()
+void Player_Update()
 {
 	// デバッグ用 ImGui ウィンドウ
 	ImGui::Begin("Player Debug");
@@ -514,26 +397,29 @@ void Polygon3D_Update()
 		ImGui::Text("Player %d", p + 1);
 		ImGui::Indent();
 
-		ImGui::SliderFloat("poisonTimer", &object[p].poisonTimer, 0.0f, 5.0f);
-		ImGui::BulletText("isPoisoned        : %d", object[p].isPoisoned);
-		ImGui::BulletText("isInvincible      : %d", object[p].isInvincible);
-		ImGui::BulletText("EvolutionGauge    : %.1f", object[p].evolutionGauge);
-		ImGui::BulletText("EvolutionGaugeRate: %.1f", object[p].evolutionGaugeRate);
+		ImGui::SliderFloat("poisonTimer", &player[p].poisonTimer, 0.0f, 5.0f);
+		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
+		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
+		ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
+		ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
+		ImGui::BulletText("useSkill          : %d", player[p].useSkill);
+		ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
+		ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
 
-		if (ImGui::Button("hp -1"))			object[p].hp -= 0.1f;
-		if (ImGui::Button("gl +1"))			object[p].breakCount_Glass += 1;
-		else if (ImGui::Button("pl +1"))	object[p].breakCount_Plant += 1;
-		else if (ImGui::Button("co +1"))	object[p].breakCount_Concrete += 1;
-		else if (ImGui::Button("el +1"))	object[p].breakCount_Electricity += 1;
+		if (ImGui::Button("hp -1"))			player[p].hp -= 0.1f;
+		if (ImGui::Button("gl +1"))			player[p].breakCount_Glass += 1;
+		else if (ImGui::Button("pl +1"))	player[p].breakCount_Plant += 1;
+		else if (ImGui::Button("co +1"))	player[p].breakCount_Concrete += 1;
+		else if (ImGui::Button("el +1"))	player[p].breakCount_Electricity += 1;
 
-		ImGui::SliderFloat("HP", &object[p].hp, 0.0f, 500.0f);
-		ImGui::SliderFloat("Outer", &object[p].evolutionGauge, 0.0f, 1.0f);
-		ImGui::BulletText("2 Concrete breaks : %d", object[p].breakCount_Concrete);
-		ImGui::BulletText("3 Plant breaks    : %d", object[p].breakCount_Plant);
-		ImGui::BulletText("4 Electricity breaks : %d", object[p].breakCount_Electricity);
+		ImGui::SliderFloat("HP", &player[p].hp, 0.0f, 500.0f);
+		ImGui::SliderFloat("Outer", &player[p].evolutionGauge, 0.0f, 1.0f);
+		ImGui::BulletText("2 Concrete breaks : %d", player[p].breakCount_Concrete);
+		ImGui::BulletText("3 Plant breaks    : %d", player[p].breakCount_Plant);
+		ImGui::BulletText("4 Electricity breaks : %d", player[p].breakCount_Electricity);
 
 		// 履歴リストのサイズを表示
-		size_t historySize = object[p].brokenHistory.size();
+		size_t historySize = player[p].brokenHistory.size();
 		ImGui::BulletText("brokenHistory Size : %zu", historySize);
 
 		if (historySize > 0)
@@ -553,7 +439,7 @@ void Polygon3D_Update()
 				// 例2: 履歴の値を横に並べて表示
 				ImGui::SameLine(); // 同じ行に表示
 				// 履歴の値（整数）を文字列に変換してから表示
-				ImGui::Text("%d", (int)object[p].brokenHistory[i]);
+				ImGui::Text("%d", (int)player[p].brokenHistory[i]);
 			}
 
 			// 履歴が横に並びすぎないよう改行
@@ -565,10 +451,10 @@ void Polygon3D_Update()
 		ImGui::Separator();
 		ImGui::PopID();
 
-		if (!object[p].active) continue;
+		if (!player[p].active) continue;
 
 		// ワールド座標をスクリーン座標に変換
-		XMFLOAT3 worldPos = object[p].position;
+		XMFLOAT3 worldPos = player[p].position;
 		worldPos.y += 2.0f; // プレイヤーの上方に表示
 
 		XMVECTOR posVec = XMLoadFloat3(&worldPos);
@@ -595,234 +481,234 @@ void Polygon3D_Update()
 
 			// テキスト描画（Update内では呼び出さない、Draw内で描画する）
 			// ここでは座標を保存しておく
-			object[p].screenPos = XMFLOAT2(screenX, screenY);
-			object[p].isOnScreen = true;
+			player[p].screenPos = XMFLOAT2(screenX, screenY);
+			player[p].isOnScreen = true;
 		}
-		else	object[p].isOnScreen = false;
+		else	player[p].isOnScreen = false;
 
 		// -------------------------------------------------------------
 		// 変身
 		// -------------------------------------------------------------
-		switch (object[p].form)
+		switch (player[p].form)
 		{
 		case Form::First: // 第1形態
-			object[p].scaling.x = 0.5f;
-			object[p].scaling.y = 0.5f;
-			object[p].scaling.z = 0.5f;
-			object[p].attack = 10.0f;
-			object[p].power = 1.0f;
-			object[p].speed = 0.06f;
+			player[p].scaling.x = 0.5f;
+			player[p].scaling.y = 0.5f;
+			player[p].scaling.z = 0.5f;
+			player[p].attack = 10.0f;
+			player[p].power = 1.0f;
+			player[p].speed = 0.06f;
 			break;
 
 		case Form::Second: // 第2形態
-			object[p].scaling.x = 0.8f;
-			object[p].scaling.y = 0.8f;
-			object[p].scaling.z = 0.8f;
-			object[p].attack = 15.0f;
-			object[p].power = 1.5f;
-			object[p].speed = 0.05f;
+			player[p].scaling.x = 0.8f;
+			player[p].scaling.y = 0.8f;
+			player[p].scaling.z = 0.8f;
+			player[p].attack = 15.0f;
+			player[p].power = 1.5f;
+			player[p].speed = 0.05f;
 			break;
 
 		case Form::Third: // 第3形態
-			object[p].scaling.x = 1.2f;
-			object[p].scaling.y = 1.2f;
-			object[p].scaling.z = 1.2f;
-			object[p].attack = 20.0f;
-			object[p].power = 2.0f;
-			object[p].speed = 0.04f;
+			player[p].scaling.x = 1.2f;
+			player[p].scaling.y = 1.2f;
+			player[p].scaling.z = 1.2f;
+			player[p].attack = 20.0f;
+			player[p].power = 2.0f;
+			player[p].speed = 0.04f;
 			break;
 		default:
 			break;
 		}
 
 		// 毒の処理
-		if (object[p].poisonTimer > 0.0f)
+		if (player[p].poisonTimer > 0.0f)
 		{
 			// 毒状態の間、ダメージを与える
-			object[p].hp -= SPECIAL_PLANT_DAMAGE * object[p].defense;
+			player[p].hp -= SPECIAL_PLANT_DAMAGE * player[p].defense;
 
 			// 毒タイマーを進める
-			object[p].poisonTimer -= DELTA_TIME;
+			player[p].poisonTimer -= DELTA_TIME;
 
 			// 毒タイマーが0になったら毒状態を解除
-			if (object[p].poisonTimer <= 0.0f)
+			if (player[p].poisonTimer <= 0.0f)
 			{
-				object[p].isPoisoned = false;
-				object[p].poisonTimer = 0.0f;
+				player[p].isPoisoned = false;
+				player[p].poisonTimer = 0.0f;
 			}
 		}
 
 		// スタンゲージが最大でスタンフラグを立てる
-		if (object[p].stunGauge >= STUNGAUGE_MAX)
+		if (player[p].stunGauge >= STUNGAUGE_MAX)
 		{
-			object[p].isStunning = true;
-			object[p].stunGauge = STUNGAUGE_MAX;
+			player[p].isStunning = true;
+			player[p].stunGauge = STUNGAUGE_MAX;
 		}
 		// スタン中の処理
-		if (object[p].isStunning)
+		if (player[p].isStunning)
 		{
 			// スタンタイマーを進める
-			object[p].stunTimer += DELTA_TIME;
+			player[p].stunTimer += DELTA_TIME;
 
 			// 時間経過でスタン解除
-			if (object[p].stunTimer >= STUN_TIME)
+			if (player[p].stunTimer >= STUN_TIME)
 			{
-				object[p].isStunning = false;	// スタン解除
-				object[p].stunTimer = 0.0f;		// スタンタイマーリセット
-				object[p].stunGauge = 0.0f;		// スタンゲージリセット
+				player[p].isStunning = false;	// スタン解除
+				player[p].stunTimer = 0.0f;		// スタンタイマーリセット
+				player[p].stunGauge = 0.0f;		// スタンゲージリセット
 			}
 
 			// スタン中は移動ベクトルを完全にゼロにする
-			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
+			player[p].moveDir = { 0.0f, 0.0f, 0.0f };
 
-			object[p].isMoving = false;
+			player[p].isMoving = false;
 
-			object[p].isAttacking = false;
-			object[p].useSkill = false;
-			object[p].useSpecial = false;
+			player[p].isAttacking = false;
+			player[p].useSkill = false;
+			player[p].useSpecial = false;
 		}
 		else // スタンしていない場合の処理
 		{
 			// スタンしていない間はスタンゲージを減少させる
-			object[p].stunGauge -= DELTA_TIME;
+			player[p].stunGauge -= DELTA_TIME;
 
 			// スタンゲージが0未満にならないようにクランプ
-			if (object[p].stunGauge < 0.0f)	object[p].stunGauge = 0.0f;
+			if (player[p].stunGauge < 0.0f)	player[p].stunGauge = 0.0f;
 		}
 
 		// スタン中・ダウン中でなければ第1形態行動 1位確定後はアニメーションのみ
-		if(!object[p].isStunning && !object[p].isDown && object[p].rank != 1 && object[p].active)
+		if(!player[p].isStunning && !player[p].isDown && player[p].rank != 1 && player[p].active)
 		{
 			// 発動トリガー入力をチェックして攻撃フラグを立てる
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
 			{
-				object[p].isAttacking = true;
+				player[p].isAttacking = true;
 
 				// 第2・第3形態の場合、スキル使用フラグも立てる
-				if (object[p].type != PlayerType::None)	object[p].useSkill = true;
+				if (player[p].type != PlayerType::None)	player[p].useSkill = true;
 			}
-			if (g_Input[p].A)	object[p].isAttacking = true;
+			if (g_Input[p].A)	player[p].isAttacking = true;
 
 			// 第2・第3形態の場合スキル使用フラグ立てる
-			if (g_Input[p].X)	if (object[p].type != PlayerType::None)	object[p].useSkill = true;
+			if (g_Input[p].X)	if (player[p].type != PlayerType::None)	player[p].useSkill = true;
 
 			// 発動トリガー入力をチェックしてスペシャル使用フラグを立てる
-			if (object[p].form == Form::Third && Keyboard_IsKeyDownTrigger(specialKeys[p]))	object[p].useSpecial = true;
+			if (player[p].form == Form::Third && Keyboard_IsKeyDownTrigger(specialKeys[p]))	player[p].useSpecial = true;
 			
 			// ボタン入力をチェックしてスペシャル使用フラグを立てる
-			if (object[p].form == Form::Third && g_Input[p].ZR)	object[p].useSpecial = true;
+			if (player[p].form == Form::Third && g_Input[p].ZR)	player[p].useSpecial = true;
 
 			// フラグが立ったら更新処理を呼び出す
-			if (object[p].isAttacking)	Attack_Update(p);	AttackPlayerCollisions();	// 攻撃
-			if (object[p].useSkill)		Skill_Update(p);								// スキル
-			if (object[p].useSpecial)	Special_Update(p);								// スペシャル
+			if (player[p].isAttacking)	Attack_Update(p);	AttackPlayerCollisions();	// 攻撃
+			if (player[p].useSkill)		Skill_Update(p);								// スキル
+			if (player[p].useSpecial)	Special_Update(p);								// スペシャル
 
 			// 現在のプレイヤー p の移動ベクトルだけをリセット
-			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
+			player[p].moveDir = { 0.0f, 0.0f, 0.0f };
 
 			// スペシャル コンクリート使用中は移動不可
-			if (object[p].useSpecial && object[p].type == PlayerType::Concrete)
+			if (player[p].useSpecial && player[p].type == PlayerType::Concrete)
 			{
-				object[p].moveDir = { 0.0f, 0.0f, 0.0f };
-				object[p].isMoving = false;
+				player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+				player[p].isMoving = false;
 			}
 			// スペシャル コンクリート使用中でなければ移動処理
 			else
 			{
 				if (p == 0) // プレイヤー0 (WASD) 攻撃 Space
 				{
-					if (g_Input[0].LStickX > 0.0f)	 { object[0].moveDir.x += 1.0f; object[0].isMoving = true; }
-					if (g_Input[0].LStickX < 0.0f)	 { object[0].moveDir.x -= 1.0f; object[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_W))	 { object[0].moveDir.z += 1.0f; object[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S))	 { object[0].moveDir.z -= 1.0f; object[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A))	 { object[0].moveDir.x -= 1.0f; object[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D))	 { object[0].moveDir.x += 1.0f; object[0].isMoving = true; }
-					if (object[0].moveDir.x == 0.0f && object[0].moveDir.z == 0.0f)	object[0].isMoving = false;
+					if (g_Input[0].LStickX > 0.0f)	 { player[0].moveDir.x += 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickX < 0.0f)	 { player[0].moveDir.x -= 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_W))	 { player[0].moveDir.z += 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_S))	 { player[0].moveDir.z -= 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_A))	 { player[0].moveDir.x -= 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_D))	 { player[0].moveDir.x += 1.0f; player[0].isMoving = true; }
+					if (player[0].moveDir.x == 0.0f && player[0].moveDir.z == 0.0f)	player[0].isMoving = false;
 				}
 				else if (p == 1) // プレイヤー1 (矢印キー) 攻撃 Enter
 				{
-					if (Keyboard_IsKeyDown(KK_UP))		{ object[1].moveDir.z += 1.0f; object[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_DOWN))	{ object[1].moveDir.z -= 1.0f; object[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_LEFT))	{ object[1].moveDir.x -= 1.0f; object[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_RIGHT))	{ object[1].moveDir.x += 1.0f; object[1].isMoving = true; }
-					if (object[1].moveDir.x == 0.0f &&	  object[1].moveDir.z == 0.0f)	object[1].isMoving = false;
+					if (Keyboard_IsKeyDown(KK_UP))		{ player[1].moveDir.z += 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_DOWN))	{ player[1].moveDir.z -= 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_LEFT))	{ player[1].moveDir.x -= 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_RIGHT))	{ player[1].moveDir.x += 1.0f; player[1].isMoving = true; }
+					if (player[1].moveDir.x == 0.0f &&	  player[1].moveDir.z == 0.0f)	player[1].isMoving = false;
 				}
 				else if (p == 2) // プレイヤー2 (TFGH) 攻撃 V
 				{
-					if (Keyboard_IsKeyDown(KK_T))	 { object[2].moveDir.z += 1.0f; object[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_G))	 { object[2].moveDir.z -= 1.0f; object[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_F))	 { object[2].moveDir.x -= 1.0f; object[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_H))	 { object[2].moveDir.x += 1.0f; object[2].isMoving = true; }
-					if (object[2].moveDir.x == 0.0f && object[2].moveDir.z == 0.0f)	object[2].isMoving = false;
+					if (Keyboard_IsKeyDown(KK_T))	 { player[2].moveDir.z += 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_G))	 { player[2].moveDir.z -= 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_F))	 { player[2].moveDir.x -= 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_H))	 { player[2].moveDir.x += 1.0f; player[2].isMoving = true; }
+					if (player[2].moveDir.x == 0.0f && player[2].moveDir.z == 0.0f)	player[2].isMoving = false;
 				}
 				if (p == 3) // プレイヤー3 (WASD) 攻撃 Space
 				{
-					if (Keyboard_IsKeyDown(KK_W))	 { object[3].moveDir.z += 1.0f; object[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S))	 { object[3].moveDir.z -= 1.0f; object[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A))	 { object[3].moveDir.x -= 1.0f; object[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D))	 { object[3].moveDir.x += 1.0f; object[3].isMoving = true; }
-					if (object[3].moveDir.x == 0.0f && object[3].moveDir.z == 0.0f)	object[3].isMoving = false;
+					if (Keyboard_IsKeyDown(KK_W))	 { player[3].moveDir.z += 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_S))	 { player[3].moveDir.z -= 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_A))	 { player[3].moveDir.x -= 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_D))	 { player[3].moveDir.x += 1.0f; player[3].isMoving = true; }
+					if (player[3].moveDir.x == 0.0f && player[3].moveDir.z == 0.0f)	player[3].isMoving = false;
 				}
 			}
 
 			// 現在のプレイヤー p だけを動かす
-			Move(object[p], object[p].moveDir);
+			Move(player[p], player[p].moveDir);
 
 			// 移動中なら lastDir を更新
-			if (object[p].isMoving)
+			if (player[p].isMoving)
 			{
-					 if (object[p].moveDir.x < 0.0f && object[p].moveDir.z < 0.0f)	object[p].lastDir = PlayerDir::Down_Left;
-				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z > 0.0f)	object[p].lastDir = PlayerDir::Up_Left;
-				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z > 0.0f)	object[p].lastDir = PlayerDir::Up_Right;
-				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z < 0.0f)	object[p].lastDir = PlayerDir::Down_Right;
-				else if (object[p].moveDir.z < 0.0f)								object[p].lastDir = PlayerDir::Down;
-				else if (object[p].moveDir.x < 0.0f)								object[p].lastDir = PlayerDir::Left;
-				else if (object[p].moveDir.z > 0.0f)								object[p].lastDir = PlayerDir::Up;
-				else if (object[p].moveDir.x > 0.0f)								object[p].lastDir = PlayerDir::Right;
+					 if (player[p].moveDir.x < 0.0f && player[p].moveDir.z < 0.0f)	player[p].lastDir = PlayerDir::Down_Left;
+				else if (player[p].moveDir.x < 0.0f && player[p].moveDir.z > 0.0f)	player[p].lastDir = PlayerDir::Up_Left;
+				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z > 0.0f)	player[p].lastDir = PlayerDir::Up_Right;
+				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z < 0.0f)	player[p].lastDir = PlayerDir::Down_Right;
+				else if (player[p].moveDir.z < 0.0f)								player[p].lastDir = PlayerDir::Down;
+				else if (player[p].moveDir.x < 0.0f)								player[p].lastDir = PlayerDir::Left;
+				else if (player[p].moveDir.z > 0.0f)								player[p].lastDir = PlayerDir::Up;
+				else if (player[p].moveDir.x > 0.0f)								player[p].lastDir = PlayerDir::Right;
 			}
 		}
 
 		// プレイヤーごとのスキルクールタイムを毎フレーム減算
-		if (object[p].skillCoolTimer > 0.0f)
+		if (player[p].skillCoolTimer > 0.0f)
 		{
-			object[p].skillCoolTimer -= DELTA_TIME;
-			if (object[p].skillCoolTimer < 0.0f) object[p].skillCoolTimer = 0.0f;
+			player[p].skillCoolTimer -= DELTA_TIME;
+			if (player[p].skillCoolTimer < 0.0f) player[p].skillCoolTimer = 0.0f;
 		}
 
 		// HPが0以下の処理（ダウンは1度だけ）
-		if (object[p].hp <= 0.0f && object[p].active && !object[p].isDown)
+		if (player[p].hp <= 0.0f && player[p].active && !player[p].isDown)
 		{
 			// ダウン状態に移行してタイマーをリセット
-			object[p].isDown = true;
-			object[p].downTimer = 0.0f;
+			player[p].isDown = true;
+			player[p].downTimer = 0.0f;
 			Effect_Clear(p);
 		}
 
 		// ダウン状態のタイマー更新とリスポーン判定
-		if (object[p].isDown)
+		if (player[p].isDown)
 		{
 			// 行動停止
-			object[p].moveDir = { 0.0f, 0.0f, 0.0f };
-			object[p].isAttacking = false;
-			object[p].useSkill = false;
-			object[p].useSpecial = false;
+			player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+			player[p].isAttacking = false;
+			player[p].useSkill = false;
+			player[p].useSpecial = false;
 
 			// ダウンタイマー更新
-			object[p].downTimer += DELTA_TIME;
+			player[p].downTimer += DELTA_TIME;
 
 			// プレイヤー毎のダウン時間が経過したらリスポーン処理
-			if (object[p].downTimer >= DOWN_TIME)
+			if (player[p].downTimer >= DOWN_TIME)
 			{
 				// 残機を1つ減らす
-				object[p].stock -= 1;
+				player[p].stock -= 1;
 
-				if (object[p].stock > 0)	Polygon3D_Respawn(p);
+				if (player[p].stock > 0)	Player_Respawn(p);
 				else
 				{
 					// 残機無しで復活なし
-					object[p].active = false;
-					object[p].isDown = false;
-					object[p].downTimer = 0.0f;
+					player[p].active = false;
+					player[p].isDown = false;
+					player[p].downTimer = 0.0f;
 
 					// 順位登録（内部で重複登録を防止）
 					Ranking(p);
@@ -831,88 +717,88 @@ void Polygon3D_Update()
 		}
 
 		// 落下処理
-		if (object[p].active && object[p].position.y <= -10.0f)
+		if (player[p].active && player[p].position.y <= -10.0f)
 		{
 			Effect_Clear(p);
 			// 残機を一つ減らす
-			object[p].stock -= 1;
+			player[p].stock -= 1;
 
 			// リスポーン（位置・ステートリセット）
-			if (object[p].stock > 0)	Polygon3D_Respawn(p);
+			if (player[p].stock > 0)	Player_Respawn(p);
 			else
 			{
 				// 残機無しで完全に非アクティブ化
-				object[p].active = false;
+				player[p].active = false;
 				// 順位登録
 				Ranking(p);
 			}
 		}
 
 		// ダメージを受けた時の処理
-		if (object[p].isAttacked)
+		if (player[p].isAttacked)
 		{
 			// ダメージタイマー更新
-			object[p].attackedTimer += DELTA_TIME;
+			player[p].attackedTimer += DELTA_TIME;
 
 			// プレイヤー毎のダメージ時間が経過したらダメージ終了
-			if (object[p].attackedTimer >= ATTACKED_TIME)
+			if (player[p].attackedTimer >= ATTACKED_TIME)
 			{
-				object[p].isAttacked = false;
-				object[p].attackedTimer = 0.0f;
+				player[p].isAttacked = false;
+				player[p].attackedTimer = 0.0f;
 			}
 		}
 
 		// 進化時の無敵処理
-		if (object[p].isInvincible)
+		if (player[p].isInvincible)
 		{
 			// 無敵タイマー更新
-			object[p].invincibleTimer += DELTA_TIME;
+			player[p].invincibleTimer += DELTA_TIME;
 
 			// プレイヤー毎の無敵時間が経過したら無敵終了
-			if (object[p].invincibleTimer >= INVINCIBLE_TIME)
+			if (player[p].invincibleTimer >= INVINCIBLE_TIME)
 			{
-				object[p].isInvincible = false;
-				object[p].invincibleTimer = 0.0f;
+				player[p].isInvincible = false;
+				player[p].invincibleTimer = 0.0f;
 			}
 		}
 
 		// スペシャル開始時のフレーム初期化（アニメーション更新タイミングに依存しない）
-		if (object[p].useSpecial && !g_specialAnimStarted[p])
+		if (player[p].useSpecial && !g_specialAnimStarted[p])
 		{
 			int type = -1;
-				 if(object[p].type == PlayerType::Concrete)		type = 0;
-			else if(object[p].type == PlayerType::Electricity)	type = 1;
-			else if(object[p].type == PlayerType::Glass)		type = 2;
-			else if(object[p].type == PlayerType::Plant)		type = 3;
+				 if(player[p].type == PlayerType::Concrete)		type = 0;
+			else if(player[p].type == PlayerType::Electricity)	type = 1;
+			else if(player[p].type == PlayerType::Glass)		type = 2;
+			else if(player[p].type == PlayerType::Plant)		type = 3;
 
 			int start = type * 64;
-				 if (object[p].lastDir == PlayerDir::Down)		start += 0;
-			else if (object[p].lastDir == PlayerDir::Down_Left)	start += 8;
-			else if (object[p].lastDir == PlayerDir::Left)		start += 16;
-			else if (object[p].lastDir == PlayerDir::Up_Left)	start += 24;
-			else if (object[p].lastDir == PlayerDir::Up)		start += 32;
-			else if (object[p].lastDir == PlayerDir::Up_Right)	start += 40;
-			else if (object[p].lastDir == PlayerDir::Right)		start += 48;
-			else if (object[p].lastDir == PlayerDir::Down_Right)start += 56;
+				 if (player[p].lastDir == PlayerDir::Down)		start += 0;
+			else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
+			else if (player[p].lastDir == PlayerDir::Left)		start += 16;
+			else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
+			else if (player[p].lastDir == PlayerDir::Up)		start += 32;
+			else if (player[p].lastDir == PlayerDir::Up_Right)	start += 40;
+			else if (player[p].lastDir == PlayerDir::Right)		start += 48;
+			else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
 
 			g_animFrame[p] = start;
 			g_specialAnimStarted[p] = true;
 		}
 		// スペシャル終了時のフレームリセット
-		if (!object[p].useSpecial && g_specialAnimStarted[p])
+		if (!player[p].useSpecial && g_specialAnimStarted[p])
 		{
 			g_specialAnimStarted[p] = false;
 
 			// 通常テクスチャの待機アニメーション開始フレームにリセット
 			int start = 0;
-				 if (object[p].lastDir == PlayerDir::Down)		start = 0;
-			else if (object[p].lastDir == PlayerDir::Down_Left)	start = 26;
-			else if (object[p].lastDir == PlayerDir::Left)		start = 52;
-			else if (object[p].lastDir == PlayerDir::Up_Left)	start = 78;
-			else if (object[p].lastDir == PlayerDir::Up)		start = 104;
-			else if (object[p].lastDir == PlayerDir::Up_Right)	start = 130;
-			else if (object[p].lastDir == PlayerDir::Right)		start = 156;
-			else if (object[p].lastDir == PlayerDir::Down_Right)start = 182;
+				 if (player[p].lastDir == PlayerDir::Down)		start = 0;
+			else if (player[p].lastDir == PlayerDir::Down_Left)	start = 26;
+			else if (player[p].lastDir == PlayerDir::Left)		start = 52;
+			else if (player[p].lastDir == PlayerDir::Up_Left)	start = 78;
+			else if (player[p].lastDir == PlayerDir::Up)		start = 104;
+			else if (player[p].lastDir == PlayerDir::Up_Right)	start = 130;
+			else if (player[p].lastDir == PlayerDir::Right)		start = 156;
+			else if (player[p].lastDir == PlayerDir::Down_Right)start = 182;
 
 			g_animFrame[p] = start;
 		}
@@ -942,19 +828,19 @@ void Polygon3D_Update()
 					g_animFrame[p] += advance;
 
 					// 第1形態 220 を表示した後にループ領域へ移行する
-					if (g_animFrame[p] > 220 && object[p].form == Form::First)
+					if (g_animFrame[p] > 220 && player[p].form == Form::First)
 					{
 						g_victoryState[p] = 2;
 						g_animFrame[p] = 216;	// ループ開始フレーム
 					}
 					// 第2形態 227 を表示した後にループ領域へ移行する
-					if (g_animFrame[p] > 227 && object[p].form == Form::Second)
+					if (g_animFrame[p] > 227 && player[p].form == Form::Second)
 					{
 						g_victoryState[p] = 2;
 						g_animFrame[p] = 219;	// ループ開始フレーム
 					}
 					// 第3形態 228 を表示した後にループ領域へ移行する 229コマ目は使用しない
-					if (g_animFrame[p] > 228 && object[p].form == Form::Third)
+					if (g_animFrame[p] > 228 && player[p].form == Form::Third)
 					{
 						g_victoryState[p] = 2;
 						g_animFrame[p] = 221;	// ループ開始フレーム
@@ -962,7 +848,7 @@ void Polygon3D_Update()
 				}
 				else if (g_victoryState[p] == 2)
 				{
-					switch (object[p].form)
+					switch (player[p].form)
 					{
 					case Form::First:	LoopRange(g_animFrame[p], 216, 5, advance);	// 第1形態 216～220をループ
 						break;
@@ -974,18 +860,18 @@ void Polygon3D_Update()
 				}
 			}
 			// ダウン 5コマ (ダメージ 2コマ + ダウン 3コマ) 最終コマで停止
-			else if (object[p].isDown == true)
+			else if (player[p].isDown == true)
 			{
 				// 向きに応じた開始フレームを決定
 				int start = 15; // デフォルト（Down）
-					 if (object[p].lastDir == PlayerDir::Down)		 start = 15;
-				else if (object[p].lastDir == PlayerDir::Down_Left)	 start = 41;
-				else if (object[p].lastDir == PlayerDir::Left)		 start = 67;
-				else if (object[p].lastDir == PlayerDir::Up_Left)	 start = 93;
-				else if (object[p].lastDir == PlayerDir::Up)		 start = 119;
-				else if (object[p].lastDir == PlayerDir::Up_Right)	 start = 145;
-				else if (object[p].lastDir == PlayerDir::Right)		 start = 171;
-				else if (object[p].lastDir == PlayerDir::Down_Right) start = 197;
+					 if (player[p].lastDir == PlayerDir::Down)		 start = 15;
+				else if (player[p].lastDir == PlayerDir::Down_Left)	 start = 41;
+				else if (player[p].lastDir == PlayerDir::Left)		 start = 67;
+				else if (player[p].lastDir == PlayerDir::Up_Left)	 start = 93;
+				else if (player[p].lastDir == PlayerDir::Up)		 start = 119;
+				else if (player[p].lastDir == PlayerDir::Up_Right)	 start = 145;
+				else if (player[p].lastDir == PlayerDir::Right)		 start = 171;
+				else if (player[p].lastDir == PlayerDir::Down_Right) start = 197;
 
 				const int count = 5;
 				const int lastFrame = start + count - 1;
@@ -1021,93 +907,95 @@ void Polygon3D_Update()
 				}
 			}
 			// スペシャル 8コマ
-			else if (object[p].useSpecial)
+			else if (player[p].useSpecial)
 			{
 				int type = -1;
-					 if(object[p].type == PlayerType::Concrete)		type = 0;
-				else if(object[p].type == PlayerType::Electricity)	type = 1;
-				else if(object[p].type == PlayerType::Glass)		type = 2;
-				else if(object[p].type == PlayerType::Plant)		type = 3;
+					 if(player[p].type == PlayerType::Concrete)		type = 0;
+				else if(player[p].type == PlayerType::Electricity)	type = 1;
+				else if(player[p].type == PlayerType::Glass)		type = 2;
+				else if(player[p].type == PlayerType::Plant)		type = 3;
 
 				// 向きに応じた開始フレームを決定
 				int start = type * 64;
-					 if (object[p].lastDir == PlayerDir::Down)		start += 0;
-				else if (object[p].lastDir == PlayerDir::Down_Left)	start += 8;
-				else if (object[p].lastDir == PlayerDir::Left)		start += 16;
-				else if (object[p].lastDir == PlayerDir::Up_Left)	start += 24;
-				else if (object[p].lastDir == PlayerDir::Up)		start += 32;
-				else if (object[p].lastDir == PlayerDir::Up_Right)	start += 40;
-				else if (object[p].lastDir == PlayerDir::Right)		start += 48;
-				else if (object[p].lastDir == PlayerDir::Down_Right)start += 56;
+					 if (player[p].lastDir == PlayerDir::Down)		start += 0;
+				else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
+				else if (player[p].lastDir == PlayerDir::Left)		start += 16;
+				else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
+				else if (player[p].lastDir == PlayerDir::Up)		start += 32;
+				else if (player[p].lastDir == PlayerDir::Up_Right)	start += 40;
+				else if (player[p].lastDir == PlayerDir::Right)		start += 48;
+				else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
 
 				const int count = 8;
 
 				LoopRange(g_animFrame[p], start, count, advance);
 			}
 			// ダメージ 3コマ
-			else if (object[p].isAttacked == true || object[p].isStunning)
+			else if (player[p].isAttacked == true || player[p].isStunning)
 			{
-					 if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  14, 3, advance);	//  下   14～16 
-				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  40, 3, advance);	// 左下  40～42
-				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  66, 3, advance);	//  左   66～68
-				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  92, 3, advance);	// 左上  92～94
-				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 118, 3, advance);	//  上  118～120
-				else if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 144, 3, advance);	// 右上 144～146
-				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 170, 3, advance);	//  右  170～172
-				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 196, 3, advance);	// 右下 196～198
+					 if (player[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  14, 3, advance);	//  下   14～16 
+				else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  40, 3, advance);	// 左下  40～42
+				else if (player[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  66, 3, advance);	//  左   66～68
+				else if (player[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  92, 3, advance);	// 左上  92～94
+				else if (player[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 118, 3, advance);	//  上  118～120
+				else if (player[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 144, 3, advance);	// 右上 144～146
+				else if (player[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 170, 3, advance);	//  右  170～172
+				else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 196, 3, advance);	// 右下 196～198
 			}
 			// 攻撃 6コマ
-			else if (object[p].isAttacking == true)
+			else if (player[p].isAttacking == true)
 			{
-					 if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  20, 6, advance);	//  下   20～25
-				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  46, 6, advance);	// 左下  46～51
-				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  72, 6, advance);	//  左   72～77
-				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  98, 6, advance);	// 左上  98～103
-				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 124, 6, advance);	//  上  124～129
-				else if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 150, 6, advance);	// 右上 150～155
-				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 176, 6, advance);	//  右  176～181
-				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 202, 6, advance);	// 右下 202～207
+					 if (player[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],  20, 6, advance);	//  下   20～25
+				else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  46, 6, advance);	// 左下  46～51
+				else if (player[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  72, 6, advance);	//  左   72～77
+				else if (player[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  98, 6, advance);	// 左上  98～103
+				else if (player[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 124, 6, advance);	//  上  124～129
+				else if (player[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 150, 6, advance);	// 右上 150～155
+				else if (player[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 176, 6, advance);	//  右  176～181
+				else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 202, 6, advance);	// 右下 202～207
 			}
 			// 移動 8コマ
-			else if (object[p].isMoving == true)
+			else if (player[p].isMoving == true)
 			{
 				// 左下 32～39
-				if (object[p].moveDir.x < 0.0f && object[p].moveDir.z < 0.0f)		LoopRange(g_animFrame[p], 32, 8, advance); 
+				if (player[p].moveDir.x < 0.0f && player[p].moveDir.z < 0.0f)		LoopRange(g_animFrame[p], 32, 8, advance); 
 				// 左上 84～91
-				else if (object[p].moveDir.x < 0.0f && object[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 84, 8, advance);
+				else if (player[p].moveDir.x < 0.0f && player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 84, 8, advance);
 				// 右上 136～143
-				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 136, 8, advance);
+				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 136, 8, advance);
 				// 右下 188～195
-				else if (object[p].moveDir.x > 0.0f && object[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p], 188, 8, advance);
+				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p], 188, 8, advance);
 				// 下   6～13
-				else if (object[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p], 6, 8, advance); 
+				else if (player[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p], 6, 8, advance); 
 				// 左   58～63
-				else if (object[p].moveDir.x < 0.0f)	LoopRange(g_animFrame[p], 58, 8, advance);
+				else if (player[p].moveDir.x < 0.0f)	LoopRange(g_animFrame[p], 58, 8, advance);
 				// 上   110～117
-				else if (object[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 110, 8, advance);
+				else if (player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 110, 8, advance);
 				// 右   162～169
-				else if (object[p].moveDir.x > 0.0f)	LoopRange(g_animFrame[p], 162, 8, advance);
+				else if (player[p].moveDir.x > 0.0f)	LoopRange(g_animFrame[p], 162, 8, advance);
 			}
 			// 待機 6コマ
-			else if (object[p].isMoving == false)
+			else if (player[p].isMoving == false)
 			{
-					 if (object[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],   0, 6, advance);	//  下    0～5
-				else if (object[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  26, 6, advance);	// 左下  26～31
-				else if (object[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  52, 6, advance);	//  左   52～57
-				else if (object[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  78, 6, advance);	// 左上  78～83 
-				else if (object[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 104, 6, advance);	//  上  104～109
-				else if (object[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 130, 6, advance);	// 右上 130～135
-				else if (object[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 156, 6, advance);	//  右  156～161
-				else if (object[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 182, 6, advance);	// 右下 182～187		
+					 if (player[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p],   0, 6, advance);	//  下    0～5
+				else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p],  26, 6, advance);	// 左下  26～31
+				else if (player[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p],  52, 6, advance);	//  左   52～57
+				else if (player[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p],  78, 6, advance);	// 左上  78～83 
+				else if (player[p].lastDir == PlayerDir::Up)		LoopRange(g_animFrame[p], 104, 6, advance);	//  上  104～109
+				else if (player[p].lastDir == PlayerDir::Up_Right)	LoopRange(g_animFrame[p], 130, 6, advance);	// 右上 130～135
+				else if (player[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 156, 6, advance);	//  右  156～161
+				else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 182, 6, advance);	// 右下 182～187		
 			}
+			// エフェクト アニメーション
+			Effect_UpdateForPlayer(p);
 		}
 	
-		static XMFLOAT3 posBuff = object[p].position;	// デバッグ表示座標
+		static XMFLOAT3 posBuff = player[p].position;	// デバッグ表示座標
 
 		// 描画で使っているスプライト倍率と同じ値を物理にも使う
 		const float renderScale = 2.0f; // Draw 側の spriteScale に合わせる
 		// 描画スケールを反映したスケール（表示用）
-		XMFLOAT3 physicsScaling = XMFLOAT3(object[p].scaling.x * renderScale, object[p].scaling.y * renderScale, object[p].scaling.z * renderScale);
+		XMFLOAT3 physicsScaling = XMFLOAT3(player[p].scaling.x * renderScale, player[p].scaling.y * renderScale, player[p].scaling.z * renderScale);
 
 		// --- プレイヤー用ヒットボックス比率（向きで長短を切り替える） ---
 		// 高さは固定、水平面は向きに応じて長短を切り替える
@@ -1116,47 +1004,35 @@ void Polygon3D_Update()
 		const float HITBOX_LONG  = 0.65f; // 向きに沿った長辺
 
 		// 回転から前方ベクトルを算出して、どちらの軸が優勢か判定する
-		float radFacing = XMConvertToRadians(object[p].rotation.y);
+		float radFacing = XMConvertToRadians(player[p].rotation.y);
 		float facingX = sinf(radFacing);
 		float facingZ = cosf(radFacing);
 		bool facingZDominant = fabsf(facingZ) >= fabsf(facingX);
 
-		float widthScale  = facingZDominant ? HITBOX_SHORT : HITBOX_LONG; // X方向スケール
-		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT; // Z方向スケール
+		float widthScale  = facingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
+		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
 
 		// 第2形態 第3形態はXとZ同じにする
-		if (object[p].form == Form::Second || object[p].form == Form::Third)
+		if (player[p].form == Form::Second || player[p].form == Form::Third)
 		{
 			widthScale = 0.25f;
 			depthScale = 0.25f;
 		}
 
 		XMFLOAT3 hitboxScaling = XMFLOAT3(
-			object[p].scaling.x * renderScale * widthScale,
-			object[p].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
-			object[p].scaling.z * renderScale * depthScale
+			player[p].scaling.x * renderScale * widthScale,
+			player[p].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
+			player[p].scaling.z * renderScale * depthScale
 		);
 
 		// AABB を現在の位置・スケール（ヒットボックス）で更新しておく（衝突判定で使用）
-		CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
+		CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
 
 		// y軸の移動量 (重力 + ジャンプ)
 		// 重力加速度のない簡易的な重力
-		object[p].position.y += -0.1f;
+		player[p].position.y += -0.1f;
 
-		//// デバッグ出力
-		//if (posBuff.x != object[p].position.x ||
-		//	posBuff.y != object[p].position.y ||
-		//	posBuff.z != object[p].position.z)
-		//{
-		//	hal::dout << "x : " << object[p].position.x << std::endl;
-		//	hal::dout << "y : " << object[p].position.y << std::endl;
-		//	hal::dout << "z : " << object[p].position.z << std::endl;
-		//}
-
-		//hal::dout << vdata[0].position.x << std::endl;
-
-		posBuff = object[p].position;
+		posBuff = player[p].position;
 
 		// 地面の高さ（最低ライン）
 		//float groundHeight = -10.0f;	// 奈落の底
@@ -1181,28 +1057,28 @@ void Polygon3D_Update()
 			hex.height = fieldObjects[j].height;	// 3.0
 
 			// プレイヤーのAABB（体の一部）が六角柱に乗っているか
-			if (CheckAABBHexCollision(object[p].boundingBox, hex))
+			if (CheckAABBHexCollision(player[p].boundingBox, hex))
 			{
 				// タイルの上面のY座標を計算
 				float tileTopY = fieldObjects[j].pos.y + (hex.height / 2.0f);	// -1 + 1.5 = 0.5
 
 				// プレイヤーの底面がタイルの上面以下か
-				if (object[p].boundingBox.Min.y <= tileTopY)
+				if (player[p].boundingBox.Min.y <= tileTopY)
 				{
 					const float baseHalfHeight = COORDINATE;
 					// 着地では見た目の高さ（描画スケール）を基準に計算しているため physicsScaling を使用
-					float halfHeight = baseHalfHeight * object[p].scaling.y * renderScale;
+					float halfHeight = baseHalfHeight * player[p].scaling.y * renderScale;
 
 					// 着地させる（めり込みが起きないよう最低値として補正）
 					float targetY = tileTopY + halfHeight;
-					if (object[p].position.y < targetY)
+					if (player[p].position.y < targetY)
 					{
-						object[p].position.y = targetY;
+						player[p].position.y = targetY;
 					}
 
 					// AABB を再計算して整合性を保つ（描画スケールを考慮）
 					// ヒットボックス（向きに応じた長方形）で再計算する
-					CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
+					CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
 
 					top_y = tileTopY;
 
@@ -1231,18 +1107,18 @@ void Polygon3D_Update()
 			CalculateAABB(buildingObjects[j]->boundingBox, colliderPos, buildingObjects[j]->scaling);
 
 			// プレイヤー と 建物の当たり判定
-			MTV collision = CalculateAABBMTV(object[p].boundingBox, buildingObjects[j]->boundingBox);
+			MTV collision = CalculateAABBMTV(player[p].boundingBox, buildingObjects[j]->boundingBox);
 
 			if (collision.isColliding)
 			{
 				// 衝突していたら、MTVの分だけ位置を戻す
-				object[p].position.x += collision.translation.x;
-				object[p].position.y += collision.translation.y;
-				object[p].position.z += collision.translation.z;
+				player[p].position.x += collision.translation.x;
+				player[p].position.y += collision.translation.y;
+				player[p].position.z += collision.translation.z;
 
 				// 押し戻し後の新しいAABBを再計算（描画スケールを反映）
 				// ヒットボックス（向きに応じた長方形）で再計算する
-				CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
+				CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
 			}
 		}
 
@@ -1253,9 +1129,9 @@ void Polygon3D_Update()
 			if (attackObject == nullptr) continue;
 
 			// プレイヤー側のスケールに合わせる（攻撃オブジェクトは半分）
-			attackObject->scaling.x = object[p].scaling.x * 0.5f;
-			attackObject->scaling.y = object[p].scaling.y * 0.5f;
-			attackObject->scaling.z = object[p].scaling.z * 0.5f;
+			attackObject->scaling.x = player[p].scaling.x * 0.5f;
+			attackObject->scaling.y = player[p].scaling.y * 0.5f;
+			attackObject->scaling.z = player[p].scaling.z * 0.5f;
 		}
 
 		///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1263,11 +1139,10 @@ void Polygon3D_Update()
 		// -------------------------------------------------------------
 		// プレイヤーオブジェクト同士の当たり判定（PLAYER_MAX分対応）
 		// -------------------------------------------------------------
-		// object[p] の AABB は既に計算済み（前方で CalculateAABB(object[p].boundingBox, ... ) を呼んでいる前提）
 		for (int otherIndex = p + 1; otherIndex < PLAYER_MAX; ++otherIndex)
 		{
 			// 非アクティブは無視
-			if (!object[otherIndex].active) continue;
+			if (!player[otherIndex].active) continue;
 
 			// 他プレイヤーのヒットボックススケーリング（向きで長短を切り替える）
 			const float HITBOX_HEIGHT_SCALE = 1.0f;
@@ -1278,7 +1153,7 @@ void Polygon3D_Update()
 			XMFLOAT3 hitboxScalingOther;
 
 			{
-				float radOther = XMConvertToRadians(object[otherIndex].rotation.y);
+				float radOther = XMConvertToRadians(player[otherIndex].rotation.y);
 				float otherFacingX = sinf(radOther);
 				float otherFacingZ = cosf(radOther);
 				bool otherFacingZDominant = fabsf(otherFacingZ) >= fabsf(otherFacingX);
@@ -1287,37 +1162,37 @@ void Polygon3D_Update()
 				float otherDepthScale = otherFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;
 
 				// 第2形態 第3形態はXとZ同じにする
-				if (object[otherIndex].form == Form::Second || object[otherIndex].form == Form::Third)
+				if (player[otherIndex].form == Form::Second || player[otherIndex].form == Form::Third)
 				{
 					widthScale = 0.25f;
 					depthScale = 0.25f;
 				}
 
 				hitboxScalingOther = XMFLOAT3(
-					object[otherIndex].scaling.x * renderScale * otherWidthScale,
-					object[otherIndex].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
-					object[otherIndex].scaling.z * renderScale * otherDepthScale
+					player[otherIndex].scaling.x * renderScale * otherWidthScale,
+					player[otherIndex].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
+					player[otherIndex].scaling.z * renderScale * otherDepthScale
 				);
 			}
 
 			// 他プレイヤーの AABB を更新（ここで定義済みの hitboxScalingOther を使用）
-			CalculateAABB(object[otherIndex].boundingBox, object[otherIndex].position, hitboxScalingOther);
+			CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScalingOther);
 
 			// 衝突チェック（ペア p <-> otherIndex を一度だけ判定）
-			MTV collision_player = CalculateAABBMTV(object[p].boundingBox, object[otherIndex].boundingBox);
+			MTV collision_player = CalculateAABBMTV(player[p].boundingBox, player[otherIndex].boundingBox);
 
 			if (collision_player.isColliding)
 			{
 				// 向きベクトルを更新（rotation.y から算出）
 				{
-					float rad_p = XMConvertToRadians(object[p].rotation.y);
-					object[p].dir.x = sinf(rad_p);
-					object[p].dir.z = cosf(rad_p);
+					float rad_p = XMConvertToRadians(player[p].rotation.y);
+					player[p].dir.x = sinf(rad_p);
+					player[p].dir.z = cosf(rad_p);
 				}
 				{
-					float rad_o = XMConvertToRadians(object[otherIndex].rotation.y);
-					object[otherIndex].dir.x = sinf(rad_o);
-					object[otherIndex].dir.z = cosf(rad_o);
+					float rad_o = XMConvertToRadians(player[otherIndex].rotation.y);
+					player[otherIndex].dir.x = sinf(rad_o);
+					player[otherIndex].dir.z = cosf(rad_o);
 				}
 
 				// 押し戻し量 (MTV) を半分にして双方に適用
@@ -1329,22 +1204,22 @@ void Polygon3D_Update()
 				};
 
 				// object[p] を MTV の半分だけ押す
-				object[p].position.x += half_translation.x;
-				object[p].position.y += half_translation.y;
-				object[p].position.z += half_translation.z;
+				player[p].position.x += half_translation.x;
+				player[p].position.y += half_translation.y;
+				player[p].position.z += half_translation.z;
 
 				// object[otherIndex] を逆方向に半分だけ押す
-				object[otherIndex].position.x -= half_translation.x;
-				object[otherIndex].position.y -= half_translation.y;
-				object[otherIndex].position.z -= half_translation.z;
+				player[otherIndex].position.x -= half_translation.x;
+				player[otherIndex].position.y -= half_translation.y;
+				player[otherIndex].position.z -= half_translation.z;
 
 				// 押し戻し後の新しいAABBを再計算 (ヒットボックスで)
-				CalculateAABB(object[p].boundingBox, object[p].position, hitboxScaling);
-				CalculateAABB(object[otherIndex].boundingBox, object[otherIndex].position, hitboxScalingOther);
+				CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+				CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScalingOther);
 			}
 		}
 
-		SetHPValue(&HPBar[p], (int)object[p].hp, (int)object[p].maxHp);
+		SetHPValue(&HPBar[p], (int)player[p].hp, (int)player[p].maxHp);
 		UpdateHP(&HPBar[p]);
 	}
 	ImGui::End();
@@ -1353,14 +1228,14 @@ void Polygon3D_Update()
 //======================================================
 //	描画関数
 //======================================================
-void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
+void Player_Draw(bool s_IsKonamiCodeEntered)
 {
 	// 攻撃・スキル・スペシャル描画
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		if (object[p].active && object[p].isAttacking)	Attack_Draw(p);
-		if (object[p].active && object[p].useSkill)		Skill_Draw(p);
-		if (object[p].active && object[p].useSpecial)	Special_Draw(p);
+		if (player[p].active && player[p].isAttacking)	Attack_Draw(p);
+		//if (player[p].active && player[p].useSkill)		Skill_Draw(p);
+		if (player[p].active && player[p].useSpecial)	Special_Draw(p);
 	}
 
 	LIGHT light{};
@@ -1399,15 +1274,15 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 	// プレイヤーを描画するラムダ（Projection, View をキャプチャ）
 	auto DrawPlayerInternal = [&](int idx)
 	{
-		if (!object[idx].active) return;
+		if (!player[idx].active) return;
 
 		const float spriteScale = 2.0f;	// 表示倍率
 
 		// ワールド行列（ビルボード風の既存ロジックを踏襲）
 		XMMATRIX ScalingMatrix = XMMatrixScaling(
-			object[idx].scaling.x * spriteScale,
-			object[idx].scaling.y * spriteScale,
-			object[idx].scaling.z * spriteScale
+			player[idx].scaling.x * spriteScale,
+			player[idx].scaling.y * spriteScale,
+			player[idx].scaling.z * spriteScale
 		);
 
 		XMMATRIX vm = GetViewMatrix();	// カメラの行列
@@ -1416,9 +1291,9 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		vm.r[3].m128_f32[2] = 0.0f;
 		vm.r[3].m128_f32[3] = 1.0f;
 		vm = XMMatrixTranspose(vm);
-		vm.r[3].m128_f32[0] = object[idx].position.x;
-		vm.r[3].m128_f32[1] = object[idx].position.y;
-		vm.r[3].m128_f32[2] = object[idx].position.z;
+		vm.r[3].m128_f32[0] = player[idx].position.x;
+		vm.r[3].m128_f32[1] = player[idx].position.y;
+		vm.r[3].m128_f32[2] = player[idx].position.z;
 		vm.r[3].m128_f32[3] = 1.0f;
 
 		// World 行列（ビルボード用）をシェーダーに渡す
@@ -1435,8 +1310,8 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		D3D11_MAPPED_SUBRESOURCE msr;
 
 		// コピー元のvdata をローカル配列にコピーして UV を調整
-		Vertex2 localV[NUM_VERTEX];
-		CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+		Vertex2 localV[PLAYER_VERTEX];
+		CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
 
 		// 現在のフレームから UV を計算
 		int frame = g_animFrame[idx];
@@ -1456,35 +1331,39 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		// バッファへ書き込み
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex2* vertex = (Vertex2*)msr.pData;
-		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * NUM_VERTEX);
+		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
 		g_pContext->Unmap(g_VertexBuffer, 0);
 
 		ID3D11ShaderResourceView* srv = nullptr;
 
 		// 形態とタイプに応じたテクスチャを設定
-		switch (object[idx].form)
+		switch (player[idx].form)
 		{
 		// 第1形態
-		case Form::First:					srv = g_Texture[0];	break;
-		// 第2形態
+		case Form::First:
+				 if(idx == 0)	{ srv = g_Texture[0];	break; }
+			else if(idx == 1)	{ srv = g_Texture[1];	break; }
+			else if(idx == 2)	{ srv = g_Texture[2];	break; }
+			else if(idx == 3)	{ srv = g_Texture[3];	break; }
+			// 第2形態
 		case Form::Second:
-			switch (object[idx].type)
+			switch (player[idx].type)
 			{
-			case PlayerType::Glass:			srv = g_Texture[1];	break;				
-			case PlayerType::Concrete:		srv = g_Texture[2];	break;
-			case PlayerType::Plant:			srv = g_Texture[3];	break;
-			case PlayerType::Electricity:	srv = g_Texture[4];	break;
+			case PlayerType::Glass:			srv = g_Texture[4];	break;				
+			case PlayerType::Concrete:		srv = g_Texture[5];	break;
+			case PlayerType::Plant:			srv = g_Texture[6];	break;
+			case PlayerType::Electricity:	srv = g_Texture[7];	break;
 			default: break;
 			}
 			break;
 		// 第3形態
 		case Form::Third:
-			switch (object[idx].type)
+			switch (player[idx].type)
 			{
-			case PlayerType::Glass:			srv = g_Texture[5];	break;
-			case PlayerType::Concrete:		srv = g_Texture[6];	break;
-			case PlayerType::Plant:			srv = g_Texture[7];	break;
-			case PlayerType::Electricity:	srv = g_Texture[8];	break;
+			case PlayerType::Glass:			srv = g_Texture[8];		break;
+			case PlayerType::Concrete:		srv = g_Texture[9];		break;
+			case PlayerType::Plant:			srv = g_Texture[10];	break;
+			case PlayerType::Electricity:	srv = g_Texture[11];	break;
 			default: break;
 			}
 			break;
@@ -1492,19 +1371,23 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		}
 
 		// スペシャル使用中は専用テクスチャ
-		if (object[idx].useSpecial)			srv = g_Texture[9];
+		if (player[idx].useSpecial)			srv = g_Texture[12];
 
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 
-		// プレイヤーが毒状態なら色を紫に
-		if (object[idx].isPoisoned)
+		// プレイヤーごとに異なる色を設定
+		if (player[idx].isPoisoned)
 		{
-			Shader_SetColor({ 0.8f, 0.4f, 0.8f, 1.0f });
+			switch (idx)
+			{
+			case 0:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
+			case 1:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
+			case 2:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
+			case 3:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
+			default:	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); break;
+			}
 		}
-		else
-		{
-			Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
-		}
+		else			Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // 通常色
 
 		// バッファセット & 描画
 		UINT stride = sizeof(Vertex2);
@@ -1513,6 +1396,9 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6, 0, 0);
+
+		// エフェクト描画
+		Effect_DrawForPlayer(idx);
 	};
 
 	// -----------------------------------
@@ -1523,11 +1409,11 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		if (!object[p].active) continue;
+		if (!player[p].active) continue;
 
-		float dx = object[p].position.x - camPos.x;
-		float dy = object[p].position.y - camPos.y;
-		float dz = object[p].position.z - camPos.z;
+		float dx = player[p].position.x - camPos.x;
+		float dy = player[p].position.y - camPos.y;
+		float dz = player[p].position.z - camPos.z;
 		float dist2 = dx * dx + dy * dy + dz * dz;
 		list.emplace_back(dist2, p);
 	}
@@ -1561,18 +1447,18 @@ void Polygon3D_Draw(bool s_IsKonamiCodeEntered)
 
 			for (int i = 0; i < PLAYER_MAX; i++)
 			{
-				if (!object[i].active) continue;
+				if (!player[i].active) continue;
 
 				// AABBを描画
 				// AABBのMin/Maxは既にワールド座標なので、行列はリセットしたまま描画すればOK
-				Debug_DrawAABB(object[i].boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
+				Debug_DrawAABB(player[i].boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
 			}
 		}
 		//s_IsKonamiCodeEntered = false;
 	}
 }
 
-void Polygon3D_DrawHP()
+void Player_DrawHP()
 {
 	Shader_Begin();
 
@@ -1585,14 +1471,14 @@ void Polygon3D_DrawHP()
 		XMFLOAT2 hp = HPBar[i].pos;
 
 		// 進化が固定されたら、タイプのゲージを最大値で表示する
-		if (object[i].isTypeFixed)
+		if (player[i].isTypeFixed)
 		{
 			float glass = 0.0f;
 			float concrete = 0.0f; 
 			float plant = 0.0f; 
 			float electricity = 0.0f;
 
-			switch (object[i].type)
+			switch (player[i].type)
 			{
 			case PlayerType::Glass:			glass = 1.0f;		break;
 			case PlayerType::Concrete:		concrete = 1.0f;	break;
@@ -1602,81 +1488,81 @@ void Polygon3D_DrawHP()
 			}
 
 			Gauge_Set(i, glass, concrete, plant, electricity,
-				object[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y });
+				player[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y });
 		}
 		else
 		{
 			// 固定前はカウント数をそのまま表示する
-			Gauge_Set(i, object[i].breakCount_Glass, object[i].breakCount_Concrete, object[i].breakCount_Plant, object[i].breakCount_Electricity,
-				object[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y });
+			Gauge_Set(i, player[i].breakCount_Glass, player[i].breakCount_Concrete, player[i].breakCount_Plant, player[i].breakCount_Electricity,
+				player[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y });
 		}
 
 		Gauge_Draw(i);
 
 		Shader_Begin();
 
-		Polygon3D_DrawStock(i);
+		Player_DrawStock(i);
 	}
 }
 
-void Polygon3D_Respawn(int playerIndex)
+void Player_Respawn(int playerIndex)
 {
 	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	// 残機が1つ以上ある場合
-	if (object[playerIndex].active == true)
+	if (player[playerIndex].active == true)
 	{
-		object[playerIndex].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[playerIndex].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		object[playerIndex].maxHp = 500.0f;
-		object[playerIndex].hp = object[0].maxHp;
-		object[playerIndex].attack = 0.0f;
-		object[playerIndex].power = 0.0f;
-		object[playerIndex].speed = 0.0f;
-		object[playerIndex].defense = 1.0f;
-		object[playerIndex].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[playerIndex].active = true;
-		object[playerIndex].isAttacking = false;
-		object[playerIndex].attackTimer = 0.0f;
-		object[playerIndex].isAttacked = false;
-		object[playerIndex].attackedTimer = 0.0f;
-		object[playerIndex].useSkill = false;
-		object[playerIndex].skillTimer = 0.0f;
-		object[playerIndex].skillCoolTimer = 0.0f;
-		object[playerIndex].useSpecial = false;
-		object[playerIndex].specialTimer = 0.0f;
-		object[playerIndex].isInvincible = false;
-		object[playerIndex].invincibleTimer = 0.0f;
-		object[playerIndex].stunGauge = 0.0f;
-		object[playerIndex].isStunning = false;
-		object[playerIndex].stunTimer = 0.0f;
-		object[playerIndex].isDown = false;
-		object[playerIndex].downTimer = 0.0f;
-		object[playerIndex].isPoisoned = false;
-		object[playerIndex].lastDir = PlayerDir::Down; // 正面
-		object[playerIndex].isMoving = false;
-		object[playerIndex].form = Form::First;
-		object[playerIndex].type = PlayerType::None;
-		object[playerIndex].evolutionGauge = 0;
-		object[playerIndex].evolutionGaugeRate = 1.0f;
-		object[playerIndex].breakCount_Glass = 0;
-		object[playerIndex].breakCount_Concrete = 0;
-		object[playerIndex].breakCount_Plant = 0;
-		object[playerIndex].breakCount_Electricity = 0;
-		object[playerIndex].brokenHistory.clear();
-		object[playerIndex].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		object[playerIndex].is_knocked_back = false;
-		object[playerIndex].knockback_duration = 0.0f;
+		player[playerIndex].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		player[playerIndex].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		player[playerIndex].maxHp = 500.0f;
+		player[playerIndex].hp = player[0].maxHp;
+		player[playerIndex].attack = 0.0f;
+		player[playerIndex].power = 0.0f;
+		player[playerIndex].speed = 0.0f;
+		player[playerIndex].defense = 1.0f;
+		player[playerIndex].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		player[playerIndex].active = true;
+		player[playerIndex].isAttacking = false;
+		player[playerIndex].attackTimer = 0.0f;
+		player[playerIndex].isAttacked = false;
+		player[playerIndex].attackedTimer = 0.0f;
+		player[playerIndex].useSkill = false;
+		player[playerIndex].skillTimer = 0.0f;
+		player[playerIndex].skillCoolTimer = 0.0f;
+		player[playerIndex].useSpecial = false;
+		player[playerIndex].specialTimer = 0.0f;
+		player[playerIndex].isInvincible = false;
+		player[playerIndex].invincibleTimer = 0.0f;
+		player[playerIndex].stunGauge = 0.0f;
+		player[playerIndex].isStunning = false;
+		player[playerIndex].stunTimer = 0.0f;
+		player[playerIndex].isDown = false;
+		player[playerIndex].downTimer = 0.0f;
+		player[playerIndex].isPoisoned = false;
+		player[playerIndex].lastDir = PlayerDir::Down; // 正面
+		player[playerIndex].isMoving = false;
+		player[playerIndex].form = Form::First;
+		player[playerIndex].type = PlayerType::None;
+		player[playerIndex].evolutionGauge = 0;
+		player[playerIndex].evolutionGaugeRate = 1.0f;
+		player[playerIndex].breakCount_Glass = 0;
+		player[playerIndex].breakCount_Concrete = 0;
+		player[playerIndex].breakCount_Plant = 0;
+		player[playerIndex].breakCount_Electricity = 0;
+		player[playerIndex].brokenHistory.clear();
+		player[playerIndex].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		player[playerIndex].is_knocked_back = false;
+		player[playerIndex].knockback_duration = 0.0f;
 	}
 
-	if (playerIndex == 0) object[0].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
-	if (playerIndex == 1) object[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
-	if (playerIndex == 2) object[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
-	if (playerIndex == 3) object[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
+	if (playerIndex == 0) player[0].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
+	if (playerIndex == 1) player[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
+	if (playerIndex == 2) player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
+	if (playerIndex == 3) player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 }
 
-static inline void LoopRange(int& animFrame, int start, int count, int advance)
+inline void LoopRange(int& animFrame, int start, int count, int advance)
 {
 	int relative = (animFrame - start + advance) % count;
 	if (relative < 0) relative += count;
@@ -1686,7 +1572,7 @@ static inline void LoopRange(int& animFrame, int start, int count, int advance)
 //==================================
 // 残機描画
 //==================================
-void Polygon3D_DrawStock(int i)
+void Player_DrawStock(int i)
 {
 	Shader_Begin();
 	Shader_BeginUI();
@@ -1696,24 +1582,24 @@ void Polygon3D_DrawStock(int i)
 	float by = HPBar[i].pos.y + 60.0f;
 
 	// プレイヤーごとのストック描画
-	for (int j = 0; j < object[i].stock; j++)
+	for (int j = 0; j < player[i].stock; j++)
 	{
 		// ストック描画変数
 		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
 		XMFLOAT2 size = { 260.0f, 260.0f };
 
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 10]);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 13]);
 	
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(pos, size, color::white);
 	}
 }
 
-void Polygon3D_DrawText()
+void Player_DrawText()
 {
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		if (!object[p].active || !object[p].isOnScreen) continue;
+		if (!player[p].active || !player[p].isOnScreen) continue;
 
 		wchar_t playerLabel[8];
 		swprintf_s(playerLabel, L"P%d", p + 1);
@@ -1744,8 +1630,8 @@ void Polygon3D_DrawText()
 
 		DrawTextEx(
 			playerLabel,
-			object[p].screenPos.x - offsetX,
-			object[p].screenPos.y - 10.0f,	// テキストの高さ分上に表示
+			player[p].screenPos.x - offsetX,
+			player[p].screenPos.y - 10.0f,	// テキストの高さ分上に表示
 			40.0f,							// フォントサイズ
 			L"Impact",
 			textColor
@@ -1757,23 +1643,23 @@ static void Ranking(int playerIndex)
 {
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 	// 二重登録防止
-	if (object[playerIndex].rank != 0) return;
+	if (player[playerIndex].rank != 0) return;
 
 	// 死亡順に追加
 	g_deathOrder.push_back(playerIndex);
 	size_t pos = g_deathOrder.size();
 
 	// 先に死んだプレイヤーが低順位になる（pos=1 -> 4位）
-	object[playerIndex].rank = PLAYER_MAX - (int)(pos - 1);
+	player[playerIndex].rank = PLAYER_MAX - (int)(pos - 1);
 
 	// 最後の一人が確定したら残りを1位にする
 	if (g_deathOrder.size() == (size_t)(PLAYER_MAX - 1))
 	{
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
-			if (object[p].rank == 0)
+			if (player[p].rank == 0)
 			{
-				object[p].rank = 1;
+				player[p].rank = 1;
 				break;
 			}
 		}
@@ -1785,5 +1671,5 @@ PLAYEROBJECT* GetPlayer(int playerIndex)
 	// 範囲チェック 0 1 2 3 以外なら nullptr を返す
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
-	return &object[playerIndex];
+	return &player[playerIndex];
 }
