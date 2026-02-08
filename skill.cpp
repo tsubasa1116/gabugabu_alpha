@@ -35,9 +35,9 @@ static SKILL_OBJECT Skill[PLAYER_MAX];
 static SKILL_GLASS g_SkillGlass[PLAYER_MAX];
 
 // マクロ定義
-#define NUM_VERTEX (24) // 24 頂点（キューブ各面 4 頂点 × 6 面）
+#define SKILL_VERTEX (24) // 24 頂点（キューブ各面 4 頂点 × 6 面）
 
-static Vertex2 Skill_vdata[NUM_VERTEX] =
+static Vertex2 Skill_vdata[SKILL_VERTEX] =
 {
 	// -Z面 (法線: 0,0,-1)
 	{// 頂点0 LEFT-TOP
@@ -299,7 +299,7 @@ void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex2) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
+	bd.ByteWidth = sizeof(Vertex2) * SKILL_VERTEX; // 格納できる頂点数 * 頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -460,12 +460,12 @@ void Skill_Glass_Update(int playerIndex)
 			if (col.isColliding)
 			{
 				// ダメージのみ（ノックバックは与えない） 防御率でダメージ軽減
-				otherPlayer.hp -= 0.1f * otherPlayer.defense;
+				otherPlayer.hp -= SKILL_GLASS_DAMAGE * otherPlayer.defense;
 				// HPが0以下にならないように
 				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
 
 				// スタンゲージ増加
-				otherPlayer.stunGauge += 0.01f;
+				otherPlayer.stunGauge += 0.03f;
 			}
 		}
 	}
@@ -535,12 +535,12 @@ void Skill_Plant_Update(int playerIndex)
 	player.skillTimer += DELTA_TIME;
 
 	// スキル効果：進化ゲージ2倍（デフォルトは1）
-	player.evolutionGaugeRate = 2.0f;
+	player.evolutionGaugeRate = 0.6f;
 
 	// スキルの効果時間が経過したらスキル終了
 	if (player.skillTimer >= SKILL_PLANT_TIME)
 	{
-		player.evolutionGaugeRate = 1.0f;
+		player.evolutionGaugeRate = 0.3f;
 		player.useSkill = false;
 		player.skillTimer = 0.0f;
 		player.skillCoolTimer = SKILL_PLANT_COOLTIME;
@@ -747,7 +747,7 @@ void Skill_Draw(int playerIndex)
 		D3D11_MAPPED_SUBRESOURCE msr;
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex2* vertex = (Vertex2*)msr.pData;
-		CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+		CopyMemory(&vertex[0], &Skill_vdata[0], sizeof(Vertex2) * SKILL_VERTEX);
 		g_pContext->Unmap(g_VertexBuffer, 0);
 
 		// プレイヤーのタイプに合わせて子関数を呼ぶ

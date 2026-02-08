@@ -33,7 +33,7 @@ static ID3D11ShaderResourceView* g_Special_Texture[10];
 static SPECIAL_OBJECT Special[PLAYER_MAX];
 
 // マクロ定義
-#define NUM_VERTEX (24)
+#define SPECIAL_VERTEX (24)
 
 // スペシャル アニメーション用変数
 static int   g_animFrame[PLAYER_MAX];
@@ -42,7 +42,7 @@ static const float ANIM_FRAME_TIME = 0.15f;	// 1フレームあたりの秒数
 static const int   SHEET_COLS = 6;
 static const int   SHEET_ROWS = 6;
 
-static Vertex2 Special_vdata[NUM_VERTEX] =
+static Vertex2 Special_vdata[SPECIAL_VERTEX] =
 {
 	// -Z面 (法線: 0,0,-1)
 	{// 頂点0 LEFT-TOP
@@ -237,7 +237,7 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex2) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
+	bd.ByteWidth = sizeof(Vertex2) * SPECIAL_VERTEX; // 格納できる頂点数 * 頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -936,7 +936,7 @@ void Special_Draw(int playerIndex)
 	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 	Vertex2* vertex = (Vertex2*)msr.pData;
 	// vdata[] はキューブの頂点データを格納した配列を想定
-	CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+	CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
 	g_pContext->Unmap(g_VertexBuffer, 0);
 
 	// プレイヤーの番号に対応するテクスチャをセット
@@ -957,7 +957,7 @@ void Special_Draw(int playerIndex)
 	vertex = (Vertex2*)msr.pData;
 
 	// 全体のデータをコピー
-	CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+	CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
 
 	// +Y面のUV座標を調整
 	vertex[16].tex = XMFLOAT2(u0, v0); // LEFT-TOP
