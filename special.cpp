@@ -469,6 +469,7 @@ void Special_Glass_Update(int playerIndex)
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
         Effect_Clear(playerIndex);          // エフェクトクリア
+		player.isTypeFixed = false;         // タイプ固定解除
 	}
 }
 
@@ -549,6 +550,7 @@ void Special_Concrete_Update(int playerIndex)
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
 		Effect_Clear(playerIndex);          // エフェクトクリア
+		player.isTypeFixed = false;         // タイプ固定解除
 	}
 }
 
@@ -605,6 +607,7 @@ void Special_Plant_Update(int playerIndex)
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
 		Effect_Clear(playerIndex);          // エフェクトクリア
+		player.isTypeFixed = false;         // タイプ固定解除
 	}
 }
 
@@ -695,6 +698,7 @@ void Special_Electricity_Update(int playerIndex)
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
 		Effect_Clear(playerIndex);          // エフェクトクリア
+		player.isTypeFixed = false;         // タイプ固定解除
 	}
 }
 

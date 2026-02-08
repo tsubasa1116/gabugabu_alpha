@@ -1504,11 +1504,11 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		// プレイヤーが毒状態なら色を紫に
 		if (player[idx].isPoisoned)
 		{
-			Shader_SetColor({ 0.8f, 0.4f, 0.8f, 1.0f });
+			Shader_SetColor(color::purple);
 		}
 		else
 		{
-			Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
+			Shader_SetColor(color::white);
 		}
 
 		// バッファセット & 描画
@@ -1664,7 +1664,7 @@ void Player_Respawn(int playerIndex)
 		player[playerIndex].form = Form::First;
 		player[playerIndex].type = PlayerType::None;
 		player[playerIndex].evolutionGauge = 0;
-		player[playerIndex].evolutionGaugeRate = 1.0f;
+		player[playerIndex].evolutionGaugeRate = 0.3f;
 		player[playerIndex].breakCount_Glass = 0;
 		player[playerIndex].breakCount_Concrete = 0;
 		player[playerIndex].breakCount_Plant = 0;
@@ -1673,6 +1673,7 @@ void Player_Respawn(int playerIndex)
 		player[playerIndex].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		player[playerIndex].is_knocked_back = false;
 		player[playerIndex].knockback_duration = 0.0f;
+		player[playerIndex].isTypeFixed = false;
 	}
 
 	if (playerIndex == 0) player[0].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);

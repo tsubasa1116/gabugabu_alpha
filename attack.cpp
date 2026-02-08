@@ -18,6 +18,8 @@ using namespace DirectX;
 #include "input.h"
 #include "hp.h"
 
+#include "color.h"
+
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
@@ -650,7 +652,7 @@ void Attack_Draw(int playerIndex)
 
 	// 不透明で描画するためブレンドを無効化し、描画カラーのアルファを1に固定する
 	SetBlendState(BLENDSTATE_NONE);
-	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+	Shader_SetColor(color::white);
 
 	// 頂点シェーダーを描画パイプラインへ設定
 	D3D11_MAPPED_SUBRESOURCE msr;

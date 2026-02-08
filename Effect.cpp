@@ -186,7 +186,7 @@ void Effect_Draw()
 	Shader_Begin();
 	Shader_BeginUI();
 
-	Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
+	Shader_SetColor(color::white);
 
 	SetBlendState(BLENDSTATE_ALPHA);
 
