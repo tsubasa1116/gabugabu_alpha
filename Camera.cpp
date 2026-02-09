@@ -12,15 +12,30 @@
 
 // グローバル変数
 static CAMERA	CameraObject;
-static XMFLOAT3	g_BallPosOld;
-const float		CAMERA_MOVE_SPEED = 0.2f;
-static XMFLOAT3	s_TargetPos;			// 目標カメラ位置
-static XMFLOAT3	s_TargetAt;				// 目標注視点位置
-static bool		s_IsLerping = false;	// Lerp中かどうか
-static float	s_LerpTime = 0.0f;		// Lerpの進捗度 (0.0fから1.0fへ変化)
-const float		LERP_SPEED = 0.05f;		// Lerpの速さ (毎フレーム進む割合)
+const float		CAMERA_MOVE_SPEED = 0.2f; // カメラ移動速度
+static XMFLOAT3	s_TargetPos;			  // 目標カメラ位置
+static XMFLOAT3	s_TargetAt;				  // 目標注視点位置
+static float	s_TargetFov = 45.0f;	  // 目標fov（平行投影幅としても使用）
+static bool		s_IsLerping = false;	  // 目標と現在が十分に離れているか
+const float		SMOOTH_FACTOR = 0.15f;	  // 1フレームあたりの進行率で、大きいほど速く追従する
+const float		FOV_SMOOTH_FACTOR = 0.12f;// FOVの追従速度
+const float		TARGET_EPSILON = 0.001f;  // 目標到達判定の閾値
 
 CAMERAMODE cameraMode = CAMERAMODE_MANUAL;
+
+static inline XMFLOAT3 LerpFloat3(const XMFLOAT3& a, const XMFLOAT3& b, float t)
+{
+	return XMFLOAT3(
+		a.x + (b.x - a.x) * t,
+		a.y + (b.y - a.y) * t,
+		a.z + (b.z - a.z) * t
+	);
+}
+
+static inline float LerpFloat(float a, float b, float t)
+{
+	return a + (b - a) * t;
+}
 
 void Camera_Initialize()
 {
@@ -39,7 +54,11 @@ void Camera_Initialize()
 	CameraObject.nearClip = 0.5f;
 	CameraObject.farClip = 1000.0f;
 
-	//g_BallPosOld = GetBallPosition();
+	// 初期の目標値を現在値に合わせる
+	s_TargetPos = CameraObject.position;
+	s_TargetAt = CameraObject.atPosition;
+	s_TargetFov = CameraObject.fov;
+
 }
 
 void Camera_Finalize()
@@ -51,7 +70,7 @@ void Camera_Update()
 {
 	if(cameraMode == CAMERAMODE_MANUAL)
 	{
-		// カメラ移動方向ベクトル
+		// カメラ移動方向ベクトル（目標値へ加算する）
 		XMFLOAT3 vec = {};
 		if (Keyboard_IsKeyDown(KK_I))
 		{
@@ -106,34 +125,35 @@ void Camera_Update()
 			vec.z /= len;
 		}
 		
-		// 移動量ベクトル
+		// 移動量ベクトル（目標値へ加算）
 		vec.x *= CAMERA_MOVE_SPEED;
 		vec.y *= CAMERA_MOVE_SPEED * 0.1f;
 		vec.z *= CAMERA_MOVE_SPEED;
 	
-		// 座標と注視点へ移動量を加算
-		CameraObject.position.x += vec.x;
-		CameraObject.position.y += vec.y;
-		CameraObject.position.z += vec.z;
-		CameraObject.atPosition.x += vec.x;
-		CameraObject.atPosition.y += vec.y;
-		CameraObject.atPosition.z += vec.z;
+		// 直接現在値に加算せず目標値に加算する（滑らかに追従するため）
+		s_TargetPos.x += vec.x;
+		s_TargetPos.y += vec.y;
+		s_TargetPos.z += vec.z;
+
+		s_TargetAt.x += vec.x;
+		s_TargetAt.y += vec.y;
+		s_TargetAt.z += vec.z;
 	
-		// fovの変更
+		// fovの変更（目標FOVを変更）
 		if (Keyboard_IsKeyDown(KK_Z))
 		{
-			CameraObject.fov += 0.3f;
-			if (CameraObject.fov > 160.0f)
+			s_TargetFov += 0.3f;
+			if (s_TargetFov > 160.0f)
 			{
-				CameraObject.fov = 160.0f;
+				s_TargetFov = 160.0f;
 			}
 		}
 		if (Keyboard_IsKeyDown(KK_X))
 		{
-			CameraObject.fov -= 0.3f;
-			if (CameraObject.fov < 5.0f)
+			s_TargetFov -= 0.3f;
+			if (s_TargetFov < 5.0f)
 			{
-				CameraObject.fov = 5.0f;
+				s_TargetFov = 5.0f;
 			}
 		}
 	
@@ -152,87 +172,47 @@ void Camera_Update()
 			// 視点インデックスをインクリメントし、全視点数で割った余りを取る（ループ処理）
 			s_CurrentViewIndex = (s_CurrentViewIndex + 1) % NUM_VIEWS;
 	
-			// Lerp開始フラグを立て、時間をリセット
+			// Lerp開始フラグを立てる
 			s_IsLerping = true;
-			s_LerpTime = 0.0f;
 	
-			// カメラ移動による注視点の保存 (注視点(AtPosition)は第1形態プレイヤー位置)
+			// カメラ移動による注視点の保存 (注視点は第1形態プレイヤー位置)
 			float current_at_x = CameraObject.atPosition.x;
 			float current_at_y = CameraObject.atPosition.y;
 			float current_at_z = CameraObject.atPosition.z;
 	
-			// --- 目標視点の設定 ---
+			// 目標視点の設定
 			switch (s_CurrentViewIndex)
 			{
-			case 0: // 第1形態視点 (Normal View)
+			case 0: // 第1形態視点
 				s_TargetPos = XMFLOAT3(current_at_x, current_at_y + 10.0f, current_at_z - 10.0f);
 				s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z);
 				break;
 	
-			case 1: // トップダウン視点 (Top Down View)
-				// Z座標をわずかにずらすことで、DirectXのView MatrixがZ軸と平行にならないようにする
+			case 1: // トップダウン視点
+				// Z座標をずらして、DirectXのViewMatrixがZ軸と平行にならないようにする
 				s_TargetPos = XMFLOAT3(current_at_x, current_at_y + 10.0f, current_at_z - 0.00001f);
 				s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z);
 				break;
 	
-			case 2: // 新しい斜め上視点 (High Angle View)
+			case 2: // 新しい斜め上視点 
 				s_TargetPos = XMFLOAT3(current_at_x, 0.0f, current_at_z - 0.00001f); // XZ平面で斜めに配置、Yを高く
 				s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z); // 注視点は変わらず
 				break;
 			}
 		}
-		// ------------------------------------------------------------------
-	
-		// ------------------------------------------------------------------
-		// Lerpによるカメラ位置の更新処理
-		// ------------------------------------------------------------------
-		if (s_IsLerping)	// Lerpフラグが立った時
-		{
-			// 時間を進める
-			s_LerpTime += LERP_SPEED;
-	
-			// 1.0fを超えないようにクランプする
-			if (s_LerpTime >= 1.0f)
-			{
-				s_LerpTime = 1.0f;
-				s_IsLerping = false; // Lerp終了！
-			}
-	
-			// Lerpを実行
-			// 現在のカメラ位置 = 現在の位置 + (目標位置 - 現在の位置) * 進捗度t
-	
-			// 視点位置の補間
-			XMFLOAT3 currentPos = CameraObject.position;
-			XMFLOAT3 nextPos = {
-				currentPos.x + (s_TargetPos.x - currentPos.x) * s_LerpTime,
-				currentPos.y + (s_TargetPos.y - currentPos.y) * s_LerpTime,
-				currentPos.z + (s_TargetPos.z - currentPos.z) * s_LerpTime
-			};
-	
-			// 注視点位置の補間
-			XMFLOAT3 currentAt = CameraObject.atPosition;
-			XMFLOAT3 nextAt = {
-				currentAt.x + (s_TargetAt.x - currentAt.x) * s_LerpTime,
-				currentAt.y + (s_TargetAt.y - currentAt.y) * s_LerpTime,
-				currentAt.z + (s_TargetAt.z - currentAt.z) * s_LerpTime
-			};
-	
-			SetCameraPosition(nextPos);
-			SetCameraAtPosition(nextAt);
-		}
-		// ------------------------------------------------------------------
-	
-		// カメラのリセット
+
+		// カメラのリセット（目標にリセット値を与える）
 		if (Keyboard_IsKeyDown(KK_R))
 		{
 			XMFLOAT3 pos = XMFLOAT3(0.0f, 10.0f, -10.0f);
 			XMFLOAT3 at = XMFLOAT3(0.0f, 0.0f, 0.0f);
 			XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
-			SetCameraPosition(pos);
-			SetCameraAtPosition(at);
+			// 目標値をリセット
+			s_TargetPos = pos;
+			s_TargetAt = at;
 			SetCameraUpVector(up);
-	
-			CameraObject.fov = 45.0f;
+
+			s_TargetFov = 45.0f;
 		}
 
 		if (Keyboard_IsKeyDown(KK_M))
@@ -244,6 +224,38 @@ void Camera_Update()
 	else if(cameraMode == CAMERAMODE_AUTO)
 	{
 		Camera_UpdateAuto();
+	}
+
+	// 毎フレームの滑らか補間（目標値へ追従する）
+	// 位置と注視点の補間
+	CameraObject.position = LerpFloat3(CameraObject.position, s_TargetPos, SMOOTH_FACTOR);
+	CameraObject.atPosition = LerpFloat3(CameraObject.atPosition, s_TargetAt, SMOOTH_FACTOR);
+
+	// fovの補間
+	CameraObject.fov = LerpFloat(CameraObject.fov, s_TargetFov, FOV_SMOOTH_FACTOR);
+
+	// 到達判定（目標とほぼ同じなら完全に一致させる）
+	auto closeEnough = [](const XMFLOAT3& a, const XMFLOAT3& b)->bool
+	{
+		float dx = a.x - b.x;
+		float dy = a.y - b.y;
+		float dz = a.z - b.z;
+		return (dx*dx + dy*dy + dz*dz) <= (TARGET_EPSILON * TARGET_EPSILON);
+	};
+
+	if (closeEnough(CameraObject.position, s_TargetPos) && closeEnough(CameraObject.atPosition, s_TargetAt)
+		&& fabsf(CameraObject.fov - s_TargetFov) <= TARGET_EPSILON)
+	{
+		// 完全に一致させてフラグ解除
+		CameraObject.position = s_TargetPos;
+		CameraObject.atPosition = s_TargetAt;
+		CameraObject.fov = s_TargetFov;
+		s_IsLerping = false;
+	}
+	else
+	{
+		// いずれかが未到達ならフラグオン
+		s_IsLerping = true;
 	}
 
 	return;
@@ -275,10 +287,10 @@ void Camera_UpdateAuto()
 		center.z /= (float)playerCount;
 	}
 
-	// 注視点は中心
-	CameraObject.atPosition = center;
-	// カメラの位置を調整して、平行投影の立体感を表現する
-	CameraObject.position = { center.x + 5.0f, center.y + 10.0f, center.z - 10.0f };
+	// 注視点は中心（目標に設定）
+	s_TargetAt = center;
+	// カメラの目標位置を調整して、平行投影の立体感を表現する（即時代入しない）
+	s_TargetPos = XMFLOAT3(center.x + 2.0f, center.y + 10.0f, center.z - 10.0f);
 
 	// 平行投影用の表示範囲計算
 	float spreadX = maxX - minX;
@@ -293,10 +305,10 @@ void Camera_UpdateAuto()
 	float targetWidth = maxSpread + margin;
 
 	// ズームの最小値
-	if (targetWidth < 25.0f) targetWidth = 25.0f;
+	if (targetWidth < 12.0f) targetWidth = 12.0f;
 
-	// fovを平行投影の幅として利用
-	CameraObject.fov = targetWidth;
+	// fovを平行投影の幅として利用（目標FOVに設定）
+	s_TargetFov = targetWidth;
 }
 
 
@@ -322,16 +334,16 @@ void Camera_Draw()
 	CameraObject.view = XMMatrixLookAtLH(vpos, vAt, vUp);
 }
 
-void	SetCameraFov(float fov)			{ CameraObject.fov = fov; }
-void	SetCameraAspect(float asp)		{ CameraObject.aspect = asp; }
-void	SetCameraClip(float n, float f)	{ CameraObject.nearClip = n; CameraObject.farClip = f; }
+void SetCameraFov(float fov)         { CameraObject.fov = fov; s_TargetFov = fov; }
+void SetCameraAspect(float asp)      { CameraObject.aspect = asp; }
+void SetCameraClip(float n, float f) { CameraObject.nearClip = n; CameraObject.farClip = f; }
 
-void	SetCameraPosition(XMFLOAT3 pos)	{ CameraObject.position = pos; }
-void	SetCameraAtPosition(XMFLOAT3 at) { CameraObject.atPosition = at; }
-void	SetCameraUpVector(XMFLOAT3 up)	{ CameraObject.upVector = up; }
+void SetCameraPosition(XMFLOAT3 pos)  { CameraObject.position = pos; s_TargetPos = pos; }
+void SetCameraAtPosition(XMFLOAT3 at) { CameraObject.atPosition = at; s_TargetAt = at; }
+void SetCameraUpVector(XMFLOAT3 up)	  { CameraObject.upVector = up; }
 
-XMMATRIX	GetViewMatrix()			{ return	CameraObject.view; }
-XMMATRIX	GetProjectionMatrix()	{ return	CameraObject.projection; }
+XMMATRIX GetViewMatrix()        { return	CameraObject.view; }
+XMMATRIX GetProjectionMatrix()	{ return	CameraObject.projection; }
 
 
 

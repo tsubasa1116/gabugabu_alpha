@@ -32,6 +32,9 @@ void Shader_SetOutGauge(float value, XMFLOAT4 color);
 void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed);
 void Shader_SetColor(const XMFLOAT4& color);
 
+// 線形補間カラー設定　mulColor=乗算色、lerpColor=補間する色、lerpFactor=補間の度合い
+void Shader_SetColorLerp(const XMFLOAT4& mulColor, const XMFLOAT4& lerpColor, float lerpFactor);
+
 void Shader_BeginDebugColor();
 
 void Shader_SetGaugeTextures();

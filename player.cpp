@@ -1385,14 +1385,15 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		{
 			switch (idx)
 			{
-			case 0:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
-			case 1:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
-			case 2:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
-			case 3:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
-			default:	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); break;
+			// Lerp = 1.乗算色 2.補間する色 3.補間の度合い
+			case 0:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 1:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 2:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 3:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			default:	Shader_SetColor(color::white); break;
 			}
 		}
-		else			Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // 通常色
+		else			Shader_SetColor(color::white); // 通常色
 
 		// バッファセット & 描画
 		UINT stride = sizeof(Vertex2);
@@ -1402,7 +1403,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6, 0, 0);
 
-		// エフェクト描画
+		// エフェクト描画q
 		Effect_DrawForPlayer(idx);
 	};
 
@@ -1685,5 +1686,7 @@ void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float sp
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	SetHPShake(&HPBar[playerIndex], amplitude, duration, speed);
+	
+		SetHPShake(&HPBar[playerIndex], amplitude, duration, speed, playerIndex + 6);
+	
 }

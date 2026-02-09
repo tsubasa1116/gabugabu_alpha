@@ -25,6 +25,8 @@ struct hp {
 	float shakeAmplitude;   // 振幅
 	float shakeSpeed;       // 振動速度
 	int gaugeIndex;
+
+	int shakeTexNum;        // シェイク中に使うテクスチャ番号（-1で無効）
 };
 
 //=============================================
@@ -37,6 +39,7 @@ void SetHPValue(hp* bar, int currentHP, int maxHP);
 void FinalizeHP(hp* bar);
 
 // シェイク　フレーム単位（duration）とピクセル（amplitude）
-void SetHPShake(hp* bar, float amplitude = 8.0f, float duration = 15.0f, float speed = 1.5f);
+// 追加: int shakeTexNum = -1 を渡すと、シェイク中にそのテクスチャを使用する
+void SetHPShake(hp* bar, float amplitude = 8.0f, float duration = 15.0f, float speed = 1.5f, int shakeTexNum = -1);
 hp* GetHPBar(int HPIndex);
 

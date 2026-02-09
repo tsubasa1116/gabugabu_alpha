@@ -772,7 +772,7 @@ void AttackPlayerCollisions()
 				defender.hp -= rawDamage;
 				if (defender.hp < 0.0f) defender.hp = 0.0f;
 
-				TriggerbyHPShake(def, 8.0f,10.0f,1.5f);
+				TriggerbyHPShake(def, 8.0f,20.0f,1.5f);
 
 				// スタンゲージ増加
 				defender.stunGauge += 0.5f;

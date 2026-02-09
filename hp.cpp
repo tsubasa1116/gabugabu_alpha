@@ -35,6 +35,7 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	bar->shakeAmplitude = 0.0f;
 	bar->shakeSpeed = 0.0f;
 	bar->gaugeIndex = -1;
+	bar->shakeTexNum = -1; // シェイク中の代替テクスチャなし
 
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -65,6 +66,23 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
 	assert(g_Texture[5]);//読み込み失敗時にダイアログを表示
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[6]);
+	assert(g_Texture[6]);//読み込み失敗時にダイアログを表示
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[7]);
+	assert(g_Texture[7]);//読み込み失敗時にダイアログを表示
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[8]);
+	assert(g_Texture[8]);//読み込み失敗時にダイアログを表示
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[9]);
+	assert(g_Texture[9]);//読み込み失敗時にダイアログを表示
+
 }
 
 // -------------------------------------------------------------
@@ -191,7 +209,13 @@ void DrawHP(const hp* bar, int texNum)
 	XMFLOAT2 fillSizeOK = { fillSize.x / 1.88f, fillSize.y};
 	XMFLOAT2 fillPosOK = { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, drawPos.y};
 	
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNum]);
+	// シェイク中なら代替テクスチャを使う（設定されている場合）
+	int backTexIndex = texNum;
+	if (bar->shakeTimer > 0.0f && bar->shakeTexNum >= 0) {
+		backTexIndex = bar->shakeTexNum;
+	}
+
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture[backTexIndex]);
 	DrawSprite(backPos, backSize, bar->backColor);
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
@@ -216,7 +240,7 @@ void SetHPValue(hp* bar, int currentHP, int maxHP)
 }
 
 // シェイク
-void SetHPShake(hp* bar, float amplitude, float duration, float speed)
+void SetHPShake(hp* bar, float amplitude, float duration, float speed, int shakeTexNum)
 {
 	if (!bar) return;
 	if (duration <= 0.0f)
@@ -227,6 +251,7 @@ void SetHPShake(hp* bar, float amplitude, float duration, float speed)
 		bar->shakeAmplitude = 0.0f;
 		bar->shakeSpeed = 0.0f;
 		bar->shakeOffset = { 0.0f, 0.0f };
+		bar->shakeTexNum = -1;
 		return;
 	}
 
@@ -234,6 +259,7 @@ void SetHPShake(hp* bar, float amplitude, float duration, float speed)
 	bar->shakeDuration = duration;
 	bar->shakeSpeed = speed;
 	bar->shakeTimer = duration; // 残りフレームをdurationでセット
+	bar->shakeTexNum = shakeTexNum; // シェイク中に使うテクスチャ（-1で無効）
 	// 初期オフセットはUpdateHPで設定される
 }
 

@@ -67,7 +67,10 @@ struct OUTGAUGEBUFFER
 
 struct COLORBUFFER
 {
-	XMFLOAT4 setColor;
+	XMFLOAT4 setColor;   // 乗算用カラー
+	XMFLOAT4 lerpColor;  // 線形補間用カラー
+	float lerpFactor;    // 補間係数
+	float pad[3];
 };
 
 struct HPBERBUFFER
@@ -603,4 +606,22 @@ void Shader_BeginDebugColor()
 
 	Shader_SetColor(color::red);
 
+}
+
+// 線形補間カラー設定
+void Shader_SetColorLerp(const XMFLOAT4& mulColor, const XMFLOAT4& lerpColor, float lerpFactor)
+{
+	if (!g_pColorBuffer) return;
+
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	g_pContext->Map(g_pColorBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+
+	COLORBUFFER cb{};
+	cb.setColor = mulColor;
+	cb.lerpColor = lerpColor;
+	cb.lerpFactor = lerpFactor;
+	memcpy(mapped.pData, &cb, sizeof(cb));
+
+	g_pContext->Unmap(g_pColorBuffer, 0);
+	g_pContext->PSSetConstantBuffers(1, 1, &g_pColorBuffer);
 }

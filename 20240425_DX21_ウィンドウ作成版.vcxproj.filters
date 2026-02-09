@@ -321,5 +321,6 @@
     <None Include="imgui.ini">
       <Filter>外部ファイル</Filter>
     </None>
+    <None Include="Effect" />
   </ItemGroup>
 </Project>
