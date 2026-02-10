@@ -302,5 +302,10 @@ void	SetCameraUpVector(XMFLOAT3 up)	{ CameraObject.upVector = up; }
 XMMATRIX	GetViewMatrix()			{ return	CameraObject.view; }
 XMMATRIX	GetProjectionMatrix()	{ return	CameraObject.projection; }
 
+DirectX::XMFLOAT3 GetCameraPosition()
+{
+	return DirectX::XMFLOAT3();
+}
+
 
 

@@ -26,7 +26,7 @@
 #include "fade.h"
 #include "DamageText.h"
 #include "direct3d.h"
-
+#include "SkyBall.h"
 //======================================================
 //	構造謡宣言
 //======================================================
@@ -102,6 +102,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Special_Initialize(pDevice, pContext);
 	Camera_Initialize();
 	DamageText_Initialize();
+	SkyBall_Initialize(pDevice, pContext);
 
 	//BallInitialize(pDevice, pContext);
 	//P_Initialize(pDevice, pContext);		// プレイヤーの初期化
@@ -140,6 +141,7 @@ void Game_Finalize()
 	Attack_Finalize();
 	Skill_Finalize();
 	Special_Finalize();
+	SkyBall_Finalize();
 	
 	//BallFinalize();
 	//P_Finalize();
@@ -172,7 +174,7 @@ void Game_Update()
 	Effect_Update();
 	Gauge_Update();
 	Camera_Update();	// プレイヤーの更新の後に呼ぶ
-
+	SkyBall_Update();
 	//BallUpdate();
 	//P_Update();
 	//Score_Update();
@@ -197,6 +199,7 @@ void Game_Draw()
 	SetDepthTest(TRUE);
 
 	Camera_Draw();	// Drawの最初で呼ぶ！
+	SkyBall_Draw();
 	Field_Draw(s_IsKonamiCodeEntered);
 	Polygon3D_Draw(s_IsKonamiCodeEntered);
 
