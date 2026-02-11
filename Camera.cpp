@@ -9,17 +9,18 @@
 #include "Ball.h"
 #include "Player.h"
 #include "input.h"
+#include "imgui.h"
 
 // グローバル変数
-static CAMERA	CameraObject;
-const float		CAMERA_MOVE_SPEED = 0.2f; // カメラ移動速度
-static XMFLOAT3	s_TargetPos;			  // 目標カメラ位置
-static XMFLOAT3	s_TargetAt;				  // 目標注視点位置
-static float	s_TargetFov = 45.0f;	  // 目標fov（平行投影幅としても使用）
-static bool		s_IsLerping = false;	  // 目標と現在が十分に離れているか
-const float		SMOOTH_FACTOR = 0.15f;	  // 1フレームあたりの進行率で、大きいほど速く追従する
-const float		FOV_SMOOTH_FACTOR = 0.12f;// FOVの追従速度
-const float		TARGET_EPSILON = 0.001f;  // 目標到達判定の閾値
+static CAMERA   CameraObject;
+const float     CAMERA_MOVE_SPEED = 0.2f; // カメラ移動速度
+static XMFLOAT3 s_TargetPos;              // 目標カメラ位置
+static XMFLOAT3 s_TargetAt;               // 目標注視点位置
+static float    s_TargetFov = 45.0f;      // 目標fov
+static bool     s_IsLerping = false;      // 目標と現在が十分に離れているか
+const float     SMOOTH_FACTOR = 0.5f;     // 1フレームあたりの進行率で、大きいほど速く追従する
+const float     FOV_SMOOTH_FACTOR = 0.15f;// fovの追従速度
+const float     TARGET_EPSILON = 0.001f;  // 目標到達判定の閾値(しきいち)
 
 CAMERAMODE cameraMode = CAMERAMODE_MANUAL;
 
@@ -70,7 +71,6 @@ void Camera_Update()
 {
 	if(cameraMode == CAMERAMODE_MANUAL)
 	{
-		// カメラ移動方向ベクトル（目標値へ加算する）
 		XMFLOAT3 vec = {};
 		if (Keyboard_IsKeyDown(KK_I))
 		{
@@ -119,7 +119,7 @@ void Camera_Update()
 		// vecの正規化
 		float len = sqrtf(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
 		if (len != 0.0f)
-		{	// 0除算回避
+		{	// 0で割らないようにする
 			vec.x /= len;
 			vec.y /= len;
 			vec.z /= len;
@@ -130,7 +130,7 @@ void Camera_Update()
 		vec.y *= CAMERA_MOVE_SPEED * 0.1f;
 		vec.z *= CAMERA_MOVE_SPEED;
 	
-		// 直接現在値に加算せず目標値に加算する（滑らかに追従するため）
+		// 現在の値に加算せず、目標値に加算する（滑らかに追従するため）
 		s_TargetPos.x += vec.x;
 		s_TargetPos.y += vec.y;
 		s_TargetPos.z += vec.z;
@@ -139,7 +139,7 @@ void Camera_Update()
 		s_TargetAt.y += vec.y;
 		s_TargetAt.z += vec.z;
 	
-		// fovの変更（目標FOVを変更）
+
 		if (Keyboard_IsKeyDown(KK_Z))
 		{
 			s_TargetFov += 0.3f;
@@ -157,9 +157,7 @@ void Camera_Update()
 			}
 		}
 	
-		// ------------------------------------------------------------------
-		// 視点切り替え
-		// ------------------------------------------------------------------
+	
 		// 視点を切り替えるフラグ
 		static int s_CurrentViewIndex = 0;
 	
@@ -175,7 +173,7 @@ void Camera_Update()
 			// Lerp開始フラグを立てる
 			s_IsLerping = true;
 	
-			// カメラ移動による注視点の保存 (注視点は第1形態プレイヤー位置)
+			// 注視点を保存 (注視点は第1形態のプレイヤー位置)
 			float current_at_x = CameraObject.atPosition.x;
 			float current_at_y = CameraObject.atPosition.y;
 			float current_at_z = CameraObject.atPosition.z;
@@ -185,31 +183,29 @@ void Camera_Update()
 			{
 			case 0: // 第1形態視点
 				s_TargetPos = XMFLOAT3(current_at_x, current_at_y + 10.0f, current_at_z - 10.0f);
-				s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z);
+				s_TargetAt  = XMFLOAT3(current_at_x, current_at_y, current_at_z);
 				break;
 	
 			case 1: // トップダウン視点
-				// Z座標をずらして、DirectXのViewMatrixがZ軸と平行にならないようにする
-				s_TargetPos = XMFLOAT3(current_at_x, current_at_y + 10.0f, current_at_z - 0.00001f);
-				s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z);
+				s_TargetPos = XMFLOAT3(current_at_x, current_at_y + 10.0f, current_at_z - 0.001f);
+				s_TargetAt  = XMFLOAT3(current_at_x, current_at_y, current_at_z);
 				break;
 	
-			case 2: // 新しい斜め上視点 
-				s_TargetPos = XMFLOAT3(current_at_x, 0.0f, current_at_z - 0.00001f); // XZ平面で斜めに配置、Yを高く
-				s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z); // 注視点は変わらず
+			case 2: // 斜め上視点 
+				s_TargetPos = XMFLOAT3(current_at_x, 0.0f, current_at_z - 0.001f);
+				s_TargetAt  = XMFLOAT3(current_at_x, current_at_y, current_at_z);
 				break;
 			}
 		}
 
-		// カメラのリセット（目標にリセット値を与える）
 		if (Keyboard_IsKeyDown(KK_R))
 		{
 			XMFLOAT3 pos = XMFLOAT3(0.0f, 10.0f, -10.0f);
-			XMFLOAT3 at = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
+			XMFLOAT3 at  = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			XMFLOAT3 up  = XMFLOAT3(0.0f, 1.0f, 0.0f);
 			// 目標値をリセット
 			s_TargetPos = pos;
-			s_TargetAt = at;
+			s_TargetAt  = at;
 			SetCameraUpVector(up);
 
 			s_TargetFov = 45.0f;
@@ -226,16 +222,16 @@ void Camera_Update()
 		Camera_UpdateAuto();
 	}
 
-	// 毎フレームの滑らか補間（目標値へ追従する）
+	// 毎フレームの補間（目標値へ追従する）
 	// 位置と注視点の補間
-	CameraObject.position = LerpFloat3(CameraObject.position, s_TargetPos, SMOOTH_FACTOR);
+	CameraObject.position   = LerpFloat3(CameraObject.position, s_TargetPos, SMOOTH_FACTOR);
 	CameraObject.atPosition = LerpFloat3(CameraObject.atPosition, s_TargetAt, SMOOTH_FACTOR);
 
 	// fovの補間
 	CameraObject.fov = LerpFloat(CameraObject.fov, s_TargetFov, FOV_SMOOTH_FACTOR);
 
-	// 到達判定（目標とほぼ同じなら完全に一致させる）
-	auto closeEnough = [](const XMFLOAT3& a, const XMFLOAT3& b)->bool
+	// 目標とほぼ同じなら完全に一致させる判定
+	auto nearCheck = [](const XMFLOAT3& a, const XMFLOAT3& b)->bool
 	{
 		float dx = a.x - b.x;
 		float dy = a.y - b.y;
@@ -243,8 +239,9 @@ void Camera_Update()
 		return (dx*dx + dy*dy + dz*dz) <= (TARGET_EPSILON * TARGET_EPSILON);
 	};
 
-	if (closeEnough(CameraObject.position, s_TargetPos) && closeEnough(CameraObject.atPosition, s_TargetAt)
-		&& fabsf(CameraObject.fov - s_TargetFov) <= TARGET_EPSILON)
+	if (nearCheck(CameraObject.position, s_TargetPos) && 
+		nearCheck(CameraObject.atPosition, s_TargetAt) && 
+		fabsf(CameraObject.fov - s_TargetFov) <= TARGET_EPSILON)
 	{
 		// 完全に一致させてフラグ解除
 		CameraObject.position = s_TargetPos;
@@ -254,7 +251,7 @@ void Camera_Update()
 	}
 	else
 	{
-		// いずれかが未到達ならフラグオン
+		// いずれかが未到達ならtrue
 		s_IsLerping = true;
 	}
 
@@ -287,10 +284,44 @@ void Camera_UpdateAuto()
 		center.z /= (float)playerCount;
 	}
 
-	// 注視点は中心（目標に設定）
+	static float camera_offset_x = 0.0f;
+	static float camera_offset_y = 10.0f;
+	static float camera_offset_z = -10.0f;
+
+	ImGui::Begin("CameraOffset");
+	ImGui::SliderFloat("X", &camera_offset_x, -20.0f, 20.0f, "%.1f");
+	ImGui::SliderFloat("Y", &camera_offset_y,  0.0f,  30.0f, "%.1f");
+	ImGui::SliderFloat("Z", &camera_offset_z, -30.0f, 30.0f, "%.1f");
+
+	// リセットボタン
+	if (ImGui::Button("Reset"))
+	{
+		camera_offset_x = 0.0f;
+		camera_offset_y = 10.0f;
+		camera_offset_z = -10.0f;
+	}
+
+	// プリセットボタン
+	if (ImGui::Button("Top"))
+	{
+		camera_offset_x = 0.0f;
+		camera_offset_y = 20.0f;
+		camera_offset_z = -0.001f;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Side"))
+	{
+		camera_offset_x = 15.0f;
+		camera_offset_y = 5.0f;
+		camera_offset_z = 0.0f;
+	}
+
+	ImGui::End();
+
+	// 注視点は中心（目標に設定する）
 	s_TargetAt = center;
-	// カメラの目標位置を調整して、平行投影の立体感を表現する（即時代入しない）
-	s_TargetPos = XMFLOAT3(center.x + 2.0f, center.y + 10.0f, center.z - 10.0f);
+	// カメラの位置を長芹井（平行投影の立体感）
+	s_TargetPos = XMFLOAT3(center.x + camera_offset_x, center.y + camera_offset_y, center.z + camera_offset_z);
 
 	// 平行投影用の表示範囲計算
 	float spreadX = maxX - minX;
@@ -299,15 +330,14 @@ void Camera_UpdateAuto()
 	// プレイヤー間の最大距離（幅）
 	float maxSpread = (spreadX > spreadZ) ? spreadX : spreadZ;
 
-	// マージンを足す
-	// 平行投影での表示幅を計算し、この値が画面の横方向のワールド単位での幅になる
+	// 平行投影での表示幅を計算して、この値が画面の横方向の幅になる
 	float margin = 10.0f;
 	float targetWidth = maxSpread + margin;
 
 	// ズームの最小値
 	if (targetWidth < 12.0f) targetWidth = 12.0f;
 
-	// fovを平行投影の幅として利用（目標FOVに設定）
+	// fovを平行投影の幅として利用（目標に設定）
 	s_TargetFov = targetWidth;
 }
 
@@ -328,8 +358,8 @@ void Camera_Draw()
 
 	// ビュー行列作成
 	XMVECTOR vpos = XMVectorSet(CameraObject.position.x, CameraObject.position.y, CameraObject.position.z, 0.0f);
-	XMVECTOR vAt = XMVectorSet(CameraObject.atPosition.x, CameraObject.atPosition.y, CameraObject.atPosition.z, 0.0f);
-	XMVECTOR vUp = XMVectorSet(CameraObject.upVector.x, CameraObject.upVector.y, CameraObject.upVector.z, 0.0f);
+	XMVECTOR vAt  = XMVectorSet(CameraObject.atPosition.x, CameraObject.atPosition.y, CameraObject.atPosition.z, 0.0f);
+	XMVECTOR vUp  = XMVectorSet(CameraObject.upVector.x, CameraObject.upVector.y, CameraObject.upVector.z, 0.0f);
 
 	CameraObject.view = XMMatrixLookAtLH(vpos, vAt, vUp);
 }

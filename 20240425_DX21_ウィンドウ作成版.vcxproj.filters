@@ -19,6 +19,9 @@
     <FxCompile Include="vs_main.hlsl">
       <Filter>hlsl</Filter>
     </FxCompile>
+    <FxCompile Include="ps_singlegauge.hlsl">
+      <Filter>hlsl</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="attack.cpp">

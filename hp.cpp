@@ -14,6 +14,8 @@ hp HPBar[HPBER_MAX];
 
 // HPバーのスムーズ減少速度
 #define HPBAR_SPEED 3.0f
+#define DAMAGE_BAR_SPEED 1.5f      // 赤バーの減少速度
+#define DAMAGE_BAR_DELAY 30.0f     // 赤バーが減り始めるまでの遅延フレーム
 
 // -------------------------------------------------------------
 // 初期化
@@ -24,9 +26,13 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	bar->size = size;
 	bar->current = size.x;
 	bar->target = size.x;
+	bar->damageCurrent = size.x; 
+	bar->damageDelay = 0.0f;      
 	bar->use = true;
 	bar->backColor = backColor;
 	bar->fillColor = fillColor;
+	bar->damageColor = color::red;
+	bar->damageTimer = 0.0f;
 
 	// シェイク初期化
 	bar->shakeOffset = { 0.0f, 0.0f };
@@ -113,6 +119,28 @@ void UpdateHP(hp* bar)
 		}
 	}
 
+	// ダメージバー更新（少しディレイをかけてから進む）
+	if (bar->damageTimer > 0.0f)
+	{
+		bar->damageTimer -= 1.0f;
+		if (bar->damageTimer < 0.0f)
+		{
+			bar->damageTimer = 0.0f;
+		}
+	}
+	else
+	{
+		// 遅延が終わったら通常の処理
+		if (bar->damageCurrent > bar->current)
+		{
+			bar->damageCurrent -= DAMAGE_BAR_SPEED;
+			if (bar->damageCurrent < bar->current)
+			{
+				bar->damageCurrent = bar->current;
+			}
+		}
+	}
+
 	// シェイク更新（フレーム単位で減らす）
 	if (bar->shakeTimer > 0.0f && bar->shakeDuration > 0.0f)
 	{
@@ -147,37 +175,6 @@ void UpdateHP(hp* bar)
 // -------------------------------------------------------------
 // 描画
 // -------------------------------------------------------------
-// 旧バージョnnン：ポリゴン版HPバー
-//void DrawHP(const HP* bar)
-//{
-//	if (!bar->use) return;
-//
-//	Shader_BeginUI();
-//
-//	Shader_SetColor(color::white);
-//
-//	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
-//
-//	const float border = 3.0f; // 外枠の太さ
-//
-//	XMFLOAT2 borderPos = bar->pos;
-//	XMFLOAT2 borderSize = { bar->size.x + border * 2, bar->size.y + border * 2 };
-//
-//	DrawSprite(borderPos, borderSize, color::black);
-//    
-//	// 残量（current分だけ横幅を縮める）
-//	XMFLOAT2 fillPos = {
-//	 bar->pos.x - (bar->size.x / 2.0f) + (bar->current / 2.0f),
-//	 bar->pos.y
-//	};
-//    DrawSprite(bar->pos, bar->size, bar->backColor);
-//	
-//	// 背景（固定幅）
-//	XMFLOAT2 fillSize = { bar->current, bar->size.y };
-//	DrawSprite(fillPos, fillSize, bar->fillColor);
-//
-//}
-
 void DrawHP(const hp* bar, int texNum)
 {
 	if (!bar->use) return;
@@ -189,34 +186,50 @@ void DrawHP(const hp* bar, int texNum)
 	float ratio = bar->current / bar->size.x;
 	ratio = max(0.0f, min(1.0f, ratio));
 
-	// 画像バー本体（横に削る）
-	XMFLOAT2 uvMin = { 0.0f, 0.0f };
-	XMFLOAT2 uvMax = { ratio, 1.0f };
-    
+	// ダメージバー割合（赤バー）
+	float damageRatio = bar->damageCurrent / bar->size.x;
+	damageRatio = max(0.0f, min(1.0f, damageRatio));
+
 	XMFLOAT2 backSize = { bar->size.x, bar->size.y };
 
-	// 描画位置にシェイクオフセットを加える（元の位置はそのまま保持）
+	// 描画位置にシェイクオフセットを加える
 	XMFLOAT2 drawPos = { bar->pos.x + bar->shakeOffset.x, bar->pos.y + bar->shakeOffset.y };
 
-	XMFLOAT2 backPos = { drawPos.x - (bar->size.x / 2.0f) + backSize.x / 2.0f, drawPos.y
-	};
-	
-	XMFLOAT2 fillSize = { bar->size.x * ratio, bar->size.y };
-	XMFLOAT2 fillPos = { drawPos.x - (bar->size.x / 2.0f) + (fillSize.x / 2.0f), drawPos.y
-	};
+	XMFLOAT2 backPos = { drawPos.x - (bar->size.x / 2.0f) + backSize.x / 2.0f, drawPos.y };
 
-	//// サイズ・位置調整（ごり押し）
-	XMFLOAT2 fillSizeOK = { fillSize.x / 1.88f, fillSize.y};
-	XMFLOAT2 fillPosOK = { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, drawPos.y};
-	
-	// シェイク中なら代替テクスチャを使う（設定されている場合）
+	// シェイク中なら代替テクスチャを使う
 	int backTexIndex = texNum;
 	if (bar->shakeTimer > 0.0f && bar->shakeTexNum >= 0) {
 		backTexIndex = bar->shakeTexNum;
 	}
 
+	// 背景を描画
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[backTexIndex]);
 	DrawSprite(backPos, backSize, bar->backColor);
+
+	// 赤バー（ダメージ表示）を先に描画
+	if (damageRatio > ratio)
+	{
+		XMFLOAT2 damageUvMin = { 0.0f, 0.0f };
+		XMFLOAT2 damageUvMax = { damageRatio, 1.0f };
+
+		XMFLOAT2 damageFillSize = { bar->size.x * damageRatio, bar->size.y };
+		XMFLOAT2 damageFillSizeOK = { damageFillSize.x / 1.88f, damageFillSize.y };
+		XMFLOAT2 damageFillPosOK = { drawPos.x - (bar->size.x / 2.0f) + damageFillSizeOK.x / 2.0f + 86.4f, drawPos.y };
+
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
+		Shader_BeginHpber();
+		Shader_SetHpber(bar->damageColor, bar->damageColor, 0.7f, 1.0f);  // 赤一色
+		DrawSpriteUV(damageFillPosOK, damageFillSizeOK, bar->damageColor, damageUvMin, damageUvMax);
+	}
+
+	// 緑バー（現在HP）を上に描画 
+	XMFLOAT2 uvMin = { 0.0f, 0.0f };
+	XMFLOAT2 uvMax = { ratio, 1.0f };
+
+	XMFLOAT2 fillSize = { bar->size.x * ratio, bar->size.y };
+	XMFLOAT2 fillSizeOK = { fillSize.x / 1.88f, fillSize.y };
+	XMFLOAT2 fillPosOK = { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, drawPos.y };
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	Shader_BeginHpber();
@@ -232,11 +245,19 @@ void DrawHP(const hp* bar, int texNum)
 // -------------------------------------------------------------
 void SetHPValue(hp* bar, int currentHP, int maxHP)
 {
-	float ratio = (float)currentHP / (float)maxHP;
-	if (ratio < 0.0f) ratio = 0.0f;
-	if (ratio > 1.0f) ratio = 1.0f;
+    float ratio = (float)currentHP / (float)maxHP;
+    if (ratio < 0.0f) ratio = 0.0f;
+    if (ratio > 1.0f) ratio = 1.0f;
 
-	bar->target = bar->size.x * ratio;
+    float newTarget = bar->size.x * ratio;
+    
+    // ダメージを受けた時にタイマーをセット
+    if (newTarget < bar->target)
+    {
+        bar->damageTimer = DAMAGE_BAR_DELAY;  // damageDelay → damageTimer
+    }
+    
+    bar->target = newTarget;
 }
 
 // シェイク
@@ -260,11 +281,7 @@ void SetHPShake(hp* bar, float amplitude, float duration, float speed, int shake
 	bar->shakeSpeed = speed;
 	bar->shakeTimer = duration; // 残りフレームをdurationでセット
 	bar->shakeTexNum = shakeTexNum; // シェイク中に使うテクスチャ（-1で無効）
-	// 初期オフセットはUpdateHPで設定される
 }
-
-
-
 
 // -------------------------------------------------------------
 // 終了

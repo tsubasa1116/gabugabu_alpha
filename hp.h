@@ -11,21 +11,24 @@ using namespace DirectX;
 #define HPBAR_SPEED (3.0f)    // HPバーのスムーズ減少速度
 
 struct hp {
-	XMFLOAT2 pos;      // 位置
-	XMFLOAT2 size;     // サイズ
-	float current;     // 現在のHPバー幅
-	float target;      // 目標HPバー幅
-	bool use;          // 使用中かどうか
-	XMFLOAT4 backColor;  // 背景色
-	XMFLOAT4 fillColor;  // 残量色
-
+	XMFLOAT2 pos;           // 位置
+	XMFLOAT2 size;          // サイズ
+	float current;          // 現在のHPバー幅（即座に減る）
+	float target;           // 目標HPバー幅
+	float damageCurrent;    // ダメージ表示用（遅れて減る赤バー）
+	float damageDelay;      // 赤バーが減り始めるまでの遅延フレーム
+	float damageTimer;		// ダメージ用タイマー
+	bool use;               // 使用中かどうか
+	XMFLOAT4 backColor;     // 背景色
+	XMFLOAT4 fillColor;     // 残量色
+	XMFLOAT4 damageColor;   // ダメージ色（赤）
+	
 	XMFLOAT2 shakeOffset;   // 描画時に加えるオフセット
 	float shakeTimer;       // 残りフレーム数
 	float shakeDuration;    // 設定したフレーム長さ
 	float shakeAmplitude;   // 振幅
 	float shakeSpeed;       // 振動速度
 	int gaugeIndex;
-
 	int shakeTexNum;        // シェイク中に使うテクスチャ番号（-1で無効）
 };
 

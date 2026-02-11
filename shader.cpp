@@ -29,10 +29,12 @@ static ID3D11Buffer* g_pWorldConstantBuffer = nullptr;//定数バッファ1個
 
 static ID3D11PixelShader* g_pGaugeShader = nullptr;
 static ID3D11PixelShader* g_pOutGaugeShader = nullptr;
+static ID3D11PixelShader* g_pSkillGaugeShader = nullptr;
 static ID3D11PixelShader* g_pHpberShader = nullptr;
 
 static ID3D11Buffer* g_pGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pOutGaugeBuffer = nullptr;
+static ID3D11Buffer* g_pSkillGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pHpberBuffer = nullptr;
 static ID3D11Buffer* g_pColorBuffer = nullptr;
 
@@ -43,6 +45,9 @@ static ID3D11SamplerState* g_GaugeSampler = nullptr;
 
 static ID3D11ShaderResourceView* g_OutGaugeTex = nullptr;
 static ID3D11SamplerState* g_OutGaugeSampler = nullptr;
+
+static ID3D11ShaderResourceView* g_SkillGaugeTex = nullptr;
+static ID3D11SamplerState* g_SkillGaugeSampler = nullptr;
 
 
 // 注意！初期化で外部から設定されるもの。Release不要。
@@ -63,6 +68,12 @@ struct OUTGAUGEBUFFER
 	float gaugeValue;
 	float pad[3];
 	XMFLOAT4 gaugeColor;
+};
+
+struct SINGLEGAUGEBUFFER
+{
+	float fill;
+	float pad[3];
 };
 
 struct COLORBUFFER
@@ -115,6 +126,16 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&desc, nullptr, &g_pOutGaugeBuffer);
+	}
+
+	//SkillGaugeBuffer
+	{
+		D3D11_BUFFER_DESC desc{};
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.ByteWidth = sizeof(SINGLEGAUGEBUFFER);
+		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		pDevice->CreateBuffer(&desc, nullptr, &g_pSkillGaugeBuffer);
 	}
 
 	//ColorBuffer
@@ -233,7 +254,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	}
 
 	//----------------------------------------------------------
-	// ピクセルシェーダー読み込み
+	// 内ゲージシェーダー読み込み
 	//----------------------------------------------------------
 	std::ifstream ifs_ps_g("ps_gauge.cso", std::ios::binary);
 	if (!ifs_ps_g) return false;
@@ -249,7 +270,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 
 	//----------------------------------------------------------
-	// ピクセルシェーダー読み込み
+	// 外ゲージシェーダー読み込み
 	//----------------------------------------------------------
 	std::ifstream ifs_ps_og("ps_outgauge.cso", std::ios::binary);
 	if (!ifs_ps_og) return false;
@@ -262,6 +283,23 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	ifs_ps_og.read((char*)psBin_og.data(), psSize_og);
 
 	g_pDevice->CreatePixelShader(psBin_og.data(), psSize_og, nullptr, &g_pOutGaugeShader);
+
+	//----------------------------------------------------------
+	// 単ゲージシェーダー読み込み
+	//----------------------------------------------------------
+	std::ifstream ifs_ps_sg("ps_singlegauge.cso", std::ios::binary);
+	if (!ifs_ps_sg) return false;
+
+	ifs_ps_sg.seekg(0, std::ios::end);
+	size_t psSize_sg = (size_t)ifs_ps_sg.tellg();
+	ifs_ps_sg.seekg(0, std::ios::beg);
+
+	std::vector<unsigned char> psBin_sg(psSize_sg);
+	ifs_ps_sg.read((char*)psBin_sg.data(), psSize_sg);
+
+	g_pDevice->CreatePixelShader(psBin_sg.data(), psSize_sg, nullptr, &g_pSkillGaugeShader);
+
+
 
 	//----------------------------------------------------------
 	// デバッグ用カラーピクセルシェーダー読み込み
@@ -322,6 +360,10 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_OutGaugeTex);
 	assert(g_OutGaugeTex);
 
+	LoadFromWICFile(L"Asset\\Texture\\icon_barrier.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillGaugeTex);
+	assert(g_SkillGaugeTex);
+
 
 	//======================================================
 	//	ゲージ用サンプラーステート作成
@@ -336,6 +378,8 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	desc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	pDevice->CreateSamplerState(&desc, &g_GaugeSampler);
+	pDevice->CreateSamplerState(&desc, &g_SkillGaugeSampler);
+	pDevice->CreateSamplerState(&desc, &g_OutGaugeSampler);
 
 
 	return true;
@@ -383,6 +427,26 @@ void Shader_SetOutGaugeTextures()
 	g_pContext->PSSetSamplers(0, 1, &g_OutGaugeSampler);
 }
 
+//======================================================
+//	スキルゲージ用テクスチャセット関数
+//======================================================
+void Shader_SetSkillGaugeTextures()
+{
+	// ✅ デバッグ出力
+	if (!g_SkillGaugeTex) {
+		hal::dout << "ERROR: g_SkillGaugeTex is nullptr!" << std::endl;
+		return;
+	}
+	if (!g_SkillGaugeSampler) {
+		hal::dout << "ERROR: g_SkillGaugeSampler is nullptr!" << std::endl;
+		return;
+	}
+
+	hal::dout << "Setting SkillGauge texture and sampler" << std::endl;
+
+	g_pContext->PSSetShaderResources(0, 1, &g_SkillGaugeTex);
+	g_pContext->PSSetSamplers(0, 1, &g_SkillGaugeSampler);
+}
 //======================================================
 //	行列関数
 //======================================================
@@ -484,6 +548,18 @@ void Shader_BeginOutGauge()
 }
 
 //======================================================
+//	単ゲージ用シェーダー設定
+//======================================================
+void Shader_BeginSkillGauge()
+{
+	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(g_pSkillGaugeShader, nullptr, 0);
+
+	g_pContext->IASetInputLayout(g_pInputLayout);
+	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
+}
+
+//======================================================
 //	HPバー用シェーダー設定
 //======================================================
 void Shader_BeginHpber()
@@ -538,6 +614,29 @@ void Shader_SetOutGauge(float value, XMFLOAT4 color)
 
 
 //======================================================
+//  単ゲージ
+//======================================================
+void Shader_SetSingleGauge(float fill)
+{
+	if (fill < 0.0f) fill = 0.0f;
+	if (fill > 1.0f) fill = 1.0f;
+
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	g_pContext->Map(g_pSkillGaugeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+
+	SINGLEGAUGEBUFFER sb{};
+	sb.fill = fill;
+	sb.pad[0] = sb.pad[1] = sb.pad[2] = 0.0f;
+
+	memcpy(mapped.pData, &sb, sizeof(sb));
+	g_pContext->Unmap(g_pSkillGaugeBuffer, 0);
+
+	g_pContext->PSSetConstantBuffers(5, 1, &g_pSkillGaugeBuffer);
+}
+
+
+
+//======================================================
 //	色設定
 //======================================================
 void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed)
@@ -556,7 +655,7 @@ void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed)
 	memcpy(mapped.pData, &ob, sizeof(ob));
 	g_pContext->Unmap(g_pHpberBuffer, 0);
 
-	g_pContext->PSSetConstantBuffers(5, 1, &g_pHpberBuffer);
+	g_pContext->PSSetConstantBuffers(6, 1, &g_pHpberBuffer);
 }
 
 

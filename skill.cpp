@@ -772,3 +772,4 @@ SKILL_OBJECT* GetSkill(int playerIndex)
 
 	return &Skill[playerIndex];
 }
+

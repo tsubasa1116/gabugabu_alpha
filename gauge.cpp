@@ -111,6 +111,12 @@ void Gauge_Draw(int i)
 
 	DrawSprite(drawPos, { 62,62 }, color::white);
 
+	Shader_BeginUI();
+	Shader_SetSingleGauge(1.0f);
+	Shader_SetSkillGaugeTextures();
+	SetBlendState(BLENDSTATE_ALPHA);
+	DrawSprite({drawPos.x +100, drawPos.y}, { 62,62 }, color::white);
+
 	/*SetBlendState(BLENDSTATE_ALFA);
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
 	DrawSprite({ 10, 10 }, { 10, 10 }, color::white);*/

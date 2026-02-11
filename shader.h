@@ -25,10 +25,12 @@ void Shader_Begin();
 void Shader_BeginUI();
 void Shader_BeginGauge();
 void Shader_BeginOutGauge();
+void Shader_BeginSkillGauge();
 void Shader_BeginHpber();
 
 void Shader_SetGaugeMulti(float glass, float concrete, float plant, float electric);
 void Shader_SetOutGauge(float value, XMFLOAT4 color);
+void Shader_SetSingleGauge(float fill);
 void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed);
 void Shader_SetColor(const XMFLOAT4& color);
 
@@ -39,6 +41,7 @@ void Shader_BeginDebugColor();
 
 void Shader_SetGaugeTextures();
 void Shader_SetOutGaugeTextures();
+void Shader_SetSkillGaugeTextures();
 
 
 #endif // SHADER_H
