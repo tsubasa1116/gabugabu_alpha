@@ -1,7 +1,7 @@
-ï»¿//======================================================
+//======================================================
 //	Camera.cpp[]
 // 
-//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
+//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
 //======================================================
 
 #include "Camera.h"
@@ -9,17 +9,18 @@
 #include "Ball.h"
 #include "Player.h"
 #include "input.h"
+#include "debug_ostream.h"
 
-// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+// ƒOƒ[ƒoƒ‹•Ï”
 static CAMERA	CameraObject;
-const float		CAMERA_MOVE_SPEED = 0.2f; // ã‚«ãƒ¡ãƒ©ç§»å‹•é€Ÿåº¦
-static XMFLOAT3	s_TargetPos;			  // ç›®æ¨™ã‚«ãƒ¡ãƒ©ä½ç½®
-static XMFLOAT3	s_TargetAt;				  // ç›®æ¨™æ³¨è¦–ç‚¹ä½ç½®
-static float	s_TargetFov = 45.0f;	  // ç›®æ¨™fovï¼ˆå¹³è¡ŒæŠ•å½±å¹…ã¨ã—ã¦ã‚‚ä½¿ç”¨ï¼‰
-static bool		s_IsLerping = false;	  // ç›®æ¨™ã¨ç¾åœ¨ãŒååˆ†ã«é›¢ã‚Œã¦ã„ã‚‹ã‹
-const float		SMOOTH_FACTOR = 0.15f;	  // 1ãƒ•ãƒ¬ãƒ¼ãƒ ã‚ãŸã‚Šã®é€²è¡Œç‡ã§ã€å¤§ãã„ã»ã©é€Ÿãè¿½å¾“ã™ã‚‹
-const float		FOV_SMOOTH_FACTOR = 0.12f;// FOVã®è¿½å¾“é€Ÿåº¦
-const float		TARGET_EPSILON = 0.001f;  // ç›®æ¨™åˆ°é”åˆ¤å®šã®é–¾å€¤
+const float		CAMERA_MOVE_SPEED = 0.2f; // ƒJƒƒ‰ˆÚ“®‘¬“x
+static XMFLOAT3	s_TargetPos;			  // –Ú•WƒJƒƒ‰ˆÊ’u
+static XMFLOAT3	s_TargetAt;				  // –Ú•W’‹“_ˆÊ’u
+static float	s_TargetFov = 45.0f;	  // –Ú•Wfovi•½s“Š‰e•‚Æ‚µ‚Ä‚àg—pj
+static bool		s_IsLerping = false;	  // –Ú•W‚ÆŒ»İ‚ª\•ª‚É—£‚ê‚Ä‚¢‚é‚©
+const float		SMOOTH_FACTOR = 0.15f;	  // 1ƒtƒŒ[ƒ€‚ ‚½‚è‚Ìis—¦‚ÅA‘å‚«‚¢‚Ù‚Ç‘¬‚­’Ç]‚·‚é
+const float		FOV_SMOOTH_FACTOR = 0.12f;// FOV‚Ì’Ç]‘¬“x
+const float		TARGET_EPSILON = 0.001f;  // –Ú•W“’B”»’è‚Ìè‡’l
 
 CAMERAMODE cameraMode = CAMERAMODE_MANUAL;
 
@@ -39,7 +40,7 @@ static inline float LerpFloat(float a, float b, float t)
 
 void Camera_Initialize()
 {
-	// ã‚»ãƒƒã‚¿ãƒ¼ã‚’ä½¿ã£ãŸåˆæœŸåŒ–
+	// ƒZƒbƒ^[‚ğg‚Á‚½‰Šú‰»
 	XMFLOAT3 pos = XMFLOAT3(0.0f, 10.0f, -10.0f);
 	XMFLOAT3 at = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
@@ -54,7 +55,7 @@ void Camera_Initialize()
 	CameraObject.nearClip = 0.5f;
 	CameraObject.farClip = 1000.0f;
 
-	// åˆæœŸã®ç›®æ¨™å€¤ã‚’ç¾åœ¨å€¤ã«åˆã‚ã›ã‚‹
+	// ‰Šú‚Ì–Ú•W’l‚ğŒ»İ’l‚É‡‚í‚¹‚é
 	s_TargetPos = CameraObject.position;
 	s_TargetAt = CameraObject.atPosition;
 	s_TargetFov = CameraObject.fov;
@@ -66,11 +67,39 @@ void Camera_Finalize()
 	return;
 }
 
+float theta = {};
+float lenght = 20.0f;
+float kakudoz = {};
+float kakudoy = {};
+float kakudox = {};
+
 void Camera_Update()
 {
+	if (Keyboard_IsKeyDown(KK_N))
+		theta += 1;
+	if (Keyboard_IsKeyDown(KK_B))
+		theta -= 1;
+
+	if (theta >= 89)
+		theta = 89;
+	if (theta <= 1)
+		theta = 1;
+
+	float posz = cosf(XMConvertToRadians(theta));
+	float posy = sinf(XMConvertToRadians(theta));
+	float posx = tanf(XMConvertToRadians(theta));
+
+	kakudoz = posz * lenght;
+	kakudoy = posy * lenght;
+	kakudox = posx * lenght;
+
+	SetCameraPosition(XMFLOAT3(0.0f, kakudoy, kakudoz));
+
+	hal::dout << theta << std::endl;
+
 	if(cameraMode == CAMERAMODE_MANUAL)
 	{
-		// ã‚«ãƒ¡ãƒ©ç§»å‹•æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ï¼ˆç›®æ¨™å€¤ã¸åŠ ç®—ã™ã‚‹ï¼‰
+		// ƒJƒƒ‰ˆÚ“®•ûŒüƒxƒNƒgƒ‹i–Ú•W’l‚Ö‰ÁZ‚·‚éj
 		XMFLOAT3 vec = {};
 		if (Keyboard_IsKeyDown(KK_I))
 		{
@@ -116,21 +145,21 @@ void Camera_Update()
 		}
 	
 	
-		// vecã®æ­£è¦åŒ–
+		// vec‚Ì³‹K‰»
 		float len = sqrtf(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
 		if (len != 0.0f)
-		{	// 0é™¤ç®—å›é¿
+		{	// 0œZ‰ñ”ğ
 			vec.x /= len;
 			vec.y /= len;
 			vec.z /= len;
 		}
 		
-		// ç§»å‹•é‡ãƒ™ã‚¯ãƒˆãƒ«ï¼ˆç›®æ¨™å€¤ã¸åŠ ç®—ï¼‰
+		// ˆÚ“®—ÊƒxƒNƒgƒ‹i–Ú•W’l‚Ö‰ÁZj
 		vec.x *= CAMERA_MOVE_SPEED;
 		vec.y *= CAMERA_MOVE_SPEED * 0.1f;
 		vec.z *= CAMERA_MOVE_SPEED;
 	
-		// ç›´æ¥ç¾åœ¨å€¤ã«åŠ ç®—ã›ãšç›®æ¨™å€¤ã«åŠ ç®—ã™ã‚‹ï¼ˆæ»‘ã‚‰ã‹ã«è¿½å¾“ã™ã‚‹ãŸã‚ï¼‰
+		// ’¼ÚŒ»İ’l‚É‰ÁZ‚¹‚¸–Ú•W’l‚É‰ÁZ‚·‚éiŠŠ‚ç‚©‚É’Ç]‚·‚é‚½‚ßj
 		s_TargetPos.x += vec.x;
 		s_TargetPos.y += vec.y;
 		s_TargetPos.z += vec.z;
@@ -139,7 +168,7 @@ void Camera_Update()
 		s_TargetAt.y += vec.y;
 		s_TargetAt.z += vec.z;
 	
-		// fovã®å¤‰æ›´ï¼ˆç›®æ¨™FOVã‚’å¤‰æ›´ï¼‰
+		// fov‚Ì•ÏXi–Ú•WFOV‚ğ•ÏXj
 		if (Keyboard_IsKeyDown(KK_Z))
 		{
 			s_TargetFov += 0.3f;
@@ -158,56 +187,56 @@ void Camera_Update()
 		}
 	
 		// ------------------------------------------------------------------
-		// è¦–ç‚¹åˆ‡ã‚Šæ›¿ãˆ
+		// ‹“_Ø‚è‘Ö‚¦
 		// ------------------------------------------------------------------
-		// è¦–ç‚¹ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹ãƒ•ãƒ©ã‚°
+		// ‹“_‚ğØ‚è‘Ö‚¦‚éƒtƒ‰ƒO
 		static int s_CurrentViewIndex = 0;
 	
-		// å…¨è¦–ç‚¹ã®æ•°
+		// ‘S‹“_‚Ì”
 		const int NUM_VIEWS = 3;
 	
-		// Cã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸç¬é–“ã‚’æ¤œå‡º
+		// CƒL[‚ª‰Ÿ‚³‚ê‚½uŠÔ‚ğŒŸo
 		if (Keyboard_IsKeyDownTrigger(KK_C))
 		{
-			// è¦–ç‚¹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆã—ã€å…¨è¦–ç‚¹æ•°ã§å‰²ã£ãŸä½™ã‚Šã‚’å–ã‚‹ï¼ˆãƒ«ãƒ¼ãƒ—å‡¦ç†ï¼‰
+			// ‹“_ƒCƒ“ƒfƒbƒNƒX‚ğƒCƒ“ƒNƒŠƒƒ“ƒg‚µA‘S‹“_”‚ÅŠ„‚Á‚½—]‚è‚ğæ‚éiƒ‹[ƒvˆ—j
 			s_CurrentViewIndex = (s_CurrentViewIndex + 1) % NUM_VIEWS;
 	
-			// Lerpé–‹å§‹ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
+			// LerpŠJnƒtƒ‰ƒO‚ğ—§‚Ä‚é
 			s_IsLerping = true;
 	
-			// ã‚«ãƒ¡ãƒ©ç§»å‹•ã«ã‚ˆã‚‹æ³¨è¦–ç‚¹ã®ä¿å­˜ (æ³¨è¦–ç‚¹ã¯ç¬¬1å½¢æ…‹ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ä½ç½®)
+			// ƒJƒƒ‰ˆÚ“®‚É‚æ‚é’‹“_‚Ì•Û‘¶ (’‹“_‚Í‘æ1Œ`‘ÔƒvƒŒƒCƒ„[ˆÊ’u)
 			float current_at_x = CameraObject.atPosition.x;
 			float current_at_y = CameraObject.atPosition.y;
 			float current_at_z = CameraObject.atPosition.z;
 	
-			// ç›®æ¨™è¦–ç‚¹ã®è¨­å®š
+			// –Ú•W‹“_‚Ìİ’è
 			switch (s_CurrentViewIndex)
 			{
-			case 0: // ç¬¬1å½¢æ…‹è¦–ç‚¹
+			case 0: // ‘æ1Œ`‘Ô‹“_
 				s_TargetPos = XMFLOAT3(current_at_x, current_at_y + 10.0f, current_at_z - 10.0f);
 				s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z);
 				break;
 	
-			case 1: // ãƒˆãƒƒãƒ—ãƒ€ã‚¦ãƒ³è¦–ç‚¹
-				// Zåº§æ¨™ã‚’ãšã‚‰ã—ã¦ã€DirectXã®ViewMatrixãŒZè»¸ã¨å¹³è¡Œã«ãªã‚‰ãªã„ã‚ˆã†ã«ã™ã‚‹
+			case 1: // ƒgƒbƒvƒ_ƒEƒ“‹“_
+				// ZÀ•W‚ğ‚¸‚ç‚µ‚ÄADirectX‚ÌViewMatrix‚ªZ²‚Æ•½s‚É‚È‚ç‚È‚¢‚æ‚¤‚É‚·‚é
 				s_TargetPos = XMFLOAT3(current_at_x, current_at_y + 10.0f, current_at_z - 0.00001f);
 				s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z);
 				break;
 	
-			case 2: // æ–°ã—ã„æ–œã‚ä¸Šè¦–ç‚¹ 
-				s_TargetPos = XMFLOAT3(current_at_x, 0.0f, current_at_z - 0.00001f); // XZå¹³é¢ã§æ–œã‚ã«é…ç½®ã€Yã‚’é«˜ã
-				s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z); // æ³¨è¦–ç‚¹ã¯å¤‰ã‚ã‚‰ãš
+			case 2: // V‚µ‚¢Î‚ßã‹“_ 
+				s_TargetPos = XMFLOAT3(current_at_x, 0.0f, current_at_z - 0.00001f); // XZ•½–Ê‚ÅÎ‚ß‚É”z’uAY‚ğ‚‚­
+				s_TargetAt = XMFLOAT3(current_at_x, current_at_y, current_at_z); // ’‹“_‚Í•Ï‚í‚ç‚¸
 				break;
 			}
 		}
 
-		// ã‚«ãƒ¡ãƒ©ã®ãƒªã‚»ãƒƒãƒˆï¼ˆç›®æ¨™ã«ãƒªã‚»ãƒƒãƒˆå€¤ã‚’ä¸ãˆã‚‹ï¼‰
+		// ƒJƒƒ‰‚ÌƒŠƒZƒbƒgi–Ú•W‚ÉƒŠƒZƒbƒg’l‚ğ—^‚¦‚éj
 		if (Keyboard_IsKeyDown(KK_R))
 		{
 			XMFLOAT3 pos = XMFLOAT3(0.0f, 10.0f, -10.0f);
 			XMFLOAT3 at = XMFLOAT3(0.0f, 0.0f, 0.0f);
 			XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
-			// ç›®æ¨™å€¤ã‚’ãƒªã‚»ãƒƒãƒˆ
+			// –Ú•W’l‚ğƒŠƒZƒbƒg
 			s_TargetPos = pos;
 			s_TargetAt = at;
 			SetCameraUpVector(up);
@@ -226,15 +255,15 @@ void Camera_Update()
 		Camera_UpdateAuto();
 	}
 
-	// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã®æ»‘ã‚‰ã‹è£œé–“ï¼ˆç›®æ¨™å€¤ã¸è¿½å¾“ã™ã‚‹ï¼‰
-	// ä½ç½®ã¨æ³¨è¦–ç‚¹ã®è£œé–“
+	// –ˆƒtƒŒ[ƒ€‚ÌŠŠ‚ç‚©•âŠÔi–Ú•W’l‚Ö’Ç]‚·‚éj
+	// ˆÊ’u‚Æ’‹“_‚Ì•âŠÔ
 	CameraObject.position = LerpFloat3(CameraObject.position, s_TargetPos, SMOOTH_FACTOR);
 	CameraObject.atPosition = LerpFloat3(CameraObject.atPosition, s_TargetAt, SMOOTH_FACTOR);
 
-	// fovã®è£œé–“
+	// fov‚Ì•âŠÔ
 	CameraObject.fov = LerpFloat(CameraObject.fov, s_TargetFov, FOV_SMOOTH_FACTOR);
 
-	// åˆ°é”åˆ¤å®šï¼ˆç›®æ¨™ã¨ã»ã¼åŒã˜ãªã‚‰å®Œå…¨ã«ä¸€è‡´ã•ã›ã‚‹ï¼‰
+	// “’B”»’èi–Ú•W‚Æ‚Ù‚Ú“¯‚¶‚È‚çŠ®‘S‚Éˆê’v‚³‚¹‚éj
 	auto closeEnough = [](const XMFLOAT3& a, const XMFLOAT3& b)->bool
 	{
 		float dx = a.x - b.x;
@@ -246,7 +275,7 @@ void Camera_Update()
 	if (closeEnough(CameraObject.position, s_TargetPos) && closeEnough(CameraObject.atPosition, s_TargetAt)
 		&& fabsf(CameraObject.fov - s_TargetFov) <= TARGET_EPSILON)
 	{
-		// å®Œå…¨ã«ä¸€è‡´ã•ã›ã¦ãƒ•ãƒ©ã‚°è§£é™¤
+		// Š®‘S‚Éˆê’v‚³‚¹‚Äƒtƒ‰ƒO‰ğœ
 		CameraObject.position = s_TargetPos;
 		CameraObject.atPosition = s_TargetAt;
 		CameraObject.fov = s_TargetFov;
@@ -254,7 +283,7 @@ void Camera_Update()
 	}
 	else
 	{
-		// ã„ãšã‚Œã‹ãŒæœªåˆ°é”ãªã‚‰ãƒ•ãƒ©ã‚°ã‚ªãƒ³
+		// ‚¢‚¸‚ê‚©‚ª–¢“’B‚È‚çƒtƒ‰ƒOƒIƒ“
 		s_IsLerping = true;
 	}
 
@@ -287,46 +316,46 @@ void Camera_UpdateAuto()
 		center.z /= (float)playerCount;
 	}
 
-	// æ³¨è¦–ç‚¹ã¯ä¸­å¿ƒï¼ˆç›®æ¨™ã«è¨­å®šï¼‰
+	// ’‹“_‚Í’†Si–Ú•W‚Éİ’èj
 	s_TargetAt = center;
-	// ã‚«ãƒ¡ãƒ©ã®ç›®æ¨™ä½ç½®ã‚’èª¿æ•´ã—ã¦ã€å¹³è¡ŒæŠ•å½±ã®ç«‹ä½“æ„Ÿã‚’è¡¨ç¾ã™ã‚‹ï¼ˆå³æ™‚ä»£å…¥ã—ãªã„ï¼‰
+	// ƒJƒƒ‰‚Ì–Ú•WˆÊ’u‚ğ’²®‚µ‚ÄA•½s“Š‰e‚Ì—§‘ÌŠ´‚ğ•\Œ»‚·‚éi‘¦‘ã“ü‚µ‚È‚¢j
 	s_TargetPos = XMFLOAT3(center.x + 2.0f, center.y + 10.0f, center.z - 10.0f);
 
-	// å¹³è¡ŒæŠ•å½±ç”¨ã®è¡¨ç¤ºç¯„å›²è¨ˆç®—
+	// •½s“Š‰e—p‚Ì•\¦”ÍˆÍŒvZ
 	float spreadX = maxX - minX;
 	float spreadZ = maxZ - minZ;
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼é–“ã®æœ€å¤§è·é›¢ï¼ˆå¹…ï¼‰
+	// ƒvƒŒƒCƒ„[ŠÔ‚ÌÅ‘å‹——£i•j
 	float maxSpread = (spreadX > spreadZ) ? spreadX : spreadZ;
 
-	// ãƒãƒ¼ã‚¸ãƒ³ã‚’è¶³ã™
-	// å¹³è¡ŒæŠ•å½±ã§ã®è¡¨ç¤ºå¹…ã‚’è¨ˆç®—ã—ã€ã“ã®å€¤ãŒç”»é¢ã®æ¨ªæ–¹å‘ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰å˜ä½ã§ã®å¹…ã«ãªã‚‹
+	// ƒ}[ƒWƒ“‚ğ‘«‚·
+	// •½s“Š‰e‚Å‚Ì•\¦•‚ğŒvZ‚µA‚±‚Ì’l‚ª‰æ–Ê‚Ì‰¡•ûŒü‚Ìƒ[ƒ‹ƒh’PˆÊ‚Å‚Ì•‚É‚È‚é
 	float margin = 10.0f;
 	float targetWidth = maxSpread + margin;
 
-	// ã‚ºãƒ¼ãƒ ã®æœ€å°å€¤
+	// ƒY[ƒ€‚ÌÅ¬’l
 	if (targetWidth < 12.0f) targetWidth = 12.0f;
 
-	// fovã‚’å¹³è¡ŒæŠ•å½±ã®å¹…ã¨ã—ã¦åˆ©ç”¨ï¼ˆç›®æ¨™FOVã«è¨­å®šï¼‰
+	// fov‚ğ•½s“Š‰e‚Ì•‚Æ‚µ‚Ä—˜—pi–Ú•WFOV‚Éİ’èj
 	s_TargetFov = targetWidth;
 }
 
 
 void Camera_Draw()
 {
-	// å¹³è¡ŒæŠ•å½±è¡Œåˆ—ã‚’ä½œæˆã™ã‚‹
-	// fovã‚’ç”»é¢ã®æ¨ªå¹…ã¨ã—ã¦æ‰±ã†
+	// •½s“Š‰es—ñ‚ğì¬‚·‚é
+	// fov‚ğ‰æ–Ê‚Ì‰¡•‚Æ‚µ‚Äˆµ‚¤
 	float viewWidth = CameraObject.fov;
 	float viewHeight = viewWidth / CameraObject.aspect;
 
 	CameraObject.projection = XMMatrixOrthographicLH(
-		viewWidth,    // æŠ•å½±ã™ã‚‹ç¯„å›²ã®å¹…
-		viewHeight,   // æŠ•å½±ã™ã‚‹ç¯„å›²ã®é«˜ã•
+		viewWidth,    // “Š‰e‚·‚é”ÍˆÍ‚Ì•
+		viewHeight,   // “Š‰e‚·‚é”ÍˆÍ‚Ì‚‚³
 		CameraObject.nearClip,
 		CameraObject.farClip
 	);
 
-	// ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ä½œæˆ
+	// ƒrƒ…[s—ñì¬
 	XMVECTOR vpos = XMVectorSet(CameraObject.position.x, CameraObject.position.y, CameraObject.position.z, 0.0f);
 	XMVECTOR vAt = XMVectorSet(CameraObject.atPosition.x, CameraObject.atPosition.y, CameraObject.atPosition.z, 0.0f);
 	XMVECTOR vUp = XMVectorSet(CameraObject.upVector.x, CameraObject.upVector.y, CameraObject.upVector.z, 0.0f);
