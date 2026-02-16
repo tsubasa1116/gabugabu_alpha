@@ -33,7 +33,7 @@ struct hp {
 };
 
 //=============================================
-// HPバーを設定したいcppで呼び出す(参考:p.cpp)
+// HPバーを設定したいcppで呼び出す
 //=============================================
 void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar, XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 backColor, XMFLOAT4 fillColor);
 void UpdateHP(hp* bar);
@@ -42,7 +42,7 @@ void SetHPValue(hp* bar, int currentHP, int maxHP);
 void FinalizeHP(hp* bar);
 
 // シェイク　フレーム単位（duration）とピクセル（amplitude）
-// 追加: int shakeTexNum = -1 を渡すと、シェイク中にそのテクスチャを使用する
+// int shakeTexNum = -1 を渡すと、シェイク中にそのテクスチャを使用する
 void SetHPShake(hp* bar, float amplitude = 8.0f, float duration = 15.0f, float speed = 1.5f, int shakeTexNum = -1);
 hp* GetHPBar(int HPIndex);
 

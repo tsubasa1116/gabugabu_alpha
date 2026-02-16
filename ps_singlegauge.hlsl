@@ -1,11 +1,11 @@
-cbuffer cbGaugeOuter : register(b5)
+cbuffer cbGaugeSingle : register(b5)
 {
     float fill;
     float3 pad;
 };
 
-Texture2D g_OutTexture : register(t0);
-SamplerState g_OutSampler : register(s0);
+Texture2D g_SingleTexture : register(t0);
+SamplerState g_SingleSampler : register(s0);
 
 static const float2 center = float2(0.5, 0.5);
 
@@ -21,7 +21,7 @@ float4 main(PS_INPUT input) : SV_Target
     float2 uv = input.texcoord;
 
     // テクスチャでマスク（画像のアルファが透明部を決める）
-    float4 tex = g_OutTexture.Sample(g_OutSampler, uv);
+    float4 tex = g_SingleTexture.Sample(g_SingleSampler, uv);
     if (tex.a < 0.01f)
         discard;
 

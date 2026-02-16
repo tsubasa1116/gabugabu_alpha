@@ -124,14 +124,14 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 
-	player[0].form = Form::Second;
-	player[1].form = Form::Second;
-	player[2].form = Form::Second;
-	player[3].form = Form::Second;
+	player[0].form = Form::First;
+	player[1].form = Form::First;
+	player[2].form = Form::Third;
+	player[3].form = Form::Third;
 	player[0].type = PlayerType::Glass;
 	player[1].type = PlayerType::Concrete;
 	player[2].type = PlayerType::Plant;
-	player[3].type = PlayerType::Electricity;
+	player[3].type = PlayerType::Plant;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
@@ -169,7 +169,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].lastDir = PlayerDir::Down; // 正面
 		player[p].isMoving = false;
 		player[p].evolutionGauge = 0.0f;
-		player[p].evolutionGaugeRate = 0.5f;
+		player[p].evolutionGaugeRate = 0.3f;
 		player[p].breakCount_Glass = 0;
 		player[p].breakCount_Concrete = 0;
 		player[p].breakCount_Plant = 0;
@@ -686,7 +686,7 @@ void Player_Update()
 			// ダウン状態に移行してタイマーをリセット
 			player[p].isDown = true;
 			player[p].downTimer = 0.0f;
-			Effect_Clear(p);
+			Effect_ClearUI(p);
 		}
 
 		// ダウン状態のタイマー更新とリスポーン判定
@@ -724,7 +724,7 @@ void Player_Update()
 		// 落下処理
 		if (player[p].active && player[p].position.y <= -10.0f)
 		{
-			Effect_Clear(p);
+			Effect_ClearUI(p);
 			// 残機を一つ減らす
 			player[p].stock -= 1;
 
@@ -1464,6 +1464,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	}
 }
 
+
 void Player_DrawHP()
 {
 	Shader_Begin();
@@ -1476,12 +1477,56 @@ void Player_DrawHP()
 		DrawHP(&HPBar[i], i + 2);
 		XMFLOAT2 hp = HPBar[i].pos;
 
+		// スキルゲージ表示用の値を計算する
+		float skillFill = 1.0f;
+
+		// スキル未所持なら0
+		if (player[i].type == PlayerType::None)
+		{
+			skillFill = 0.0f;
+		}
+		else
+		{
+			// クールタイマーが0なら利用可能
+			if (player[i].skillCoolTimer <= 0.0f)
+			{
+				skillFill = 1.0f;
+			}
+			else
+			{
+				// typeに応じたクールタイムを取得
+				float coolTime = 0.0f;
+				switch (player[i].type)
+				{
+				case PlayerType::Glass:			coolTime = SKILL_GLASS_COOLTIME; break;
+				case PlayerType::Concrete:		coolTime = SKILL_CONCRETE_COOLTIME; break;
+				case PlayerType::Plant:			coolTime = SKILL_PLANT_COOLTIME; break;
+				case PlayerType::Electricity:	coolTime = SKILL_ELECTRICITY_COOLTIME; break;
+				default: coolTime = 0.0f; break;
+				}
+
+				// クールタイムが0の時は1.0fを返す
+				if (coolTime <= 0.0f)
+				{
+					skillFill = 1.0f;
+				}
+				else
+				{
+					// 使用直後　skillCoolTimer == coolTime => fill = 0.0
+					// クール終了　skillCoolTimer == 0 => fill = 1.0
+					skillFill = 1.0f - (player[i].skillCoolTimer / coolTime);
+					if (skillFill < 0.0f) skillFill = 0.0f;
+					if (skillFill > 1.0f) skillFill = 1.0f;
+				}
+			}
+		}
+
 		// 進化が固定されたら、タイプのゲージを最大値で表示する
 		if (player[i].isTypeFixed)
 		{
 			float glass = 0.0f;
-			float concrete = 0.0f; 
-			float plant = 0.0f; 
+			float concrete = 0.0f;
+			float plant = 0.0f;
 			float electricity = 0.0f;
 
 			switch (player[i].type)
@@ -1494,16 +1539,23 @@ void Player_DrawHP()
 			}
 
 			Gauge_Set(i, glass, concrete, plant, electricity,
-				player[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y });
+				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
 		else
 		{
 			// 固定前はカウント数をそのまま表示する
 			Gauge_Set(i, player[i].breakCount_Glass, player[i].breakCount_Concrete, player[i].breakCount_Plant, player[i].breakCount_Electricity,
-				player[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y });
+				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
 
-		Gauge_Draw(i);
+		// 通常ゲージ（内＋外）は常に描画
+		// スキルゲージは属性確定のときのみ描画
+		Gauge_DrawBasic(i);
+
+		if (player[i].isTypeFixed)
+		{
+			Gauge_DrawSkill(i);
+		}
 
 		Shader_Begin();
 

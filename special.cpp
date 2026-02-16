@@ -413,6 +413,7 @@ void Special_Glass_Update(int playerIndex)
 				{
 					box.position.y = box.targetPosition.y;	// 降下完了
 					box.active = false;	// 地面に着いたら非アクティブ化
+					Camera_StartShake(0.2f, 0.2f);
 
 					// 衝突判定
 					Circle boxCollider = { box.position, 0.3f };	// 半径0.3の円
@@ -468,7 +469,7 @@ void Special_Glass_Update(int playerIndex)
 		player.type = PlayerType::None;		// タイプをリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
-        Effect_Clear(playerIndex);          // エフェクトクリア
+        Effect_ClearUI(playerIndex);          // エフェクトクリア
 		player.isTypeFixed = false;         // タイプ固定解除
 	}
 }
@@ -499,11 +500,16 @@ void Special_Concrete_Update(int playerIndex)
 		player.position.y = player.oldPosition.y + (3.0f * (1.0f - (player.specialTimer - 0.75f) / 0.15f)); // 線形補間でY座標を上げる
 		if (player.position.y <= player.oldPosition.y)	player.position.y = player.oldPosition.y;
 
+
+
 		// ダメージ処理（1回だけ実行）
 		if (player.specialTimer - DELTA_TIME < 0.75f) // 0.75秒を超えた瞬間に実行
 		{
 			const float radius = 5.0f;
 			Circle circle = { player.position, radius }; // 円の中心と半径を設定
+
+			// 画面を揺らす
+			Camera_StartShake(0.8f, 0.6f);
 
 			for (int p = 0; p < PLAYER_MAX; ++p)
 			{
@@ -549,7 +555,7 @@ void Special_Concrete_Update(int playerIndex)
 		player.defense = 1.0f;				// スキルの防御バフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
-		Effect_Clear(playerIndex);          // エフェクトクリア
+		Effect_ClearUI(playerIndex);          // エフェクトクリア
 		player.isTypeFixed = false;         // タイプ固定解除
 	}
 }
@@ -569,6 +575,18 @@ void Special_Plant_Update(int playerIndex)
 	// 半径5.0fの円形当たり判定を作成
 	const float radius = 5.0f;
 	Circle circle = { player.position, radius }; // 円の中心と半径を設定
+
+
+	// スペシャルの初期化処理（エフェクトは一度だけ設定）
+	static bool initialized[PLAYER_MAX] = { false };
+
+	if (!initialized[playerIndex])
+	{
+		const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
+		const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
+		Effect_Set(21, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
+		initialized[playerIndex] = true;
+	}
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
@@ -606,8 +624,9 @@ void Special_Plant_Update(int playerIndex)
 		player.evolutionGaugeRate = 1.0f;	// スキルの進化ゲージバフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
-		Effect_Clear(playerIndex);          // エフェクトクリア
+		Effect_ClearUI(playerIndex);          // エフェクトクリア
 		player.isTypeFixed = false;         // タイプ固定解除
+		Effect_Clear(playerIndex);            // エフェクトクリア
 	}
 }
 
@@ -697,7 +716,7 @@ void Special_Electricity_Update(int playerIndex)
 		player.speed = 0.06f;				// スキルのスピードバフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
-		Effect_Clear(playerIndex);          // エフェクトクリア
+		Effect_ClearUI(playerIndex);          // エフェクトクリア
 		player.isTypeFixed = false;         // タイプ固定解除
 	}
 }

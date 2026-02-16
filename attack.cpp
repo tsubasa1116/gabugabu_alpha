@@ -554,10 +554,10 @@ void Attack_Update(int playerIndex)
 			// プレイヤーごとの画面上のエフェクト位置
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
 			{
-				{ 175.0f, 620.0f }, // プレイヤー1
-				{ 490.0f, 620.0f }, // プレイヤー2
-				{ 805.0f, 620.0f }, // プレイヤー3
-				{ 1120.0f, 620.0f }  // プレイヤー4
+				{  170.0f, 620.0f }, // プレイヤー1
+				{  490.0f, 620.0f }, // プレイヤー2
+				{  810.0f, 620.0f }, // プレイヤー3
+				{ 1130.0f, 620.0f }  // プレイヤー4
 			};
 
 			// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）
@@ -573,9 +573,9 @@ void Attack_Update(int playerIndex)
 
 			// プレイヤー番号は playerIndex（0ベース）
 			XMFLOAT2 pos = playerEffectPos[playerIndex];
-			XMFLOAT2 size = { 300.0f, 300.0f };
+			XMFLOAT2 size = { 350.0f, 350.0f };
 
-			Effect_Set(effectTexNo, pos, size);
+			Effect_SetUI(effectTexNo, pos, size);
 		}
 
 		player.brokenHistory.clear(); // 履歴もクリアする

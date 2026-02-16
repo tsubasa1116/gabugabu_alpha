@@ -22,6 +22,13 @@ const float     SMOOTH_FACTOR = 0.5f;     // 1フレームあたりの進行率�
 const float     FOV_SMOOTH_FACTOR = 0.15f;// fovの追従速度
 const float     TARGET_EPSILON = 0.001f;  // 目標到達判定の閾値(しきいち)
 
+// カメラシェイク用
+static bool     s_IsShaking = false;      // シェイク中かどうか
+static float    s_ShakeIntensity = 0.0f;  // シェイクの強度
+static float    s_ShakeDuration = 0.0f;   // シェイクの残り時間
+static float    s_ShakeTimer = 0.0f;      // シェイクの経過時間
+static XMFLOAT3 s_ShakeOffset;            // シェイクによるオフセット
+
 CAMERAMODE cameraMode = CAMERAMODE_MANUAL;
 
 static inline XMFLOAT3 LerpFloat3(const XMFLOAT3& a, const XMFLOAT3& b, float t)
@@ -36,6 +43,12 @@ static inline XMFLOAT3 LerpFloat3(const XMFLOAT3& a, const XMFLOAT3& b, float t)
 static inline float LerpFloat(float a, float b, float t)
 {
 	return a + (b - a) * t;
+}
+
+// ランダムな値を-1.0f～1.0fの範囲で生成する
+static inline float RandomFloat()
+{
+	return ((float)rand() / (float)RAND_MAX) * 2.0f - 1.0f;
 }
 
 void Camera_Initialize()
@@ -60,6 +73,13 @@ void Camera_Initialize()
 	s_TargetAt = CameraObject.atPosition;
 	s_TargetFov = CameraObject.fov;
 
+	// シェイク
+	s_IsShaking = false;
+	s_ShakeIntensity = 0.0f;
+	s_ShakeDuration = 0.0f;
+	s_ShakeTimer = 0.0f;
+	s_ShakeOffset = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
 }
 
 void Camera_Finalize()
@@ -69,6 +89,8 @@ void Camera_Finalize()
 
 void Camera_Update()
 {
+
+
 	if(cameraMode == CAMERAMODE_MANUAL)
 	{
 		XMFLOAT3 vec = {};
@@ -265,7 +287,8 @@ void Camera_UpdateAuto()
 	float minZ = FLT_MAX, maxZ = -FLT_MAX;
 
 	int playerCount = 0;
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++) 
+	{
 		PLAYEROBJECT* player = GetPlayer(i);
 		if (!player) continue;
 
@@ -320,8 +343,10 @@ void Camera_UpdateAuto()
 
 	// 注視点は中心（目標に設定する）
 	s_TargetAt = center;
-	// カメラの位置を長芹井（平行投影の立体感）
-	s_TargetPos = XMFLOAT3(center.x + camera_offset_x, center.y + camera_offset_y, center.z + camera_offset_z);
+	// カメラの位置を調整（平行投影の立体感）
+	// 50度　(x,5 y,13.3 z,-10)
+	s_TargetPos = XMFLOAT3(center.x + 5.0f, center.y + 13.3f, center.z + -10.0f);
+	//s_TargetPos = XMFLOAT3(center.x + camera_offset_x, center.y + camera_offset_y, center.z + camera_offset_z);
 
 	// 平行投影用の表示範囲計算
 	float spreadX = maxX - minX;
@@ -339,6 +364,30 @@ void Camera_UpdateAuto()
 
 	// fovを平行投影の幅として利用（目標に設定）
 	s_TargetFov = targetWidth;
+
+	// カメラシェイクの更新
+	if (s_IsShaking)
+	{
+		s_ShakeTimer += 1.0f / 60.0f; 
+
+		if (s_ShakeTimer >= s_ShakeDuration)
+		{
+			// シェイク終了
+			s_IsShaking = false;
+			s_ShakeOffset = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		}
+		else
+		{
+			// 時間経過で強度を減らしていく
+			float dec = 1.0f - (s_ShakeTimer / s_ShakeDuration);
+			float currentIntensity = s_ShakeIntensity * dec;
+
+			// ランダム生成
+			s_ShakeOffset.x = RandomFloat() * currentIntensity;
+			s_ShakeOffset.y = RandomFloat() * currentIntensity;
+			s_ShakeOffset.z = RandomFloat() * currentIntensity;
+		}
+	}
 }
 
 
@@ -356,13 +405,32 @@ void Camera_Draw()
 		CameraObject.farClip
 	);
 
-	// ビュー行列作成
-	XMVECTOR vpos = XMVectorSet(CameraObject.position.x, CameraObject.position.y, CameraObject.position.z, 0.0f);
-	XMVECTOR vAt  = XMVectorSet(CameraObject.atPosition.x, CameraObject.atPosition.y, CameraObject.atPosition.z, 0.0f);
-	XMVECTOR vUp  = XMVectorSet(CameraObject.upVector.x, CameraObject.upVector.y, CameraObject.upVector.z, 0.0f);
+	// ビュー行列作成(シェイク追加版！)
+	XMVECTOR vpos = XMVectorSet(
+		CameraObject.position.x + s_ShakeOffset.x,
+		CameraObject.position.y + s_ShakeOffset.y,
+		CameraObject.position.z + s_ShakeOffset.z, 0.0f);
+
+	XMVECTOR vAt = XMVectorSet(
+		CameraObject.atPosition.x + s_ShakeOffset.x,
+		CameraObject.atPosition.y + s_ShakeOffset.y,
+		CameraObject.atPosition.z + s_ShakeOffset.z, 0.0f);
+
+	XMVECTOR vUp = XMVectorSet(CameraObject.upVector.x, CameraObject.upVector.y, CameraObject.upVector.z, 0.0f);
 
 	CameraObject.view = XMMatrixLookAtLH(vpos, vAt, vUp);
 }
+
+// カメラシェイク関数
+// intensity:シェイク強度（0.1-1.0）, duration:シェイクの時間
+void Camera_StartShake(float intensity, float duration)
+{
+	s_IsShaking = true;
+	s_ShakeIntensity = intensity;
+	s_ShakeDuration = duration;
+	s_ShakeTimer = 0.0f;
+}
+
 
 void SetCameraFov(float fov)         { CameraObject.fov = fov; s_TargetFov = fov; }
 void SetCameraAspect(float asp)      { CameraObject.aspect = asp; }

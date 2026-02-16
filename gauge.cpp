@@ -41,8 +41,10 @@ void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Gauge[i].wind  = 1;
 		g_Gauge[i].earth = 1;
 		g_Gauge[i].outer = 1;
+		g_Gauge[i].skill = 1;
 		g_Gauge[i].pos   = { 0,0 };
 		g_Gauge[i].shakeOffset = { 0.0f, 0.0f };  // シェイクオフセット初期化
+		g_Gauge[i].type = PlayerType::None;
 	}
 
 
@@ -70,7 +72,7 @@ void Gauge_Update(void)
 //====================================================================================
 // 他のファイルでゲージをセットする関数
 //====================================================================================
-void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricity, float outer, const XMFLOAT2& pos)
+void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricity, float outer, float skill, const XMFLOAT2& pos, PlayerType type)
 {
 	if (i < 0 || i >= GAUGE_PLAYER_MAX) return;
 
@@ -79,13 +81,15 @@ void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricit
 	g_Gauge[i].wind  = Concrete;
 	g_Gauge[i].earth = Electricity;
 	g_Gauge[i].outer = outer;
+	g_Gauge[i].skill = skill;
 	g_Gauge[i].pos   = pos;
+	g_Gauge[i].type = type;
 }
 
 //====================================================================================
-// 描画
+// 通常ゲージ描画（内ゲージ＋外ゲージ）
 //====================================================================================
-void Gauge_Draw(int i)
+void Gauge_DrawBasic(int i)
 {
 	const GaugeData& g = g_Gauge[i];
 
@@ -110,16 +114,55 @@ void Gauge_Draw(int i)
 	SetBlendState(BLENDSTATE_ALPHA);
 
 	DrawSprite(drawPos, { 62,62 }, color::white);
+}
 
+//====================================================================================
+// スキルゲージ描画（下面／テキスト／上面）
+//====================================================================================
+void Gauge_DrawSkill(int i)
+{
+	const GaugeData& g = g_Gauge[i];
+
+	// スキルゲージ描画
+	int typeIndex = 0;
+	if (g.type != PlayerType::None)
+	{
+		typeIndex = static_cast<int>(g.type) - 1;  // Noneが0なので-1
+	}
+
+	// スキルゲージ(下面)描画
+	Shader_Begin();
 	Shader_BeginUI();
-	Shader_SetSingleGauge(1.0f);
-	Shader_SetSkillGaugeTextures();
+	Shader_SetSkillCoolGaugeTextures(typeIndex);
 	SetBlendState(BLENDSTATE_ALPHA);
-	DrawSprite({drawPos.x +100, drawPos.y}, { 62,62 }, color::white);
 
-	/*SetBlendState(BLENDSTATE_ALFA);
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
-	DrawSprite({ 10, 10 }, { 10, 10 }, color::white);*/
+	DrawSprite({ g.pos.x + 170, g.pos.y - 45 }, { 45, 45 }, color::white);
+
+	// スキルテキスト描画
+	Shader_Begin();
+	Shader_BeginUI();
+	Shader_SetSkillTextTextures(typeIndex);
+
+	DrawSprite({ g.pos.x + 170, g.pos.y - 10}, { 50, 15 }, color::white);
+
+	// スキルゲージ(上面)描画
+	Shader_BeginSkillGauge();
+	Shader_SetSingleGauge(g.skill);
+	Shader_SetSkillGaugeTextures(typeIndex);
+	SetBlendState(BLENDSTATE_ALPHA);
+
+	DrawSprite({ g.pos.x + 170, g.pos.y - 45 }, { 75, 75 }, color::white);
+}
+
+//====================================================================================
+// 両方描画
+//====================================================================================
+void Gauge_Draw(int i)
+{
+	// 通常ゲージ描画
+	Gauge_DrawBasic(i);
+	// スキルゲージ描画
+	Gauge_DrawSkill(i);
 }
 
 //====================================================================================

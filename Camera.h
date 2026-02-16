@@ -45,5 +45,7 @@ void SetCameraUpVector(XMFLOAT3);
 XMMATRIX GetViewMatrix();
 XMMATRIX GetProjectionMatrix();
 
+void Camera_StartShake(float intensity, float duration);
+
 void Camera_UpdateAuto();
 

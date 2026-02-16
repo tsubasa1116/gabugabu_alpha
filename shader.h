@@ -41,7 +41,9 @@ void Shader_BeginDebugColor();
 
 void Shader_SetGaugeTextures();
 void Shader_SetOutGaugeTextures();
-void Shader_SetSkillGaugeTextures();
+void Shader_SetSkillGaugeTextures(int typeIndex);
+void Shader_SetSkillCoolGaugeTextures(int typeIndex);
+void Shader_SetSkillTextTextures(int typeIndex);
 
 
 #endif // SHADER_H

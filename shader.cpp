@@ -46,9 +46,11 @@ static ID3D11SamplerState* g_GaugeSampler = nullptr;
 static ID3D11ShaderResourceView* g_OutGaugeTex = nullptr;
 static ID3D11SamplerState* g_OutGaugeSampler = nullptr;
 
-static ID3D11ShaderResourceView* g_SkillGaugeTex = nullptr;
+static ID3D11ShaderResourceView* g_SkillGaugeTex[4] = {};
 static ID3D11SamplerState* g_SkillGaugeSampler = nullptr;
 
+static ID3D11ShaderResourceView* g_SkillCoolGaugeTex[4] = {};
+static ID3D11ShaderResourceView* g_SkillTextTex[4] = {};
 
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
@@ -346,6 +348,30 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		L"asset/texture/uiMaterialElectricity_v3.png"
 	};
 
+	const wchar_t* skillOver[4] =
+	{
+		L"asset/texture/icon_growth.png",
+		L"asset/texture/icon_barrier.png",
+		L"asset/texture/icon_thorn.png",
+		L"asset/texture/icon_speed.png"
+	};
+
+	const wchar_t* skillUnder[4] =
+	{
+		L"asset/texture/cool_growth.png",
+		L"asset/texture/cool_barrier.png",
+		L"asset/texture/cool_thorn.png",
+		L"asset/texture/cool_speed.png"
+	};
+
+	const wchar_t* skillText[4] =
+	{
+		L"asset/texture/text_growth.png",
+		L"asset/texture/text_barrier.png",
+		L"asset/texture/text_thorn.png",
+		L"asset/texture/text_speed.png"
+	};
+
 	TexMetadata metadata;
 	ScratchImage image;
 
@@ -354,15 +380,23 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		LoadFromWICFile(files[i], WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_GaugeTex[i]);
 		assert(g_GaugeTex[i]);
+
+		LoadFromWICFile(skillOver[i], WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillGaugeTex[i]);
+		assert(g_SkillGaugeTex[i]);
+
+		LoadFromWICFile(skillUnder[i], WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillCoolGaugeTex[i]);
+		assert(g_SkillCoolGaugeTex[i]);
+
+		LoadFromWICFile(skillText[i], WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillTextTex[i]);
+		assert(g_SkillTextTex[i]);
 	}
 
 	LoadFromWICFile(L"Asset\\Texture\\uiEvolutionGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_OutGaugeTex);
 	assert(g_OutGaugeTex);
-
-	LoadFromWICFile(L"Asset\\Texture\\icon_barrier.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillGaugeTex);
-	assert(g_SkillGaugeTex);
 
 
 	//======================================================
@@ -428,25 +462,50 @@ void Shader_SetOutGaugeTextures()
 }
 
 //======================================================
-//	スキルゲージ用テクスチャセット関数
+//	スキルゲージ(上面)用テクスチャセット関数
 //======================================================
-void Shader_SetSkillGaugeTextures()
+void Shader_SetSkillGaugeTextures(int typeIndex)
 {
-	// ✅ デバッグ出力
-	if (!g_SkillGaugeTex) {
-		hal::dout << "ERROR: g_SkillGaugeTex is nullptr!" << std::endl;
-		return;
+	// タイプチェック
+	if (typeIndex < 0 || typeIndex >= 4)
+	{
+		typeIndex = 0;  
 	}
-	if (!g_SkillGaugeSampler) {
-		hal::dout << "ERROR: g_SkillGaugeSampler is nullptr!" << std::endl;
-		return;
-	}
+	g_pContext->PSSetShaderResources(0, 1, &g_SkillGaugeTex[typeIndex]);
 
-	hal::dout << "Setting SkillGauge texture and sampler" << std::endl;
-
-	g_pContext->PSSetShaderResources(0, 1, &g_SkillGaugeTex);
 	g_pContext->PSSetSamplers(0, 1, &g_SkillGaugeSampler);
 }
+
+//======================================================
+//	スキルゲージ(下面)用テクスチャセット関数
+//======================================================
+void Shader_SetSkillCoolGaugeTextures(int typeIndex)
+{
+	// タイプチェック
+	if (typeIndex < 0 || typeIndex >= 4)
+	{
+		typeIndex = 0;
+	}
+	g_pContext->PSSetShaderResources(0, 1, &g_SkillCoolGaugeTex[typeIndex]);
+
+	g_pContext->PSSetSamplers(0, 1, &g_SkillGaugeSampler);
+}
+
+//======================================================
+//	スキルテキスト用テクスチャセット関数
+//======================================================
+void Shader_SetSkillTextTextures(int typeIndex)
+{
+	// タイプチェック
+	if (typeIndex < 0 || typeIndex >= 4)
+	{
+		typeIndex = 0;
+	}
+	g_pContext->PSSetShaderResources(0, 1, &g_SkillTextTex[typeIndex]);
+
+	g_pContext->PSSetSamplers(0, 1, &g_SkillGaugeSampler);
+}
+
 //======================================================
 //	行列関数
 //======================================================
@@ -655,7 +714,7 @@ void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed)
 	memcpy(mapped.pData, &ob, sizeof(ob));
 	g_pContext->Unmap(g_pHpberBuffer, 0);
 
-	g_pContext->PSSetConstantBuffers(6, 1, &g_pHpberBuffer);
+	g_pContext->PSSetConstantBuffers(5, 1, &g_pHpberBuffer);
 }
 
 

@@ -186,7 +186,7 @@ void DrawHP(const hp* bar, int texNum)
 	float ratio = bar->current / bar->size.x;
 	ratio = max(0.0f, min(1.0f, ratio));
 
-	// ダメージバー割合（赤バー）
+	// ダメージバー割合
 	float damageRatio = bar->damageCurrent / bar->size.x;
 	damageRatio = max(0.0f, min(1.0f, damageRatio));
 
@@ -213,13 +213,13 @@ void DrawHP(const hp* bar, int texNum)
 		XMFLOAT2 damageUvMin = { 0.0f, 0.0f };
 		XMFLOAT2 damageUvMax = { damageRatio, 1.0f };
 
-		XMFLOAT2 damageFillSize = { bar->size.x * damageRatio, bar->size.y };
+		XMFLOAT2 damageFillSize   = { bar->size.x * damageRatio, bar->size.y };
 		XMFLOAT2 damageFillSizeOK = { damageFillSize.x / 1.88f, damageFillSize.y };
-		XMFLOAT2 damageFillPosOK = { drawPos.x - (bar->size.x / 2.0f) + damageFillSizeOK.x / 2.0f + 86.4f, drawPos.y };
+		XMFLOAT2 damageFillPosOK  = { drawPos.x - (bar->size.x / 2.0f) + damageFillSizeOK.x / 2.0f + 86.4f, drawPos.y };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 		Shader_BeginHpber();
-		Shader_SetHpber(bar->damageColor, bar->damageColor, 0.7f, 1.0f);  // 赤一色
+		Shader_SetHpber(bar->damageColor, bar->damageColor, 1.0f, 1.0f);  // 赤一色
 		DrawSpriteUV(damageFillPosOK, damageFillSizeOK, bar->damageColor, damageUvMin, damageUvMax);
 	}
 
@@ -227,9 +227,9 @@ void DrawHP(const hp* bar, int texNum)
 	XMFLOAT2 uvMin = { 0.0f, 0.0f };
 	XMFLOAT2 uvMax = { ratio, 1.0f };
 
-	XMFLOAT2 fillSize = { bar->size.x * ratio, bar->size.y };
+	XMFLOAT2 fillSize =   { bar->size.x * ratio, bar->size.y };
 	XMFLOAT2 fillSizeOK = { fillSize.x / 1.88f, fillSize.y };
-	XMFLOAT2 fillPosOK = { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, drawPos.y };
+	XMFLOAT2 fillPosOK =  { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, drawPos.y };
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	Shader_BeginHpber();
