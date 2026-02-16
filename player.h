@@ -19,7 +19,7 @@
 #define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間
 #define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間
 #define	HEALING_TIME		(2.0f)	// 回復持続時間
-#define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間
+#define	EVOLVING_TIME		(2.0f)	// 進化時間
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間
 #define	DOWN_TIME			(3.0f)	// ダウン持続時間
@@ -86,6 +86,9 @@ struct PLAYEROBJECT
 
 	bool isHealing;			// 回復中かどうか
 	float healingTimer;		// 回復中の経過時間
+
+	bool isEvolving;		// 進化中かどうか
+	float evolvingTimer;	// 進化中の経過時間
 
 	bool useSkill;			// スキル中かどうか
 	float skillTimer;		// スキル中の経過時間

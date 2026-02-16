@@ -8,8 +8,8 @@
 #include "Camera.h"
 #include "debug_render.h"
 
-#define EFFECT_SPRITE_X		(6)
-#define EFFECT_SPRITE_Y		(6)
+#define EFFECT_SPRITE_X		(8)
+#define EFFECT_SPRITE_Y		(8)
 #define EFFECT_FRAME_MAX	(64)
 #define EFFECT_SPEED		(2.5f)
 #define EFFECT_TEX_MAX		(24)
@@ -631,29 +631,29 @@ void Effect_DrawForPlayer(int playerIndex)
 	// --- 条件に応じて複数のテクスチャを指定 ---
 	std::vector<std::tuple<int, int, float, XMFLOAT3>> texNosFramesScales;
 
-	//// 進化エフェクト
-	//if (player.isInvincible)
-	//{
-	//	const auto& anim = g_effectAnim[playerIndex];
-	//		 if (anim.evolutionPhase == 1) texNosFramesScales.emplace_back(18, anim.evolutionFrame, 3.0f, XMFLOAT3(0,0,0));
-	//	else if (anim.evolutionPhase == 2) texNosFramesScales.emplace_back(19, anim.evolutionFrame, 3.0f, XMFLOAT3(0,0,0));
-	//}
-	//// スキルエフェクト
-	//else if (player.useSkill)
-	//{
-	//	int texNo = -1;
-	//	float scale = 1.0f;
-	//	XMFLOAT3 offset(0,0,0);
-	//	switch (player.type)
-	//	{
-	//	case PlayerType::Glass:			texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
-	//	case PlayerType::Concrete:		texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
-	//	case PlayerType::Plant:			texNo = 9;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
-	//	case PlayerType::Electricity:	texNo = 10;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
-	//	default: break;
-	//	}
-	//	if (texNo >= 0) texNosFramesScales.emplace_back(texNo, g_effectAnim[playerIndex].skillFrame, scale, offset);
-	//}
+	// 進化エフェクト
+	if (player.isInvincible)
+	{
+		const auto& anim = g_effectAnim[playerIndex];
+			 if (anim.evolutionPhase == 1) texNosFramesScales.emplace_back(18, anim.evolutionFrame, 3.0f, XMFLOAT3(0,0,0));
+		else if (anim.evolutionPhase == 2) texNosFramesScales.emplace_back(19, anim.evolutionFrame, 3.0f, XMFLOAT3(0,0,0));
+	}
+	// スキルエフェクト
+	else if (player.useSkill)
+	{
+		int texNo = -1;
+		float scale = 1.0f;
+		XMFLOAT3 offset(0,0,0);
+		switch (player.type)
+		{
+		case PlayerType::Glass:			texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
+		case PlayerType::Concrete:		texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
+		case PlayerType::Plant:			texNo = 9;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
+		case PlayerType::Electricity:	texNo = 10;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
+		default: break;
+		}
+		if (texNo >= 0) texNosFramesScales.emplace_back(texNo, g_effectAnim[playerIndex].skillFrame, scale, offset);
+	}
 	// スペシャルエフェクト
 	if (player.useSpecial)
 	{
@@ -672,27 +672,27 @@ void Effect_DrawForPlayer(int playerIndex)
 		}
 		if (texNo >= 0) texNosFramesScales.emplace_back(texNo, g_effectAnim[playerIndex].specialFrame, scale, offset);
 	}
-	//// 毒状態エフェクト
-	//if (player.isPoisoned)
-	//{
-	//	texNosFramesScales.emplace_back(11, g_effectAnim[playerIndex].poisonFrame, 0.7f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-	//}
-	//// 被弾エフェクト
-	//if (player.isAttacked)
-	//{
-	//	texNosFramesScales.emplace_back(12, g_effectAnim[playerIndex].attackedFrame, 1.0f, XMFLOAT3(0.0f, 0.5f, 0.0f));
-	//}
-	//// 回復エフェクト
-	//if (player.isHealing)
-	//{
-	//	texNosFramesScales.emplace_back(8, g_effectAnim[playerIndex].healingFrame, 1.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-	//}
-	//// リスポーン卵エフェクト
-	//if (player.duringRespawn)
-	//{
-	//	texNosFramesScales.emplace_back(20, g_effectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-	//	//texNosFramesScales.emplace_back(21, g_effectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-	//}
+	// 毒状態エフェクト
+	if (player.isPoisoned)
+	{
+		texNosFramesScales.emplace_back(11, g_effectAnim[playerIndex].poisonFrame, 0.7f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+	}
+	// 被弾エフェクト
+	if (player.isAttacked)
+	{
+		texNosFramesScales.emplace_back(12, g_effectAnim[playerIndex].attackedFrame, 1.0f, XMFLOAT3(0.0f, 0.5f, 0.0f));
+	}
+	// 回復エフェクト
+	if (player.isHealing)
+	{
+		texNosFramesScales.emplace_back(8, g_effectAnim[playerIndex].healingFrame, 1.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+	}
+	// リスポーン卵エフェクト
+	if (player.duringRespawn)
+	{
+		texNosFramesScales.emplace_back(20, g_effectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		//texNosFramesScales.emplace_back(21, g_effectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+	}
 	//// プレイヤー 走行時の埃エフェクト
 	//if (player.isMoving)
 	//{

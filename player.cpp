@@ -162,6 +162,8 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].attackedTimer = 0.0f;
 		player[p].isHealing = false;
 		player[p].healingTimer = 0.0f;
+		player[p].isEvolving = false;
+		player[p].evolvingTimer = 0.0f;
 		player[p].useSkill = false;
 		player[p].skillTimer = 0.0f;
 		player[p].skillCoolTimer = 0.0f;
@@ -547,6 +549,18 @@ void Player_Update()
 			}
 		}
 
+		// 進化フラグの更新
+		if (player[p].isEvolving)
+		{
+			player[p].evolvingTimer += DELTA_TIME;	// 進化タイマーを更新
+
+			if (player[p].evolvingTimer >= EVOLVING_TIME)
+			{
+				player[p].isEvolving = false;	// 進化終了
+				player[p].evolvingTimer = 0.0f;	// タイマーリセット
+			}
+		}
+
 		// 満腹度の減少
 		player[p].satiety -= DELTA_TIME;
 		if (player[p].satiety < 0.0f)	player[p].satiety = 0.0f;
@@ -807,7 +821,7 @@ void Player_Update()
 			player[p].invincibleTimer += DELTA_TIME;
 
 			// プレイヤー毎の無敵時間が経過したら無敵終了
-			if (player[p].invincibleTimer >= INVINCIBLE_TIME)
+			if (player[p].invincibleTimer >= EVOLVING_TIME)
 			{
 				player[p].isInvincible = false;
 				player[p].invincibleTimer = 0.0f;
@@ -1579,6 +1593,8 @@ void Player_Respawn(int playerIndex)
 		player[playerIndex].attackedTimer = 0.0f;
 		player[playerIndex].isHealing = false;
 		player[playerIndex].healingTimer = 0.0f;
+		player[playerIndex].isEvolving = false;
+		player[playerIndex].evolvingTimer = 0.0f;
 		player[playerIndex].useSkill = false;
 		player[playerIndex].skillTimer = 0.0f;
 		player[playerIndex].skillCoolTimer = 0.0f;

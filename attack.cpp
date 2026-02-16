@@ -427,6 +427,10 @@ void Attack_Update(int playerIndex)
 		player.isInvincible = true;
 		player.invincibleTimer = 0.0f;
 
+		// 進化フラグを立てる
+		player.isEvolving = true;
+		player.evolvingTimer += DELTA_TIME;
+
 		// 現在のフォーム（進化前の状態）を保存
 		Form currentForm = player.form;
 
