@@ -359,72 +359,49 @@ void Attack_Update(int playerIndex)
 				switch (type)
 				{
 				case BuildingType::Glass:
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Glass += 1;						// ガラスを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				case BuildingType::Concrete:
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Concrete += 1;					// コンクリートを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				case BuildingType::Plant:					
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Plant += 1;						// 植物を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				case BuildingType::Electricity:
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Electricity += 1;					// 電気を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				default:
 					break;
 				}
+
+				buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+				player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+				player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
+
+				// HP回復
+				player.hp += 10.0f;
+				// HPの上限
+				if (player.hp > PLAYER_MAX_HP)	player.hp = PLAYER_MAX_HP;
+
+				player.isHealing = true;	// 回復中フラグを立てる
+				
+				// 満腹度増加
+				player.satiety += 1.0f;
+				// 満腹度の上限
+				if (player.satiety > PLAYER_MAX_SATIETY)	player.satiety = PLAYER_MAX_SATIETY;
+
+				// 効果音やエフェクトを再生
+
+				// ヒットでスキルを終了
+				//player.isAttacking = false;
+				//player.attackTimer = 0.0f;
+
+				// 更新済みAABB
+				CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 			}
 
 			// 衝突していたら、MTVの分だけ位置を戻す

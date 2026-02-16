@@ -124,10 +124,18 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 
-	player[0].form = Form::Second;
-	player[1].form = Form::Second;
-	player[2].form = Form::Second;
-	player[3].form = Form::Second;
+	//player[0].form = Form::First;
+	//player[1].form = Form::First;
+	//player[2].form = Form::First;
+	//player[3].form = Form::First;
+	//player[0].type = PlayerType::None;
+	//player[1].type = PlayerType::None;
+	//player[2].type = PlayerType::None;
+	//player[3].type = PlayerType::None;
+	player[0].form = Form::Third;
+	player[1].form = Form::Third;
+	player[2].form = Form::Third;
+	player[3].form = Form::Third;
 	player[0].type = PlayerType::Glass;
 	player[1].type = PlayerType::Concrete;
 	player[2].type = PlayerType::Plant;
@@ -139,8 +147,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		player[p].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
 		player[p].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		player[p].maxHp = 500.0f;
-		player[p].hp = player[0].maxHp;
+		player[p].hp = PLAYER_MAX_HP;
 		player[p].attack = 0.0f;
 		player[p].power = 0.0f;
 		player[p].speed = 0.0f;
@@ -148,10 +155,13 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].stock = 3;
 		player[p].rank = 0;
 		player[p].active = true;
+		player[p].satiety = 0.0f;
 		player[p].isAttacking = false;
 		player[p].attackTimer = 0.0f;
 		player[p].isAttacked = false;
 		player[p].attackedTimer = 0.0f;
+		player[p].isHealing = false;
+		player[p].healingTimer = 0.0f;
 		player[p].useSkill = false;
 		player[p].skillTimer = 0.0f;
 		player[p].skillCoolTimer = 0.0f;
@@ -166,6 +176,8 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].downTimer = 0.0f;
 		player[p].isPoisoned = false;
 		player[p].poisonTimer = 0.0f;
+		player[p].duringRespawn = false;
+		player[p].respawnTimer = 0.0f;
 		player[p].lastDir = PlayerDir::Down; // 正面
 		player[p].isMoving = false;
 		player[p].evolutionGauge = 0.0f;
@@ -259,7 +271,7 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  9, L"asset\\texture\\characterBigConcrete_v2.png" },		// 第3形態 コンクリート
 		{ 10, L"asset\\texture\\characterBigTree_v2.png" },			// 第3形態 植物
 		{ 11, L"asset\\texture\\characterBigElectricity_v2.png" },	// 第3形態 電気
-		{ 12, L"asset\\texture\\characterBigSP_v2.png" },			// 第3形態 スペシャル
+		{ 12, L"asset\\texture\\characterBigSP_v3.png" },			// 第3形態 スペシャル
 		{ 13, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 赤
 		{ 14, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 青
 		{ 15, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 黄
@@ -400,6 +412,8 @@ void Player_Update()
 		ImGui::SliderFloat("poisonTimer", &player[p].poisonTimer, 0.0f, 5.0f);
 		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
 		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
+		ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
+		ImGui::BulletText("isHealing         : %d", player[p].isHealing);
 		ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
 		ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
 		ImGui::BulletText("useSkill          : %d", player[p].useSkill);
@@ -519,6 +533,44 @@ void Player_Update()
 			break;
 		default:
 			break;
+		}
+
+		// 回復フラグの更新
+		if (player[p].isHealing)
+		{
+			player[p].healingTimer += DELTA_TIME;	// 回復タイマーを更新
+
+			if (player[p].healingTimer >= HEALING_TIME)
+			{
+				player[p].isHealing = false;	// 回復終了
+				player[p].healingTimer = 0.0f;	// タイマーリセット
+			}
+		}
+
+		// 満腹度の減少
+		player[p].satiety -= DELTA_TIME;
+		if (player[p].satiety < 0.0f)	player[p].satiety = 0.0f;
+		//// 満腹度が1未満ならHPを減少させる
+		//if (player[p].satiety < 1.0f)	player[p].hp -= 0.05f;
+
+		// リスポーン処理
+		if (player[p].duringRespawn)
+		{
+			player[p].respawnTimer += DELTA_TIME;
+
+			if (player[p].respawnTimer >= 5.0f)
+			{
+				player[p].duringRespawn = false;
+				player[p].respawnTimer = 0.0f;
+				player[p].isInvincible = true;
+				player[p].invincibleTimer = 0.0f;
+			}
+		}
+		else
+		{
+			// y軸の移動量 (重力 + ジャンプ)
+			// 重力加速度のない簡易的な重力
+			player[p].position.y += -0.1f;
 		}
 
 		// 毒の処理
@@ -805,6 +857,10 @@ void Player_Update()
 
 		// プレイヤー アニメーション更新
 		g_animTimer[p] += DELTA_TIME;
+
+		// エフェクト アニメーション
+		Effect_UpdateForPlayer(p);
+
 		if (g_animTimer[p] >= ANIM_FRAME_TIME)
 		{
 			int advance = (int)(g_animTimer[p] / ANIM_FRAME_TIME);
@@ -986,8 +1042,6 @@ void Player_Update()
 				else if (player[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 156, 6, advance);	//  右  156～161
 				else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 182, 6, advance);	// 右下 182～187		
 			}
-			// エフェクト アニメーション
-			Effect_UpdateForPlayer(p);
 		}
 	
 		static XMFLOAT3 posBuff = player[p].position;	// デバッグ表示座標
@@ -1027,10 +1081,6 @@ void Player_Update()
 
 		// AABB を現在の位置・スケール（ヒットボックス）で更新しておく（衝突判定で使用）
 		CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
-
-		// y軸の移動量 (重力 + ジャンプ)
-		// 重力加速度のない簡易的な重力
-		player[p].position.y += -0.1f;
 
 		posBuff = player[p].position;
 
@@ -1219,7 +1269,7 @@ void Player_Update()
 			}
 		}
 
-		SetHPValue(&HPBar[p], (int)player[p].hp, (int)player[p].maxHp);
+		SetHPValue(&HPBar[p], (int)player[p].hp, (int)PLAYER_MAX_HP);
 		UpdateHP(&HPBar[p]);
 	}
 	ImGui::End();
@@ -1515,18 +1565,20 @@ void Player_Respawn(int playerIndex)
 	{
 		player[playerIndex].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		player[playerIndex].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
-		player[playerIndex].maxHp = 500.0f;
-		player[playerIndex].hp = player[0].maxHp;
+		player[playerIndex].hp = PLAYER_MAX_HP;
 		player[playerIndex].attack = 0.0f;
 		player[playerIndex].power = 0.0f;
 		player[playerIndex].speed = 0.0f;
 		player[playerIndex].defense = 1.0f;
 		player[playerIndex].dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		player[playerIndex].active = true;
+		player[playerIndex].satiety = 0.0f;
 		player[playerIndex].isAttacking = false;
 		player[playerIndex].attackTimer = 0.0f;
 		player[playerIndex].isAttacked = false;
 		player[playerIndex].attackedTimer = 0.0f;
+		player[playerIndex].isHealing = false;
+		player[playerIndex].healingTimer = 0.0f;
 		player[playerIndex].useSkill = false;
 		player[playerIndex].skillTimer = 0.0f;
 		player[playerIndex].skillCoolTimer = 0.0f;
@@ -1540,6 +1592,9 @@ void Player_Respawn(int playerIndex)
 		player[playerIndex].isDown = false;
 		player[playerIndex].downTimer = 0.0f;
 		player[playerIndex].isPoisoned = false;
+		player[playerIndex].poisonTimer = 0.0f;
+		player[playerIndex].duringRespawn = true;
+		player[playerIndex].respawnTimer = 0.0f;
 		player[playerIndex].lastDir = PlayerDir::Down; // 正面
 		player[playerIndex].isMoving = false;
 		player[playerIndex].form = Form::First;
