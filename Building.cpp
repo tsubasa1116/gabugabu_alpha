@@ -17,7 +17,7 @@ static Building* Buildings[300];
 static int BuildingCount = 0;
 
 // ★テクスチャのパス用意
-#define FIELD_TEX_MAX 10
+#define FIELD_TEX_MAX 11
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"Asset\\Texture\\gure.jpg",
@@ -29,6 +29,7 @@ static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"Asset\\Texture\\４つのガラス.png",
 	L"Asset\\Texture\\信号.png",
 	L"Asset\\Texture\\２この丸ガラス.png",
+	L"Asset\\Texture\\木と遊具.png",
 	L"Asset\\Texture\\fade.bmp"
 };
 
@@ -61,7 +62,7 @@ static const char* g_PlantModels[] = {
 	"kitoyugu",
 	"togeki",
 	"kitoie",
-	"torii_ki"
+
 };
 
 // 電気建物
@@ -300,7 +301,11 @@ void Building::Draw(bool)
 	{
 		tex = g_Texture[1]; // とんがり木
 	}
-
+	if (Type == BuildingType::Plant &&
+		strcmp(g_PlantModels[m_ModelIndex], "kitoyugu") == 0)
+	{
+		tex = g_Texture[9]; // とんがり木
+	}
 	// Electricity 
 	else if (Type == BuildingType::Electricity &&
 		strcmp(g_ElectricModels[m_ModelIndex], "raibu") == 0)
