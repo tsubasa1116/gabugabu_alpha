@@ -20,6 +20,9 @@ using namespace DirectX;
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
 
+// ファイル先頭のグローバル変数部分に追加
+static bool g_plantInitialized[PLAYER_MAX] = { false };
+
 // 頂点バッファ
 static ID3D11Buffer* g_VertexBuffer;
 
@@ -616,16 +619,12 @@ void Special_Plant_Update(int playerIndex)
 	const float radius = 5.0f;
 	Circle circle = { player.position, radius }; // 円の中心と半径を設定
 
-
-	// スペシャルの初期化処理（エフェクトは一度だけ設定）
-	static bool initialized[PLAYER_MAX] = { false };
-
-	if (!initialized[playerIndex])
+	if (!g_plantInitialized[playerIndex])
 	{
 		const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 		const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 		Effect_Set(24, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
-		initialized[playerIndex] = true;
+		g_plantInitialized[playerIndex] = true;
 	}
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
@@ -657,16 +656,15 @@ void Special_Plant_Update(int playerIndex)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
-		g_animFrame[playerIndex] = 0;		// アニメーションリセット
+		g_animFrame[playerIndex] = 0;
 		g_animTimer[playerIndex] = 0.0f;
-		//player.form = Form::First;			// 変身形態を第1形態に戻す
-		//player.type = PlayerType::None;		// タイプをリセット
-		player.evolutionGaugeRate = 1.0f;	// スキルの進化ゲージバフもリセット
-		player.useSkill = false;			// スキル解除
-		player.useSpecial = false;			// スペシャル解除
-		Effect_ClearUI(playerIndex);          // エフェクトクリア
-		player.isTypeFixed = false;         // タイプ固定解除
-		Effect_Clear(playerIndex);            // エフェクトクリア
+		player.evolutionGaugeRate = 1.0f;
+		player.useSkill = false;
+		player.useSpecial = false;
+		Effect_ClearUI(playerIndex);
+		player.isTypeFixed = false;
+		Effect_Clear(playerIndex);
+		g_plantInitialized[playerIndex] = false;  // ここでリセット
 	}
 }
 

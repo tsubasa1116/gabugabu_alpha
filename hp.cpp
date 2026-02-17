@@ -8,7 +8,7 @@ static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 //プレイヤー関連変数
-static	ID3D11ShaderResourceView* g_Texture[6];
+static	ID3D11ShaderResourceView* g_Texture[10];
 
 hp HPBar[HPBER_MAX];
 

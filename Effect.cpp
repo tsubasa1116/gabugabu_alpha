@@ -101,7 +101,10 @@ static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
 	{ 64,  -1, -1,  true, 1.0f, 8},  // 進化2 進化1の直後に使用
 	{ 64,  -1, -1,  true, 1.0f, 8},  // 撃墜
 	{ 32,  0,  30,  true, 0.8f, 4 }, // UI 毒状態
-	{ 64,  0,  64,  true, 0.3f, 8 }
+	{ 64,  0,  64,  true, 0.3f, 8 },
+	{ 32,  0,  30,  true, 0.8f, 4 },
+	{ 32,  0,  30,  true, 0.8f, 4 },
+	{ 32,  0,  30,  true, 0.8f, 4 }
 };
 
 //===============================================
@@ -137,6 +140,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		effect[i].size = XMFLOAT2(0, 0);
 		effect[i].frameCnt = 0;
 		effect[i].texNo = 0;
+		effect[i].playerIndex = -1;
 	}
 
 	// UI画面
@@ -559,6 +563,11 @@ void Effect_Clear(int pIndex)
 		if (effect[i].playerIndex == pIndex)
 		{
 			effect[i].enable = false;
+			effect[i].pos = XMFLOAT3(0, 0, 0);
+			effect[i].size = XMFLOAT2(0, 0);
+			effect[i].frameCnt = 0;
+			effect[i].texNo = 0;
+			effect[i].playerIndex = -1;  // 無効な値にリセット
 		}
 	}
 }
