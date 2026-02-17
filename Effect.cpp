@@ -12,8 +12,8 @@
 #define EFFECT_SPRITE_Y		(8)
 #define EFFECT_FRAME_MAX	(64)
 #define EFFECT_SPEED		(2.5f)
-#define EFFECT_TEX_MAX		(24)
-#define EFFECT_MAX			(24)
+#define EFFECT_TEX_MAX		(30)
+#define EFFECT_MAX			(30)
 
 // 頂点配列
 static Vertex2 effect_vdata[PLAYER_VERTEX] =
@@ -76,6 +76,37 @@ static int   g_animFrame[PLAYER_MAX] = { 0 };
 static float g_animTimer[PLAYER_MAX] = { 0.0f };
 static const float ANIM_FRAME_TIME = 0.15f;	// 1フレームあたりの秒数
 
+// テクスチャ番号ごとの設定
+static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
+	// max, loopS, loopE, isLoop, speed, sprintY
+	{ 32,  0,  30,  true, 1.5f, 8},
+	{ 32,  0,  30,  true, 1.5f, 8},
+	{ 32,  0,  30,  true, 1.5f, 8},
+	{ 32,  0,  30,  true, 1.5f, 8},
+	{ 32,  0,  30,  true, 1.0f, 8},
+	{ 32,  0,  30,  true, 1.0f, 8},
+	{ 32,  0,  30,  true, 1.0f, 8},
+	{ 32,  0,  30,  true, 1.0f, 8},
+	{ 64,  -1, -1,  true, 1.0f, 8},  // スキル ガラス・コンクリート
+	{ 64,  -1, -1,  true, 1.0f, 8},  // スキル 植物
+	{ 64,  -1, -1,  true, 1.0f, 8},  // スキル 電気
+	{ 64,  -1, -1,  true, 1.0f, 8},  // 毒状態
+	{ 64,  -1, -1,  true, 1.0f, 8},  // ヒット コンクリートの建物・プレイヤーを攻撃した時
+	{ 64,  -1, -1,  true, 1.0f, 8},  // ヒット 電気・ガラス・植物の建物を攻撃した時
+	{ 64,  -1, -1,  true, 1.0f, 8},  // スペシャル コンクリート 地面の衝撃波
+	{ 64,  -1, -1,  true, 1.0f, 8},  // スペシャル 電気 衝撃波
+	{ 64,  -1, -1,  true, 1.0f, 8},  // 建物 煙 20%破壊
+	{ 64,  -1, -1,  true, 1.0f, 8},  // 建物 煙 50%破壊
+	{ 64,  -1, -1,  true, 1.0f, 8},  // 進化1
+	{ 64,  -1, -1,  true, 1.0f, 8},  // 進化2 進化1の直後に使用
+	{ 64,  -1, -1,  true, 1.0f, 8},  // 撃墜
+	{ 32,  0,  30,  true, 0.8f, 4 }, // UI 毒状態
+	{ 64,  0,  64,  true, 0.3f, 8 },
+	{ 32,  0,  30,  true, 0.8f, 4 },
+	{ 32,  0,  30,  true, 0.8f, 4 },
+	{ 32,  0,  30,  true, 0.8f, 4 }
+};
+
 //===============================================
 //　テクスチャセット用関数
 //===============================================
@@ -109,6 +140,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		effect[i].size = XMFLOAT2(0, 0);
 		effect[i].frameCnt = 0;
 		effect[i].texNo = 0;
+		effect[i].playerIndex = -1;
 	}
 
 	// UI画面
@@ -134,9 +166,12 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(18, L"Asset\\Texture\\effectEvolution02_v1.png");		// 進化2 進化1の直後に使用
 	Effect_LoadTexture(19, L"Asset\\Texture\\effectWin_v1.png");				// 撃墜
 	Effect_LoadTexture(20, L"Asset\\Texture\\effectEgg_v3.png");				// リスポーン 卵
-	//Effect_LoadTexture(21, L"Asset\\Texture\\effectEgg_v3.png");				// リスポーン 卵 影
+	Effect_LoadTexture(21, L"Asset\\Texture\\effectEgg_v3.png");				// リスポーン 卵 影
 	Effect_LoadTexture(22, L"Asset\\Texture\\effectRun_v1.png");				// 埃
 	Effect_LoadTexture(23, L"Asset\\Texture\\effectVenomExplosion.png");		// 毒スペシャル
+
+	Effect_LoadTexture(24, L"Asset\\Texture\\uiPoison_vx.png");
+	Effect_LoadTexture(25, L"Asset\\Texture\\uiOrbit_v1.png");
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
@@ -169,7 +204,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		CopyMemory(&index[0], &effect_idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
-	// デバッグレンダラー初期化
+	// デバッグレンダラー初期化 
 	Debug_Initialize(pDevice, pContext);
 
 	// アニメーションの初期化
@@ -201,33 +236,30 @@ void Effect_Finalize()
 //===============================================
 void Effect_Update()
 {
-	g_EffectTimer++;
-
-	if (g_EffectTimer >= EFFECT_SPEED)
+	for (int i = 0; i < EFFECT_MAX; ++i)
 	{
-		g_EffectTimer = 0;
-		g_EffectFrame++;
+		if (!effect[i].enable) continue;
 
-		if (!g_EffectLoopFlag)
+		int texNo = effect[i].texNo;
+		const EffectConfig& config = g_EffectConfigs[texNo];
+
+		// フレームを進める
+		effect[i].frameCnt += (1.0f / EFFECT_SPEED) * config.speed;
+
+		// ループor終了判定
+		if (config.isLoop)
 		{
-			g_EffectTimer++;
-			if (g_EffectFrame > 29)
+			if (effect[i].frameCnt >= config.loopEnd)
 			{
-				g_EffectLoopFlag = true;
-				g_EffectFrame = 32;
-			}
-			if (g_EffectFrame >= EFFECT_FRAME_MAX)
-			{
-				g_EffectFrame = 0;
+				effect[i].frameCnt = (float)config.loopStart;
 			}
 		}
 		else
 		{
-			// ループ
-			g_EffectFrame++;
-			if (g_EffectFrame >= 61)
+			// ループしない時は、設定された最大を超えたら消滅
+			if (effect[i].frameCnt >= config.loopEnd)
 			{
-				g_EffectFrame = 32;
+				effect[i].enable = false; // 再生終了
 			}
 		}
 	}
@@ -238,25 +270,8 @@ void Effect_Update()
 //===============================================
 void Effect_Draw()
 {
-	if (g_CurrentTexNo < 0 || g_CurrentTexNo >= EFFECT_TEX_MAX) return;
-	ID3D11ShaderResourceView* tex = g_Texture[g_CurrentTexNo];
-	if (!tex) return;
-
-	int fx = g_EffectFrame % EFFECT_SPRITE_X;
-	int fy = g_EffectFrame / EFFECT_SPRITE_X;
-
-	float u = 1.0f / EFFECT_SPRITE_X;
-	float v = 1.0f / EFFECT_SPRITE_Y;
-
-	XMFLOAT2 uvMin = { fx * u, fy * v };
-	XMFLOAT2 uvMax = { uvMin.x + u, uvMin.y + v };
-
-	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
 	Shader_BeginUI();
-
-	Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
-
 	SetBlendState(BLENDSTATE_ALPHA);
 
 	for (int i = 0; i < EFFECT_MAX; ++i)
@@ -268,69 +283,23 @@ void Effect_Draw()
 		ID3D11ShaderResourceView* tex = g_Texture[texNo];
 		if (!tex) continue;
 
+		const EffectConfig& config = g_EffectConfigs[texNo];
+		int currentFrame = (int)effect[i].frameCnt;
+
+		int fx = currentFrame % EFFECT_SPRITE_X;
+		int fy = currentFrame / EFFECT_SPRITE_X;
+
+		float u = 1.0f / (float)EFFECT_SPRITE_X;
+		float v = 1.0f / (float)config.spriteY ;
+
+		XMFLOAT2 uvMin = { fx * u, fy * v };
+		XMFLOAT2 uvMax = { uvMin.x + u, uvMin.y + v };
+
 		XMFLOAT2 pos = { effect[i].pos.x, effect[i].pos.y };
 		XMFLOAT2 size = effect[i].size;
 
 		g_pContext->PSSetShaderResources(0, 1, &tex);
 		DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
-	}
-}
-
-//===============================================
-//　セット関数
-//===============================================
-void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
-{
-	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
-	if (!g_Texture[texNo]) return;
-
-	// 空きを探す
-	int slot = -1;
-	for (int i = 0; i < EFFECT_MAX; ++i)
-	{
-		if (!effect[i].enable)
-		{
-			slot = i;
-			break;
-		}
-	}
-
-	if (slot < 0) return;
-
-	effect[slot].enable = true;
-	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
-	effect[slot].size = size;
-	effect[slot].frameCnt = 0;
-	effect[slot].texNo = texNo;
-}
-
-//===============================================
-//　エフェクト消去
-//===============================================
-void Effect_Clear(int pIndex)
-{
-	// プレイヤーごとのエフェクト位置
-	const XMFLOAT2 playerEffectPos[4] =
-	{
-		{  175.0f, 620.0f },	// プレイヤー1
-		{  490.0f, 620.0f },	// プレイヤー2
-		{  805.0f, 620.0f },	// プレイヤー3
-		{ 1120.0f, 620.0f }		// プレイヤー4
-	};
-
-	if (pIndex < 0 || pIndex >= 4) return;
-
-	XMFLOAT2 targetPos = playerEffectPos[pIndex];
-
-	for (int i = 0; i < EFFECT_MAX; ++i)
-	{
-		if (!effect[i].enable) continue;
-
-		// 位置が一致するエフェクトを無効化
-		if (fabsf(effect[i].pos.x - targetPos.x) < 1.0f && fabsf(effect[i].pos.y - targetPos.y) < 1.0f)
-		{
-			effect[i].enable = false;
-		}
 	}
 }
 
@@ -497,8 +466,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 			g_effectAnim[playerIndex].healingFrame = 16; // 16からスタート
 			healingFrameInitialized[playerIndex] = true;
 		}
-
-		g_effectAnim[playerIndex].healingTimer += DELTA_TIME;
+			g_effectAnim[playerIndex].healingTimer += DELTA_TIME;
 		if (g_effectAnim[playerIndex].healingTimer >= ANIM_FRAME_TIME)
 		{
 			g_effectAnim[playerIndex].healingTimer = 0.0f;
@@ -506,51 +474,159 @@ void Effect_UpdateForPlayer(int playerIndex)
 		}
 	}
 	else	healingFrameInitialized[playerIndex] = false;
-
-	// リスポーン 卵 エフェクト
 	static bool respawnFrameInitialized[PLAYER_MAX] = { false };
 
-	if (player.duringRespawn)
+	if(player.duringRespawn)
 	{
-		// フラグがtrueになった瞬間だけ初期化
+	// フラグがtrueになった瞬間だけ初期化
 		if (!respawnFrameInitialized[playerIndex])
 		{
 			g_effectAnim[playerIndex].respawnFrame = playerIndex * 16;
 			g_effectAnim[playerIndex].respawnTimer = 0.0f;
 			respawnFrameInitialized[playerIndex] = true;
 		}
-
+	
 		g_effectAnim[playerIndex].respawnTimer += DELTA_TIME;
 		if (g_effectAnim[playerIndex].respawnTimer >= ANIM_FRAME_TIME)
 		{
-			g_effectAnim[playerIndex].respawnTimer = 0.0f;
-			int start = playerIndex * 16;
-			int end = start + 15;
-			LoopRange(g_effectAnim[playerIndex].respawnFrame, start, end, 1);
+		g_effectAnim[playerIndex].respawnTimer = 0.0f;
+		int start = playerIndex * 16;
+		int end = start + 15;
+		LoopRange(g_effectAnim[playerIndex].respawnFrame, start, end, 1);
 		}
 	}
 	else	respawnFrameInitialized[playerIndex] = false;
 
 	//// 移動時の埃 8コマ
-	//if (player.isMoving == true)
-	//{
-	//	// 左下 8～15
-	//		 if (player.moveDir.x < 0.0f && player.moveDir.z < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 8, 8, 1);
-	//	// 左上 24～31
-	//	else if (player.moveDir.x < 0.0f && player.moveDir.z > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 24, 8, 1);
-	//	// 右上 40～47
-	//	else if (player.moveDir.x > 0.0f && player.moveDir.z > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 40, 8, 1);
-	//	// 右下 56～63
-	//	else if (player.moveDir.x > 0.0f && player.moveDir.z < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 56, 8, 1);
-	//	// 下   0～7
-	//	else if (player.moveDir.z < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 0, 8, 1);
-	//	// 左   16～23
-	//	else if (player.moveDir.x < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 16, 8, 1);
-	//	// 上   32～39
-	//	else if (player.moveDir.z > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 32, 8, 1);
-	//	// 右   48～55
-	//	else if (player.moveDir.x > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 48, 8, 1);
-	//}
+		//if (player.isMoving == true)
+		//{
+		//	// 左下 8～15
+		//		 if (player.moveDir.x < 0.0f && player.moveDir.z < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 8, 8, 1);
+		//	// 左上 24～31
+		//	else if (player.moveDir.x < 0.0f && player.moveDir.z > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 24, 8, 1);
+		//	// 右上 40～47
+		//	else if (player.moveDir.x > 0.0f && player.moveDir.z > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 40, 8, 1);
+		//	// 右下 56～63
+		//	else if (player.moveDir.x > 0.0f && player.moveDir.z < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 56, 8, 1);
+		//	// 下   0～7
+		//	else if (player.moveDir.z < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 0, 8, 1);
+		//	// 左   16～23
+		//	else if (player.moveDir.x < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 16, 8, 1);
+		//	// 上   32～39
+		//	else if (player.moveDir.z > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 32, 8, 1);
+		//	// 右   48～55
+		//	else if (player.moveDir.x > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 48, 8, 1);
+		//}
+}
+
+//===============================================
+//　エフェクトセット
+//===============================================
+void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex)
+{
+	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
+	if (!g_Texture[texNo]) return;
+	
+	// 空きスロットを探す
+	int slot = -1;
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable)
+		{
+			slot = i;
+			break;	
+		}
+	}
+	
+	if(slot < 0) return;
+
+	effect[slot].enable = true;
+	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
+	effect[slot].size = size;
+	effect[slot].frameCnt = 0;
+	effect[slot].texNo = texNo;
+	effect[slot].playerIndex = playerIndex; 
+}
+
+//===============================================
+//　エフェクト消去
+//===============================================
+void Effect_Clear(int pIndex)
+{
+	if (pIndex < 0 || pIndex >= PLAYER_MAX) return;
+
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable) continue;
+
+		// エフェクトが指定プレイヤーのものなら消去
+		if (effect[i].playerIndex == pIndex)
+		{
+			effect[i].enable = false;
+			effect[i].pos = XMFLOAT3(0, 0, 0);
+			effect[i].size = XMFLOAT2(0, 0);
+			effect[i].frameCnt = 0;
+			effect[i].texNo = 0;
+			effect[i].playerIndex = -1;  // 無効な値にリセット
+		}
+	}
+}
+
+//===============================================
+//　プレイヤーUIセット関数
+//===============================================
+void Effect_SetUI(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
+{
+	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
+	if (!g_Texture[texNo]) return;
+
+	// 空きを探す
+	int slot = -1;
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable)
+		{
+			slot = i;
+			break;
+		}
+	}
+
+	if (slot < 0) return;
+
+	effect[slot].enable = true;
+	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
+	effect[slot].size = size;
+	effect[slot].frameCnt = 0;
+	effect[slot].texNo = texNo;
+}
+
+//===============================================
+//　プレイヤーUIエフェクト消去
+//===============================================
+void Effect_ClearUI(int pIndex)
+{
+	// プレイヤーごとのエフェクト位置
+	const XMFLOAT2 playerEffectPos[4] =
+{
+		{  170.0f, 620.0f },	// プレイヤー1
+		{  490.0f, 620.0f },	// プレイヤー2
+		{  810.0f, 620.0f },	// プレイヤー3
+		{ 1130.0f, 620.0f }		// プレイヤー4
+	};
+
+	if (pIndex < 0 || pIndex >= 4) return;
+
+	XMFLOAT2 targetPos = playerEffectPos[pIndex];
+
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable) continue;
+
+		if(fabsf(effect[i].pos.x - targetPos.x) < 1.0f && fabsf(effect[i].pos.y - targetPos.y) < 1.0f)
+		{
+			effect[i].enable = false;
+		}
+	}
 }
 
 // ===============================================

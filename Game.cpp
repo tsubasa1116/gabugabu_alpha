@@ -1,7 +1,7 @@
-﻿//======================================================
+//======================================================
 //	Game.cpp[]
 // 
-//	制作者：前野翼			日付：2024//
+//	����ҁF�O�엃			���t�F2024//
 //======================================================
 
 #include "Manager.h"
@@ -26,16 +26,16 @@
 #include "fade.h"
 #include "DamageText.h"
 #include "direct3d.h"
-
+#include "SkyBall.h"
 //======================================================
-//	構造謡宣言
+//	�\���w�錾
 //======================================================
 LIGHTOBJECT Light;
 
 //======================================================
-//	グローバル変数
+//	�O���[�o���ϐ�
 //======================================================
-static int g_BgmID = NULL;	// サウンド管理ID
+static int g_BgmID = NULL;	// �T�E���h�Ǘ�ID
 bool input2 = false;
 
 const int KONAMI_CODE[] = {
@@ -44,41 +44,41 @@ const int KONAMI_CODE[] = {
 	KK_B, KK_A
 };
 
-// コマンドの長さ
+// �R�}���h�̒���
 const int KONAMI_CODE_LENGTH = sizeof(KONAMI_CODE) / sizeof(KONAMI_CODE[0]);
 
-// 現在、コマンド入力のどこまで進んでいるかを追跡するインデックス
+// ���݁A�R�}���h���͂̂ǂ��܂Ői��ł��邩��ǐՂ���C���f�b�N�X
 static int s_KonamiCodeIndex = 0;
 
-// コマンドが入力されたときに立つフラグ
+// �R�}���h�����͂��ꂽ�Ƃ��ɗ��t���O
 static bool s_IsKonamiCodeEntered = false;
 
-// 押されたキーが期待されているキーと一致しているかの確認をする
+// �����ꂽ�L�[�����҂���Ă���L�[�ƈ�v���Ă��邩�̊m�F������
 void CheckKonamiCode(int currentKeyCode)
 {
-	// 現在期待されているキーが押されたか？
+	// ���݊��҂���Ă���L�[�������ꂽ���H
 	if (currentKeyCode == KONAMI_CODE[s_KonamiCodeIndex])
 	{
-		// 期待通りの入力だったので、インデックスを進める
+		// ���Ғʂ�̓��͂������̂ŁA�C���f�b�N�X��i�߂�
 		s_KonamiCodeIndex++;
 
-		// コマンドの最後まで到達したか？
+		// �R�}���h�̍Ō�܂œ��B�������H
 		if (s_KonamiCodeIndex >= KONAMI_CODE_LENGTH)
 		{
-			// コマンド入力完了！フラグを立てる
+			// �R�}���h���͊����I�t���O�𗧂Ă�
 			s_IsKonamiCodeEntered = !s_IsKonamiCodeEntered;
 
-			// コマンドは完了したので、インデックスをリセットするか、-1などの完了状態にする
-			s_KonamiCodeIndex = 0; // または s_KonamiCodeIndex = -1;
+			// �R�}���h�͊��������̂ŁA�C���f�b�N�X�����Z�b�g���邩�A-1�Ȃǂ̊�����Ԃɂ���
+			s_KonamiCodeIndex = 0; // �܂��� s_KonamiCodeIndex = -1;
 		}
 	}
 	else
 	{
-		// 期待されていないキーが押された場合、シーケンスは失敗。最初からやり直し
+		// ���҂���Ă��Ȃ��L�[�������ꂽ�ꍇ�A�V�[�P���X�͎��s�B�ŏ������蒼��
 		s_KonamiCodeIndex = 0;
 
-		// ただし、失敗したキーがコマンドの最初のキーである場合、
-		// 最初のキーからやり直す可能性を考慮するなら、以下のように再チェックしても良い
+		// �������A���s�����L�[���R�}���h�̍ŏ��̃L�[�ł���ꍇ�A
+		// �ŏ��̃L�[�����蒼���\�����l������Ȃ�A�ȉ��̂悤�ɍă`�F�b�N���Ă��ǂ�
 		if (currentKeyCode == KONAMI_CODE[0])
 		{
 			s_KonamiCodeIndex = 1;
@@ -87,7 +87,7 @@ void CheckKonamiCode(int currentKeyCode)
 }
 
 //======================================================
-//	初期化関数
+//	�������֐�
 //======================================================
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
@@ -102,34 +102,35 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Special_Initialize(pDevice, pContext);
 	Camera_Initialize();
 	DamageText_Initialize();
+	SkyBall_Initialize(pDevice, pContext);
 
 	//BallInitialize(pDevice, pContext);
-	//P_Initialize(pDevice, pContext);		// プレイヤーの初期化
+	//P_Initialize(pDevice, pContext);		// �v���C���[�̏�����
 	//Score_Initialize(pDevice, pContext);
 
-	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// サウンドロード
-	PlayAudio(g_BgmID, true);		// 再生開始(ループあり)
-	//PlayAudio(g_BgmID);			// 再生開始（ループなし）
-	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし）
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// �T�E���h���[�h
+	PlayAudio(g_BgmID, true);		// �Đ��J�n(���[�v����)
+	//PlayAudio(g_BgmID);			// �Đ��J�n�i���[�v�Ȃ��j
+	//PlayAudio(g_BgmID, false);	// �Đ��J�n�i���[�v�Ȃ��j
 
-	//ライト初期化
+	//���C�g������
 	XMFLOAT4 para;
 
-	para = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);	// 環境光の色
+	para = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);	// �����̐F
 	Light.SetAmbient(para);
-	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);	// 光の色
+	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);	// ���̐F
 	Light.SetDiffuse(para);
-	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);	// 光方向
+	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);	// ������
 
 	float len = sqrtf(para.x * para.x + para.y * para.y + para.z * para.z);
 	para.x /= len;
 	para.y /= len;
 	para.z /= len;
-	Light.SetDirection(para);	// 光の方向（正規化済）
+	Light.SetDirection(para);	// ���̕����i���K���ρj
 }
 
 //======================================================
-//	終了処理関数
+//	�I�������֐�
 //======================================================
 void Game_Finalize()
 {
@@ -140,24 +141,25 @@ void Game_Finalize()
 	Attack_Finalize();
 	Skill_Finalize();
 	Special_Finalize();
+	SkyBall_Finalize();
 	
 	//BallFinalize();
 	//P_Finalize();
 	//Score_Finalize();
 
-	UnloadAudio(g_BgmID);	// サウンドの解放
+	UnloadAudio(g_BgmID);	// �T�E���h�̉��
 	DamageText_Finalize();
 }
 
 //======================================================
-//	更新処理
+//	�X�V����
 //======================================================
 void Game_Update()
 {
 	// ------------------------------------
-	//  コナミコマンド検出
+	//  �R�i�~�R�}���h���o
 	// ------------------------------------
-	// コマンドで使用する全てのキーの押下トリガーをチェックし、検出関数に渡す
+	// �R�}���h�Ŏg�p����S�ẴL�[�̉����g���K�[���`�F�b�N���A���o�֐��ɓn��
 		 if (Keyboard_IsKeyDownTrigger(KK_UP))		CheckKonamiCode(KK_UP);
 	else if (Keyboard_IsKeyDownTrigger(KK_DOWN))	CheckKonamiCode(KK_DOWN);
 	else if (Keyboard_IsKeyDownTrigger(KK_LEFT))	CheckKonamiCode(KK_LEFT);
@@ -165,58 +167,63 @@ void Game_Update()
 	else if (Keyboard_IsKeyDownTrigger(KK_B))		CheckKonamiCode(KK_B);
 	else if (Keyboard_IsKeyDownTrigger(KK_A))		CheckKonamiCode(KK_A);
 	// ------------------------------------
-	// 更新処理
+	// �X�V����
 	// ------------------------------------
 	Player_Update();
 	Field_Update();
 	Effect_Update();
 	Gauge_Update();
-	Camera_Update();	// プレイヤーの更新の後に呼ぶ
-
+	Camera_Update();	// �v���C���[�̍X�V�̌�ɌĂ�
+	SkyBall_Update();
 	//BallUpdate();
 	//P_Update();
 	//Score_Update();
 	DamageText_Update();
 
-	//ゲームシーンへ遷移
+	//�Q�[���V�[���֑J��
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-		// フェードアウトさせてシーンを切り替える
+		// �t�F�[�h�A�E�g�����ăV�[����؂�ւ���
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
 	}
 }
 
 //======================================================
-//	描画関数
+//	�`��֐�
 //======================================================
 void Game_Draw()
 { 
-	Light.SetEnable(TRUE);			// ライティングON
-	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセット
+	//2D�`��
+	Light.SetEnable(FALSE);			// ���C�e�B���OOFF
+	Shader_SetLight(Light.Light);	// ���C�g�\���̂��V�F�[�_�[�փZ�b�g
+	SkyBall_Draw();
+	SetDepthTest(FALSE);
+	Camera_Draw();	// Draw�̍ŏ��ŌĂԁI
+
+	Light.SetEnable(TRUE);			// ���C�e�B���OON
+	Shader_SetLight(Light.Light);	// ���C�g�\���̂��V�F�[�_�[�փZ�b�g
 	SetDepthTest(TRUE);
 
-	Camera_Draw();	// Drawの最初で呼ぶ！
 	Field_Draw(s_IsKonamiCodeEntered);
 	Player_Draw(s_IsKonamiCodeEntered);
 
-	//2D描画
-	Light.SetEnable(FALSE);			// ライティングOFF
-	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセット
+	//2D�`��
+	Light.SetEnable(FALSE);			// ���C�e�B���OOFF
+	Shader_SetLight(Light.Light);	// ���C�g�\���̂��V�F�[�_�[�փZ�b�g
 	SetDepthTest(FALSE);
     
 	Effect_Draw();
 	Player_DrawHP();
 	
-	
 	Player_DrawText();
 	DamageText_Draw();
 	//DrawTextEx(
-	//	L"こんにちは世界",			// 表示する文字
-	//	600, 400,					// 位置
-	//	60.0f,						// サイズ
-	//	L"玉ねぎ楷書激無料版v7改",	// フォント
-	//	TextColor::Yellow			// 色
+	//	L"����ɂ��͐��E",			// �\�����镶��
+	//	600, 400,					// �ʒu
+	//	60.0f,						// �T�C�Y
+	//	L"�ʂ˂�������������v7��",	// �t�H���g
+	//	TextColor::Yellow			// �F
 	//);
 	
 	//P_Draw();

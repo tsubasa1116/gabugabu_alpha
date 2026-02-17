@@ -17,6 +17,8 @@
 #include <cmath>
 #include "VideoTexture.h"
 
+#include "color.h"
+
 static VideoTexture g_VideoTex;
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;		//背景
@@ -128,10 +130,9 @@ void Title_Update()
 
 void Title_Draw()
 {
-
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
-	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+	Shader_SetColor(color::white);
 
 	// 画面サイズ取得
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
