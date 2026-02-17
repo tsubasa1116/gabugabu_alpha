@@ -624,7 +624,7 @@ void Special_Plant_Update(int playerIndex)
 	{
 		const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 		const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
-		Effect_Set(21, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
+		Effect_Set(24, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
 		initialized[playerIndex] = true;
 	}
 
