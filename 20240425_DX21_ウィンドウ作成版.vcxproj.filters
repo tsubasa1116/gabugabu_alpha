@@ -24,287 +24,103 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="attack.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Audio.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Ball.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Build.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Building.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="collider.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="DamageText.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="debug_ostream.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="debug_render.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="direct3d.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Effect.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="fade.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="field.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Game.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="gauge.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="hp.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="keyboard.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="input.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="LoadingScreen.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="makeText.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Manager.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="model.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="p.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="player.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="polygon.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Result.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="score.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Setting.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="shader.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="special.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Sound.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="skill.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="sprite.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Start.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="swipe.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="Title.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoTexture.cpp">
-      <Filter>cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_impl_win32.cpp">
-      <Filter>外部ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_impl_dx11.cpp">
-      <Filter>外部ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_widgets.cpp">
-      <Filter>外部ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_tables.cpp">
-      <Filter>外部ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui.cpp">
-      <Filter>外部ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_demo.cpp">
-      <Filter>外部ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_draw.cpp">
-      <Filter>外部ファイル</Filter>
-    </ClCompile>
+    <ClCompile Include="attack.cpp" />
+    <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="Ball.cpp" />
+    <ClCompile Include="Build.cpp" />
+    <ClCompile Include="Building.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="collider.cpp" />
+    <ClCompile Include="debug_ostream.cpp" />
+    <ClCompile Include="debug_render.cpp" />
+    <ClCompile Include="direct3d.cpp" />
+    <ClCompile Include="Effect.cpp" />
+    <ClCompile Include="fade.cpp" />
+    <ClCompile Include="field.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="gauge.cpp" />
+    <ClCompile Include="hp.cpp" />
+    <ClCompile Include="imgui.cpp" />
+    <ClCompile Include="imgui_demo.cpp" />
+    <ClCompile Include="imgui_draw.cpp" />
+    <ClCompile Include="imgui_impl_dx11.cpp" />
+    <ClCompile Include="imgui_impl_win32.cpp" />
+    <ClCompile Include="imgui_tables.cpp" />
+    <ClCompile Include="imgui_widgets.cpp" />
+    <ClCompile Include="input.cpp" />
+    <ClCompile Include="keyboard.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="makeText.cpp" />
+    <ClCompile Include="Manager.cpp" />
+    <ClCompile Include="model.cpp" />
+    <ClCompile Include="p.cpp" />
+    <ClCompile Include="polygon.cpp" />
+    <ClCompile Include="Polygon3D.cpp" />
+    <ClCompile Include="Result.cpp" />
+    <ClCompile Include="score.cpp" />
+    <ClCompile Include="Setting.cpp" />
+    <ClCompile Include="shader.cpp" />
+    <ClCompile Include="skill.cpp" />
+    <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="special.cpp" />
+    <ClCompile Include="sprite.cpp" />
+    <ClCompile Include="Start.cpp" />
+    <ClCompile Include="Title.cpp" />
+    <ClCompile Include="DamageText.cpp" />
+    <ClCompile Include="swipe.cpp" />
+    <ClCompile Include="VideoTexture.cpp" />
+    <ClCompile Include="LoadingScreen.cpp" />
+    <ClCompile Include="SkyBall.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="attack.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Audio.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Ball.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Build.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Building.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="collider.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="color.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="DamageText.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="debug_render.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="direct3d.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="debug_ostream.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Effect.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="field.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="fade.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="gauge.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="hp.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="input.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="keyboard.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Manager.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="LoadingScreen.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="model.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="makeText.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="p.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="player.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="polygon.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Result.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="score.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Setting.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="shader.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="skill.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Sound.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="special.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="sprite.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Start.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="swipe.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoTexture.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="Title.h">
-      <Filter>h</Filter>
-    </ClInclude>
-    <ClInclude Include="imstb_truetype.h">
-      <Filter>外部ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui_internal.h">
-      <Filter>外部ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="imstb_rectpack.h">
-      <Filter>外部ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="imstb_textedit.h">
-      <Filter>外部ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui_impl_dx11.h">
-      <Filter>外部ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui_impl_win32.h">
-      <Filter>外部ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="imconfig.h">
-      <Filter>外部ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui.h">
-      <Filter>外部ファイル</Filter>
-    </ClInclude>
+    <ClInclude Include="attack.h" />
+    <ClInclude Include="Audio.h" />
+    <ClInclude Include="Ball.h" />
+    <ClInclude Include="Build.h" />
+    <ClInclude Include="Building.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="collider.h" />
+    <ClInclude Include="color.h" />
+    <ClInclude Include="debug_ostream.h" />
+    <ClInclude Include="debug_render.h" />
+    <ClInclude Include="direct3d.h" />
+    <ClInclude Include="Effect.h" />
+    <ClInclude Include="fade.h" />
+    <ClInclude Include="field.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="gauge.h" />
+    <ClInclude Include="hp.h" />
+    <ClInclude Include="imconfig.h" />
+    <ClInclude Include="imgui.h" />
+    <ClInclude Include="imgui_impl_dx11.h" />
+    <ClInclude Include="imgui_impl_win32.h" />
+    <ClInclude Include="imgui_internal.h" />
+    <ClInclude Include="imstb_rectpack.h" />
+    <ClInclude Include="imstb_textedit.h" />
+    <ClInclude Include="imstb_truetype.h" />
+    <ClInclude Include="input.h" />
+    <ClInclude Include="keyboard.h" />
+    <ClInclude Include="makeText.h" />
+    <ClInclude Include="Manager.h" />
+    <ClInclude Include="model.h" />
+    <ClInclude Include="p.h" />
+    <ClInclude Include="polygon.h" />
+    <ClInclude Include="Polygon3D.h" />
+    <ClInclude Include="Result.h" />
+    <ClInclude Include="score.h" />
+    <ClInclude Include="Setting.h" />
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="skill.h" />
+    <ClInclude Include="Sound.h" />
+    <ClInclude Include="special.h" />
+    <ClInclude Include="sprite.h" />
+    <ClInclude Include="Start.h" />
+    <ClInclude Include="Title.h" />
+    <ClInclude Include="DamageText.h" />
+    <ClInclude Include="swipe.h" />
+    <ClInclude Include="VideoTexture.h" />
+    <ClInclude Include="LoadingScreen.h" />
+    <ClInclude Include="SkyBall.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="cpp">
