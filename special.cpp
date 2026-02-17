@@ -39,8 +39,21 @@ static SPECIAL_OBJECT Special[PLAYER_MAX];
 static int   g_animFrame[PLAYER_MAX];
 static float g_animTimer[PLAYER_MAX];
 static const float ANIM_FRAME_TIME = 0.15f;	// 1フレームあたりの秒数
-static const int   SHEET_COLS = 6;
-static const int   SHEET_ROWS = 6;
+static const int   SHEET_COLS = 8;
+static const int   SHEET_ROWS = 8;
+
+static int g_lightningFrame[PLAYER_MAX] = { 0 };
+static float g_lightningTimer[PLAYER_MAX] = { 0.0f };
+static const int LIGHTNING_SHEET_COLS = 8;
+static const int LIGHTNING_SHEET_ROWS = 8;
+static const int LIGHTNING_FRAME_MAX = 59; // 0～58
+static const float LIGHTNING_ANIM_FRAME_TIME = 0.15f;
+
+static bool g_concreteRangeFinished[PLAYER_MAX] = { false };
+static int  g_concreteFrame[PLAYER_MAX] = { 0 };
+static float g_concreteTimer[PLAYER_MAX] = { 0.0f };
+static const int   CONCRETE_FRAME_MAX = 72;	// 0～72
+static const float CONCRETE_ANIM_FRAME_TIME = 0.15f;
 
 static Vertex2 Special_vdata[SPECIAL_VERTEX] =
 {
@@ -247,22 +260,38 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	ScratchImage image;
 
 	// スペシャル範囲表示
-	LoadFromWICFile(L"Asset\\Texture\\uiSpecialRed_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\uiSpecialRed_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[0]);
 	assert(g_Special_Texture[0]);
-	LoadFromWICFile(L"Asset\\Texture\\uiSpecialBlue_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\uiSpecialBlue_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[1]);
 	assert(g_Special_Texture[1]);
-	LoadFromWICFile(L"Asset\\Texture\\uiSpecialYellow_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\uiSpecialYellow_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[2]);
 	assert(g_Special_Texture[2]);
-	LoadFromWICFile(L"Asset\\Texture\\uiSpecialGreen_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\uiSpecialGreen_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[3]);
 	assert(g_Special_Texture[3]);
 	// ガラスミサイル
 	LoadFromWICFile(L"Asset\\Texture\\ice.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[4]);
 	assert(g_Special_Texture[4]);
+	// コンクリート 衝撃波 エフェクト1
+	LoadFromWICFile(L"Asset\\Texture\\effectSPConcrete01_v2.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[5]);
+	assert(g_Special_Texture[5]);
+	// コンクリート 衝撃波 エフェクト2
+	LoadFromWICFile(L"Asset\\Texture\\effectSPConcrete02_v2.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[6]);
+	assert(g_Special_Texture[6]);
+	//// 植物 毒霧 エフェクト
+	//LoadFromWICFile(L"Asset\\Texture\\effectlighting.png", WIC_FLAGS_NONE, &metadata, image);
+	//CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[7]);
+	//assert(g_Special_Texture[7]);
+	// 電気 雷 エフェクト
+	LoadFromWICFile(L"Asset\\Texture\\effectlighting.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[8]);
+	assert(g_Special_Texture[8]);
 
 	// インデックスバッファ作成
 	{
@@ -468,7 +497,7 @@ void Special_Glass_Update(int playerIndex)
 		player.type = PlayerType::None;		// タイプをリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
-        Effect_Clear(playerIndex);          // エフェクトクリア
+		Effect_Clear(playerIndex);          // エフェクトクリア
 	}
 }
 
@@ -482,7 +511,11 @@ void Special_Concrete_Update(int playerIndex)
 	PLAYEROBJECT& player = *playerObject;
 
 	// スペシャルの初期位置をプレイヤーの位置に設定
-	if (player.specialTimer == 0.0f) player.oldPosition = player.position;
+	if (player.specialTimer == 0.0f)
+	{
+		player.oldPosition = player.position;
+		g_concreteRangeFinished[playerIndex] = false;
+	}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
@@ -501,6 +534,8 @@ void Special_Concrete_Update(int playerIndex)
 		// ダメージ処理（1回だけ実行）
 		if (player.specialTimer - DELTA_TIME < 0.75f) // 0.75秒を超えた瞬間に実行
 		{
+			g_concreteRangeFinished[playerIndex] = true;
+
 			const float radius = 5.0f;
 			Circle circle = { player.position, radius }; // 円の中心と半径を設定
 
@@ -541,14 +576,19 @@ void Special_Concrete_Update(int playerIndex)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
-		g_animFrame[playerIndex] = 0;		// アニメーションリセット
+		g_animFrame[playerIndex] = 0;
 		g_animTimer[playerIndex] = 0.0f;
-		player.form = Form::First;			// 変身形態を第1形態に戻す
-		player.type = PlayerType::None;		// タイプをリセット
-		player.defense = 1.0f;				// スキルの防御バフもリセット
-		player.useSkill = false;			// スキル解除
-		player.useSpecial = false;			// スペシャル解除
-		Effect_Clear(playerIndex);          // エフェクトクリア
+		player.form = Form::First;
+		player.type = PlayerType::None;
+		player.defense = 1.0f;
+		player.useSkill = false;
+		player.useSpecial = false;
+		Effect_Clear(playerIndex);
+
+		// 範囲表示終了フラグを立てる
+		g_concreteRangeFinished[playerIndex] = true;
+		g_concreteFrame[playerIndex] = 0;
+		g_concreteTimer[playerIndex] = 0.0f;
 	}
 }
 
@@ -599,12 +639,12 @@ void Special_Plant_Update(int playerIndex)
 		player.specialTimer = 0.0f;
 		g_animFrame[playerIndex] = 0;		// アニメーションリセット
 		g_animTimer[playerIndex] = 0.0f;
-		player.form = Form::First;			// 変身形態を第1形態に戻す
-		player.type = PlayerType::None;		// タイプをリセット
+		//player.form = Form::First;			// 変身形態を第1形態に戻す
+		//player.type = PlayerType::None;		// タイプをリセット
 		player.evolutionGaugeRate = 1.0f;	// スキルの進化ゲージバフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
-		Effect_Clear(playerIndex);          // エフェクトクリア
+		Effect_Clear(playerIndex);			// エフェクトクリア
 	}
 }
 
@@ -694,7 +734,7 @@ void Special_Electricity_Update(int playerIndex)
 		player.speed = 0.06f;				// スキルのスピードバフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
-		Effect_Clear(playerIndex);          // エフェクトクリア
+		Effect_Clear(playerIndex);			// エフェクトクリア
 	}
 }
 
@@ -710,13 +750,41 @@ void Special_Update(int playerIndex)
 	// スペシャル使用中かつスタン中でない場合に更新処理
 	if (player.useSpecial && !player.isStunning)
 	{
-		// アニメーション更新
+		// スペシャル範囲アニメーション
 		g_animTimer[playerIndex] += DELTA_TIME;
 		if (g_animTimer[playerIndex] >= ANIM_FRAME_TIME)
 		{
 			g_animTimer[playerIndex] -= ANIM_FRAME_TIME;
-			g_animFrame[playerIndex] = (g_animFrame[playerIndex] + 1) % 30; // 29を超えたら0に戻す (0-29の範囲)
+			g_animFrame[playerIndex] = (g_animFrame[playerIndex] + 1) % 30;
 		}
+
+		// 雷エフェクト専用アニメーション
+		if (player.type == PlayerType::Electricity)
+		{
+			g_lightningTimer[playerIndex] += DELTA_TIME;
+			if (g_lightningTimer[playerIndex] >= LIGHTNING_ANIM_FRAME_TIME)
+			{
+				g_lightningTimer[playerIndex] -= LIGHTNING_ANIM_FRAME_TIME;
+				g_lightningFrame[playerIndex]++;
+				if (g_lightningFrame[playerIndex] >= LIGHTNING_FRAME_MAX)	g_lightningFrame[playerIndex] = 0;
+			}
+		}
+
+		// コンクリートエフェクト専用アニメーション
+		if (g_concreteRangeFinished[playerIndex])
+		{
+			if (player.type == PlayerType::Concrete)
+			{
+				g_concreteTimer[playerIndex] += DELTA_TIME;
+				if (g_concreteTimer[playerIndex] >= CONCRETE_ANIM_FRAME_TIME)
+				{
+					g_concreteTimer[playerIndex] -= CONCRETE_ANIM_FRAME_TIME;
+					g_concreteFrame[playerIndex]++;
+					if (g_concreteFrame[playerIndex] >= CONCRETE_FRAME_MAX) g_concreteFrame[playerIndex] = CONCRETE_FRAME_MAX - 1;
+				}
+			}
+		}
+		else	g_concreteFrame[playerIndex] = 0;
 
 		switch (player.type)
 		{
@@ -794,28 +862,85 @@ void Special_Glass_Draw(int playerIndex)
 // Concrete専用描画
 void Special_Concrete_Draw(int playerIndex)
 {
-	// 範囲チェック
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+    // 範囲チェック
+    if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
-	if (playerObject == nullptr) return;
-	PLAYEROBJECT& player = *playerObject;
+    PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+    if (playerObject == nullptr) return;
+    PLAYEROBJECT& player = *playerObject;
 
-	// 攻撃範囲の描画
-	XMMATRIX WorldMatrix =
-		XMMatrixScaling(10.0f, 1.0f, 10.0f) * // 半径5の円を表現するためにスケールを10倍に設定
-		XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-		XMMatrixTranslation(player.position.x, 0.1f, player.position.z); // Y座標を少し上げて地面と重ならないようにする
+    // 攻撃範囲のワールド行列
+    XMMATRIX WorldMatrix =
+        XMMatrixScaling(10.0f, 1.0f, 10.0f) *
+        XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+        XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
 
-	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-	Shader_SetMatrix(WVP);
+    XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+    Shader_SetMatrix(WVP);
 
-	// アルファブレンディングを有効化
-	SetBlendState(BLENDSTATE_ALPHA);
+    SetBlendState(BLENDSTATE_ALPHA);
 
-	// 描画実行 (+Y面の一枚だけ描画)
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP); // トポロジーを三角形ストリップに設定
-	g_pContext->Draw(4, 16); // +Y面の4頂点 (16, 17, 18, 19) を描画
+    // 範囲表示フェーズ
+	if (!g_concreteRangeFinished[playerIndex])
+	{
+		// テクスチャ番号0～3をplayerIndexで表示
+		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[playerIndex]);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		g_pContext->Draw(4, 16); // +Y面
+	}
+    // 衝撃波アニメーションフェーズ
+	else if (g_concreteFrame[playerIndex] < 32 + 40) // 32+40=72フレーム分
+	{
+		int frame = g_concreteFrame[playerIndex];
+		int texIndex;
+		int uvFrame;
+		int uvMaxCols = 8, uvMaxRows = 8;
+
+		if (frame < 32) 
+		{
+			texIndex = 5;         // effectSPConcrete01_v2
+			uvFrame = frame;      // 0～31
+			// 8x8分割
+		}
+		else 
+		{
+			texIndex = 6;         // effectSPConcrete02_v2
+			uvFrame = frame - 32; // 0～39
+			// 8x8分割
+		}
+
+		XMMATRIX WorldMatrix =
+			XMMatrixScaling(20.0f, 1.0f, 20.0f) *
+			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+			XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
+
+		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(WVP);
+
+		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[texIndex]);
+
+		// UV計算（8x8分割）
+		int col = uvFrame % uvMaxCols;
+		int row = uvFrame / uvMaxCols;
+		float u0 = (float)col / (float)uvMaxCols;
+		float v0 = (float)row / (float)uvMaxRows;
+		float u1 = u0 + 1.0f / (float)uvMaxCols;
+		float v1 = v0 + 1.0f / (float)uvMaxRows;
+
+		// +Y面のUVだけ書き換え
+		D3D11_MAPPED_SUBRESOURCE msr;
+		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		Vertex2* vertex = (Vertex2*)msr.pData;
+		CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+		vertex[16].tex = XMFLOAT2(u0, v0); // LEFT-TOP
+		vertex[17].tex = XMFLOAT2(u1, v0); // RIGHT-TOP
+		vertex[18].tex = XMFLOAT2(u0, v1); // LEFT-BOTTOM
+		vertex[19].tex = XMFLOAT2(u1, v1); // RIGHT-BOTTOM
+		g_pContext->Unmap(g_VertexBuffer, 0);
+
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		g_pContext->Draw(4, 16); // +Y面
+	}
 }
 
 // Plant専用描画
@@ -862,7 +987,6 @@ void Special_Plant_Draw(int playerIndex)
 // Electricity専用描画
 void Special_Electricity_Draw(int playerIndex)
 {
-	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -871,21 +995,99 @@ void Special_Electricity_Draw(int playerIndex)
 
 	for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 	{
-		// 各円の中心にテクスチャを描画
-		XMMATRIX WorldMatrix =
+		XMFLOAT3 target = player.electricityCircles[i].center;
+
+		// --- 範囲円（+Y面）のUVを6x6分割で書き換え ---
+		{
+			int frame = g_animFrame[playerIndex];
+			int col = frame % SHEET_COLS;
+			int row = frame / SHEET_COLS;
+			float u0 = (float)col / (float)SHEET_COLS;
+			float v0 = (float)row / (float)SHEET_ROWS;
+			float u1 = u0 + 1.0f / (float)SHEET_COLS;
+			float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+			D3D11_MAPPED_SUBRESOURCE msr;
+			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+			Vertex2* vertex = (Vertex2*)msr.pData;
+			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+			vertex[16].tex = XMFLOAT2(u0, v0); // LEFT-TOP
+			vertex[17].tex = XMFLOAT2(u1, v0); // RIGHT-TOP
+			vertex[18].tex = XMFLOAT2(u0, v1); // LEFT-BOTTOM
+			vertex[19].tex = XMFLOAT2(u1, v1); // RIGHT-BOTTOM
+			g_pContext->Unmap(g_VertexBuffer, 0);
+		}
+
+		// 範囲円（+Y面）を描画
+		XMMATRIX circleWorldMatrix =
 			XMMatrixScaling(1.0f, 1.0f, 1.0f) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			XMMatrixTranslation(player.electricityCircles[i].center.x, player.electricityCircles[i].center.y + 0.1f, player.electricityCircles[i].center.z); // Y座標を少し上げて地面と重ならないようにする
+			XMMatrixTranslation(target.x, target.y + 0.1f, target.z);
 
-		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-		Shader_SetMatrix(WVP);
+		XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(circleWVP);
 
-		// アルファブレンディングを有効化
+		SetBlendState(BLENDSTATE_ALPHA);
+		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[playerIndex]);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		g_pContext->Draw(4, 16); // +Y面の4頂点 (16, 17, 18, 19)
+
+		// --- 雷エフェクト（-Z面）描画前にライトを強くする ---
+		LIGHT lightningLight{};
+		lightningLight.Enable = TRUE;
+		lightningLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+		lightningLight.Diffuse = XMFLOAT4(4.0f, 4.0f, 4.0f, 1.0f);
+		lightningLight.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		Shader_SetLight(lightningLight);
+
+		// --- 雷エフェクト（-Z面）のUVを8x8分割で書き換え ---
+		{
+			int frame = g_lightningFrame[playerIndex];
+			int col = frame % LIGHTNING_SHEET_COLS;
+			int row = frame / LIGHTNING_SHEET_COLS;
+			float u0 = (float)col / (float)LIGHTNING_SHEET_COLS;
+			float v0 = (float)row / (float)LIGHTNING_SHEET_ROWS;
+			float u1 = u0 + 1.0f / (float)LIGHTNING_SHEET_COLS;
+			float v1 = v0 + 1.0f / (float)LIGHTNING_SHEET_ROWS;
+
+			D3D11_MAPPED_SUBRESOURCE msr;
+			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+			Vertex2* vertex = (Vertex2*)msr.pData;
+			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+			vertex[0].tex = XMFLOAT2(u0, v0); // LEFT-TOP
+			vertex[1].tex = XMFLOAT2(u1, v0); // RIGHT-TOP
+			vertex[2].tex = XMFLOAT2(u0, v1); // LEFT-BOTTOM
+			vertex[3].tex = XMFLOAT2(u1, v1); // RIGHT-BOTTOM
+			g_pContext->Unmap(g_VertexBuffer, 0);
+		}
+
+		// --- 雷エフェクト（-Z面）を描画 ---
+		float lightningTopY = 10.0f;
+		float lightningBottomY = target.y;
+		float length = fabsf(lightningTopY - lightningBottomY);
+
+		XMMATRIX lightningWorldMatrix =
+			XMMatrixScaling(2.0f, length * 1.0f, 2.0f) *
+			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+			XMMatrixTranslation(target.x, 4.0f, target.z);
+		//XMMatrixTranslation(target.x, (lightningTopY + lightningBottomY) / 2.0f, target.z);
+
+		XMMATRIX lightningWVP = lightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(lightningWVP);
+
+		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[8]);
 		SetBlendState(BLENDSTATE_ALPHA);
 
-		// 描画実行 (+Y面の一枚だけ描画)
-		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP); // トポロジーを三角形ストリップに設定
-		g_pContext->Draw(4, 16); // +Y面の4頂点 (16, 17, 18, 19) を描画
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		g_pContext->Draw(4, 0); // -Z面の4頂点 (0, 1, 2, 3)
+
+		// --- 描画後にライトを元に戻す ---
+		LIGHT normalLight{};
+		normalLight.Enable = TRUE;
+		normalLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+		normalLight.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+		normalLight.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+		Shader_SetLight(normalLight);
 	}
 }
 
@@ -897,8 +1099,6 @@ void Special_Draw(int playerIndex)
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
-
-	if (!player.useSpecial || player.isStunning) return;
 
 	// 1. 共通設定 (パイプラインステートの設定)
 	//    これを親で一度だけやることで処理落ちを防ぐ
@@ -912,8 +1112,8 @@ void Special_Draw(int playerIndex)
 	LIGHT light{};
 	light.Enable = TRUE;
 	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
-	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	light.Diffuse = XMFLOAT4(2.5f, 2.5f, 2.5f, 1.0f);
+	light.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 	Shader_SetLight(light);
 
 	SetDepthTest(false); // 深度テストを無効化
@@ -966,11 +1166,11 @@ void Special_Draw(int playerIndex)
 	// プレイヤーのタイプに応じた描画処理
 	switch (player.type)
 	{
-	case PlayerType::Glass:			Special_Glass_Draw(playerIndex);		break;
-	case PlayerType::Concrete:		Special_Concrete_Draw(playerIndex);		break;
-	case PlayerType::Plant:			Special_Plant_Draw(playerIndex);		break;
-	case PlayerType::Electricity:	Special_Electricity_Draw(playerIndex);	break;
-	default: break;
+		case PlayerType::Glass:			Special_Glass_Draw(playerIndex);		break;
+		case PlayerType::Concrete:		Special_Concrete_Draw(playerIndex);		break;
+		case PlayerType::Plant:			Special_Plant_Draw(playerIndex);		break;
+		case PlayerType::Electricity:	Special_Electricity_Draw(playerIndex);	break;
+		default: break;
 	}
 }
 

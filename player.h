@@ -9,17 +9,21 @@
 #include "special.h"
 
 // マクロ定義
-#define	PLAYER_MAX				(4)	// プレイヤー最大数
+#define	PLAYER_MAX			(4)		// プレイヤー最大数
 #define	DELTA_TIME	 (1.0f / 60.0f)	// デルタタイム（秒）
 
+#define	PLAYER_MAX_HP		(500.0f)// プレイヤー 最大HP
+#define	PLAYER_MAX_SATIETY	(7.0f)	// プレイヤー 最大満腹度
+
 #define	EVOLUTIONGAUGE_MAX	(1.0f)	// 進化ゲージ最大値
-#define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間（秒）
-#define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間（秒）
-#define	INVINCIBLE_TIME		(3.0f)	// 進化無敵時間（秒）
+#define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間
+#define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間
+#define	HEALING_TIME		(2.0f)	// 回復持続時間
+#define	EVOLVING_TIME		(2.0f)	// 進化時間
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
-#define	STUN_TIME			(5.0f)	// スタン持続時間（秒）
-#define	DOWN_TIME			(3.0f)	// ダウン持続時間（秒）
-#define	POISON_TIME			(5.0f)	// 毒持続時間（秒）
+#define	STUN_TIME			(5.0f)	// スタン持続時間
+#define	DOWN_TIME			(3.0f)	// ダウン持続時間
+#define	POISON_TIME			(5.0f)	// 毒持続時間
 
 #define	PLAYER_VERTEX	(6)		// 一面のみの頂点数
 #define COORDINATE		(0.5f)	// デフォルト (0.5f)
@@ -64,7 +68,6 @@ struct PLAYEROBJECT
 	XMFLOAT3 scaling;		// 拡大率
 	AABB boundingBox;		// 当たり判定
 	float hp;				// 体力
-	float maxHp;			// 最大体力
 	float attack;			// 攻撃力
 	float power;			// ふっとばしのパワー
 	float speed;			// スピード
@@ -73,32 +76,42 @@ struct PLAYEROBJECT
 	int stock;				// 残機
 	int rank;				// 順位
 	bool active;			// 生存フラグ
+	float satiety;			// 満腹度
 
 	bool isAttacking;		// 攻撃中かどうか
-	float attackTimer;		// 攻撃タイマー
+	float attackTimer;		// 攻撃中の経過時間
 
-	bool isAttacked;		// ダメージ中かどうか
-	float attackedTimer;	// ダメージタイマー
+	bool isAttacked;		// 被弾中かどうか
+	float attackedTimer;	// 被弾中の経過時間
 
-	bool useSkill;			// スキル使用中かどうか
-	float skillTimer;		// スキルタイマー
-	float skillCoolTimer;	// スキルクールタイマー
+	bool isHealing;			// 回復中かどうか
+	float healingTimer;		// 回復中の経過時間
 
-	bool useSpecial;		// スペシャル使用中かどうか
-	float specialTimer;		// スペシャルタイマー
+	bool isEvolving;		// 進化中かどうか
+	float evolvingTimer;	// 進化中の経過時間
+
+	bool useSkill;			// スキル中かどうか
+	float skillTimer;		// スキル中の経過時間
+	float skillCoolTimer;	// スキルクール中の経過時間
+
+	bool useSpecial;		// スペシャル中かどうか
+	float specialTimer;		// スペシャル中の経過時間
 
 	bool isInvincible;		// 無敵中かどうか
-	float invincibleTimer;	// 無敵タイマー
+	float invincibleTimer;	// 無敵中の経過時間
 
 	float stunGauge;		// スタンゲージ
 	bool isStunning;		// スタン中かどうか
-	float stunTimer;		// スタンタイマー
+	float stunTimer;		// スタン中の経過時間
 
 	bool isDown;			// ダウン中かどうか
-	float downTimer;		// ダウンタイマー
+	float downTimer;		// ダウン中の経過時間
 
 	bool isPoisoned;		// 毒状態かどうか
-	float poisonTimer;		// 毒タイマー
+	float poisonTimer;		// 毒の経過時間
+
+	bool duringRespawn;		// リスポーン中かどうか
+	float respawnTimer;		// リスポーン中の経過時間
 
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル

@@ -9,7 +9,7 @@
 #include <windows.h>
 #include "debug_ostream.h"	//デバッグ表示
 
-#include <chrono> // 追加
+#include <chrono>
 #include <algorithm>
 #include "direct3d.h"
 #include "shader.h"
