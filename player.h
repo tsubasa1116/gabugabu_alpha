@@ -19,7 +19,7 @@
 #define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間
 #define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間
 #define	HEALING_TIME		(2.0f)	// 回復持続時間
-#define	EVOLVING_TIME		(2.0f)	// 進化時間
+#define	EVOLVING_TIME		(4.0f)	// 進化時間
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間
 #define	DOWN_TIME			(3.0f)	// ダウン持続時間
@@ -117,6 +117,8 @@ struct PLAYEROBJECT
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	PlayerDir lastDir;							// 待機時の向き
 	bool isMoving = false;						// 移動中かどうか
+	bool isGrounded = false;					// 地上にいるかどうか
+	bool justLanded;							// 着地の瞬間フラグ
 
 	Form form;								// 変身形態
 	PlayerType type;						// プレイヤーの属性タイプ

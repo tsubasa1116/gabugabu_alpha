@@ -450,8 +450,8 @@ void Attack_Update(int playerIndex)
 			// 4種類の破壊した建物数を配列に格納
 			const int counts[4] =
 			{
-				player.breakCount_Glass,	// idx 0
-				player.breakCount_Concrete,	// idx 1
+				player.breakCount_Glass,		// idx 0
+				player.breakCount_Concrete,		// idx 1
 				player.breakCount_Plant,		// idx 2
 				player.breakCount_Electricity	// idx 3
 			};

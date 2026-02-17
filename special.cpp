@@ -898,14 +898,14 @@ void Special_Concrete_Draw(int playerIndex)
 
 		if (frame < 32) 
 		{
-			texIndex = 5;         // effectSPConcrete01_v2
-			uvFrame = frame;      // 0～31
+			texIndex = 5;		// effectSPConcrete01_v2
+			uvFrame = frame;	// 0～31
 			// 8x8分割
 		}
 		else 
 		{
-			texIndex = 6;         // effectSPConcrete02_v2
-			uvFrame = frame - 32; // 0～39
+			texIndex = 6;			// effectSPConcrete02_v2
+			uvFrame = frame - 32;	// 0～39
 			// 8x8分割
 		}
 
@@ -932,10 +932,10 @@ void Special_Concrete_Draw(int playerIndex)
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex2* vertex = (Vertex2*)msr.pData;
 		CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
-		vertex[16].tex = XMFLOAT2(u0, v0); // LEFT-TOP
-		vertex[17].tex = XMFLOAT2(u1, v0); // RIGHT-TOP
-		vertex[18].tex = XMFLOAT2(u0, v1); // LEFT-BOTTOM
-		vertex[19].tex = XMFLOAT2(u1, v1); // RIGHT-BOTTOM
+		vertex[16].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+		vertex[17].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+		vertex[18].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+		vertex[19].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 		g_pContext->Unmap(g_VertexBuffer, 0);
 
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -1011,10 +1011,10 @@ void Special_Electricity_Draw(int playerIndex)
 			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 			Vertex2* vertex = (Vertex2*)msr.pData;
 			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
-			vertex[16].tex = XMFLOAT2(u0, v0); // LEFT-TOP
-			vertex[17].tex = XMFLOAT2(u1, v0); // RIGHT-TOP
-			vertex[18].tex = XMFLOAT2(u0, v1); // LEFT-BOTTOM
-			vertex[19].tex = XMFLOAT2(u1, v1); // RIGHT-BOTTOM
+			vertex[16].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+			vertex[17].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+			vertex[18].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+			vertex[19].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 			g_pContext->Unmap(g_VertexBuffer, 0);
 		}
 
@@ -1030,7 +1030,7 @@ void Special_Electricity_Draw(int playerIndex)
 		SetBlendState(BLENDSTATE_ALPHA);
 		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[playerIndex]);
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		g_pContext->Draw(4, 16); // +Y面の4頂点 (16, 17, 18, 19)
+		g_pContext->Draw(4, 16);	// +Y面の4頂点 (16, 17, 18, 19)
 
 		// --- 雷エフェクト（-Z面）描画前にライトを強くする ---
 		LIGHT lightningLight{};
@@ -1054,10 +1054,10 @@ void Special_Electricity_Draw(int playerIndex)
 			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 			Vertex2* vertex = (Vertex2*)msr.pData;
 			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
-			vertex[0].tex = XMFLOAT2(u0, v0); // LEFT-TOP
-			vertex[1].tex = XMFLOAT2(u1, v0); // RIGHT-TOP
-			vertex[2].tex = XMFLOAT2(u0, v1); // LEFT-BOTTOM
-			vertex[3].tex = XMFLOAT2(u1, v1); // RIGHT-BOTTOM
+			vertex[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+			vertex[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+			vertex[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+			vertex[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 			g_pContext->Unmap(g_VertexBuffer, 0);
 		}
 
@@ -1079,7 +1079,7 @@ void Special_Electricity_Draw(int playerIndex)
 		SetBlendState(BLENDSTATE_ALPHA);
 
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		g_pContext->Draw(4, 0); // -Z面の4頂点 (0, 1, 2, 3)
+		g_pContext->Draw(4, 0);	// -Z面の4頂点 (0, 1, 2, 3)
 
 		// --- 描画後にライトを元に戻す ---
 		LIGHT normalLight{};
@@ -1156,10 +1156,10 @@ void Special_Draw(int playerIndex)
 	CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
 
 	// +Y面のUV座標を調整
-	vertex[16].tex = XMFLOAT2(u0, v0); // LEFT-TOP
-	vertex[17].tex = XMFLOAT2(u1, v0); // RIGHT-TOP
-	vertex[18].tex = XMFLOAT2(u0, v1); // LEFT-BOTTOM
-	vertex[19].tex = XMFLOAT2(u1, v1); // RIGHT-BOTTOM
+	vertex[16].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+	vertex[17].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+	vertex[18].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+	vertex[19].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 
 	g_pContext->Unmap(g_VertexBuffer, 0);
 

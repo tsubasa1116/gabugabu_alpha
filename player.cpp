@@ -182,6 +182,8 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].respawnTimer = 0.0f;
 		player[p].lastDir = PlayerDir::Down; // 正面
 		player[p].isMoving = false;
+		player[p].isGrounded = false;
+		player[p].justLanded = false;
 		player[p].evolutionGauge = 0.0f;
 		player[p].evolutionGaugeRate = 0.5f;
 		player[p].breakCount_Glass = 0;
@@ -192,9 +194,9 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));// 0でクリア
+	ZeroMemory(&bd, sizeof(bd));	// 0でクリア
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// 格納できる頂点数*頂点サイズ
+	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;	// 格納できる頂点数*頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -572,7 +574,11 @@ void Player_Update()
 		{
 			player[p].respawnTimer += DELTA_TIME;
 
-			if (player[p].respawnTimer >= 5.0f)
+			// Y座標を4に固定
+			player[p].position.y = 4.0f;
+
+			// Aボタン押下または5秒経過で落下開始
+			if (g_Input[p].A || player[p].respawnTimer >= 5.0f)
 			{
 				player[p].duringRespawn = false;
 				player[p].respawnTimer = 0.0f;
@@ -1061,15 +1067,15 @@ void Player_Update()
 		static XMFLOAT3 posBuff = player[p].position;	// デバッグ表示座標
 
 		// 描画で使っているスプライト倍率と同じ値を物理にも使う
-		const float renderScale = 2.0f; // Draw 側の spriteScale に合わせる
+		const float renderScale = 2.0f;	// Draw 側の spriteScale に合わせる
 		// 描画スケールを反映したスケール（表示用）
 		XMFLOAT3 physicsScaling = XMFLOAT3(player[p].scaling.x * renderScale, player[p].scaling.y * renderScale, player[p].scaling.z * renderScale);
 
 		// --- プレイヤー用ヒットボックス比率（向きで長短を切り替える） ---
 		// 高さは固定、水平面は向きに応じて長短を切り替える
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
-		const float HITBOX_SHORT = 0.35f; // 向きと直交する短辺
-		const float HITBOX_LONG  = 0.65f; // 向きに沿った長辺
+		const float HITBOX_SHORT = 0.35f;	// 向きと直交する短辺
+		const float HITBOX_LONG  = 0.65f;	// 向きに沿った長辺
 
 		// 回転から前方ベクトルを算出して、どちらの軸が優勢か判定する
 		float radFacing = XMConvertToRadians(player[p].rotation.y);
@@ -1087,7 +1093,8 @@ void Player_Update()
 			depthScale = 0.25f;
 		}
 
-		XMFLOAT3 hitboxScaling = XMFLOAT3(
+		XMFLOAT3 hitboxScaling = XMFLOAT3
+		(
 			player[p].scaling.x * renderScale * widthScale,
 			player[p].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
 			player[p].scaling.z * renderScale * depthScale
@@ -1105,6 +1112,10 @@ void Player_Update()
 		// マップデータ（地面）との当たり判定
 		int fieldCount = GetFieldObjectCount();
 		MAPDATA* fieldObjects = GetFieldObjects();
+
+		// 地面判定ループの前
+		bool wasGrounded = player[p].isGrounded;
+		player[p].isGrounded = false;
 
 		for (int j = 0; j < fieldCount; ++j)
 		{
@@ -1150,6 +1161,18 @@ void Player_Update()
 				}
 			}
 		}
+
+		// 地面判定ループ内、着地処理の直後
+		if (!player[p].duringRespawn && !wasGrounded) 
+		{
+			player[p].isGrounded = true;
+			player[p].justLanded = true; // 1フレームだけtrue
+		}
+
+		if (player[p].justLanded) {
+            player[p].justLanded = false;
+            player[p].isGrounded = false;
+        }
 
 		// -------------------------------------------------------------------------------------
 		// 建物との当たり判定
@@ -1514,7 +1537,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 				if (!player[i].active) continue;
 
 				// AABBを描画
-				// AABBのMin/Maxは既にワールド座標なので、行列はリセットしたまま描画すればOK
+				// AABBのMin/Maxは既にワールド座標なので、行列はリセットしたまま描写すればOK
 				Debug_DrawAABB(player[i].boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
 			}
 		}
@@ -1613,6 +1636,8 @@ void Player_Respawn(int playerIndex)
 		player[playerIndex].respawnTimer = 0.0f;
 		player[playerIndex].lastDir = PlayerDir::Down; // 正面
 		player[playerIndex].isMoving = false;
+		player[playerIndex].isGrounded = false;
+		player[playerIndex].justLanded = false;
 		player[playerIndex].form = Form::First;
 		player[playerIndex].type = PlayerType::None;
 		player[playerIndex].evolutionGauge = 0;

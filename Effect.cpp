@@ -8,8 +8,8 @@
 #include "Camera.h"
 #include "debug_render.h"
 
-#define EFFECT_SPRITE_X		(8)
-#define EFFECT_SPRITE_Y		(8)
+#define EFFECT_SPRITE_X		(6)
+#define EFFECT_SPRITE_Y		(6)
 #define EFFECT_FRAME_MAX	(64)
 #define EFFECT_SPEED		(2.5f)
 #define EFFECT_TEX_MAX		(24)
@@ -134,9 +134,8 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(18, L"Asset\\Texture\\effectEvolution02_v1.png");		// 進化2 進化1の直後に使用
 	Effect_LoadTexture(19, L"Asset\\Texture\\effectWin_v1.png");				// 撃墜
 	Effect_LoadTexture(20, L"Asset\\Texture\\effectEgg_v3.png");				// リスポーン 卵
-	//Effect_LoadTexture(21, L"Asset\\Texture\\effectEgg_v3.png");				// リスポーン 卵 影
-	Effect_LoadTexture(22, L"Asset\\Texture\\effectRun_v1.png");				// 埃
-	Effect_LoadTexture(23, L"Asset\\Texture\\effectVenomExplosion.png");		// 毒スペシャル
+	Effect_LoadTexture(21, L"Asset\\Texture\\effectRun_v1.png");				// 埃
+	Effect_LoadTexture(22, L"Asset\\Texture\\effectVenomExplosion.png");		// 毒スペシャル
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
@@ -344,7 +343,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 	PLAYEROBJECT& player = *playerObject;
 
 	// 進化エフェクト
-	if (player.isInvincible)
+	if (player.isEvolving)
 	{
 		auto& anim = g_effectAnim[playerIndex];
 		anim.evolutionTimer += DELTA_TIME;
@@ -355,7 +354,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		}
 		if (anim.evolutionPhase == 1)
 		{
-			if (anim.evolutionTimer >= ANIM_FRAME_TIME)
+			if (anim.evolutionTimer >= 0.03f)
 			{
 				anim.evolutionTimer = 0.0f;
 				anim.evolutionFrame++;
@@ -368,7 +367,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		}
 		else if (anim.evolutionPhase == 2)
 		{
-			if (anim.evolutionTimer >= ANIM_FRAME_TIME)
+			if (anim.evolutionTimer >= 0.03f)
 			{
 				anim.evolutionTimer = 0.0f;
 				anim.evolutionFrame++;
@@ -479,7 +478,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 			attackedFrameInitialized[playerIndex] = true;
 		}
 		g_effectAnim[playerIndex].attackedTimer += DELTA_TIME;
-		if (g_effectAnim[playerIndex].attackedTimer >= ANIM_FRAME_TIME)
+		if (g_effectAnim[playerIndex].attackedTimer >= 0.05f)
 		{
 			g_effectAnim[playerIndex].attackedTimer = 0.0f;
 			LoopRange(g_effectAnim[playerIndex].attackedFrame, 21, 37, 1);
@@ -632,11 +631,11 @@ void Effect_DrawForPlayer(int playerIndex)
 	std::vector<std::tuple<int, int, float, XMFLOAT3>> texNosFramesScales;
 
 	// 進化エフェクト
-	if (player.isInvincible)
+	if (player.isEvolving)
 	{
 		const auto& anim = g_effectAnim[playerIndex];
-			 if (anim.evolutionPhase == 1) texNosFramesScales.emplace_back(18, anim.evolutionFrame, 3.0f, XMFLOAT3(0,0,0));
-		else if (anim.evolutionPhase == 2) texNosFramesScales.emplace_back(19, anim.evolutionFrame, 3.0f, XMFLOAT3(0,0,0));
+			 if (anim.evolutionPhase == 1) texNosFramesScales.emplace_back(17, anim.evolutionFrame, 3.0f, XMFLOAT3(0,-0.2f,0));
+		else if (anim.evolutionPhase == 2) texNosFramesScales.emplace_back(18, anim.evolutionFrame, 3.0f, XMFLOAT3(0,-0.2f,0));
 	}
 	// スキルエフェクト
 	else if (player.useSkill)
@@ -649,7 +648,7 @@ void Effect_DrawForPlayer(int playerIndex)
 		case PlayerType::Glass:			texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
 		case PlayerType::Concrete:		texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
 		case PlayerType::Plant:			texNo = 9;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
-		case PlayerType::Electricity:	texNo = 10;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
+		case PlayerType::Electricity:	texNo = 10;	scale = 1.5f; offset = XMFLOAT3(0,0,0); break;
 		default: break;
 		}
 		if (texNo >= 0) texNosFramesScales.emplace_back(texNo, g_effectAnim[playerIndex].skillFrame, scale, offset);
@@ -664,7 +663,7 @@ void Effect_DrawForPlayer(int playerIndex)
 		{
 		//case PlayerType::Glass:			texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
 		//case PlayerType::Concrete:		texNo = 8;	scale = 0.8f; offset = XMFLOAT3(0,0,0); break;
-		case PlayerType::Plant:			texNo = 23;	scale = 9.0f; offset = XMFLOAT3(0,0,0);
+		case PlayerType::Plant:			texNo = 22;	scale = 9.0f; offset = XMFLOAT3(0,0,0);
 			SetDepthTest(false);
 			break;
 		//case PlayerType::Electricity:	texNo = 10;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
@@ -714,14 +713,8 @@ void Effect_DrawForPlayer(int playerIndex)
 		ID3D11ShaderResourceView* srv = g_Texture[texNo];
 		if (!srv) continue;
 
-		if (texNo == 23) 
-		{
-			Shader_SetColor({ 1.0f, 1.0f, 1.0f, 0.5f }); // 半透明
-		}
-		else 
-		{
-			Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // 通常
-		}
+		if (texNo == 22)	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 0.5f }); // 半透明
+		else				Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // 通常
 
 		int col = frame % EFFECT_SPRITE_X;
 		int row = frame / EFFECT_SPRITE_X;
