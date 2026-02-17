@@ -139,7 +139,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[0].type = PlayerType::Glass;
 	player[1].type = PlayerType::Concrete;
 	player[2].type = PlayerType::Plant;
-	player[3].type = PlayerType::Plant;
+	player[3].type = PlayerType::Electricity;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{

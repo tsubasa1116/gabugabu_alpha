@@ -659,8 +659,9 @@ void Special_Plant_Update(int playerIndex)
 		g_animFrame[playerIndex] = 0;
 		g_animTimer[playerIndex] = 0.0f;
 		player.evolutionGaugeRate = 1.0f;
-		player.useSkill = false;
-		player.useSpecial = false;
+		player.useSkill = false;			// スキル解除
+		player.form = Form::First;			// 変身形態を第1形態に戻す
+		player.type = PlayerType::None;		// タイプをリセット
 		Effect_ClearUI(playerIndex);
 		player.isTypeFixed = false;
 		Effect_Clear(playerIndex);
@@ -749,8 +750,8 @@ void Special_Electricity_Update(int playerIndex)
 		g_animFrame[playerIndex] = 0;		// アニメーションリセット
 		g_animTimer[playerIndex] = 0.0f;
 		initialized[playerIndex] = false;	// 次回のスペシャル使用時に再初期化するため
-		player.form = Form::First;			// 変身形態を第1形態に戻す
-		player.type = PlayerType::None;		// タイプをリセット
+		//player.form = Form::First;			// 変身形態を第1形態に戻す
+		//player.type = PlayerType::None;		// タイプをリセット
 		player.speed = 0.06f;				// スキルのスピードバフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
