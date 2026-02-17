@@ -119,7 +119,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Light.SetAmbient(para);
 	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);	// 光の色
 	Light.SetDiffuse(para);
-	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);	// 光方向
+	para = XMFLOAT4(0.5f, -1.0f, -0.6f, 1.0f);	// 光方向
 
 	float len = sqrtf(para.x * para.x + para.y * para.y + para.z * para.z);
 	para.x /= len;
@@ -207,7 +207,6 @@ void Game_Draw()
     
 	Effect_Draw();
 	Player_DrawHP();
-	
 	
 	Player_DrawText();
 	DamageText_Draw();
