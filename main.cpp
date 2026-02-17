@@ -9,7 +9,7 @@
 #include <windows.h>
 #include "debug_ostream.h"	//デバッグ表示
 
-#include <chrono> // 追加
+#include <chrono>
 #include <algorithm>
 #include "direct3d.h"
 #include "shader.h"
@@ -19,7 +19,7 @@
 #include "keyboard.h"
 #include "Effect.h"
 #include "score.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "Manager.h"
 #include "Audio.h"
 #include "input.h"

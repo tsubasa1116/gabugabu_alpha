@@ -7,6 +7,12 @@
 #include "direct3d.h"
 using namespace DirectX;
 
+enum CAMERAMODE
+{
+	CAMERAMODE_MANUAL,
+	CAMERAMODE_AUTO,
+};
+
 class CAMERA
 {
 public:
@@ -39,6 +45,7 @@ void SetCameraUpVector(XMFLOAT3);
 XMMATRIX GetViewMatrix();
 XMMATRIX GetProjectionMatrix();
 
-// カメラの現在位置を返す関数の宣言
-DirectX::XMFLOAT3 GetCameraPosition();
+void Camera_StartShake(float intensity, float duration);
+
+void Camera_UpdateAuto();
 

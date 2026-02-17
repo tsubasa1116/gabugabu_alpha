@@ -11,11 +11,14 @@ using namespace DirectX;
 #include "field.h"
 #include "Building.h"
 #include "debug_ostream.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "keyboard.h"
 #include "DamageText.h"
 #include "Effect.h"
 #include "input.h"
+#include "hp.h"
+
+#include "color.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -34,9 +37,9 @@ static ID3D11ShaderResourceView* g_Attack_Texture[PLAYER_MAX];
 static ATTACK_OBJECT Attack[PLAYER_MAX];
 
 // マクロ定義
-#define NUM_VERTEX (24)
+#define ATTACK_VERTEX (24)
 
-static Vertex2 Attack_vdata[NUM_VERTEX] =
+static Vertex2 Attack_vdata[ATTACK_VERTEX] =
 {
 	// -Z面 (法線: 0,0,-1)
 	{// 頂点0 LEFT-TOP
@@ -219,7 +222,7 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex2) * NUM_VERTEX; // 格納できる頂点数 * 頂点サイズ
+	bd.ByteWidth = sizeof(Vertex2) * ATTACK_VERTEX; // 格納できる頂点数 * 頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -359,72 +362,49 @@ void Attack_Update(int playerIndex)
 				switch (type)
 				{
 				case BuildingType::Glass:
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Glass += 1;						// ガラスを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				case BuildingType::Concrete:
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Concrete += 1;					// コンクリートを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				case BuildingType::Plant:					
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Plant += 1;						// 植物を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				case BuildingType::Electricity:
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Electricity += 1;					// 電気を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				default:
 					break;
 				}
+
+				buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+				player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+				player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
+
+				// HP回復
+				player.hp += 10.0f;
+				// HPの上限
+				if (player.hp > PLAYER_MAX_HP)	player.hp = PLAYER_MAX_HP;
+
+				player.isHealing = true;	// 回復中フラグを立てる
+				
+				// 満腹度増加
+				player.satiety += 1.0f;
+				// 満腹度の上限
+				if (player.satiety > PLAYER_MAX_SATIETY)	player.satiety = PLAYER_MAX_SATIETY;
+
+				// 効果音やエフェクトを再生
+
+				// ヒットでスキルを終了
+				//player.isAttacking = false;
+				//player.attackTimer = 0.0f;
+
+				// 更新済みAABB
+				CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 			}
 
 			// 衝突していたら、MTVの分だけ位置を戻す
@@ -449,6 +429,10 @@ void Attack_Update(int playerIndex)
 		// プレイヤーを無敵にする
 		player.isInvincible = true;
 		player.invincibleTimer = 0.0f;
+
+		// 進化フラグを立てる
+		player.isEvolving = true;
+		player.evolvingTimer += DELTA_TIME;
 
 		// 現在のフォーム（進化前の状態）を保存
 		Form currentForm = player.form;
@@ -551,10 +535,10 @@ void Attack_Update(int playerIndex)
 			// プレイヤーごとの画面上のエフェクト位置
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
 			{
-				{ 175.0f, 620.0f }, // プレイヤー1
-				{ 490.0f, 620.0f }, // プレイヤー2
-				{ 805.0f, 620.0f }, // プレイヤー3
-				{ 1120.0f, 620.0f }  // プレイヤー4
+				{  170.0f, 620.0f }, // プレイヤー1
+				{  490.0f, 620.0f }, // プレイヤー2
+				{  810.0f, 620.0f }, // プレイヤー3
+				{ 1130.0f, 620.0f }  // プレイヤー4
 			};
 
 			// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）
@@ -570,9 +554,9 @@ void Attack_Update(int playerIndex)
 
 			// プレイヤー番号は playerIndex（0ベース）
 			XMFLOAT2 pos = playerEffectPos[playerIndex];
-			XMFLOAT2 size = { 300.0f, 300.0f };
+			XMFLOAT2 size = { 350.0f, 350.0f };
 
-			Effect_Set(effectTexNo, pos, size);
+			Effect_SetUI(effectTexNo, pos, size);
 		}
 
 		player.brokenHistory.clear(); // 履歴もクリアする
@@ -649,7 +633,7 @@ void Attack_Draw(int playerIndex)
 
 	// 不透明で描画するためブレンドを無効化し、描画カラーのアルファを1に固定する
 	SetBlendState(BLENDSTATE_NONE);
-	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+	Shader_SetColor(color::white);
 
 	// 頂点シェーダーを描画パイプラインへ設定
 	D3D11_MAPPED_SUBRESOURCE msr;
@@ -657,7 +641,7 @@ void Attack_Draw(int playerIndex)
 	Vertex2* vertex = (Vertex2*)msr.pData;
 
 	// 頂点データを頂点バッファへコピーする
-	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * NUM_VERTEX);
+	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * ATTACK_VERTEX);
 
 	// コピー完了
 	g_pContext->Unmap(g_VertexBuffer, 0);
@@ -710,7 +694,7 @@ void AttackPlayerCollisions()
 		// --- プレイヤー側で使っている描画スケール・ヒットボックス比率と合わせる ---
 		const float RENDER_SCALE = 2.0f;
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
-		// Polygon3D と同じ短辺/長辺定義を使う
+		// Player と同じ短辺/長辺定義を使う
 		const float HITBOX_SHORT = 0.35f;
 		const float HITBOX_LONG  = 0.65f;
 
@@ -768,6 +752,8 @@ void AttackPlayerCollisions()
 				// ダメージ（防御で軽減）
 				defender.hp -= rawDamage;
 				if (defender.hp < 0.0f) defender.hp = 0.0f;
+
+				TriggerbyHPShake(def, 8.0f,20.0f,1.5f);
 
 				// スタンゲージ増加
 				defender.stunGauge += 0.5f;

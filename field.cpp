@@ -8,11 +8,13 @@
 #include "debug_render.h"
 #include "model.h"
 #include "Building.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "special.h"
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+
+#include "color.h"
 
 //======================================================
 //	マクロ定義
@@ -406,7 +408,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 
 		// 全てのマップオブジェクトに対してAABBを計算する
-		// Polygon3D_CalculateAABB(&map[i]); // 古い呼び出し
+		// Player_CalculateAABB(&map[i]); // 古い呼び出し
 		//CalculateAABB(Map[i].boundingBox, Map[i].pos, XMFLOAT3{ 1.0f, 1.0f, 1.0f }); // ★新しい呼び出し
 
 		i++;
@@ -444,7 +446,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	}
 	//シェーダーを描画パイプラインへ設定
 	Shader_Begin();
-	Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
+	Shader_SetColor(color::white);
 
 	//プロジェクション行列作成
 	XMMATRIX	projection = GetProjectionMatrix();

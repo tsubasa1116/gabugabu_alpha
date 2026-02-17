@@ -1,7 +1,7 @@
 //======================================================
 //	Game.cpp[]
 // 
-//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
+//	ï¿½ï¿½ï¿½ï¿½ÒFï¿½Oï¿½ì—ƒ			ï¿½ï¿½ï¿½tï¿½F2024//
 //======================================================
 
 #include "Manager.h"
@@ -17,7 +17,7 @@
 #include "Audio.h"
 #include "gauge.h"
 #include "Polygon.h"
-#include "Polygon3D.h"
+#include "Player.h"
 #include "Camera.h"
 #include "Ball.h"
 #include "attack.h"
@@ -28,14 +28,14 @@
 #include "direct3d.h"
 #include "SkyBall.h"
 //======================================================
-//	\‘¢—wéŒ¾
+//	ï¿½\ï¿½ï¿½ï¿½wï¿½éŒ¾
 //======================================================
 LIGHTOBJECT Light;
 
 //======================================================
-//	ƒOƒ[ƒoƒ‹•Ï”
+//	ï¿½Oï¿½ï¿½ï¿½[ï¿½oï¿½ï¿½ï¿½Ïï¿½
 //======================================================
-static int g_BgmID = NULL;	// ƒTƒEƒ“ƒhŠÇ—ID
+static int g_BgmID = NULL;	// ï¿½Tï¿½Eï¿½ï¿½ï¿½hï¿½Ç—ï¿½ID
 bool input2 = false;
 
 const int KONAMI_CODE[] = {
@@ -44,41 +44,41 @@ const int KONAMI_CODE[] = {
 	KK_B, KK_A
 };
 
-// ƒRƒ}ƒ“ƒh‚Ì’·‚³
+// ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½Ì’ï¿½ï¿½ï¿½
 const int KONAMI_CODE_LENGTH = sizeof(KONAMI_CODE) / sizeof(KONAMI_CODE[0]);
 
-// Œ»İAƒRƒ}ƒ“ƒh“ü—Í‚Ì‚Ç‚±‚Ü‚Åi‚ñ‚Å‚¢‚é‚©‚ğ’ÇÕ‚·‚éƒCƒ“ƒfƒbƒNƒX
+// ï¿½ï¿½ï¿½İAï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½Í‚Ì‚Ç‚ï¿½ï¿½Ü‚Åiï¿½ï¿½Å‚ï¿½ï¿½é‚©ï¿½ï¿½ÇÕ‚ï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½fï¿½bï¿½Nï¿½X
 static int s_KonamiCodeIndex = 0;
 
-// ƒRƒ}ƒ“ƒh‚ª“ü—Í‚³‚ê‚½‚Æ‚«‚É—§‚Âƒtƒ‰ƒO
+// ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½ê‚½ï¿½Æ‚ï¿½ï¿½É—ï¿½ï¿½Âƒtï¿½ï¿½ï¿½O
 static bool s_IsKonamiCodeEntered = false;
 
-// ‰Ÿ‚³‚ê‚½ƒL[‚ªŠú‘Ò‚³‚ê‚Ä‚¢‚éƒL[‚Æˆê’v‚µ‚Ä‚¢‚é‚©‚ÌŠm”F‚ğ‚·‚é
+// ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½Lï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Ò‚ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Lï¿½[ï¿½Æˆï¿½vï¿½ï¿½ï¿½Ä‚ï¿½ï¿½é‚©ï¿½ÌŠmï¿½Fï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void CheckKonamiCode(int currentKeyCode)
 {
-	// Œ»İŠú‘Ò‚³‚ê‚Ä‚¢‚éƒL[‚ª‰Ÿ‚³‚ê‚½‚©H
+	// ï¿½ï¿½ï¿½İŠï¿½ï¿½Ò‚ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Lï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½ï¿½ï¿½H
 	if (currentKeyCode == KONAMI_CODE[s_KonamiCodeIndex])
 	{
-		// Šú‘Ò’Ê‚è‚Ì“ü—Í‚¾‚Á‚½‚Ì‚ÅAƒCƒ“ƒfƒbƒNƒX‚ği‚ß‚é
+		// ï¿½ï¿½ï¿½Ò’Ê‚ï¿½Ì“ï¿½ï¿½Í‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ÅAï¿½Cï¿½ï¿½ï¿½fï¿½bï¿½Nï¿½Xï¿½ï¿½iï¿½ß‚ï¿½
 		s_KonamiCodeIndex++;
 
-		// ƒRƒ}ƒ“ƒh‚ÌÅŒã‚Ü‚Å“’B‚µ‚½‚©H
+		// ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½ÌÅŒï¿½Ü‚Å“ï¿½ï¿½Bï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½H
 		if (s_KonamiCodeIndex >= KONAMI_CODE_LENGTH)
 		{
-			// ƒRƒ}ƒ“ƒh“ü—ÍŠ®—¹Iƒtƒ‰ƒO‚ğ—§‚Ä‚é
+			// ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½ÍŠï¿½ï¿½ï¿½ï¿½Iï¿½tï¿½ï¿½ï¿½Oï¿½ğ—§‚Ä‚ï¿½
 			s_IsKonamiCodeEntered = !s_IsKonamiCodeEntered;
 
-			// ƒRƒ}ƒ“ƒh‚ÍŠ®—¹‚µ‚½‚Ì‚ÅAƒCƒ“ƒfƒbƒNƒX‚ğƒŠƒZƒbƒg‚·‚é‚©A-1‚È‚Ç‚ÌŠ®—¹ó‘Ô‚É‚·‚é
-			s_KonamiCodeIndex = 0; // ‚Ü‚½‚Í s_KonamiCodeIndex = -1;
+			// ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½ÍŠï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ÅAï¿½Cï¿½ï¿½ï¿½fï¿½bï¿½Nï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½gï¿½ï¿½ï¿½é‚©ï¿½A-1ï¿½È‚Ç‚ÌŠï¿½ï¿½ï¿½ï¿½ï¿½Ô‚É‚ï¿½ï¿½ï¿½
+			s_KonamiCodeIndex = 0; // ï¿½Ü‚ï¿½ï¿½ï¿½ s_KonamiCodeIndex = -1;
 		}
 	}
 	else
 	{
-		// Šú‘Ò‚³‚ê‚Ä‚¢‚È‚¢ƒL[‚ª‰Ÿ‚³‚ê‚½ê‡AƒV[ƒPƒ“ƒX‚Í¸”sBÅ‰‚©‚ç‚â‚è’¼‚µ
+		// ï¿½ï¿½ï¿½Ò‚ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½È‚ï¿½ï¿½Lï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½ê‡ï¿½Aï¿½Vï¿½[ï¿½Pï¿½ï¿½ï¿½Xï¿½Íï¿½ï¿½sï¿½Bï¿½Åï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è’¼ï¿½ï¿½
 		s_KonamiCodeIndex = 0;
 
-		// ‚½‚¾‚µA¸”s‚µ‚½ƒL[‚ªƒRƒ}ƒ“ƒh‚ÌÅ‰‚ÌƒL[‚Å‚ ‚éê‡A
-		// Å‰‚ÌƒL[‚©‚ç‚â‚è’¼‚·‰Â”\«‚ğl—¶‚·‚é‚È‚çAˆÈ‰º‚Ì‚æ‚¤‚ÉÄƒ`ƒFƒbƒN‚µ‚Ä‚à—Ç‚¢
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½Lï¿½[ï¿½ï¿½ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½ÌÅï¿½ï¿½ÌƒLï¿½[ï¿½Å‚ï¿½ï¿½ï¿½ê‡ï¿½A
+		// ï¿½Åï¿½ï¿½ÌƒLï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½è’¼ï¿½ï¿½ï¿½Â”\ï¿½ï¿½ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½Aï¿½È‰ï¿½ï¿½Ì‚æ‚¤ï¿½ÉÄƒ`ï¿½Fï¿½bï¿½Nï¿½ï¿½ï¿½Ä‚ï¿½ï¿½Ç‚ï¿½
 		if (currentKeyCode == KONAMI_CODE[0])
 		{
 			s_KonamiCodeIndex = 1;
@@ -87,14 +87,14 @@ void CheckKonamiCode(int currentKeyCode)
 }
 
 //======================================================
-//	‰Šú‰»ŠÖ”
+//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öï¿½
 //======================================================
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	Initialize_MakeText();
 	CreateRenderTarget_MakeText();
 
-	Polygon3D_Initialize(pDevice, pContext);
+	Player_Initialize(pDevice, pContext);
 	Field_Initialize(pDevice, pContext);
 	Effect_Initialize(pDevice, pContext);
 	Attack_Initialize(pDevice, pContext);
@@ -105,38 +105,38 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	SkyBall_Initialize(pDevice, pContext);
 
 	//BallInitialize(pDevice, pContext);
-	//P_Initialize(pDevice, pContext);		// ƒvƒŒƒCƒ„[‚Ì‰Šú‰»
+	//P_Initialize(pDevice, pContext);		// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
 	//Score_Initialize(pDevice, pContext);
 
-	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// ƒTƒEƒ“ƒhƒ[ƒh
-	PlayAudio(g_BgmID, true);		// Ä¶ŠJn(ƒ‹[ƒv‚ ‚è)
-	//PlayAudio(g_BgmID);			// Ä¶ŠJniƒ‹[ƒv‚È‚µj
-	//PlayAudio(g_BgmID, false);	// Ä¶ŠJniƒ‹[ƒv‚È‚µj
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// ï¿½Tï¿½Eï¿½ï¿½ï¿½hï¿½ï¿½ï¿½[ï¿½h
+	PlayAudio(g_BgmID, true);		// ï¿½Äï¿½ï¿½Jï¿½n(ï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½ï¿½)
+	//PlayAudio(g_BgmID);			// ï¿½Äï¿½ï¿½Jï¿½nï¿½iï¿½ï¿½ï¿½[ï¿½vï¿½È‚ï¿½ï¿½j
+	//PlayAudio(g_BgmID, false);	// ï¿½Äï¿½ï¿½Jï¿½nï¿½iï¿½ï¿½ï¿½[ï¿½vï¿½È‚ï¿½ï¿½j
 
-	//ƒ‰ƒCƒg‰Šú‰»
+	//ï¿½ï¿½ï¿½Cï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	XMFLOAT4 para;
 
-	para = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);	// ŠÂ‹«Œõ‚ÌF
+	para = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);	// ï¿½Â‹ï¿½ï¿½ï¿½ï¿½ÌF
 	Light.SetAmbient(para);
-	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);	// Œõ‚ÌF
+	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);	// ï¿½ï¿½ï¿½ÌF
 	Light.SetDiffuse(para);
-	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);	// Œõ•ûŒü
+	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	float len = sqrtf(para.x * para.x + para.y * para.y + para.z * para.z);
 	para.x /= len;
 	para.y /= len;
 	para.z /= len;
-	Light.SetDirection(para);	// Œõ‚Ì•ûŒüi³‹K‰»Ïj
+	Light.SetDirection(para);	// ï¿½ï¿½ï¿½Ì•ï¿½ï¿½ï¿½ï¿½iï¿½ï¿½ï¿½Kï¿½ï¿½ï¿½Ïj
 }
 
 //======================================================
-//	I—¹ˆ—ŠÖ”
+//	ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öï¿½
 //======================================================
 void Game_Finalize()
 {
 	Field_Finalize();
 	Effect_Finalize();
-	Polygon3D_Finalize();
+	Player_Finalize();
 	Camera_Finalize();
 	Attack_Finalize();
 	Skill_Finalize();
@@ -147,19 +147,19 @@ void Game_Finalize()
 	//P_Finalize();
 	//Score_Finalize();
 
-	UnloadAudio(g_BgmID);	// ƒTƒEƒ“ƒh‚Ì‰ğ•ú
+	UnloadAudio(g_BgmID);	// ï¿½Tï¿½Eï¿½ï¿½ï¿½hï¿½Ì‰ï¿½ï¿½
 	DamageText_Finalize();
 }
 
 //======================================================
-//	XVˆ—
+//	ï¿½Xï¿½Vï¿½ï¿½ï¿½ï¿½
 //======================================================
 void Game_Update()
 {
 	// ------------------------------------
-	//  ƒRƒiƒ~ƒRƒ}ƒ“ƒhŒŸo
+	//  ï¿½Rï¿½iï¿½~ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½o
 	// ------------------------------------
-	// ƒRƒ}ƒ“ƒh‚Åg—p‚·‚é‘S‚Ä‚ÌƒL[‚Ì‰Ÿ‰ºƒgƒŠƒK[‚ğƒ`ƒFƒbƒN‚µAŒŸoŠÖ”‚É“n‚·
+	// ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½Ågï¿½pï¿½ï¿½ï¿½ï¿½Sï¿½Ä‚ÌƒLï¿½[ï¿½Ì‰ï¿½ï¿½ï¿½ï¿½gï¿½ï¿½ï¿½Kï¿½[ï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½Nï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½oï¿½Öï¿½ï¿½É“nï¿½ï¿½
 		 if (Keyboard_IsKeyDownTrigger(KK_UP))		CheckKonamiCode(KK_UP);
 	else if (Keyboard_IsKeyDownTrigger(KK_DOWN))	CheckKonamiCode(KK_DOWN);
 	else if (Keyboard_IsKeyDownTrigger(KK_LEFT))	CheckKonamiCode(KK_LEFT);
@@ -167,64 +167,63 @@ void Game_Update()
 	else if (Keyboard_IsKeyDownTrigger(KK_B))		CheckKonamiCode(KK_B);
 	else if (Keyboard_IsKeyDownTrigger(KK_A))		CheckKonamiCode(KK_A);
 	// ------------------------------------
-	// XVˆ—
+	// ï¿½Xï¿½Vï¿½ï¿½ï¿½ï¿½
 	// ------------------------------------
-	Polygon3D_Update();
+	Player_Update();
 	Field_Update();
 	Effect_Update();
 	Gauge_Update();
-	Camera_Update();	// ƒvƒŒƒCƒ„[‚ÌXV‚ÌŒã‚ÉŒÄ‚Ô
+	Camera_Update();	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌXï¿½Vï¿½ÌŒï¿½ÉŒÄ‚ï¿½
 	SkyBall_Update();
 	//BallUpdate();
 	//P_Update();
 	//Score_Update();
 	DamageText_Update();
 
-	//ƒQ[ƒ€ƒV[ƒ“‚Ö‘JˆÚ
+	//ï¿½Qï¿½[ï¿½ï¿½ï¿½Vï¿½[ï¿½ï¿½ï¿½Ö‘Jï¿½ï¿½
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-		// ƒtƒF[ƒhƒAƒEƒg‚³‚¹‚ÄƒV[ƒ“‚ğØ‚è‘Ö‚¦‚é
+		// ï¿½tï¿½Fï¿½[ï¿½hï¿½Aï¿½Eï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ÄƒVï¿½[ï¿½ï¿½ï¿½ï¿½Ø‚ï¿½Ö‚ï¿½ï¿½ï¿½
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
 	}
 }
 
 //======================================================
-//	•`‰æŠÖ”
+//	ï¿½`ï¿½ï¿½Öï¿½
 //======================================================
 void Game_Draw()
 { 
-	//2D•`‰æ
-	Light.SetEnable(FALSE);			// ƒ‰ƒCƒeƒBƒ“ƒOOFF
-	Shader_SetLight(Light.Light);	// ƒ‰ƒCƒg\‘¢‘Ì‚ğƒVƒF[ƒ_[‚ÖƒZƒbƒg
+	//2Dï¿½`ï¿½ï¿½
+	Light.SetEnable(FALSE);			// ï¿½ï¿½ï¿½Cï¿½eï¿½Bï¿½ï¿½ï¿½OOFF
+	Shader_SetLight(Light.Light);	// ï¿½ï¿½ï¿½Cï¿½gï¿½\ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½Vï¿½Fï¿½[ï¿½_ï¿½[ï¿½ÖƒZï¿½bï¿½g
 	SkyBall_Draw();
 	SetDepthTest(FALSE);
-	Camera_Draw();	// Draw‚ÌÅ‰‚ÅŒÄ‚ÔI
+	Camera_Draw();	// Drawï¿½ÌÅï¿½ï¿½ÅŒÄ‚ÔI
 
-	Light.SetEnable(TRUE);			// ƒ‰ƒCƒeƒBƒ“ƒOON
-	Shader_SetLight(Light.Light);	// ƒ‰ƒCƒg\‘¢‘Ì‚ğƒVƒF[ƒ_[‚ÖƒZƒbƒg
+	Light.SetEnable(TRUE);			// ï¿½ï¿½ï¿½Cï¿½eï¿½Bï¿½ï¿½ï¿½OON
+	Shader_SetLight(Light.Light);	// ï¿½ï¿½ï¿½Cï¿½gï¿½\ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½Vï¿½Fï¿½[ï¿½_ï¿½[ï¿½ÖƒZï¿½bï¿½g
 	SetDepthTest(TRUE);
 
 	Field_Draw(s_IsKonamiCodeEntered);
-	Polygon3D_Draw(s_IsKonamiCodeEntered);
+	Player_Draw(s_IsKonamiCodeEntered);
 
-	//2D•`‰æ
-	Light.SetEnable(FALSE);			// ƒ‰ƒCƒeƒBƒ“ƒOOFF
-	Shader_SetLight(Light.Light);	// ƒ‰ƒCƒg\‘¢‘Ì‚ğƒVƒF[ƒ_[‚ÖƒZƒbƒg
+	//2Dï¿½`ï¿½ï¿½
+	Light.SetEnable(FALSE);			// ï¿½ï¿½ï¿½Cï¿½eï¿½Bï¿½ï¿½ï¿½OOFF
+	Shader_SetLight(Light.Light);	// ï¿½ï¿½ï¿½Cï¿½gï¿½\ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½Vï¿½Fï¿½[ï¿½_ï¿½[ï¿½ÖƒZï¿½bï¿½g
 	SetDepthTest(FALSE);
     
 	Effect_Draw();
-	Polygon3D_DrawHP();
+	Player_DrawHP();
 	
-	
-	Polygon3D_DrawText();
+	Player_DrawText();
 	DamageText_Draw();
 	//DrawTextEx(
-	//	L"‚±‚ñ‚É‚¿‚Í¢ŠE",			// •\¦‚·‚é•¶š
-	//	600, 400,					// ˆÊ’u
-	//	60.0f,						// ƒTƒCƒY
-	//	L"‹Ê‚Ë‚¬²‘Œƒ–³—¿”Åv7‰ü",	// ƒtƒHƒ“ƒg
-	//	TextColor::Yellow			// F
+	//	L"ï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½Íï¿½ï¿½E",			// ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½é•¶ï¿½ï¿½
+	//	600, 400,					// ï¿½Ê’u
+	//	60.0f,						// ï¿½Tï¿½Cï¿½Y
+	//	L"ï¿½Ê‚Ë‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½v7ï¿½ï¿½",	// ï¿½tï¿½Hï¿½ï¿½ï¿½g
+	//	TextColor::Yellow			// ï¿½F
 	//);
 	
 	//P_Draw();
