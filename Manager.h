@@ -9,6 +9,7 @@ enum SCENE
 	SCENE_SETTING,		//設定シーン
 	SCENE_SOUND,		//サウンドテストシーン
 	SCENE_GAME,			//ゲームシーン
+	SCENE_WIN,			//勝利シーン
 	SCENE_RESULT,		//リザルトルシーン
 
 };

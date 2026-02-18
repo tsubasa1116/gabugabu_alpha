@@ -100,12 +100,12 @@ void Start_Update()
 	//ã‚­ãƒ¼å…¥åŠ›ãƒã‚§ãƒƒã‚¯
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
-		// ƒL[“ü—Íƒ`ƒFƒbƒNiƒ[ƒh’†‚Íó‚¯•t‚¯‚È‚¢j
+		// ï¿½Lï¿½[ï¿½ï¿½ï¿½Íƒ`ï¿½Fï¿½bï¿½Nï¿½iï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½Íó‚¯•tï¿½ï¿½ï¿½È‚ï¿½ï¿½j
 		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
-			// ƒ[ƒh‰æ–Ê•t‚«ƒtƒF[ƒh‚ÅƒQ[ƒ€ƒV[ƒ“‚Ö‘JˆÚ
+			// ï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½Ê•tï¿½ï¿½ï¿½tï¿½Fï¿½[ï¿½hï¿½ÅƒQï¿½[ï¿½ï¿½ï¿½Vï¿½[ï¿½ï¿½ï¿½Ö‘Jï¿½ï¿½
 			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\uiRored.mp4");
 		}
 	}

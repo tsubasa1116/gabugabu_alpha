@@ -183,7 +183,7 @@ void Game_Update()
 	{
 		// フェードアウトさせてシーンを切り替える
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
+		SetFade(40.0f, color, FADE_OUT, SCENE_WIN);
 	}
 }
 
