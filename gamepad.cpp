@@ -12,7 +12,7 @@ int g_GamepadCount = 0;  // 接続されたプロコンの数
 //======================================================
 float NormalizeStickWithDeadZone(Sint16 value)
 {
-	constexpr float DEAD_ZONE = 4000.0f;
+	constexpr float DEAD_ZONE = 9000.0f;
 	constexpr float MAX_VALUE = 32767.0f;
 
 	// デッドゾーン
