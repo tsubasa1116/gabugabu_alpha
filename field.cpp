@@ -63,7 +63,7 @@ static const char* g_ModelName1[] = {
 	"raibu",
 	"kitosaku"
 };
-
+ 
 //マップデータ配列
 MAPDATA Map[] =
 {
