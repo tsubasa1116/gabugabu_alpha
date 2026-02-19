@@ -39,11 +39,11 @@ static	ID3D11DeviceContext* g_pContext = NULL;
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 
 // FIELD::no の値に対応するテクスチャファイル名
-static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
+static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = 
+{
 	L"Asset\\Texture\\gure.jpg",
 	L"Asset\\Texture\\fade.bmp"
 };
-
 
 static const char* g_ModelName[] = {
 	"field",

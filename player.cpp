@@ -124,22 +124,22 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 
-	//player[0].form = Form::First;
-	//player[1].form = Form::First;
-	//player[2].form = Form::First;
-	//player[3].form = Form::First;
-	//player[0].type = PlayerType::None;
-	//player[1].type = PlayerType::None;
-	//player[2].type = PlayerType::None;
-	//player[3].type = PlayerType::None;
-	player[0].form = Form::Third;
-	player[1].form = Form::Third;
-	player[2].form = Form::Third;
-	player[3].form = Form::Third;
-	player[0].type = PlayerType::Glass;
-	player[1].type = PlayerType::Concrete;
-	player[2].type = PlayerType::Plant;
-	player[3].type = PlayerType::Electricity;
+	player[0].form = Form::First;
+	player[1].form = Form::First;
+	player[2].form = Form::First;
+	player[3].form = Form::First;
+	player[0].type = PlayerType::None;
+	player[1].type = PlayerType::None;
+	player[2].type = PlayerType::None;
+	player[3].type = PlayerType::None;
+	//player[0].form = Form::Third;
+	//player[1].form = Form::Third;
+	//player[2].form = Form::Third;
+	//player[3].form = Form::Third;
+	//player[0].type = PlayerType::Glass;
+	//player[1].type = PlayerType::Concrete;
+	//player[2].type = PlayerType::Plant;
+	//player[3].type = PlayerType::Electricity;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
@@ -180,10 +180,11 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].poisonTimer = 0.0f;
 		player[p].duringRespawn = false;
 		player[p].respawnTimer = 0.0f;
+		player[p].isEggBreaking = false;
+		player[p].eggBreakingTimer = 0.0f;
 		player[p].lastDir = PlayerDir::Down; // 正面
 		player[p].isMoving = false;
-		player[p].isGrounded = false;
-		player[p].justLanded = false;
+		player[p].isShadowEnabled = false;
 		player[p].evolutionGauge = 0.0f;
 		player[p].evolutionGaugeRate = 0.5f;
 		player[p].breakCount_Glass = 0;
@@ -417,6 +418,8 @@ void Player_Update()
 		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
 		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
 		ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
+		ImGui::BulletText("isEggBreaking     : %d", player[p].isEggBreaking);
+		ImGui::BulletText("isShadowEnabled   : %d", player[p].isShadowEnabled);
 		ImGui::BulletText("isHealing         : %d", player[p].isHealing);
 		ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
 		ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
@@ -481,7 +484,8 @@ void Player_Update()
 		XMMATRIX viewProj = view * proj;
 
 		// ビューポート変換
-		XMVECTOR screenPos = XMVector3Project(
+		XMVECTOR screenPos = XMVector3Project
+		(
 			posVec,
 			0.0f, 0.0f,
 			1280.0f, 720.0f,
@@ -577,13 +581,15 @@ void Player_Update()
 			// Y座標を4に固定
 			player[p].position.y = 4.0f;
 
-			// Aボタン押下または5秒経過で落下開始
-			if (g_Input[p].A || player[p].respawnTimer >= 5.0f)
+			// 攻撃ボタン押下または5秒経過で落下開始
+			if (g_Input[p].A || Keyboard_IsKeyDownTrigger(attackKeys[p]) || player[p].respawnTimer >= 5.0f)
 			{
 				player[p].duringRespawn = false;
 				player[p].respawnTimer = 0.0f;
 				player[p].isInvincible = true;
 				player[p].invincibleTimer = 0.0f;
+				player[p].isEggBreaking = true;
+				player[p].eggBreakingTimer = 0.0f;
 			}
 		}
 		else
@@ -591,6 +597,18 @@ void Player_Update()
 			// y軸の移動量 (重力 + ジャンプ)
 			// 重力加速度のない簡易的な重力
 			player[p].position.y += -0.1f;
+		}
+
+		// 卵エフェクトが割れる時間
+		if (player[p].isEggBreaking)
+		{
+			player[p].eggBreakingTimer += DELTA_TIME;
+
+			if (player[p].eggBreakingTimer >= EGG_BREAKING_TIME)
+			{
+				player[p].isEggBreaking = false;
+				player[p].eggBreakingTimer = 0.0f;
+			}
 		}
 
 		// 毒の処理
@@ -747,7 +765,7 @@ void Player_Update()
 			if (player[p].skillCoolTimer < 0.0f) player[p].skillCoolTimer = 0.0f;
 		}
 
-		// HPが0以下の処理（ダウンは1度だけ）
+		// HPが0以下の処理
 		if (player[p].hp <= 0.0f && player[p].active && !player[p].isDown)
 		{
 			// ダウン状態に移行してタイマーをリセット
@@ -788,7 +806,12 @@ void Player_Update()
 			}
 		}
 
-		// 落下処理
+		// 落下処理 影エフェクト非表示
+		if (player[p].position.y < -1.0f)
+		{
+			player[p].isShadowEnabled = false;
+		}
+
 		if (player[p].active && player[p].position.y <= -10.0f)
 		{
 			Effect_Clear(p);
@@ -887,12 +910,11 @@ void Player_Update()
 			g_animTimer[p] -= advance * ANIM_FRAME_TIME;
 
 			// 勝利 第1形態 13コマ(ラスト5コマ ループ) 第2形態 20コマ(ラスト9コマ ループ) 第3形態 21コマ(ラストコマ ループ)
-			if (Keyboard_IsKeyDown(KK_TAB) || g_victoryState[p] != 0)
-			//if (object[p].rank == 1 || g_victoryState[p] != 0)
+			//if (Keyboard_IsKeyDown(KK_TAB) || g_victoryState[p] != 0)
+			if (player[p].rank == 1 || g_victoryState[p] != 0)
 			{
-				// 押下で開始
-				if (Keyboard_IsKeyDown(KK_TAB) && g_victoryState[p] == 0)
-				//if (object[p].rank == 1 && g_victoryState[p] == 0)
+				//if (Keyboard_IsKeyDown(KK_TAB) && g_victoryState[p] == 0)
+				if (player[p].rank == 1 && g_victoryState[p] == 0)
 				{
 					g_victoryState[p] = 1;
 					g_animFrame[p] = 208;	// 初回再生開始フレーム
@@ -1030,8 +1052,8 @@ void Player_Update()
 				else if (player[p].lastDir == PlayerDir::Right)		LoopRange(g_animFrame[p], 176, 6, advance);	//  右  176～181
 				else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 202, 6, advance);	// 右下 202～207
 			}
-			// 移動 8コマ
-			else if (player[p].isMoving == true)
+			// 移動 8コマ （リスポーン中を除く）
+			else if (!player[p].duringRespawn && player[p].isMoving == true)
 			{
 				// 左下 32～39
 				if (player[p].moveDir.x < 0.0f && player[p].moveDir.z < 0.0f)		LoopRange(g_animFrame[p], 32, 8, advance); 
@@ -1107,15 +1129,11 @@ void Player_Update()
 
 		// 地面の高さ（最低ライン）
 		//float groundHeight = -10.0f;	// 奈落の底
-		//bool isGrounded = false;		// 地面に足がついているかフラグ
+		//bool isShadowEnabled = false;		// 地面に足がついているかフラグ
 
 		// マップデータ（地面）との当たり判定
 		int fieldCount = GetFieldObjectCount();
 		MAPDATA* fieldObjects = GetFieldObjects();
-
-		// 地面判定ループの前
-		bool wasGrounded = player[p].isGrounded;
-		player[p].isGrounded = false;
 
 		for (int j = 0; j < fieldCount; ++j)
 		{
@@ -1149,6 +1167,7 @@ void Player_Update()
 					if (player[p].position.y < targetY)
 					{
 						player[p].position.y = targetY;
+						player[p].isShadowEnabled = true; // 影エフェクト非表示
 					}
 
 					// AABB を再計算して整合性を保つ（描画スケールを考慮）
@@ -1161,18 +1180,6 @@ void Player_Update()
 				}
 			}
 		}
-
-		// 地面判定ループ内、着地処理の直後
-		if (!player[p].duringRespawn && !wasGrounded) 
-		{
-			player[p].isGrounded = true;
-			player[p].justLanded = true; // 1フレームだけtrue
-		}
-
-		if (player[p].justLanded) {
-            player[p].justLanded = false;
-            player[p].isGrounded = false;
-        }
 
 		// -------------------------------------------------------------------------------------
 		// 建物との当たり判定
@@ -1363,7 +1370,10 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	{
 		if (!player[idx].active) return;
 
-		const float spriteScale = 2.0f;	// 表示倍率
+		// プレイヤーの影エフェクト描画
+		EffectShadow_DrawForPlayer(idx);
+
+		const float spriteScale = 3.5f;	// 表示倍率
 
 		// ワールド行列（ビルボード風の既存ロジックを踏襲）
 		XMMATRIX ScalingMatrix = XMMatrixScaling(
@@ -1484,8 +1494,8 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6, 0, 0);
 
-		// エフェクト描画
-		Effect_DrawForPlayer(idx);
+		// エフェクト描画 （プレイヤーの手前）
+		EffectFront_DrawForPlayer(idx);
 	};
 
 	// -----------------------------------
@@ -1634,14 +1644,15 @@ void Player_Respawn(int playerIndex)
 		player[playerIndex].poisonTimer = 0.0f;
 		player[playerIndex].duringRespawn = true;
 		player[playerIndex].respawnTimer = 0.0f;
+		player[playerIndex].isEggBreaking = false;
+		player[playerIndex].eggBreakingTimer = 0.0f;
 		player[playerIndex].lastDir = PlayerDir::Down; // 正面
 		player[playerIndex].isMoving = false;
-		player[playerIndex].isGrounded = false;
-		player[playerIndex].justLanded = false;
+		player[playerIndex].isShadowEnabled = true;
 		player[playerIndex].form = Form::First;
 		player[playerIndex].type = PlayerType::None;
 		player[playerIndex].evolutionGauge = 0;
-		player[playerIndex].evolutionGaugeRate = 1.0f;
+		player[playerIndex].evolutionGaugeRate = 0.5f;
 		player[playerIndex].breakCount_Glass = 0;
 		player[playerIndex].breakCount_Concrete = 0;
 		player[playerIndex].breakCount_Plant = 0;

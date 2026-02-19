@@ -2,6 +2,7 @@
 #include "field.h"
 #include "Camera.h"
 #include "keyboard.h"
+#include "Effect.h"
 
 //=========================================
 // グローバル管理
@@ -17,7 +18,8 @@ static Building* Buildings[300];
 static int BuildingCount = 0;
 
 // ★テクスチャのパス用意
-#define FIELD_TEX_MAX 10
+#define FIELD_TEX_MAX (10)
+
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"Asset\\Texture\\gure.jpg",
@@ -96,11 +98,12 @@ void Building_DrawAll(bool s_IsKonamiCodeEntered)
 // コンストラクタ
 //=========================================
 Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
-	: Type(type),
+	: type(type),
 	position(pos),
 	Phase(BuildingPhase::New),
 	m_Model(nullptr),
 	isActive(true),
+	isDestroyed(false),
 	m_ModelIndex(modelIndex)
 {
 	// 初期トランスフォーム
@@ -108,7 +111,7 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 	rotation = { 0.0f, 0.0f, 0.0f };
 
 	// モデル番号の範囲チェック
-	switch (Type)
+	switch (type)
 	{
 	case BuildingType::Glass:
 		if (m_ModelIndex >= COUNT(g_GlassModels)) m_ModelIndex = 0;
@@ -226,7 +229,7 @@ void Building::LoadModelForPhase()
 	const char* modelName = nullptr;
 
 	// 建物タイプごとにモデル決定
-	switch (Type)
+	switch (type)
 	{
 	case BuildingType::Glass:		modelName = g_GlassModels[m_ModelIndex];	break;
 	case BuildingType::Concrete:	modelName = g_ConcreteModels[m_ModelIndex];	break;
@@ -264,7 +267,6 @@ void Building::SetPhase(BuildingPhase phase)
 //=========================================
 void Building::Update()
 {
-	// 今は未使用
 }
 
 //=========================================
@@ -295,47 +297,47 @@ void Building::Draw(bool)
 	ID3D11ShaderResourceView* tex = g_Texture[0]; // デフォルト
 
 	// Plant 
-	if (Type == BuildingType::Plant &&
+	if (type == BuildingType::Plant &&
 		strcmp(g_PlantModels[m_ModelIndex], "togeki") == 0)
 	{
 		tex = g_Texture[1]; // とんがり木
 	}
 
 	// Electricity 
-	else if (Type == BuildingType::Electricity &&
+	else if (type == BuildingType::Electricity &&
 		strcmp(g_ElectricModels[m_ModelIndex], "raibu") == 0)
 	{
 		tex = g_Texture[2]; // ライブ
 	}
-	else if (Type == BuildingType::Electricity &&
+	else if (type == BuildingType::Electricity &&
 		strcmp(g_ElectricModels[m_ModelIndex], "singou") == 0)
 	{
 		tex = g_Texture[7]; 
 	}
 
 	// Concrete 
-	else if (Type == BuildingType::Concrete &&
+	else if (type == BuildingType::Concrete &&
 		strcmp(g_ConcreteModels[m_ModelIndex], "bizyutukan") == 0)
 	{
 		tex = g_Texture[3]; // 美術館
 	}
-	else if (Type == BuildingType::Concrete &&
+	else if (type == BuildingType::Concrete &&
 		strcmp(g_ConcreteModels[m_ModelIndex], "biru3dannkonkuri") == 0)
 	{
 		tex = g_Texture[4]; 
 	}
-	else if (Type == BuildingType::Concrete &&
+	else if (type == BuildingType::Concrete &&
 		strcmp(g_ConcreteModels[m_ModelIndex], "3biltateconkuri") == 0)
 	{
 		tex = g_Texture[5];
 	}
 	// Glass 
-	else if (Type == BuildingType::Glass &&
+	else if (type == BuildingType::Glass &&
 		strcmp(g_GlassModels[m_ModelIndex], "3birugarsu") == 0)
 	{
 		tex = g_Texture[6];
 	}
-	else if (Type == BuildingType::Glass &&
+	else if (type == BuildingType::Glass &&
 		strcmp(g_GlassModels[m_ModelIndex], "2marugarasu") == 0)
 	{
 		tex = g_Texture[8];
@@ -346,7 +348,6 @@ void Building::Draw(bool)
 
 	ModelDraw(m_Model);
 }
-
 
 //=========================================
 // ゲッター

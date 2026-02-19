@@ -266,7 +266,7 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"Asset\\Texture\\uiSpecialBlue_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[1]);
 	assert(g_Special_Texture[1]);
-	LoadFromWICFile(L"Asset\\Texture\\uiSpecialYellow_v2.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\uiSpecialYellow_v3.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[2]);
 	assert(g_Special_Texture[2]);
 	LoadFromWICFile(L"Asset\\Texture\\uiSpecialGreen_v2.png", WIC_FLAGS_NONE, &metadata, image);
