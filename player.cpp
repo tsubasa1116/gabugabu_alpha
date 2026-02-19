@@ -1020,12 +1020,16 @@ void Player_Update()
 			depthScale = 0.25f;
 		}
 
-		XMFLOAT3 hitboxScaling = XMFLOAT3(
+		XMFLOAT3 hitboxScaling = XMFLOAT3 (
 			player[p].scaling.x * renderScale * widthScale,
 			player[p].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
 			player[p].scaling.z * renderScale * depthScale
 		);
 
+
+		// //////////////////////////////////////////////////////////////////////////////////
+		// TODO:当たり判定の見直し
+		
 		// AABB を現在の位置・スケール（ヒットボックス）で更新しておく（衝突判定で使用）
 		CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
 
@@ -1038,12 +1042,12 @@ void Player_Update()
 		player[p].position.z += player[p].velocity.z;
 
 		// 2. 摩擦で減速
-		player[p].velocity.x *= 0.92f; // 1未満を掛けるとだんだん遅くなる
-		player[p].velocity.z *= 0.92f;
+		player[p].velocity.x *= 0.95f; // 1未満を掛けるとだんだん遅くなる
+		player[p].velocity.z *= 0.95f;
 
 		// 3. 重力をかける（浮かせた場合）
-		if (player[p].position.y > 0.0f) {
-			player[p].velocity.y -= 0.05f; // 下向きの力
+		if (player[p].position.y > -100.0f) {
+			player[p].velocity.y -= 0.02f; // 下向きの力
 		}
 		else {
 			player[p].position.y = 0.0f;
@@ -1163,21 +1167,21 @@ void Player_Update()
 			if (!player[otherIndex].active) continue;
 
 			// 他プレイヤーのヒットボックススケーリング（向きで長短を切り替える）
-			const float HITBOX_HEIGHT_SCALE = 1.0f;
-			const float HITBOX_SHORT = 0.35f;
-			const float HITBOX_LONG  = 0.65f;
+			const float HITBOX_HEIGHT_SCALE = 1.0f;	// 高さのスケール
+			const float HITBOX_SHORT = 0.35f;		// 短いほうの長さ
+			const float HITBOX_LONG  = 0.65f;		// 長いほうの長さ
 
 			// 宣言をループスコープの先頭に置く（後で再利用するため）
-			XMFLOAT3 hitboxScalingOther;
+			XMFLOAT3 hitboxScalingOther;	// 最終的に決まった大きさを保存
 
 			{
-				float radOther = XMConvertToRadians(player[otherIndex].rotation.y);
-				float otherFacingX = sinf(radOther);
-				float otherFacingZ = cosf(radOther);
-				bool otherFacingZDominant = fabsf(otherFacingZ) >= fabsf(otherFacingX);
+				float radOther = XMConvertToRadians(player[otherIndex].rotation.y);	// 各playerが向いている方向
+				float otherFacingX = sinf(radOther);	// x方向の向き
+				float otherFacingZ = cosf(radOther);	// z方向の向き
+				bool otherFacingZDominant = fabsf(otherFacingZ) >= fabsf(otherFacingX);	// zよりxのほうを向いているならtrue
 
-				float otherWidthScale = otherFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;
-				float otherDepthScale = otherFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;
+				float otherWidthScale = otherFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// さっきのがtrueならSHORT
+				float otherDepthScale = otherFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// さっきのがtrueならLONG
 
 				// 第2形態 第3形態はXとZ同じにする
 				if (player[otherIndex].form == Form::Second || player[otherIndex].form == Form::Third)
@@ -1294,7 +1298,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	{
 		if (!player[idx].active) return;
 
-		const float spriteScale = 2.0f;	// 表示倍率
+		const float spriteScale = 5.0f;	// 表示倍率
 
 		// ワールド行列（ビルボード風の既存ロジックを踏襲）
 		XMMATRIX ScalingMatrix = XMMatrixScaling(
@@ -1452,27 +1456,36 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	// 3Dオブジェクトは深度テストを無効にして描画
 	SetDepthTest(false);
 
+	// 3Dオブジェクト（プレイヤー）の描画が終わった後...
+	SetDepthTest(false); // コライダーを最前面に出したいならこれでOK
+
 	if (s_IsKonamiCodeEntered)
 	{
-		// ------------------------------------
-		// コライダーフレーム（AABB）の描画
-		// ------------------------------------
+		// 1. 行列をリセット（AABBがワールド座標系ならIdentityで正解！）
+		//XMMATRIX world = XMMatrixIdentity();
+		//XMMATRIX view = GetViewMatrix();
+		//XMMATRIX projection = GetProjectionMatrix();
+		//XMMATRIX wvp = world * view * projection;
+
+		// 2. シェーダーにマトリックスを教える
+		//Shader_SetMatrix(wvp);
+
+		// プレイヤーの描画に使われた行列をクリアする
+		Shader_SetMatrix(XMMatrixIdentity() * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
+
+		// 3. 透過や色がおかしくならないようにブレンドステートをリセット
+		SetBlendState(BLENDSTATE_NONE); // 枠線ならアルファなしでもOK
+
+		for (int i = 0; i < PLAYER_MAX; i++)
 		{
-			// プレイヤーの描画に使われた行列をクリアする
-			XMMATRIX world = XMMatrixIdentity();
-			 Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
-			//Shader_Begin(); // シェーダーを再設定
+			if (!player[i].active) continue;
 
-			for (int i = 0; i < PLAYER_MAX; i++)
-			{
-				if (!player[i].active) continue;
+			// 4. 色をセット（青色にするなら第4引数のアルファを1.0fに！）
+			Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 
-				// AABBを描画
-				// AABBのMin/Maxは既にワールド座標なので、行列はリセットしたまま描画すればOK
-				Debug_DrawAABB(player[i].boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
-			}
+			// 5. 描画！
+			Debug_DrawAABB(player[i].boundingBox, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
 		}
-		//s_IsKonamiCodeEntered = false;
 	}
 }
 

@@ -447,19 +447,10 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	}
 	//シェーダーを描画パイプラインへ設定
 	Shader_Begin();
-	Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
-
-	//プロジェクション行列作成
-	XMMATRIX	projection = GetProjectionMatrix();
-	//ビュー行列作成
-	XMMATRIX	view = GetViewMatrix();
-	//先にVP変換行列を作っておく
-	XMMATRIX VP = view * projection;
+	XMMATRIX VP = GetViewMatrix() * GetProjectionMatrix();
 
 	//MAPの表示
 	int i = 0;
-	static float rot = 0.0f;
-	rot -= 0.5f;
 	while (Map[i].no != FIELD_MAX)
 	{
 		// もしアクティブじゃなかったら、描画しないで次へ
@@ -469,169 +460,126 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			continue; // この先の描画処理をスキップ
 		}
 
-		///////////////////////////////////////////////debug
-		//ImGui::Begin("Player Debug");
-
-		//// 座標調整
-		//ImGui::Text("Position");
-		//ImGui::DragFloat3("pos", (float*)&Map[i].pos, 0.1f);
-		//if (i % 10 == 0)
-		//{
-		//	ImGui::Text("/");
-		//}
-
-		//ImGui::End();
-		///////////////////////////////////////////////
-
-		//スケーリング行列の作成
-		XMMATRIX	ScalingMatrix = XMMatrixScaling
-		(
-			1.0f, 1.0f, 1.0f
-		);
-		//平行移動行列の作成
-		XMMATRIX	TranslationMatrix = XMMatrixTranslation
-		(
-			Map[i].pos.x, Map[i].pos.y, Map[i].pos.z
-		);
-		//回転行列の作成
-		XMMATRIX	RotationMatrix = XMMatrixRotationRollPitchYaw
-		(
-			//-3.141592 / 2,
-			XMConvertToRadians(-90.0f),
-			XMConvertToRadians(0.0f),
-			XMConvertToRadians(0.0f)
-		);
-		//ワールド行列の作成
-		XMMATRIX	World = ScalingMatrix * RotationMatrix * TranslationMatrix;
+		////スケーリング行列の作成
+		//XMMATRIX	ScalingMatrix = XMMatrixScaling
+		//(
+		//	3.0f, 3.0f, 1.0f
+		//);
+		////平行移動行列の作成
+		//XMMATRIX	TranslationMatrix = XMMatrixTranslation
+		//(
+		//	Map[i].pos.x, Map[i].pos.y, Map[i].pos.z
+		//);
+		////回転行列の作成
+		//XMMATRIX	RotationMatrix = XMMatrixRotationRollPitchYaw
+		//(
+		//	//-3.141592 / 2,
+		//	XMConvertToRadians(-90.0f),
+		//	XMConvertToRadians(0.0f),
+		//	XMConvertToRadians(0.0f)
+		//);
+		////ワールド行列の作成
+		//XMMATRIX	World = ScalingMatrix * RotationMatrix * TranslationMatrix;
 		//最終的な変換行列を作成
-		XMMATRIX	WVP = World * VP;	//(VP = View * Projection)
 
-		//DirectXへ行列をセット
+		XMMATRIX World = XMMatrixScaling(3.0f, 3.0f, 1.0f) * XMMatrixRotationX(XMConvertToRadians(-90.0f)) * XMMatrixTranslation(Map[i].pos.x, Map[i].pos.y, Map[i].pos.z);
+
+		//XMMATRIX	WVP = World * VP;	//(VP = View * Projection)
+		////DirectXへ行列をセット
+		//Shader_SetWorldMatrix(World);
+		//Shader_SetMatrix(WVP);
+
 		Shader_SetWorldMatrix(World);
-		Shader_SetMatrix(WVP);
+		Shader_SetMatrix(World * VP);
 
 		// --------------------------------------------------------
 		// map[i].no の値 (intにキャスト) に対応するテクスチャをセット
 		// --------------------------------------------------------
 		int texIndex = (int)Map[i].no; // FIELD_BUILDING, FIELD_BOXが 0, 1 に対応していることを利用
+		// テクスチャセット
 		if (texIndex >= 0 && texIndex < FIELD_TEX_MAX)
-		{
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
-		}
 
-		////頂点バッファをセット
-		//UINT	stride = sizeof(Vertex3D);	//頂点１個のデータサイズ
-		//UINT	offset = 0;
-		//g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-
-		////インデックスバッファをセット
-		//g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-		////描画するポリゴンの種類をセット 3頂点でポリゴン１枚として表示
-		//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		//////描画リクエスト
-		//g_pContext->DrawIndexed(6 * 6, 0, 0);
-
-		if (!s_IsKonamiCodeEntered || input2)
-		{
-			ModelDraw(Test);//デバッグ
-		}
+		if (!s_IsKonamiCodeEntered || input2) ModelDraw(Test);
 
 		//// テクスチャをパイプラインから解除
 		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
-		////------------------------------------------------
-
-		if (s_IsKonamiCodeEntered)
-		{
-			// ------------------------------------
-			// コライダーフレーム（六角柱）の描画
-			// ------------------------------------
-			{
-				//// 1. デバッグ描画が前の描画に引きずられないようテクスチャを強制解除
-				//ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-				//g_pContext->PSSetShaderResources(0, 1, nullSRV);
-
-				// デバッグ描画前に、行列をリセットした状態のシェーダー設定を確定させる
-				// プレイヤーの描画に使われた行列をクリアする
-				XMMATRIX world = XMMatrixIdentity();
-				Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
-				//Shader_Begin(); // シェーダーを再設定
-
-				int fieldCount = GetFieldObjectCount();
-				MAPDATA* fieldObjects = GetFieldObjects();
-
-				for (int j = 0; j < fieldCount; ++j)
-				{
-					if (!fieldObjects[j].isActive) continue;
-
-					// HexCollider情報を構築
-					HexCollider hex;
-					hex.center = fieldObjects[j].pos;
-					hex.radius = fieldObjects[j].radius;
-					hex.height = fieldObjects[j].height;
-
-					// 六角柱を描画
-					Debug_DrawHex(hex, XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
-				}
-
-				// Shader_End() があればここで呼ぶ (なければ次の描画で上書きされる)
-			}
-		}
+		//------------------------------------------------
 		i++;
 	}
 
-	///////////////////////////////////////////////////////
-	// 取りあえずのテクスチャ再セット
-	// 建物のテクスチャは別で設定する
-	//g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
-	///////////////////////////////////////////////////////
-	Building_DrawAll(s_IsKonamiCodeEntered);
-
+	// --- 3. デバッグ描画は全部のマップを描き終わった後に「1回だけ」やる ---
 	if (s_IsKonamiCodeEntered)
 	{
-		// 植物・コンクリートのスペシャルが使用されている場合、円のフレームを赤色で表示
+		SetBlendState(BLENDSTATE_NONE);
+		SetDepthTest(false); // 重なりを無視して見えるように
+		Shader_SetMatrix(VP); // ワールド行列はIdentityにするのでVPだけでOK
+
+		// フィールドオブジェクトの六角柱
+		int fieldCount = GetFieldObjectCount();
+		MAPDATA* fieldObjects = GetFieldObjects();
+		for (int j = 0; j < fieldCount; ++j)
+		{
+			if (!fieldObjects[j].isActive) continue;
+			HexCollider hex{ fieldObjects[j].pos, fieldObjects[j].radius, fieldObjects[j].height };
+			Debug_DrawHex(hex, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		}
+
+		// プレイヤーのスペシャル範囲（円）
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
-			PLAYEROBJECT* playerObject = GetPlayer(p);
-			PLAYEROBJECT& player = *playerObject;
-			if (!player.useSpecial) continue;
+			PLAYEROBJECT* player = GetPlayer(p);
+			if (!player->active || !player->useSpecial) continue;
 
-			// 植物・コンクリートのスペシャル
-			if (player.type == PlayerType::Plant || player.type == PlayerType::Concrete)
-			{
-				// 円の中心と半径を設定
-				XMFLOAT3 center = playerObject->position;
-				float radius = 5.0f;
+			// ここに各タイプのDebug_DrawCircle処理をまとめる
+			// (さっきのコードの player.type ごとの判定を入れる)
 
-				// 赤色で円を描画
-				Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
-			}
-			// 電気のスペシャル
-			if (player.type == PlayerType::Electricity)
+			// 植物・コンクリートのスペシャルが使用されている場合、円のフレームを赤色で表示
+
+			for (int p = 0; p < PLAYER_MAX; ++p)
 			{
-				for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
+				PLAYEROBJECT* playerObject = GetPlayer(p);
+				PLAYEROBJECT& player = *playerObject;
+				if (!player.useSpecial) continue;
+				// 植物・コンクリートのスペシャル
+
+				if (player.type == PlayerType::Plant || player.type == PlayerType::Concrete)
 				{
-					// 電気の円の中心と半径を取得
-					XMFLOAT3 center = player.electricityCircles[i].center;
-					float radius = player.electricityCircles[i].radius;
+					// 円の中心と半径を設定
+					XMFLOAT3 center = playerObject->position;
+					float radius = 5.0f;
 
 					// 赤色で円を描画
 					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
 				}
-			}
-			// ガラスのスペシャル
-			if (player.type == PlayerType::Glass)
-			{
-				for (const auto& box : player.glassBoxes)
-				{
-					// ガラスの円の中心と半径を設定
-					XMFLOAT3 center = box.position;
-					float radius = 0.3f; // 半径0.3の円
 
-					// 赤色で円を描画
-					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+				// 電気のスペシャル
+				if (player.type == PlayerType::Electricity)
+				{
+					for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
+					{
+						// 電気の円の中心と半径を取得
+						XMFLOAT3 center = player.electricityCircles[i].center;
+						float radius = player.electricityCircles[i].radius;
+
+						// 赤色で円を描画
+						Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+					}
+				}
+
+				// ガラスのスペシャル
+				if (player.type == PlayerType::Glass)
+				{
+					for (const auto& box : player.glassBoxes)
+					{
+						// ガラスの円の中心と半径を設定
+						XMFLOAT3 center = box.position;
+						float radius = 0.3f; // 半径0.3の円
+
+						// 赤色で円を描画
+						Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+					}
 				}
 			}
 		}
