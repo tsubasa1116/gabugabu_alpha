@@ -130,7 +130,7 @@ MAPDATA Map[] =
 	// ===== BOX 50 =====
 	{ {},{}, FIELD::FIELD_Electricity }, // 51
 	{ {},{}, FIELD::FIELD_Concrete }, // 52 右下デカい建物
-	{ {},{}, FIELD::FIELD_Plant,4 }, // 53左下デカい
+	{ {},{}, FIELD::FIELD_Plant, }, // 53左下デカい
 	{ {},{}, FIELD::FIELD_Electricity}, // 54
 	{ {},{}, FIELD::FIELD_Plant,2}, // 55
 	{ {},{}, FIELD::FIELD_Glass,3}, // 56
