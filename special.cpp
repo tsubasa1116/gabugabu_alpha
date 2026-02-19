@@ -15,6 +15,7 @@ using namespace DirectX;
 #include "keyboard.h"
 #include "DamageText.h"
 #include "Effect.h"
+#include "gamepad.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -548,6 +549,7 @@ void Special_Concrete_Update(int playerIndex)
 
 			// 画面を揺らす
 			Camera_StartShake(0.8f, 0.6f);
+			TriggerVibration(playerIndex, 0.3f, 0.3f, 600);
 
 			for (int p = 0; p < PLAYER_MAX; ++p)
 			{
@@ -558,6 +560,7 @@ void Special_Concrete_Update(int playerIndex)
 				PLAYEROBJECT& otherPlayer = *otherPlayerObject;
 
 				if (otherPlayer.isInvincible) continue; // 無敵中は無視
+
 
 				// 円とAABBの衝突判定
 				if (CheckCircleAABBCollision(circle, otherPlayer.boundingBox))
