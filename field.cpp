@@ -76,8 +76,8 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Electricity,0},           // 6kaku
 	{ {},{}, FIELD::FIELD_Plant,2},           // 7kaku
 	{ {},{}, FIELD::FIELD_Concrete,2},           // 8kaku
-	{ {},{}, FIELD::FIELD_BOX},           // 9
-	{ {},{}, FIELD::FIELD_BOX},           // 10
+	{ {},{}, FIELD::FIELD_Concrete,1},           // 9
+	{ {},{}, FIELD::FIELD_Glass},           // 10
 						  
 	// ===== BOX 10 ===== 
 	{ {},{}, FIELD::FIELD_Glass,}, // 11
@@ -130,7 +130,7 @@ MAPDATA Map[] =
 	// ===== BOX 50 =====
 	{ {},{}, FIELD::FIELD_Electricity }, // 51
 	{ {},{}, FIELD::FIELD_Concrete }, // 52 右下デカい建物
-	{ {},{}, FIELD::FIELD_Glass }, // 53左下デカい
+	{ {},{}, FIELD::FIELD_Plant,4 }, // 53左下デカい
 	{ {},{}, FIELD::FIELD_Electricity}, // 54
 	{ {},{}, FIELD::FIELD_Plant,2}, // 55
 	{ {},{}, FIELD::FIELD_Glass,3}, // 56

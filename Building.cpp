@@ -17,7 +17,7 @@ static Building* Buildings[300];
 static int BuildingCount = 0;
 
 // ★テクスチャのパス用意
-#define FIELD_TEX_MAX 11
+#define FIELD_TEX_MAX 15
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"Asset\\Texture\\gure.jpg",
@@ -30,6 +30,10 @@ static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"Asset\\Texture\\信号.png",
 	L"Asset\\Texture\\２この丸ガラス.png",
 	L"Asset\\Texture\\木と遊具.png",
+	L"Asset\\Texture\\木といえ.png",
+	L"Asset\\Texture\\togegarasu.png",
+	L"Asset\\Texture\\3kabe.png",
+	L"Asset\\Texture\\1kabe.png",
 	L"Asset\\Texture\\fade.bmp"
 };
 
@@ -62,7 +66,7 @@ static const char* g_PlantModels[] = {
 	"kitoyugu",
 	"togeki",
 	"kitoie",
-
+	"propsTreeMain_v9"
 };
 
 // 電気建物
@@ -304,7 +308,12 @@ void Building::Draw(bool)
 	if (Type == BuildingType::Plant &&
 		strcmp(g_PlantModels[m_ModelIndex], "kitoyugu") == 0)
 	{
-		tex = g_Texture[9]; // とんがり木
+		tex = g_Texture[9]; 
+	}
+	if (Type == BuildingType::Plant &&
+		strcmp(g_PlantModels[m_ModelIndex], "kitoie") == 0)
+	{
+		tex = g_Texture[10]; // とんがり木
 	}
 	// Electricity 
 	else if (Type == BuildingType::Electricity &&
@@ -317,6 +326,17 @@ void Building::Draw(bool)
 	{
 		tex = g_Texture[7]; 
 	}
+	else if (Type == BuildingType::Electricity &&
+		strcmp(g_ElectricModels[m_ModelIndex], "denki3kaba-") == 0)
+	{
+		tex = g_Texture[12];
+	}
+	else if (Type == BuildingType::Electricity &&
+		strcmp(g_ElectricModels[m_ModelIndex], "denki1kaba-") == 0)
+	{
+		tex = g_Texture[13];
+	}
+
 
 	// Concrete 
 	else if (Type == BuildingType::Concrete &&
@@ -344,6 +364,11 @@ void Building::Draw(bool)
 		strcmp(g_GlassModels[m_ModelIndex], "2marugarasu") == 0)
 	{
 		tex = g_Texture[8];
+	}
+	else if (Type == BuildingType::Glass &&
+		strcmp(g_GlassModels[m_ModelIndex], "togegarasu") == 0)
+	{
+		tex = g_Texture[11];
 	}
 
 
