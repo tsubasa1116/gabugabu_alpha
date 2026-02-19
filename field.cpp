@@ -607,7 +607,6 @@ MAPDATA* GetFieldObjects()
 // フィールドオブジェクトの総数を返す
 int GetFieldObjectCount()
 {
-
 	int count = 0;
 	// map配列はFIELD_MAXを終了マーカーとしている
 	while (Map[count].no != FIELD_MAX)

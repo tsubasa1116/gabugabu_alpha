@@ -958,22 +958,15 @@ void Player_Update()
 			// 移動 8コマ
 			else if (player[p].isMoving == true)
 			{
-				// 左下 32～39
-				if (player[p].moveDir.x < 0.0f && player[p].moveDir.z < 0.0f)		LoopRange(g_animFrame[p], 32, 8, advance); 
-				// 左上 84～91
-				else if (player[p].moveDir.x < 0.0f && player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 84, 8, advance);
-				// 右上 136～143
-				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 136, 8, advance);
-				// 右下 188～195
-				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p], 188, 8, advance);
-				// 下   6～13
-				else if (player[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p], 6, 8, advance); 
-				// 左   58～63
-				else if (player[p].moveDir.x < 0.0f)	LoopRange(g_animFrame[p], 58, 8, advance);
-				// 上   110～117
-				else if (player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 110, 8, advance);
-				// 右   162～169
-				else if (player[p].moveDir.x > 0.0f)	LoopRange(g_animFrame[p], 162, 8, advance);
+					 if (player[p].moveDir.x < 0.0f && player[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p],  32, 8, advance); // 左下 32～39
+				else if (player[p].moveDir.x < 0.0f && player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p],  84, 8, advance); // 左上 84～91
+				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 136, 8, advance); // 右上 136～143
+				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p], 188, 8, advance); // 右下 188～195
+
+				else if (player[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p],   6, 8, advance); // 下   6～13
+				else if (player[p].moveDir.x < 0.0f)	LoopRange(g_animFrame[p],  58, 8, advance); // 左   58～63
+				else if (player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 110, 8, advance); // 上   110～117	
+				else if (player[p].moveDir.x > 0.0f)	LoopRange(g_animFrame[p], 162, 8, advance); // 右   162～169
 			}
 			// 待機 6コマ
 			else if (player[p].isMoving == false)
@@ -998,6 +991,10 @@ void Player_Update()
 		// 描画スケールを反映したスケール（表示用）
 		XMFLOAT3 physicsScaling = XMFLOAT3(player[p].scaling.x * renderScale, player[p].scaling.y * renderScale, player[p].scaling.z * renderScale);
 
+
+		////////////////////////////////////////////////////////////////////////////////////////////
+		// TODO:
+
 		// --- プレイヤー用ヒットボックス比率（向きで長短を切り替える） ---
 		// 高さは固定、水平面は向きに応じて長短を切り替える
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
@@ -1010,8 +1007,8 @@ void Player_Update()
 		float facingZ = cosf(radFacing);
 		bool facingZDominant = fabsf(facingZ) >= fabsf(facingX);
 
-		float widthScale  = facingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
-		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
+		float widthScale = facingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
+		float depthScale = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
 
 		// 第2形態 第3形態はXとZ同じにする
 		if (player[p].form == Form::Second || player[p].form == Form::Third)
@@ -1020,22 +1017,19 @@ void Player_Update()
 			depthScale = 0.25f;
 		}
 
-		XMFLOAT3 hitboxScaling = XMFLOAT3 (
-			player[p].scaling.x * renderScale * widthScale,
+		XMFLOAT3 hitboxScaling = XMFLOAT3(
+			player[p].scaling.x * renderScale * widthScale*10,
 			player[p].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
 			player[p].scaling.z * renderScale * depthScale
 		);
 
 
-		// //////////////////////////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////////////////////////////
 		// TODO:当たり判定の見直し
 		
 		// AABB を現在の位置・スケール（ヒットボックス）で更新しておく（衝突判定で使用）
 		CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
 
-		// y軸の移動量 (重力 + ジャンプ)
-		// 重力加速度のない簡易的な重力
-		// player[p].position.y += -0.1f;
 		// 1. 速度があれば、その分だけ座標を動かす（これが「吹っ飛んでいる」状態）
 		player[p].position.x += player[p].velocity.x;
 		player[p].position.y += player[p].velocity.y;
@@ -1157,6 +1151,7 @@ void Player_Update()
 		}
 
 		///////////////////////////////////////////////////////////////////////////////////////////////
+		// TODO:
 
 		// -------------------------------------------------------------
 		// プレイヤーオブジェクト同士の当たり判定（PLAYER_MAX分対応）
@@ -1166,39 +1161,8 @@ void Player_Update()
 			// 非アクティブは無視
 			if (!player[otherIndex].active) continue;
 
-			// 他プレイヤーのヒットボックススケーリング（向きで長短を切り替える）
-			const float HITBOX_HEIGHT_SCALE = 1.0f;	// 高さのスケール
-			const float HITBOX_SHORT = 0.35f;		// 短いほうの長さ
-			const float HITBOX_LONG  = 0.65f;		// 長いほうの長さ
-
-			// 宣言をループスコープの先頭に置く（後で再利用するため）
-			XMFLOAT3 hitboxScalingOther;	// 最終的に決まった大きさを保存
-
-			{
-				float radOther = XMConvertToRadians(player[otherIndex].rotation.y);	// 各playerが向いている方向
-				float otherFacingX = sinf(radOther);	// x方向の向き
-				float otherFacingZ = cosf(radOther);	// z方向の向き
-				bool otherFacingZDominant = fabsf(otherFacingZ) >= fabsf(otherFacingX);	// zよりxのほうを向いているならtrue
-
-				float otherWidthScale = otherFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// さっきのがtrueならSHORT
-				float otherDepthScale = otherFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// さっきのがtrueならLONG
-
-				// 第2形態 第3形態はXとZ同じにする
-				if (player[otherIndex].form == Form::Second || player[otherIndex].form == Form::Third)
-				{
-					widthScale = 0.25f;
-					depthScale = 0.25f;
-				}
-
-				hitboxScalingOther = XMFLOAT3(
-					player[otherIndex].scaling.x * renderScale * otherWidthScale,
-					player[otherIndex].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
-					player[otherIndex].scaling.z * renderScale * otherDepthScale
-				);
-			}
-
 			// 他プレイヤーの AABB を更新（ここで定義済みの hitboxScalingOther を使用）
-			CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScalingOther);
+			CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScaling);
 
 			// 衝突チェック（ペア p <-> otherIndex を一度だけ判定）
 			MTV collision_player = CalculateAABBMTV(player[p].boundingBox, player[otherIndex].boundingBox);
@@ -1211,6 +1175,8 @@ void Player_Update()
 					player[p].dir.x = sinf(rad_p);
 					player[p].dir.z = cosf(rad_p);
 				}
+
+
 				{
 					float rad_o = XMConvertToRadians(player[otherIndex].rotation.y);
 					player[otherIndex].dir.x = sinf(rad_o);
@@ -1237,7 +1203,7 @@ void Player_Update()
 
 				// 押し戻し後の新しいAABBを再計算 (ヒットボックスで)
 				CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
-				CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScalingOther);
+				CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScaling);
 			}
 		}
 
@@ -1459,17 +1425,10 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	// 3Dオブジェクト（プレイヤー）の描画が終わった後...
 	SetDepthTest(false); // コライダーを最前面に出したいならこれでOK
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	// TODO:
 	if (s_IsKonamiCodeEntered)
 	{
-		// 1. 行列をリセット（AABBがワールド座標系ならIdentityで正解！）
-		//XMMATRIX world = XMMatrixIdentity();
-		//XMMATRIX view = GetViewMatrix();
-		//XMMATRIX projection = GetProjectionMatrix();
-		//XMMATRIX wvp = world * view * projection;
-
-		// 2. シェーダーにマトリックスを教える
-		//Shader_SetMatrix(wvp);
-
 		// プレイヤーの描画に使われた行列をクリアする
 		Shader_SetMatrix(XMMatrixIdentity() * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
 
