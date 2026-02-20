@@ -57,7 +57,6 @@ static const char* g_ConcreteModels[] = {
 	"biru3dannkonkuri",
 	"3biltateconkuri",
 
-
 };
 
 // 植物建物
@@ -66,7 +65,7 @@ static const char* g_PlantModels[] = {
 	"kitoyugu",
 	"togeki",
 	"kitoie",
-	"propsTreeMain_v9"
+	"propsTreeMain_v10"
 };
 
 // 電気建物
@@ -78,7 +77,6 @@ static const char* g_ElectricModels[] = {
 	"denki3kaba-"
 
 };
-
 
 // 配列数取得マクロ
 #define COUNT(arr) (sizeof(arr) / sizeof(arr[0]))

@@ -39,11 +39,12 @@ static	ID3D11DeviceContext* g_pContext = NULL;
 
 // FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
-
+#define FIELD_TEX_MAX (1)
 // FIELD::no の値に対応するテクスチャファイル名
-static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
-	L"Asset\\Texture\\gure.jpg",
-	L"Asset\\Texture\\fade.bmp"
+static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
+{
+	L"Asset\\Texture\\texturefieldConcrete02_v1.png",  // 0
+	
 };
 
 
@@ -130,7 +131,7 @@ MAPDATA Map[] =
 	// ===== BOX 50 =====
 	{ {},{}, FIELD::FIELD_Electricity }, // 51
 	{ {},{}, FIELD::FIELD_Concrete }, // 52 右下デカい建物
-	{ {},{}, FIELD::FIELD_Plant, }, // 53左下デカい
+	{ {},{}, FIELD::FIELD_Plant,4}, // 53左下デカい
 	{ {},{}, FIELD::FIELD_Electricity}, // 54
 	{ {},{}, FIELD::FIELD_Plant,2}, // 55
 	{ {},{}, FIELD::FIELD_Glass,3}, // 56
@@ -433,204 +434,165 @@ void Field_Finalize(void)
 //======================================================
 //	描画関数
 //======================================================
+//======================================================
+//	描画関数
+//======================================================
+//======================================================
+//	描画関数
+//======================================================
 void Field_Draw(bool s_IsKonamiCodeEntered)
 {
 	static bool input2 = false;
-	// デバッグモード中のみキー入力を受け付ける
+
+	// デバッグキー
 	if (s_IsKonamiCodeEntered)
 	{
 		if (Keyboard_IsKeyDownTrigger(KK_D2))
 		{
-			input2 = !input2;	// フラグ反転
+			input2 = !input2;
 		}
 	}
-	//シェーダーを描画パイプラインへ設定
+
+	// シェーダー開始
 	Shader_Begin();
 	Shader_SetColor(color::white);
 
-	//プロジェクション行列作成
-	XMMATRIX	projection = GetProjectionMatrix();
-	//ビュー行列作成
-	XMMATRIX	view = GetViewMatrix();
-	//先にVP変換行列を作っておく
+	// 行列取得
+	XMMATRIX projection = GetProjectionMatrix();
+	XMMATRIX view = GetViewMatrix();
 	XMMATRIX VP = view * projection;
 
-	//MAPの表示
 	int i = 0;
-	static float rot = 0.0f;
-	rot -= 0.5f;
+
+	// ======================================================
+	// フィールド描画
+	// ======================================================
 	while (Map[i].no != FIELD_MAX)
 	{
-		// もしアクティブじゃなかったら、描画しないで次へ
 		if (!Map[i].isActive)
 		{
-			i++; // i を進めるのを忘れないで！
-			continue; // この先の描画処理をスキップ
+			i++;
+			continue;
 		}
 
-		///////////////////////////////////////////////debug
-		//ImGui::Begin("Player Debug");
+		// ------------------------------
+		// ワールド行列作成
+		// ------------------------------
+		XMMATRIX ScalingMatrix = XMMatrixScaling(1.0f, 1.0f, 1.0f);
 
-		//// 座標調整
-		//ImGui::Text("Position");
-		//ImGui::DragFloat3("pos", (float*)&Map[i].pos, 0.1f);
-		//if (i % 10 == 0)
-		//{
-		//	ImGui::Text("/");
-		//}
-
-		//ImGui::End();
-		///////////////////////////////////////////////
-
-		//スケーリング行列の作成
-		XMMATRIX	ScalingMatrix = XMMatrixScaling
-		(
-			1.0f, 1.0f, 1.0f
-		);
-		//平行移動行列の作成
-		XMMATRIX	TranslationMatrix = XMMatrixTranslation
-		(
-			Map[i].pos.x, Map[i].pos.y, Map[i].pos.z
-		);
-		//回転行列の作成
-		XMMATRIX	RotationMatrix = XMMatrixRotationRollPitchYaw
-		(
-			//-3.141592 / 2,
+		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			XMConvertToRadians(-90.0f),
-			XMConvertToRadians(0.0f),
-			XMConvertToRadians(0.0f)
+			0.0f,
+			0.0f
 		);
-		//ワールド行列の作成
-		XMMATRIX	World = ScalingMatrix * RotationMatrix * TranslationMatrix;
-		//最終的な変換行列を作成
-		XMMATRIX	WVP = World * VP;	//(VP = View * Projection)
 
-		//DirectXへ行列をセット
+		XMMATRIX TranslationMatrix = XMMatrixTranslation(
+			Map[i].pos.x,
+			Map[i].pos.y,
+			Map[i].pos.z
+		);
+
+		XMMATRIX World = ScalingMatrix * RotationMatrix * TranslationMatrix;
+		XMMATRIX WVP = World * VP;
+
 		Shader_SetWorldMatrix(World);
 		Shader_SetMatrix(WVP);
 
-		// --------------------------------------------------------
-		// map[i].no の値 (intにキャスト) に対応するテクスチャをセット
-		// --------------------------------------------------------
-		int texIndex = (int)Map[i].no; // FIELD_BUILDING, FIELD_BOXが 0, 1 に対応していることを利用
-		if (texIndex >= 0 && texIndex < FIELD_TEX_MAX)
+		// ------------------------------
+		// 種類ごとにテクスチャ切り替え
+		// ------------------------------
+		int texIndex = 0; // デフォルト
+
+		switch (Map[i].no)
 		{
-			g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
+		case FIELD::FIELD_Plant:
+			texIndex = 0;
+			break;
+
+		case FIELD::FIELD_Concrete:
+			texIndex = 0;
+			break;
+
+		case FIELD::FIELD_Glass:
+			texIndex = 0;
+			break;
+
+		case FIELD::FIELD_Electricity:
+			texIndex = 0;
+			break;
+
+		case FIELD::FIELD_BOX:
+			texIndex = 0;
+			break;
+
+		default:
+			texIndex = 0;
+			break;
 		}
 
-		////頂点バッファをセット
-		//UINT	stride = sizeof(Vertex3D);	//頂点１個のデータサイズ
-		//UINT	offset = 0;
-		//g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
 
-		////インデックスバッファをセット
-		//g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-		////描画するポリゴンの種類をセット 3頂点でポリゴン１枚として表示
-		//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		//////描画リクエスト
-		//g_pContext->DrawIndexed(6 * 6, 0, 0);
-
+		// ------------------------------
+		// 地面モデル描画
+		// ------------------------------
 		if (!s_IsKonamiCodeEntered || input2)
 		{
-			ModelDraw(Test);//デバッグ
+			ModelDraw(Test);
 		}
 
-		//// テクスチャをパイプラインから解除
-		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
-		////------------------------------------------------
-
-		if (s_IsKonamiCodeEntered)
-		{
-			// ------------------------------------
-			// コライダーフレーム（六角柱）の描画
-			// ------------------------------------
-			{
-				//// 1. デバッグ描画が前の描画に引きずられないようテクスチャを強制解除
-				//ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-				//g_pContext->PSSetShaderResources(0, 1, nullSRV);
-
-				// デバッグ描画前に、行列をリセットした状態のシェーダー設定を確定させる
-				// プレイヤーの描画に使われた行列をクリアする
-				XMMATRIX world = XMMatrixIdentity();
-				Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
-				//Shader_Begin(); // シェーダーを再設定
-
-				int fieldCount = GetFieldObjectCount();
-				MAPDATA* fieldObjects = GetFieldObjects();
-
-				for (int j = 0; j < fieldCount; ++j)
-				{
-					if (!fieldObjects[j].isActive) continue;
-
-					// HexCollider情報を構築
-					HexCollider hex;
-					hex.center = fieldObjects[j].pos;
-					hex.radius = fieldObjects[j].radius;
-					hex.height = fieldObjects[j].height;
-
-					// 六角柱を描画
-					Debug_DrawHex(hex, XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
-				}
-
-				// Shader_End() があればここで呼ぶ (なければ次の描画で上書きされる)
-			}
-		}
 		i++;
 	}
 
-	///////////////////////////////////////////////////////
-	// 取りあえずのテクスチャ再セット
-	// 建物のテクスチャは別で設定する
-	//g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
-	///////////////////////////////////////////////////////
+	// ======================================================
+	// 建物描画
+	// ======================================================
 	Building_DrawAll(s_IsKonamiCodeEntered);
 
+	// ======================================================
+	// デバッグ描画
+	// ======================================================
 	if (s_IsKonamiCodeEntered)
 	{
-		// 植物・コンクリートのスペシャルが使用されている場合、円のフレームを赤色で表示
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
 			PLAYEROBJECT* playerObject = GetPlayer(p);
-			PLAYEROBJECT& player = *playerObject;
-			if (!player.useSpecial) continue;
+			if (!playerObject) continue;
+			if (!playerObject->useSpecial) continue;
 
-			// 植物・コンクリートのスペシャル
-			if (player.type == PlayerType::Plant || player.type == PlayerType::Concrete)
+			// Plant / Concrete
+			if (playerObject->type == PlayerType::Plant ||
+				playerObject->type == PlayerType::Concrete)
 			{
-				// 円の中心と半径を設定
-				XMFLOAT3 center = playerObject->position;
-				float radius = 5.0f;
-
-				// 赤色で円を描画
-				Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+				Debug_DrawCircle(
+					playerObject->position,
+					5.0f,
+					XMFLOAT4(1, 0, 0, 1)
+				);
 			}
-			// 電気のスペシャル
-			if (player.type == PlayerType::Electricity)
-			{
-				for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
-				{
-					// 電気の円の中心と半径を取得
-					XMFLOAT3 center = player.electricityCircles[i].center;
-					float radius = player.electricityCircles[i].radius;
 
-					// 赤色で円を描画
-					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+			// Electricity
+			if (playerObject->type == PlayerType::Electricity)
+			{
+				for (int e = 0; e < SPECIAL_ELECTRICITY_QUANTITY; ++e)
+				{
+					Debug_DrawCircle(
+						playerObject->electricityCircles[e].center,
+						playerObject->electricityCircles[e].radius,
+						XMFLOAT4(1, 0, 0, 1)
+					);
 				}
 			}
-			// ガラスのスペシャル
-			if (player.type == PlayerType::Glass)
-			{
-				for (const auto& box : player.glassBoxes)
-				{
-					// ガラスの円の中心と半径を設定
-					XMFLOAT3 center = box.position;
-					float radius = 0.3f; // 半径0.3の円
 
-					// 赤色で円を描画
-					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+			// Glass
+			if (playerObject->type == PlayerType::Glass)
+			{
+				for (const auto& box : playerObject->glassBoxes)
+				{
+					Debug_DrawCircle(
+						box.position,
+						0.3f,
+						XMFLOAT4(1, 0, 0, 1)
+					);
 				}
 			}
 		}
