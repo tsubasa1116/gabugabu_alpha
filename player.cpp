@@ -1018,7 +1018,7 @@ void Player_Update()
 		}
 
 		XMFLOAT3 hitboxScaling = XMFLOAT3(
-			player[p].scaling.x * renderScale * widthScale*10,
+			player[p].scaling.x * renderScale * widthScale,
 			player[p].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
 			player[p].scaling.z * renderScale * depthScale
 		);
