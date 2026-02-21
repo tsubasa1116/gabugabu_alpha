@@ -337,7 +337,6 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Effect" />
     <None Include="imgui.ini" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

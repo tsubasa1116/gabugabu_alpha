@@ -1,58 +1,58 @@
-ï»¿//======================================================
+//======================================================
 //	sprite.cpp[]
 // 
-//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
+//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
 //======================================================
 #include "sprite.h"
 
-//ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
-static constexpr int NUM_VERTEX = 6; // ä½¿ç”¨ã§ãã‚‹æœ€å¤§é ‚ç‚¹æ•°
-static ID3D11Buffer* g_pVertexBuffer = nullptr; // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
-// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
+//ƒOƒ[ƒoƒ‹•Ï”
+static constexpr int NUM_VERTEX = 6; // g—p‚Å‚«‚éÅ‘å’¸“_”
+static ID3D11Buffer* g_pVertexBuffer = nullptr; // ’¸“_ƒoƒbƒtƒ@
+// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 //----------------------------
-//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆåˆæœŸåŒ–
+//ƒXƒvƒ‰ƒCƒg‰Šú‰»
 //----------------------------
 void InitializeSprite()
 {
 	g_pDevice = Direct3D_GetDevice();
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
+	// ’¸“_ƒoƒbƒtƒ@¶¬
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex3D) * NUM_VERTEX;	// æ ¼ç´ã™ã‚‹æœ€å¤§é ‚ç‚¹æ•°
+	bd.ByteWidth = sizeof(Vertex3D) * NUM_VERTEX;	// Ši”[‚·‚éÅ‘å’¸“_”
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	g_pDevice->CreateBuffer(&bd, NULL, &g_pVertexBuffer);
 }
 
 //----------------------------
-//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆçµ‚äº†
+//ƒXƒvƒ‰ƒCƒgI—¹
 //----------------------------
 void FinalizeSprite()
 {
-	g_pVertexBuffer->Release();	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®è§£æ”¾
+	g_pVertexBuffer->Release();	// ’¸“_ƒoƒbƒtƒ@‚Ì‰ğ•ú
 }
 
 
 //=====================================
-//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆæç”»
+//ƒXƒvƒ‰ƒCƒg•`‰æ
 //=====================================
 void DrawSprite(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col)
 {
 	g_pDevice = Direct3D_GetDevice();
 	g_pContext = Direct3D_GetDeviceContext();
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ãƒ­ãƒƒã‚¯ã™ã‚‹
+	// ’¸“_ƒoƒbƒtƒ@‚ğƒƒbƒN‚·‚é
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã¸ã®ä»®æƒ³ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
+	// ’¸“_ƒoƒbƒtƒ@‚Ö‚Ì‰¼‘zƒ|ƒCƒ“ƒ^‚ğæ“¾
 	Vertex3D* v = (Vertex3D*)msr.pData;
 
-	// æŒ‡å®šã®ä½ç½®ã«æŒ‡å®šã®ã‚µã‚¤ã‚ºã€è‰²ã®å››è§’å½¢ã‚’æç”»ã™ã‚‹
+	// w’è‚ÌˆÊ’u‚Éw’è‚ÌƒTƒCƒYAF‚ÌlŠpŒ`‚ğ•`‰æ‚·‚é
 	v[0].position = { pos.x - (size.x / 2), pos.y - (size.y / 2), 0.0f };
 	v[0].normal = { 0.0f, 0.0f, 0.0f };
 	v[0].color = col;
@@ -73,19 +73,19 @@ void DrawSprite(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col)
 	v[3].color = col;
 	v[3].texCoord = { 1.0f, 1.0f };
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®ãƒ­ãƒƒã‚¯ã‚’è§£é™¤
+	// ’¸“_ƒoƒbƒtƒ@‚ÌƒƒbƒN‚ğ‰ğœ
 	g_pContext->Unmap(g_pVertexBuffer, 0);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
-	UINT stride = sizeof(Vertex3D);	// é ‚ç‚¹ï¼‘ã¤ã‚ãŸã‚Šã®ã‚µã‚¤ã‚ºã‚’æŒ‡å®š
+	// ’¸“_ƒoƒbƒtƒ@‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	UINT stride = sizeof(Vertex3D);	// ’¸“_‚P‚Â‚ ‚½‚è‚ÌƒTƒCƒY‚ğw’è
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 
-	// ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ãƒˆãƒãƒ­ã‚¸è¨­å®šã€€ãƒãƒªã‚´ãƒ³ã®æç”»ãƒ«ãƒ¼ãƒ«çš„ãªã‚‚ã®
+	// ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒWİ’è@ƒ|ƒŠƒSƒ“‚Ì•`‰æƒ‹[ƒ‹“I‚È‚à‚Ì
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	// ãƒãƒªã‚´ãƒ³æç”»å‘½ä»¤ç™ºè¡Œ
-	g_pContext->Draw(4, 0);	// è¡¨ç¤ºã«ä½¿ç”¨ã™ã‚‹é ‚ç‚¹æ•°ã‚’æŒ‡å®š
+	// ƒ|ƒŠƒSƒ“•`‰æ–½—ß”­s
+	g_pContext->Draw(4, 0);	// •\¦‚Ég—p‚·‚é’¸“_”‚ğw’è
 }
 
 void DrawSpriteEx(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc)
@@ -93,21 +93,21 @@ void DrawSpriteEx(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, in
 	g_pDevice = Direct3D_GetDevice();
 	g_pContext = Direct3D_GetDeviceContext();
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ãƒ­ãƒƒã‚¯ã™ã‚‹
+	// ’¸“_ƒoƒbƒtƒ@‚ğƒƒbƒN‚·‚é
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã¸ã®ä»®æƒ³ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
+	// ’¸“_ƒoƒbƒtƒ@‚Ö‚Ì‰¼‘zƒ|ƒCƒ“ƒ^‚ğæ“¾
 	Vertex3D* v = (Vertex3D*)msr.pData;
 
-	//ãƒ–ãƒ­ãƒƒã‚¯ã®ç¸¦æ¨ªã‚µã‚¤ã‚ºã‚’è¨ˆç®—
+	//ƒuƒƒbƒN‚Ìc‰¡ƒTƒCƒY‚ğŒvZ
 	float w = 1.0f / wc;
 	float h = 1.0f / hc;
-	//bnoã®å·¦ä¸Šã®ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ã‚’è¨ˆç®—
+	//bno‚Ì¶ã‚ÌƒeƒNƒXƒ`ƒƒÀ•W‚ğŒvZ
 	float x = (bno % wc) * w;
 	float y = (bno / wc) * h;
 
-	// æŒ‡å®šã®ä½ç½®ã«æŒ‡å®šã®ã‚µã‚¤ã‚ºã€è‰²ã®å››è§’å½¢ã‚’æç”»ã™ã‚‹
+	// w’è‚ÌˆÊ’u‚Éw’è‚ÌƒTƒCƒYAF‚ÌlŠpŒ`‚ğ•`‰æ‚·‚é
 	v[0].position = { pos.x - (size.x / 2), pos.y - (size.y / 2), 0.0f };
 	v[0].color = col;
 	v[0].texCoord = { x, y };
@@ -124,19 +124,19 @@ void DrawSpriteEx(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, in
 	v[3].color = col;
 	v[3].texCoord = { x + w, y + h };
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®ãƒ­ãƒƒã‚¯ã‚’è§£é™¤
+	// ’¸“_ƒoƒbƒtƒ@‚ÌƒƒbƒN‚ğ‰ğœ
 	g_pContext->Unmap(g_pVertexBuffer, 0);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
-	UINT stride = sizeof(Vertex3D);	// é ‚ç‚¹ï¼‘ã¤ã‚ãŸã‚Šã®ã‚µã‚¤ã‚ºã‚’æŒ‡å®š
+	// ’¸“_ƒoƒbƒtƒ@‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	UINT stride = sizeof(Vertex3D);	// ’¸“_‚P‚Â‚ ‚½‚è‚ÌƒTƒCƒY‚ğw’è
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 
-	// ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ãƒˆãƒãƒ­ã‚¸è¨­å®šã€€ãƒãƒªã‚´ãƒ³ã®æç”»ãƒ«ãƒ¼ãƒ«çš„ãªã‚‚ã®
+	// ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒWİ’è@ƒ|ƒŠƒSƒ“‚Ì•`‰æƒ‹[ƒ‹“I‚È‚à‚Ì
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	// ãƒãƒªã‚´ãƒ³æç”»å‘½ä»¤ç™ºè¡Œ
-	g_pContext->Draw(4, 0);	// è¡¨ç¤ºã«ä½¿ç”¨ã™ã‚‹é ‚ç‚¹æ•°ã‚’æŒ‡å®š
+	// ƒ|ƒŠƒSƒ“•`‰æ–½—ß”­s
+	g_pContext->Draw(4, 0);	// •\¦‚Ég—p‚·‚é’¸“_”‚ğw’è
 }
 
 void DrawSpriteScroll(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, XMFLOAT2 texcoord)
@@ -144,14 +144,14 @@ void DrawSpriteScroll(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, XMFLOAT2 texcoo
 	g_pDevice = Direct3D_GetDevice();
 	g_pContext = Direct3D_GetDeviceContext();
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ãƒ­ãƒƒã‚¯ã™ã‚‹
+	// ’¸“_ƒoƒbƒtƒ@‚ğƒƒbƒN‚·‚é
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã¸ã®ä»®æƒ³ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
+	// ’¸“_ƒoƒbƒtƒ@‚Ö‚Ì‰¼‘zƒ|ƒCƒ“ƒ^‚ğæ“¾
 	Vertex3D* v = (Vertex3D*)msr.pData;
 
-	// æŒ‡å®šã®ä½ç½®ã«æŒ‡å®šã®ã‚µã‚¤ã‚ºã€è‰²ã®å››è§’å½¢ã‚’æç”»ã™ã‚‹
+	// w’è‚ÌˆÊ’u‚Éw’è‚ÌƒTƒCƒYAF‚ÌlŠpŒ`‚ğ•`‰æ‚·‚é
 	v[0].position = { pos.x - (size.x / 2), pos.y - (size.y / 2), 0.0f };
 	v[0].color = col;
 	v[0].texCoord = { texcoord.x, texcoord.y };
@@ -168,19 +168,19 @@ void DrawSpriteScroll(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, XMFLOAT2 texcoo
 	v[3].color = col;
 	v[3].texCoord = { 1.0f + texcoord.x, 1.0f + texcoord.y };
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®ãƒ­ãƒƒã‚¯ã‚’è§£é™¤
+	// ’¸“_ƒoƒbƒtƒ@‚ÌƒƒbƒN‚ğ‰ğœ
 	g_pContext->Unmap(g_pVertexBuffer, 0);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
-	UINT stride = sizeof(Vertex3D);	// é ‚ç‚¹ï¼‘ã¤ã‚ãŸã‚Šã®ã‚µã‚¤ã‚ºã‚’æŒ‡å®š
+	// ’¸“_ƒoƒbƒtƒ@‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	UINT stride = sizeof(Vertex3D);	// ’¸“_‚P‚Â‚ ‚½‚è‚ÌƒTƒCƒY‚ğw’è
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 
-	// ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ãƒˆãƒãƒ­ã‚¸è¨­å®šã€€ãƒãƒªã‚´ãƒ³ã®æç”»ãƒ«ãƒ¼ãƒ«çš„ãªã‚‚ã®
+	// ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒWİ’è@ƒ|ƒŠƒSƒ“‚Ì•`‰æƒ‹[ƒ‹“I‚È‚à‚Ì
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	// ãƒãƒªã‚´ãƒ³æç”»å‘½ä»¤ç™ºè¡Œ
-	g_pContext->Draw(4, 0);	// è¡¨ç¤ºã«ä½¿ç”¨ã™ã‚‹é ‚ç‚¹æ•°ã‚’æŒ‡å®š
+	// ƒ|ƒŠƒSƒ“•`‰æ–½—ß”­s
+	g_pContext->Draw(4, 0);	// •\¦‚Ég—p‚·‚é’¸“_”‚ğw’è
 }
 
 void DrawSpriteExRotation(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc, float radian)
@@ -188,21 +188,21 @@ void DrawSpriteExRotation(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, int bno, in
 	g_pDevice = Direct3D_GetDevice();
 	g_pContext = Direct3D_GetDeviceContext();
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ãƒ­ãƒƒã‚¯ã™ã‚‹
+	// ’¸“_ƒoƒbƒtƒ@‚ğƒƒbƒN‚·‚é
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã¸ã®ä»®æƒ³ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
+	// ’¸“_ƒoƒbƒtƒ@‚Ö‚Ì‰¼‘zƒ|ƒCƒ“ƒ^‚ğæ“¾
 	Vertex3D* v = (Vertex3D*)msr.pData;
 
-	//ãƒ–ãƒ­ãƒƒã‚¯ã®ç¸¦æ¨ªã‚µã‚¤ã‚ºã‚’è¨ˆç®—
+	//ƒuƒƒbƒN‚Ìc‰¡ƒTƒCƒY‚ğŒvZ
 	float w = 1.0f / wc;
 	float h = 1.0f / hc;
-	//bnoã®å·¦ä¸Šã®ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ã‚’è¨ˆç®—
+	//bno‚Ì¶ã‚ÌƒeƒNƒXƒ`ƒƒÀ•W‚ğŒvZ
 	float x = (bno % wc) * w;
 	float y = (bno / wc) * h;
 
-	// æŒ‡å®šã®ä½ç½®ã«æŒ‡å®šã®ã‚µã‚¤ã‚ºã€è‰²ã®å››è§’å½¢ã‚’æç”»ã™ã‚‹
+	// w’è‚ÌˆÊ’u‚Éw’è‚ÌƒTƒCƒYAF‚ÌlŠpŒ`‚ğ•`‰æ‚·‚é
 	v[0].position = { -(size.x / 2), -(size.y / 2), 0.0f };
 	v[0].color = col;
 	v[0].texCoord = { x, y };
@@ -219,30 +219,30 @@ void DrawSpriteExRotation(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, int bno, in
 	v[3].color = col;
 	v[3].texCoord = { x + w, y + h };
 
-	// å›è»¢å‡¦ç†
+	// ‰ñ“]ˆ—
 	float co = cosf(radian);
 	float si = sinf(radian);
 	for (int i = 0; i < 4; i++)
 	{
 		float x = v[i].position.x;
 		float y = v[i].position.y;
-		v[i].position.x = (x * co - y * si) + pos.x;	// å›è»¢ã•ã›ã¦ã‹ã‚‰è¡¨ç¤ºä½ç½®ã¾ã§å¹³è¡Œç§»å‹•
+		v[i].position.x = (x * co - y * si) + pos.x;	// ‰ñ“]‚³‚¹‚Ä‚©‚ç•\¦ˆÊ’u‚Ü‚Å•½sˆÚ“®
 		v[i].position.y = (x * si + y * co) + pos.y;
 	}
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®ãƒ­ãƒƒã‚¯ã‚’è§£é™¤
+	// ’¸“_ƒoƒbƒtƒ@‚ÌƒƒbƒN‚ğ‰ğœ
 	g_pContext->Unmap(g_pVertexBuffer, 0);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
-	UINT stride = sizeof(Vertex3D);	// é ‚ç‚¹ï¼‘ã¤ã‚ãŸã‚Šã®ã‚µã‚¤ã‚ºã‚’æŒ‡å®š
+	// ’¸“_ƒoƒbƒtƒ@‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	UINT stride = sizeof(Vertex3D);	// ’¸“_‚P‚Â‚ ‚½‚è‚ÌƒTƒCƒY‚ğw’è
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 
-	// ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ãƒˆãƒãƒ­ã‚¸è¨­å®š ãƒãƒªã‚´ãƒ³ã®æç”»ãƒ«ãƒ¼ãƒ«çš„ãªã‚‚ã®
+	// ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒWİ’è ƒ|ƒŠƒSƒ“‚Ì•`‰æƒ‹[ƒ‹“I‚È‚à‚Ì
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	// ãƒãƒªã‚´ãƒ³æç”»å‘½ä»¤ç™ºè¡Œ
-	g_pContext->Draw(4, 0);	// è¡¨ç¤ºã«ä½¿ç”¨ã™ã‚‹é ‚ç‚¹æ•°ã‚’æŒ‡å®š
+	// ƒ|ƒŠƒSƒ“•`‰æ–½—ß”­s
+	g_pContext->Draw(4, 0);	// •\¦‚Ég—p‚·‚é’¸“_”‚ğw’è
 }
 
 void DrawSprite(XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc)
@@ -250,21 +250,21 @@ void DrawSprite(XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc)
 	g_pDevice = Direct3D_GetDevice();
 	g_pContext = Direct3D_GetDeviceContext();
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ãƒ­ãƒƒã‚¯ã™ã‚‹
+	// ’¸“_ƒoƒbƒtƒ@‚ğƒƒbƒN‚·‚é
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã¸ã®ä»®æƒ³ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
+	// ’¸“_ƒoƒbƒtƒ@‚Ö‚Ì‰¼‘zƒ|ƒCƒ“ƒ^‚ğæ“¾
 	Vertex3D* v = (Vertex3D*)msr.pData;
 
-	// ãƒ–ãƒ­ãƒƒã‚¯ã®ç¸¦æ¨ªã‚µã‚¤ã‚ºã‚’è¨ˆç®—
+	// ƒuƒƒbƒN‚Ìc‰¡ƒTƒCƒY‚ğŒvZ
 	float w = 1.0f / wc;
 	float h = 1.0f / hc;
-	// bnoã®å·¦ä¸Šã®ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ã‚’è¨ˆç®—
+	// bno‚Ì¶ã‚ÌƒeƒNƒXƒ`ƒƒÀ•W‚ğŒvZ
 	float x = (bno % wc) * w;
 	float y = (bno / wc) * h;
 
-	// æŒ‡å®šã®ä½ç½®ã«æŒ‡å®šã®ã‚µã‚¤ã‚ºã€è‰²ã®å››è§’å½¢ã‚’æç”»ã™ã‚‹
+	// w’è‚ÌˆÊ’u‚Éw’è‚ÌƒTƒCƒYAF‚ÌlŠpŒ`‚ğ•`‰æ‚·‚é
 	v[0].position = { -(size.x / 2), -(size.y / 2), 0.0f };
 	v[0].color = col;
 	v[0].texCoord = { x, y };
@@ -281,19 +281,19 @@ void DrawSprite(XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc)
 	v[3].color = col;
 	v[3].texCoord = { x + w, y + h };
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®ãƒ­ãƒƒã‚¯ã‚’è§£é™¤
+	// ’¸“_ƒoƒbƒtƒ@‚ÌƒƒbƒN‚ğ‰ğœ
 	g_pContext->Unmap(g_pVertexBuffer, 0);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
-	UINT stride = sizeof(Vertex3D);	// é ‚ç‚¹ï¼‘ã¤ã‚ãŸã‚Šã®ã‚µã‚¤ã‚ºã‚’æŒ‡å®š
+	// ’¸“_ƒoƒbƒtƒ@‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	UINT stride = sizeof(Vertex3D);	// ’¸“_‚P‚Â‚ ‚½‚è‚ÌƒTƒCƒY‚ğw’è
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 
-	// ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ãƒˆãƒãƒ­ã‚¸è¨­å®šã€€ãƒãƒªã‚´ãƒ³ã®æç”»ãƒ«ãƒ¼ãƒ«çš„ãªã‚‚ã®
+	// ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒWİ’è@ƒ|ƒŠƒSƒ“‚Ì•`‰æƒ‹[ƒ‹“I‚È‚à‚Ì
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	// ãƒãƒªã‚´ãƒ³æç”»å‘½ä»¤ç™ºè¡Œ
-	g_pContext->Draw(4, 0);	// è¡¨ç¤ºã«ä½¿ç”¨ã™ã‚‹é ‚ç‚¹æ•°ã‚’æŒ‡å®š
+	// ƒ|ƒŠƒSƒ“•`‰æ–½—ß”­s
+	g_pContext->Draw(4, 0);	// •\¦‚Ég—p‚·‚é’¸“_”‚ğw’è
 }
 
 void DrawSpriteUV(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, XMFLOAT2 uvMin, XMFLOAT2 uvMax)
@@ -301,14 +301,14 @@ void DrawSpriteUV(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, XMFLOAT2 uvMin, XMF
 	g_pDevice = Direct3D_GetDevice();
 	g_pContext = Direct3D_GetDeviceContext();
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ãƒ­ãƒƒã‚¯
+	// ’¸“_ƒoƒbƒtƒ@‚ğƒƒbƒN
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 
 	Vertex3D* v = (Vertex3D*)msr.pData;
 
 	//===============================
-	// é ‚ç‚¹åº§æ¨™
+	// ’¸“_À•W
 	//===============================
 	float left = pos.x - (size.x / 2);
 	float right = pos.x + (size.x / 2);
@@ -321,20 +321,20 @@ void DrawSpriteUV(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, XMFLOAT2 uvMin, XMF
 	v[3].position = { right, bottom, 0.0f };
 
 	//===============================
-	// UVï¼ˆã“ã“ã§è‡ªç”±ã«åˆ‡ã‚ŠæŠœã‘ã‚‹ï¼‰
+	// UVi‚±‚±‚Å©—R‚ÉØ‚è”²‚¯‚éj
 	//===============================
 	v[0].texCoord = { uvMin.x, uvMin.y };
 	v[1].texCoord = { uvMax.x, uvMin.y };
 	v[2].texCoord = { uvMin.x, uvMax.y };
 	v[3].texCoord = { uvMax.x, uvMax.y };
 
-	// è‰²
+	// F
 	for (int i = 0; i < 4; i++)	v[i].color = col;
 
-	// ã‚¢ãƒ³ãƒãƒƒãƒ—
+	// ƒAƒ“ƒ}ƒbƒv
 	g_pContext->Unmap(g_pVertexBuffer, 0);
 
-	// ã‚»ãƒƒãƒˆ & æç”»
+	// ƒZƒbƒg & •`‰æ
 	UINT stride = sizeof(Vertex3D);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);

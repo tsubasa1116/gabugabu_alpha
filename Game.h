@@ -1,4 +1,4 @@
-﻿// Game.h
+// Game.h
 #pragma once
 
 #include "direct3d.h"

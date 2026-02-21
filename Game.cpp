@@ -17,7 +17,7 @@
 #include "Audio.h"
 #include "gauge.h"
 #include "Polygon.h"
-#include "Player.h"
+#include "player.h"
 #include "Camera.h"
 #include "Ball.h"
 #include "attack.h"
@@ -165,6 +165,7 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
+
 	Player_Update();
 	Field_Update();
 	Effect_Update();

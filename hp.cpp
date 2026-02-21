@@ -1,26 +1,25 @@
-ï»¿#include "color.h"
+#include "color.h"
 #include "hp.h"
 #include <cmath> 
 #include "gauge.h"
 
-// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
+// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
-//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼é–¢é€£å¤‰æ•°
+//ƒvƒŒƒCƒ„[ŠÖ˜A•Ï”
 static	ID3D11ShaderResourceView* g_Texture[10];
 
 hp HPBar[HPBER_MAX];
 
-// HPãƒãƒ¼ã®ã‚¹ãƒ ãƒ¼ã‚ºæ¸›å°‘é€Ÿåº¦
-#define HPBAR_SPEED 3.0f
-#define DAMAGE_BAR_SPEED 1.5f      // èµ¤ãƒãƒ¼ã®æ¸›å°‘é€Ÿåº¦
-#define DAMAGE_BAR_DELAY 30.0f     // èµ¤ãƒãƒ¼ãŒæ¸›ã‚Šå§‹ã‚ã‚‹ã¾ã§ã®é…å»¶ãƒ•ãƒ¬ãƒ¼ãƒ 
+// HPƒo[‚ÌƒXƒ€[ƒYŒ¸­‘¬“x
+#define DAMAGE_BAR_SPEED (1.5f)		// Ôƒo[‚ÌŒ¸­‘¬“x
+#define DAMAGE_BAR_DELAY (30.0f)	// Ôƒo[‚ªŒ¸‚èn‚ß‚é‚Ü‚Å‚Ì’x‰„ƒtƒŒ[ƒ€
 #define SIZE_ADJUST	((1.88f *  (SCREEN_WIDTH / 1280.0f)))
 #define POS_ADJUST	((86.4f *  (SCREEN_WIDTH / 1280.0f)))
 
 // -------------------------------------------------------------
-// åˆæœŸåŒ–
+// ‰Šú‰»
 // -------------------------------------------------------------
 void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar, XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 backColor, XMFLOAT4 fillColor)
 {
@@ -36,14 +35,14 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	bar->damageColor = color::red;
 	bar->damageTimer = 0.0f;
 
-	// ã‚·ã‚§ã‚¤ã‚¯åˆæœŸåŒ–
+	// ƒVƒFƒCƒN‰Šú‰»
 	bar->shakeOffset = { 0.0f, 0.0f };
 	bar->shakeTimer = 0.0f;
 	bar->shakeDuration = 0.0f;
 	bar->shakeAmplitude = 0.0f;
 	bar->shakeSpeed = 0.0f;
 	bar->gaugeIndex = -1;
-	bar->shakeTexNum = -1; // ã‚·ã‚§ã‚¤ã‚¯ä¸­ã®ä»£æ›¿ãƒ†ã‚¯ã‚¹ãƒãƒ£ãªã—
+	bar->shakeTexNum = -1; // ƒVƒFƒCƒN’†‚Ì‘ã‘ÖƒeƒNƒXƒ`ƒƒ‚È‚µ
 
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -51,56 +50,56 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	TexMetadata		metadata;
 	ScratchImage	image;
 	
-	LoadFromWICFile(L"asset\\texture\\uiHpGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
+	LoadFromWICFile(L"asset\\texture\\uiHpGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
-	assert(g_Texture[0]);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture[0]);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
+	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
-	assert(g_Texture[1]);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture[1]);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
+	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
-	assert(g_Texture[2]);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture[2]);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
+	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
-	assert(g_Texture[3]);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture[3]);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
+	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
-	assert(g_Texture[4]);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture[4]);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
+	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
-	assert(g_Texture[5]);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture[5]);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[6]);
-	assert(g_Texture[6]);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture[6]);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[7]);
-	assert(g_Texture[7]);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture[7]);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[8]);
-	assert(g_Texture[8]);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture[8]);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯å¤‰æ›´å¯
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//ƒeƒNƒXƒ`ƒƒ‚Í•ÏX‰Â
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[9]);
-	assert(g_Texture[9]);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture[9]);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
 }
 
 // -------------------------------------------------------------
-// æ›´æ–°
+// XV
 // -------------------------------------------------------------
 void UpdateHP(hp* bar)
 {
 	if (!bar->use) return;
 
-	// currentã‚’targetã«è¿‘ã¥ã‘ã‚‹
+	// current‚ğtarget‚É‹ß‚Ã‚¯‚é
 	if (bar->current > bar->target)
 	{
 		bar->current -= HPBAR_SPEED;
@@ -121,7 +120,7 @@ void UpdateHP(hp* bar)
 		}
 	}
 
-	// ãƒ€ãƒ¡ãƒ¼ã‚¸ãƒãƒ¼æ›´æ–°ï¼ˆå°‘ã—ãƒ‡ã‚£ãƒ¬ã‚¤ã‚’ã‹ã‘ã¦ã‹ã‚‰é€²ã‚€ï¼‰
+	// ƒ_ƒ[ƒWƒo[XVi­‚µƒfƒBƒŒƒC‚ğ‚©‚¯‚Ä‚©‚çi‚Şj
 	if (bar->damageTimer > 0.0f)
 	{
 		bar->damageTimer -= 1.0f;
@@ -132,7 +131,7 @@ void UpdateHP(hp* bar)
 	}
 	else
 	{
-		// é…å»¶ãŒçµ‚ã‚ã£ãŸã‚‰é€šå¸¸ã®å‡¦ç†
+		// ’x‰„‚ªI‚í‚Á‚½‚ç’Êí‚Ìˆ—
 		if (bar->damageCurrent > bar->current)
 		{
 			bar->damageCurrent -= DAMAGE_BAR_SPEED;
@@ -143,27 +142,27 @@ void UpdateHP(hp* bar)
 		}
 	}
 
-	// ã‚·ã‚§ã‚¤ã‚¯æ›´æ–°ï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ å˜ä½ã§æ¸›ã‚‰ã™ï¼‰
+	// ƒVƒFƒCƒNXViƒtƒŒ[ƒ€’PˆÊ‚ÅŒ¸‚ç‚·j
 	if (bar->shakeTimer > 0.0f && bar->shakeDuration > 0.0f)
 	{
-		// ã“ã®HPãƒãƒ¼ã«å¯¾å¿œã™ã‚‹ã‚²ãƒ¼ã‚¸ã®ã¿ã‚·ã‚§ã‚¤ã‚¯ã•ã›ã‚‹
+		// ‚±‚ÌHPƒo[‚É‘Î‰‚·‚éƒQ[ƒW‚Ì‚İƒVƒFƒCƒN‚³‚¹‚é
 		if (bar->gaugeIndex >= 0)
 		{
 			Gauge_SetShakeOffset(bar->gaugeIndex, bar->shakeOffset);
 		}
 
-		// æ®‹ã‚Šãƒ•ãƒ¬ãƒ¼ãƒ ã‚’1æ¸›ã‚‰ã™
+		// c‚èƒtƒŒ[ƒ€‚ğ1Œ¸‚ç‚·
 		bar->shakeTimer -= 1.0f;
 		if (bar->shakeTimer < 0.0f) bar->shakeTimer = 0.0f;
 
-		// æ­£è¦åŒ–ã•ã‚ŒãŸæ®‹ã‚Š
-		float t = bar->shakeTimer / bar->shakeDuration; // æ¸›è¡°ç”¨
-		// çµŒéãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã«é€Ÿåº¦ã‚’æ›ã‘ã‚‹
+		// ³‹K‰»‚³‚ê‚½c‚è
+		float t = bar->shakeTimer / bar->shakeDuration; // Œ¸Š—p
+		// Œo‰ßƒtƒŒ[ƒ€”‚É‘¬“x‚ğŠ|‚¯‚é
 		float elapsed = bar->shakeDuration - bar->shakeTimer;
-		float phase = elapsed * bar->shakeSpeed * 0.5f; // èª¿æ•´
-		// Xæ–¹å‘ã‚’sinã€Yæ–¹å‘ã‚’cosã§æŒ¯å‹•ã•ã›ã‚‹
+		float phase = elapsed * bar->shakeSpeed * 0.5f; // ’²®
+		// X•ûŒü‚ğsinAY•ûŒü‚ğcos‚ÅU“®‚³‚¹‚é
 		float x = sinf(phase) * bar->shakeAmplitude * t;
-		float y = cosf(phase * 1.3f) * (bar->shakeAmplitude * 0.5f) * t; // Yã¯å°‘ã—å°ã•ã‚
+		float y = cosf(phase * 1.3f) * (bar->shakeAmplitude * 0.5f) * t; // Y‚Í­‚µ¬‚³‚ß
 
 		bar->shakeOffset = { x, y };
 	}
@@ -175,7 +174,7 @@ void UpdateHP(hp* bar)
 
 
 // -------------------------------------------------------------
-// æç”»
+// •`‰æ
 // -------------------------------------------------------------
 void DrawHP(const hp* bar, int texNum)
 {
@@ -184,34 +183,34 @@ void DrawHP(const hp* bar, int texNum)
 	Shader_BeginUI();
 	Shader_SetColor(color::white);
 
-	// HPå‰²åˆ
+	// HPŠ„‡
 	float ratio = bar->current / bar->size.x;
 	ratio = max(0.0f, min(1.0f, ratio));
 
-	// ãƒ€ãƒ¡ãƒ¼ã‚¸ãƒãƒ¼å‰²åˆ
+	// ƒ_ƒ[ƒWƒo[Š„‡
 	float damageRatio = bar->damageCurrent / bar->size.x;
 	damageRatio = max(0.0f, min(1.0f, damageRatio));
 
 	XMFLOAT2 backSize = { bar->size.x, bar->size.y };
 
-	// æç”»ä½ç½®ã«ã‚·ã‚§ã‚¤ã‚¯ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’åŠ ãˆã‚‹
+	// •`‰æˆÊ’u‚ÉƒVƒFƒCƒNƒIƒtƒZƒbƒg‚ğ‰Á‚¦‚é
 	XMFLOAT2 drawPos = { bar->pos.x + bar->shakeOffset.x, bar->pos.y + bar->shakeOffset.y };
 
 	XMFLOAT2 backPos = { drawPos.x - (bar->size.x / 2.0f) + backSize.x / 2.0f, drawPos.y };
 
-	// ã‚·ã‚§ã‚¤ã‚¯ä¸­ãªã‚‰ä»£æ›¿ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ä½¿ã†
+	// ƒVƒFƒCƒN’†‚È‚ç‘ã‘ÖƒeƒNƒXƒ`ƒƒ‚ğg‚¤
 	int backTexIndex = texNum;
 	if (bar->shakeTimer > 0.0f && bar->shakeTexNum >= 0) {
 		backTexIndex = bar->shakeTexNum;
 	}
 
-	// èƒŒæ™¯ã‚’æç”»
+	// ”wŒi‚ğ•`‰æ
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[backTexIndex]);
 	DrawSprite(backPos, backSize, bar->backColor);
 
 	float AdjScreenX = SCREEN_ADJUST_X;
 
-	// èµ¤ãƒãƒ¼ï¼ˆãƒ€ãƒ¡ãƒ¼ã‚¸è¡¨ç¤ºï¼‰ã‚’å…ˆã«æç”»
+	// Ôƒo[iƒ_ƒ[ƒW•\¦j‚ğæ‚É•`‰æ
 	if (damageRatio > ratio)
 	{
 		XMFLOAT2 damageUvMin = { 0.0f, 0.0f };
@@ -223,11 +222,11 @@ void DrawHP(const hp* bar, int texNum)
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 		Shader_BeginHpber();
-		Shader_SetHpber(bar->damageColor, bar->damageColor, 1.0f, 1.0f);  // èµ¤ä¸€è‰²
+		Shader_SetHpber(bar->damageColor, bar->damageColor, 1.0f, 1.0f);  // ÔˆêF
 		DrawSpriteUV(damageFillPosOK, damageFillSizeOK, bar->damageColor, damageUvMin, damageUvMax);
 	}
 
-	// ç·‘ãƒãƒ¼ï¼ˆç¾åœ¨HPï¼‰ã‚’ä¸Šã«æç”» 
+	// —Îƒo[iŒ»İHPj‚ğã‚É•`‰æ 
 	XMFLOAT2 uvMin = { 0.0f, 0.0f };
 	XMFLOAT2 uvMax = { ratio, 1.0f };
 
@@ -245,7 +244,7 @@ void DrawHP(const hp* bar, int texNum)
 
 
 // -------------------------------------------------------------
-// HPè¨­å®š
+// HPİ’è
 // -------------------------------------------------------------
 void SetHPValue(hp* bar, int currentHP, int maxHP)
 {
@@ -255,22 +254,22 @@ void SetHPValue(hp* bar, int currentHP, int maxHP)
 
     float newTarget = bar->size.x * ratio;
     
-    // ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ãŸæ™‚ã«ã‚¿ã‚¤ãƒãƒ¼ã‚’ã‚»ãƒƒãƒˆ
+    // ƒ_ƒ[ƒW‚ğó‚¯‚½‚Éƒ^ƒCƒ}[‚ğƒZƒbƒg
     if (newTarget < bar->target)
     {
-        bar->damageTimer = DAMAGE_BAR_DELAY;  // damageDelay â†’ damageTimer
+        bar->damageTimer = DAMAGE_BAR_DELAY;  // damageDelay ¨ damageTimer
     }
     
     bar->target = newTarget;
 }
 
-// ã‚·ã‚§ã‚¤ã‚¯
+// ƒVƒFƒCƒN
 void SetHPShake(hp* bar, float amplitude, float duration, float speed, int shakeTexNum)
 {
 	if (!bar) return;
 	if (duration <= 0.0f)
 	{
-		// ç„¡åŠ¹ãªã‚‰ã™ãã‚¯ãƒªã‚¢
+		// –³Œø‚È‚ç‚·‚®ƒNƒŠƒA
 		bar->shakeTimer = 0.0f;
 		bar->shakeDuration = 0.0f;
 		bar->shakeAmplitude = 0.0f;
@@ -283,12 +282,12 @@ void SetHPShake(hp* bar, float amplitude, float duration, float speed, int shake
 	bar->shakeAmplitude = amplitude;
 	bar->shakeDuration = duration;
 	bar->shakeSpeed = speed;
-	bar->shakeTimer = duration; // æ®‹ã‚Šãƒ•ãƒ¬ãƒ¼ãƒ ã‚’durationã§ã‚»ãƒƒãƒˆ
-	bar->shakeTexNum = shakeTexNum; // ã‚·ã‚§ã‚¤ã‚¯ä¸­ã«ä½¿ã†ãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼ˆ-1ã§ç„¡åŠ¹ï¼‰
+	bar->shakeTimer = duration; // c‚èƒtƒŒ[ƒ€‚ğduration‚ÅƒZƒbƒg
+	bar->shakeTexNum = shakeTexNum; // ƒVƒFƒCƒN’†‚Ég‚¤ƒeƒNƒXƒ`ƒƒi-1‚Å–³Œøj
 }
 
 // -------------------------------------------------------------
-// çµ‚äº†
+// I—¹
 // -------------------------------------------------------------
 void FinalizeHP(hp* bar)
 {

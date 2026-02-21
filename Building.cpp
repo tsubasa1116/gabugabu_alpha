@@ -18,8 +18,7 @@ static Building* Buildings[300];
 static int BuildingCount = 0;
 
 // ★テクスチャのパス用意
-#define FIELD_TEX_MAX (15)
-
+#define FIELD_TEX_MAX 17
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"Asset\\Texture\\gure.jpg",
@@ -36,6 +35,8 @@ static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
 	L"Asset\\Texture\\togegarasu.png",
 	L"Asset\\Texture\\3kabe.png",
 	L"Asset\\Texture\\1kabe.png",
+	L"Asset\\Texture\\textureTreeMain_v3.png",
+	L"Asset\\Texture\\textureTowerMain_v2.png",
 	L"Asset\\Texture\\fade.bmp"
 };
 
@@ -59,7 +60,6 @@ static const char* g_ConcreteModels[] = {
 	"biru3dannkonkuri",
 	"3biltateconkuri",
 
-
 };
 
 // 植物建物
@@ -68,7 +68,8 @@ static const char* g_PlantModels[] = {
 	"kitoyugu",
 	"togeki",
 	"kitoie",
-	"propsTreeMain_v9"
+	"propsTreeMain_v10",
+	"propsTreeMain_v12"
 };
 
 // 電気建物
@@ -80,7 +81,6 @@ static const char* g_ElectricModels[] = {
 	"denki3kaba-"
 
 };
-
 
 // 配列数取得マクロ
 #define COUNT(arr) (sizeof(arr) / sizeof(arr[0]))
@@ -317,6 +317,11 @@ void Building::Draw(bool)
 	{
 		tex = g_Texture[10]; // とんがり木
 	}
+	if (type == BuildingType::Plant &&
+		strcmp(g_PlantModels[m_ModelIndex], "propsTreeMain_v12") == 0)
+	{
+		tex = g_Texture[14]; // とんがり木
+	}
 	// Electricity 
 	else if (type == BuildingType::Electricity &&
 		strcmp(g_ElectricModels[m_ModelIndex], "raibu") == 0)
@@ -337,6 +342,11 @@ void Building::Draw(bool)
 		strcmp(g_ElectricModels[m_ModelIndex], "denki1kaba-") == 0)
 	{
 		tex = g_Texture[13];
+	}
+	else if (type == BuildingType::Electricity &&
+		strcmp(g_ElectricModels[m_ModelIndex], "taw-") == 0)
+	{
+		tex = g_Texture[15];
 	}
 
 
