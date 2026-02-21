@@ -405,6 +405,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Building_Initialize(pDevice, pContext);
 }
 
+
 //======================================================
 //	邨ゆｺ・・逅・未謨ｰ
 //======================================================
@@ -532,6 +533,10 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 
 	///////////////////////////////////////
 	// TODO:boundingBoxを参照したい
+	// ======================================================
+	// 建物描画
+	// ======================================================
+	Building_DrawAll(s_IsKonamiCodeEntered);
 	
 	// --- 3. デバッグ描画は全部のマップを描き終わった後に「1回だけ」やる ---
 	if (s_IsKonamiCodeEntered)

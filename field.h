@@ -34,9 +34,9 @@ enum FIELD
 //======================================================
 struct MAPDATA
 {
-	XMFLOAT3 pos{};			// 座標
+	XMFLOAT3 pos{};					// 座標
 	HexCollider boundingBox{};		// 当たり判定
-	FIELD no;				// フィールド種別
+	FIELD no;						// フィールド種別
 
 	//==================================================
 	// ★超重要★

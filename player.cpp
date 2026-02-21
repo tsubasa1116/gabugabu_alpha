@@ -1498,10 +1498,10 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		{
 			// ‘æ1Œ`‘Ô
 		case Form::First:
-			if (idx == 0) { srv = g_Texture[0];	break; }
-			else if (idx == 1) { srv = g_Texture[1];	break; }
-			else if (idx == 2) { srv = g_Texture[2];	break; }
-			else if (idx == 3) { srv = g_Texture[3];	break; }
+			if (idx == 0)		srv = g_Texture[0];
+			else if (idx == 1)	srv = g_Texture[1];
+			else if (idx == 2)	srv = g_Texture[2];
+			else if (idx == 3)	srv = g_Texture[3];
 			// ‘æ2Œ`‘Ô
 		case Form::Second:
 			switch (player[idx].type)
