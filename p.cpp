@@ -302,8 +302,8 @@ void P_Draw(void)
 		XMFLOAT2 hp = g_HPBar[i].pos;
 
 		// ゲージ描画用設定
-		Gauge_Set(i, p[i].fi, p[i].wa, p[i].wi, p[i].ea,
-			p[i].gaugeOuter, { hp.x - 120.0f , hp.y });
+	/*	Gauge_Set(i, p[i].fi, p[i].wa, p[i].wi, p[i].ea,
+			p[i].gaugeOuter, { hp.x - 120.0f , hp.y });*/
 
 		// ゲージ描画
 		Gauge_Draw(i);

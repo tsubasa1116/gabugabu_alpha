@@ -163,3 +163,7 @@ void Player_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int playerIndex);
 
 void Player_DrawText();
+
+void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float speed);
+
+

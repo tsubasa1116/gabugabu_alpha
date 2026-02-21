@@ -186,7 +186,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].isMoving = false;
 		player[p].isShadowEnabled = false;
 		player[p].evolutionGauge = 0.0f;
-		player[p].evolutionGaugeRate = 0.5f;
+		player[p].evolutionGaugeRate = 0.3f;
 		player[p].breakCount_Glass = 0;
 		player[p].breakCount_Concrete = 0;
 		player[p].breakCount_Plant = 0;
@@ -243,6 +243,11 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 	InitializeHP(pDevice, pContext, &HPBar[2], { 800.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 	InitializeHP(pDevice, pContext, &HPBar[3], { 1120.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+
+	HPBar[0].gaugeIndex = 0;
+	HPBar[1].gaugeIndex = 1;
+	HPBar[2].gaugeIndex = 2;
+	HPBar[3].gaugeIndex = 3;
 
 	// アニメーションの初期化
 	for (int i = 0; i < PLAYER_MAX; ++i)
@@ -771,7 +776,7 @@ void Player_Update()
 			// ダウン状態に移行してタイマーをリセット
 			player[p].isDown = true;
 			player[p].downTimer = 0.0f;
-			Effect_Clear(p);
+			Effect_ClearUI(p);
 		}
 
 		// ダウン状態のタイマー更新とリスポーン判定
@@ -814,7 +819,7 @@ void Player_Update()
 
 		if (player[p].active && player[p].position.y <= -10.0f)
 		{
-			Effect_Clear(p);
+			Effect_ClearUI(p);
 			// 残機を一つ減らす
 			player[p].stock -= 1;
 
@@ -1477,14 +1482,15 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		{
 			switch (idx)
 			{
-			case 0:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
-			case 1:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
-			case 2:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
-			case 3:		Shader_SetColor({ 0.9f, 0.4f, 0.9f, 1.0f }); break;
-			default:	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); break;
+			// Lerp = 1.乗算色 2.補間する色 3.補間の度合い
+			case 0:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 1:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 2:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 3:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			default:	Shader_SetColor(color::white); break;
 			}
 		}
-		else			Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // 通常色
+		else			Shader_SetColor(color::white); // 通常色
 
 		// バッファセット & 描画
 		UINT stride = sizeof(Vertex2);
@@ -1555,6 +1561,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	}
 }
 
+
 void Player_DrawHP()
 {
 	Shader_Begin();
@@ -1567,12 +1574,56 @@ void Player_DrawHP()
 		DrawHP(&HPBar[i], i + 2);
 		XMFLOAT2 hp = HPBar[i].pos;
 
+		// スキルゲージ表示用の値を計算する
+		float skillFill = 1.0f;
+
+		// スキル未所持なら0
+		if (player[i].type == PlayerType::None)
+		{
+			skillFill = 0.0f;
+		}
+		else
+		{
+			// クールタイマーが0なら利用可能
+			if (player[i].skillCoolTimer <= 0.0f)
+			{
+				skillFill = 1.0f;
+			}
+			else
+			{
+				// typeに応じたクールタイムを取得
+				float coolTime = 0.0f;
+				switch (player[i].type)
+				{
+				case PlayerType::Glass:			coolTime = SKILL_GLASS_COOLTIME; break;
+				case PlayerType::Concrete:		coolTime = SKILL_CONCRETE_COOLTIME; break;
+				case PlayerType::Plant:			coolTime = SKILL_PLANT_COOLTIME; break;
+				case PlayerType::Electricity:	coolTime = SKILL_ELECTRICITY_COOLTIME; break;
+				default: coolTime = 0.0f; break;
+				}
+
+				// クールタイムが0の時は1.0fを返す
+				if (coolTime <= 0.0f)
+				{
+					skillFill = 1.0f;
+				}
+				else
+				{
+					// 使用直後　skillCoolTimer == coolTime => fill = 0.0
+					// クール終了　skillCoolTimer == 0 => fill = 1.0
+					skillFill = 1.0f - (player[i].skillCoolTimer / coolTime);
+					if (skillFill < 0.0f) skillFill = 0.0f;
+					if (skillFill > 1.0f) skillFill = 1.0f;
+				}
+			}
+		}
+
 		// 進化が固定されたら、タイプのゲージを最大値で表示する
 		if (player[i].isTypeFixed)
 		{
 			float glass = 0.0f;
-			float concrete = 0.0f; 
-			float plant = 0.0f; 
+			float concrete = 0.0f;
+			float plant = 0.0f;
 			float electricity = 0.0f;
 
 			switch (player[i].type)
@@ -1585,16 +1636,23 @@ void Player_DrawHP()
 			}
 
 			Gauge_Set(i, glass, concrete, plant, electricity,
-				player[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y });
+				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
 		else
 		{
 			// 固定前はカウント数をそのまま表示する
 			Gauge_Set(i, player[i].breakCount_Glass, player[i].breakCount_Concrete, player[i].breakCount_Plant, player[i].breakCount_Electricity,
-				player[i].evolutionGauge, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y });
+				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
 
-		Gauge_Draw(i);
+		// 通常ゲージ（内＋外）は常に描画
+		// スキルゲージは属性確定のときのみ描画
+		Gauge_DrawBasic(i);
+
+		if (player[i].isTypeFixed)
+		{
+			Gauge_DrawSkill(i);
+		}
 
 		Shader_Begin();
 
@@ -1661,6 +1719,7 @@ void Player_Respawn(int playerIndex)
 		player[playerIndex].knockback_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		player[playerIndex].is_knocked_back = false;
 		player[playerIndex].knockback_duration = 0.0f;
+		player[playerIndex].isTypeFixed = false;
 	}
 
 	if (playerIndex == 0) player[0].position = XMFLOAT3(-4.0f, 4.0f, 0.0f);
@@ -1779,4 +1838,14 @@ PLAYEROBJECT* GetPlayer(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
 	return &player[playerIndex];
+}
+
+void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float speed)
+{
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	
+		SetHPShake(&HPBar[playerIndex], amplitude, duration, speed, playerIndex + 6);
+	
 }

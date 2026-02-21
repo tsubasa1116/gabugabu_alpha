@@ -1,12 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="ps_hpber.hlsl" />
-    <FxCompile Include="ps_gauge.hlsl" />
-    <FxCompile Include="ps_outgauge.hlsl" />
-    <FxCompile Include="ps_main.hlsl" />
-    <FxCompile Include="ps_debug_color.hlsl" />
-    <FxCompile Include="vs_main.hlsl" />
+    <FxCompile Include="ps_debug_color.hlsl">
+      <Filter>hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="ps_hpber.hlsl">
+      <Filter>hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="ps_main.hlsl">
+      <Filter>hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="ps_outgauge.hlsl">
+      <Filter>hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="ps_gauge.hlsl">
+      <Filter>hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="vs_main.hlsl">
+      <Filter>hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="ps_singlegauge.hlsl">
+      <Filter>hlsl</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="attack.cpp" />
@@ -40,6 +55,7 @@
     <ClCompile Include="model.cpp" />
     <ClCompile Include="p.cpp" />
     <ClCompile Include="polygon.cpp" />
+    <ClCompile Include="Polygon3D.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="score.cpp" />
     <ClCompile Include="Setting.cpp" />
@@ -54,7 +70,7 @@
     <ClCompile Include="swipe.cpp" />
     <ClCompile Include="VideoTexture.cpp" />
     <ClCompile Include="LoadingScreen.cpp" />
-    <ClCompile Include="player.cpp" />
+    <ClCompile Include="SkyBall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attack.h" />
@@ -89,6 +105,7 @@
     <ClInclude Include="model.h" />
     <ClInclude Include="p.h" />
     <ClInclude Include="polygon.h" />
+    <ClInclude Include="Polygon3D.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="score.h" />
     <ClInclude Include="Setting.h" />
@@ -103,10 +120,26 @@
     <ClInclude Include="swipe.h" />
     <ClInclude Include="VideoTexture.h" />
     <ClInclude Include="LoadingScreen.h" />
-    <ClInclude Include="player.h" />
+    <ClInclude Include="SkyBall.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="imgui.ini" />
+    <Filter Include="cpp">
+      <UniqueIdentifier>{7f95aec1-b91f-4152-8fbc-6fac682f20fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="h">
+      <UniqueIdentifier>{6432bd18-925f-42dd-a3a4-0e0020d96dd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="hlsl">
+      <UniqueIdentifier>{6e6ac307-791f-4b8b-8a1f-c48463a33e90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="外部ファイル">
+      <UniqueIdentifier>{aaa95887-bd33-4706-a05a-1c1c92ca295d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="imgui.ini">
+      <Filter>外部ファイル</Filter>
+    </None>
     <None Include="Effect" />
   </ItemGroup>
 </Project>

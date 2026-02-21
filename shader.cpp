@@ -14,6 +14,8 @@ using namespace DirectX;
 #include <fstream>
 #include "imgui.h"
 
+#include "color.h"
+
 //======================================================
 //	グローバル変数
 //======================================================
@@ -27,10 +29,12 @@ static ID3D11Buffer* g_pWorldConstantBuffer = nullptr;//定数バッファ1個
 
 static ID3D11PixelShader* g_pGaugeShader = nullptr;
 static ID3D11PixelShader* g_pOutGaugeShader = nullptr;
+static ID3D11PixelShader* g_pSkillGaugeShader = nullptr;
 static ID3D11PixelShader* g_pHpberShader = nullptr;
 
 static ID3D11Buffer* g_pGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pOutGaugeBuffer = nullptr;
+static ID3D11Buffer* g_pSkillGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pHpberBuffer = nullptr;
 static ID3D11Buffer* g_pColorBuffer = nullptr;
 
@@ -42,6 +46,11 @@ static ID3D11SamplerState* g_GaugeSampler = nullptr;
 static ID3D11ShaderResourceView* g_OutGaugeTex = nullptr;
 static ID3D11SamplerState* g_OutGaugeSampler = nullptr;
 
+static ID3D11ShaderResourceView* g_SkillGaugeTex[4] = {};
+static ID3D11SamplerState* g_SkillGaugeSampler = nullptr;
+
+static ID3D11ShaderResourceView* g_SkillCoolGaugeTex[4] = {};
+static ID3D11ShaderResourceView* g_SkillTextTex[4] = {};
 
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
@@ -63,9 +72,18 @@ struct OUTGAUGEBUFFER
 	XMFLOAT4 gaugeColor;
 };
 
+struct SINGLEGAUGEBUFFER
+{
+	float fill;
+	float pad[3];
+};
+
 struct COLORBUFFER
 {
-	XMFLOAT4 setColor;
+	XMFLOAT4 setColor;   // 乗算用カラー
+	XMFLOAT4 lerpColor;  // 線形補間用カラー
+	float lerpFactor;    // 補間係数
+	float pad[3];
 };
 
 struct HPBERBUFFER
@@ -110,6 +128,16 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&desc, nullptr, &g_pOutGaugeBuffer);
+	}
+
+	//SkillGaugeBuffer
+	{
+		D3D11_BUFFER_DESC desc{};
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.ByteWidth = sizeof(SINGLEGAUGEBUFFER);
+		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		pDevice->CreateBuffer(&desc, nullptr, &g_pSkillGaugeBuffer);
 	}
 
 	//ColorBuffer
@@ -228,7 +256,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	}
 
 	//----------------------------------------------------------
-	// ピクセルシェーダー読み込み
+	// 内ゲージシェーダー読み込み
 	//----------------------------------------------------------
 	std::ifstream ifs_ps_g("ps_gauge.cso", std::ios::binary);
 	if (!ifs_ps_g) return false;
@@ -244,7 +272,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 
 	//----------------------------------------------------------
-	// ピクセルシェーダー読み込み
+	// 外ゲージシェーダー読み込み
 	//----------------------------------------------------------
 	std::ifstream ifs_ps_og("ps_outgauge.cso", std::ios::binary);
 	if (!ifs_ps_og) return false;
@@ -257,6 +285,23 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	ifs_ps_og.read((char*)psBin_og.data(), psSize_og);
 
 	g_pDevice->CreatePixelShader(psBin_og.data(), psSize_og, nullptr, &g_pOutGaugeShader);
+
+	//----------------------------------------------------------
+	// 単ゲージシェーダー読み込み
+	//----------------------------------------------------------
+	std::ifstream ifs_ps_sg("ps_singlegauge.cso", std::ios::binary);
+	if (!ifs_ps_sg) return false;
+
+	ifs_ps_sg.seekg(0, std::ios::end);
+	size_t psSize_sg = (size_t)ifs_ps_sg.tellg();
+	ifs_ps_sg.seekg(0, std::ios::beg);
+
+	std::vector<unsigned char> psBin_sg(psSize_sg);
+	ifs_ps_sg.read((char*)psBin_sg.data(), psSize_sg);
+
+	g_pDevice->CreatePixelShader(psBin_sg.data(), psSize_sg, nullptr, &g_pSkillGaugeShader);
+
+
 
 	//----------------------------------------------------------
 	// デバッグ用カラーピクセルシェーダー読み込み
@@ -303,6 +348,30 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		L"asset/texture/uiMaterialElectricity_v3.png"
 	};
 
+	const wchar_t* skillOver[4] =
+	{
+		L"asset/texture/icon_growth.png",
+		L"asset/texture/icon_barrier.png",
+		L"asset/texture/icon_thorn.png",
+		L"asset/texture/icon_speed.png"
+	};
+
+	const wchar_t* skillUnder[4] =
+	{
+		L"asset/texture/cool_growth.png",
+		L"asset/texture/cool_barrier.png",
+		L"asset/texture/cool_thorn.png",
+		L"asset/texture/cool_speed.png"
+	};
+
+	const wchar_t* skillText[4] =
+	{
+		L"asset/texture/text_growth.png",
+		L"asset/texture/text_barrier.png",
+		L"asset/texture/text_thorn.png",
+		L"asset/texture/text_speed.png"
+	};
+
 	TexMetadata metadata;
 	ScratchImage image;
 
@@ -311,6 +380,18 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		LoadFromWICFile(files[i], WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_GaugeTex[i]);
 		assert(g_GaugeTex[i]);
+
+		LoadFromWICFile(skillOver[i], WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillGaugeTex[i]);
+		assert(g_SkillGaugeTex[i]);
+
+		LoadFromWICFile(skillUnder[i], WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillCoolGaugeTex[i]);
+		assert(g_SkillCoolGaugeTex[i]);
+
+		LoadFromWICFile(skillText[i], WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillTextTex[i]);
+		assert(g_SkillTextTex[i]);
 	}
 
 	LoadFromWICFile(L"Asset\\Texture\\uiEvolutionGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);
@@ -331,6 +412,8 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	desc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	pDevice->CreateSamplerState(&desc, &g_GaugeSampler);
+	pDevice->CreateSamplerState(&desc, &g_SkillGaugeSampler);
+	pDevice->CreateSamplerState(&desc, &g_OutGaugeSampler);
 
 
 	return true;
@@ -376,6 +459,51 @@ void Shader_SetOutGaugeTextures()
 
 	// s0
 	g_pContext->PSSetSamplers(0, 1, &g_OutGaugeSampler);
+}
+
+//======================================================
+//	スキルゲージ(上面)用テクスチャセット関数
+//======================================================
+void Shader_SetSkillGaugeTextures(int typeIndex)
+{
+	// タイプチェック
+	if (typeIndex < 0 || typeIndex >= 4)
+	{
+		typeIndex = 0;  
+	}
+	g_pContext->PSSetShaderResources(0, 1, &g_SkillGaugeTex[typeIndex]);
+
+	g_pContext->PSSetSamplers(0, 1, &g_SkillGaugeSampler);
+}
+
+//======================================================
+//	スキルゲージ(下面)用テクスチャセット関数
+//======================================================
+void Shader_SetSkillCoolGaugeTextures(int typeIndex)
+{
+	// タイプチェック
+	if (typeIndex < 0 || typeIndex >= 4)
+	{
+		typeIndex = 0;
+	}
+	g_pContext->PSSetShaderResources(0, 1, &g_SkillCoolGaugeTex[typeIndex]);
+
+	g_pContext->PSSetSamplers(0, 1, &g_SkillGaugeSampler);
+}
+
+//======================================================
+//	スキルテキスト用テクスチャセット関数
+//======================================================
+void Shader_SetSkillTextTextures(int typeIndex)
+{
+	// タイプチェック
+	if (typeIndex < 0 || typeIndex >= 4)
+	{
+		typeIndex = 0;
+	}
+	g_pContext->PSSetShaderResources(0, 1, &g_SkillTextTex[typeIndex]);
+
+	g_pContext->PSSetSamplers(0, 1, &g_SkillGaugeSampler);
 }
 
 //======================================================
@@ -479,6 +607,18 @@ void Shader_BeginOutGauge()
 }
 
 //======================================================
+//	単ゲージ用シェーダー設定
+//======================================================
+void Shader_BeginSkillGauge()
+{
+	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(g_pSkillGaugeShader, nullptr, 0);
+
+	g_pContext->IASetInputLayout(g_pInputLayout);
+	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
+}
+
+//======================================================
 //	HPバー用シェーダー設定
 //======================================================
 void Shader_BeginHpber()
@@ -530,6 +670,29 @@ void Shader_SetOutGauge(float value, XMFLOAT4 color)
 
 	g_pContext->PSSetConstantBuffers(4, 1, &g_pOutGaugeBuffer);
 }
+
+
+//======================================================
+//  単ゲージ
+//======================================================
+void Shader_SetSingleGauge(float fill)
+{
+	if (fill < 0.0f) fill = 0.0f;
+	if (fill > 1.0f) fill = 1.0f;
+
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	g_pContext->Map(g_pSkillGaugeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+
+	SINGLEGAUGEBUFFER sb{};
+	sb.fill = fill;
+	sb.pad[0] = sb.pad[1] = sb.pad[2] = 0.0f;
+
+	memcpy(mapped.pData, &sb, sizeof(sb));
+	g_pContext->Unmap(g_pSkillGaugeBuffer, 0);
+
+	g_pContext->PSSetConstantBuffers(5, 1, &g_pSkillGaugeBuffer);
+}
+
 
 
 //======================================================
@@ -599,6 +762,24 @@ void Shader_BeginDebugColor()
 	// ※デバッグシェーダーが register(b1) の COLORBUFFER を参照する場合に必要
 	g_pContext->PSSetConstantBuffers(1, 1, &g_pColorBuffer);
 
-	Shader_SetColor({ 1.0f, 0.0f, 0.0f, 1.0f }); // 赤色
+	Shader_SetColor(color::red);
 
+}
+
+// 線形補間カラー設定
+void Shader_SetColorLerp(const XMFLOAT4& mulColor, const XMFLOAT4& lerpColor, float lerpFactor)
+{
+	if (!g_pColorBuffer) return;
+
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	g_pContext->Map(g_pColorBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+
+	COLORBUFFER cb{};
+	cb.setColor = mulColor;
+	cb.lerpColor = lerpColor;
+	cb.lerpFactor = lerpFactor;
+	memcpy(mapped.pData, &cb, sizeof(cb));
+
+	g_pContext->Unmap(g_pColorBuffer, 0);
+	g_pContext->PSSetConstantBuffers(1, 1, &g_pColorBuffer);
 }

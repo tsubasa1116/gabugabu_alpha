@@ -14,6 +14,8 @@ using namespace DirectX;
 #include "Player.h"
 #include "keyboard.h"
 
+#include "color.h"
+
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
@@ -596,9 +598,9 @@ void Skill_Update(int playerIndex)
 	{
 		switch (player.type)
 		{
-		case PlayerType::Glass:			Skill_Glass_Update(playerIndex);	break;
-		case PlayerType::Concrete:		Skill_Concrete_Update(playerIndex);	break;
-		case PlayerType::Plant:			Skill_Plant_Update(playerIndex);	break;
+		case PlayerType::Glass:			Skill_Glass_Update(playerIndex);		break;
+		case PlayerType::Concrete:		Skill_Concrete_Update(playerIndex);		break;
+		case PlayerType::Plant:			Skill_Plant_Update(playerIndex);		break;
 		case PlayerType::Electricity:	Skill_Electricity_Update(playerIndex);	break;
 		default: break;
 		}
@@ -732,7 +734,7 @@ void Skill_Draw(int playerIndex)
 
 		// ブレンドステート
 		SetBlendState(BLENDSTATE_NONE); // または BLENDSTATE_ALPHA
-		Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+		Shader_SetColor(color::white);
 
 		// 頂点バッファ・インデックスバッファのセット
 		UINT stride = sizeof(Vertex2);
@@ -770,3 +772,4 @@ SKILL_OBJECT* GetSkill(int playerIndex)
 
 	return &Skill[playerIndex];
 }
+
