@@ -609,12 +609,15 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex)
 
 	// 同じtexNo,playerIndexが既にあるならそれを再利用
 	int slot = -1;
+	bool isExisting = false; // 既存スロットかどうか
+
 	for (int i = 0; i < EFFECT_MAX; ++i)
 	{
 		if (!effect[i].enable) continue;
 		if (effect[i].texNo != texNo) continue;
 		if (effect[i].playerIndex != playerIndex) continue;
 		slot = i;
+		isExisting = true; // 既存のエフェクトみーっけ！
 		break;
 	}
 
@@ -637,11 +640,16 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex)
 	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
 	effect[slot].size = size;
 	effect[slot].baseSize = size;
-	effect[slot].frameCnt = 0.0f;
 	effect[slot].texNo = texNo;
 	effect[slot].playerIndex = playerIndex;
-	effect[slot].scaleTimer = 0.0f;
 	effect[slot].scaleGrowing = true;
+
+	// 新規作成の時だけframeCntとscaleTimerをリセット
+	if (!isExisting)
+	{
+		effect[slot].frameCnt = 0.0f;
+		effect[slot].scaleTimer = 0.0f;
+	}
 }
 
 
