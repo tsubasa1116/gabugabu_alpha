@@ -19,7 +19,7 @@ public:
 	int playerIndex;
 };
 
-struct EffectAnimState
+struct PLAYER_EFFECT_ANIM
 {
 	int evolutionFrame = 0;
 	float evolutionTimer = 0.0f;
@@ -36,13 +36,22 @@ struct EffectAnimState
 	float healingTimer = 0.0f;
 	int respawnFrame = 0;
 	float respawnTimer = 0.0f;
-	int runDustFrame = 0;
-	float runDustTimer = 0.0f;
+	int shadowFrame = 0;
+	float shadowTimer = 0.0f;
 };
 
-static EffectAnimState g_effectAnim[PLAYER_MAX];
+static PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
 
-struct EffectLayer
+struct BUILDING_EFFECT_ANIM
+{
+	int hitFrame = 0;
+	float hitTimer = 0.0f;
+	int hitPhase = 0;
+};
+
+static BUILDING_EFFECT_ANIM g_BuildingEffectAnim[10];
+
+struct EFFECT_LAYER
 {
 	int texNo;
 	int frame;
@@ -72,4 +81,9 @@ void Effect_Clear(int pIndex);
 
 // プレイヤー付近に表示するエフェクト関数
 void Effect_UpdateForPlayer(int playerIndex);
-void Effect_DrawForPlayer(int playerIndex);
+void EffectFront_DrawForPlayer(int playerIndex);	// プレイヤーの前に表示するエフェクト（スキルなど）
+void EffectShadow_DrawForPlayer(int playerIndex);	// プレイヤーの影エフェクト
+
+// 建物付近に表示するエフェクト関数
+void Effect_UpdateForBuilding(int buildingIndex);
+void Effect_DrawForBuilding(int buildingIndex);
