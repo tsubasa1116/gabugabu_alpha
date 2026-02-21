@@ -400,21 +400,6 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	}
 	// --------------------------------------------------------------------
 
-	// 初期ブロックの生成とAABBの計算
-	int i = 0;
-
-	while (Map[i].no != FIELD::FIELD_MAX && Map[i].isActive) {
-		if (i == 0) {
-			//CreateBox();
-		}
-
-		// 全てのマップオブジェクトに対してAABBを計算する
-		// Player_CalculateAABB(&map[i]); // 古い呼び出し
-		//CalculateAABB(Map[i].boundingBox, Map[i].pos, XMFLOAT3{ 1.0f, 1.0f, 1.0f }); // ★新しい呼び出し
-
-		i++;
-	}
-
 	Building_Initialize(pDevice, pContext);
 }
 
