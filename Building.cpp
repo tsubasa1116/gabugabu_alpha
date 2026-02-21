@@ -386,9 +386,9 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	if (!s_IsKonamiCodeEntered) ModelDraw(m_Model);
+	if (s_IsKonamiCodeEntered) ModelDraw(m_Model);
 
-	if (s_IsKonamiCodeEntered)
+	if (!s_IsKonamiCodeEntered)
 	{
 
 	}

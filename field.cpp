@@ -461,7 +461,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		// ------------------------------
 		// ワールド行列作成
 		// ------------------------------
-		XMMATRIX ScalingMatrix = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+		XMMATRIX ScalingMatrix = XMMatrixScaling(3.0f, 3.0f, 1.0f);
 
 		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			XMConvertToRadians(-90.0f),
@@ -513,7 +513,15 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			break;
 		}
 
-		if (!s_IsKonamiCodeEntered || input2) ModelDraw(Test);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
+
+		// ------------------------------
+		// 地面モデル描画
+		// ------------------------------
+		if (!s_IsKonamiCodeEntered || input2)
+		{
+			ModelDraw(Test);
+		}
 
 		//// テクスチャをパイプラインから解除
 		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
@@ -541,60 +549,46 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			Debug_DrawHex(Map[j].boundingBox, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 		}
 
-		// プレイヤーのスペシャル範囲（円）
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
-			PLAYEROBJECT* player = GetPlayer(p);
-			if (!player->active || !player->useSpecial) continue;
+			PLAYEROBJECT* playerObject = GetPlayer(p);
+			if (!playerObject) continue;
+			if (!playerObject->useSpecial) continue;
 
-			// ここに各タイプのDebug_DrawCircle処理をまとめる
-			// (さっきのコードの player.type ごとの判定を入れる)
-
-			// 植物・コンクリートのスペシャルが使用されている場合、円のフレームを赤色で表示
-
-			for (int p = 0; p < PLAYER_MAX; ++p)
+			// Plant / Concrete
+			if (playerObject->type == PlayerType::Plant ||
+				playerObject->type == PlayerType::Concrete)
 			{
-				PLAYEROBJECT* playerObject = GetPlayer(p);
-				PLAYEROBJECT& player = *playerObject;
-				if (!player.useSpecial) continue;
-				// 植物・コンクリートのスペシャル
+				Debug_DrawCircle(
+					playerObject->position,
+					5.0f,
+					XMFLOAT4(1, 0, 0, 1)
+				);
+			}
 
-				if (player.type == PlayerType::Plant || player.type == PlayerType::Concrete)
+			// Electricity
+			if (playerObject->type == PlayerType::Electricity)
+			{
+				for (int e = 0; e < SPECIAL_ELECTRICITY_QUANTITY; ++e)
 				{
-					// 円の中心と半径を設定
-					XMFLOAT3 center = playerObject->position;
-					float radius = 5.0f;
-
-					// 赤色で円を描画
-					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+					Debug_DrawCircle(
+						playerObject->electricityCircles[e].center,
+						playerObject->electricityCircles[e].radius,
+						XMFLOAT4(1, 0, 0, 1)
+					);
 				}
+			}
 
-				// 電気のスペシャル
-				if (player.type == PlayerType::Electricity)
+			// Glass
+			if (playerObject->type == PlayerType::Glass)
+			{
+				for (const auto& box : playerObject->glassBoxes)
 				{
-					for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
-					{
-						// 電気の円の中心と半径を取得
-						XMFLOAT3 center = player.electricityCircles[i].center;
-						float radius = player.electricityCircles[i].radius;
-
-						// 赤色で円を描画
-						Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
-					}
-				}
-
-				// ガラスのスペシャル
-				if (player.type == PlayerType::Glass)
-				{
-					for (const auto& box : player.glassBoxes)
-					{
-						// ガラスの円の中心と半径を設定
-						XMFLOAT3 center = box.position;
-						float radius = 0.3f; // 半径0.3の円
-
-						// 赤色で円を描画
-						Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
-					}
+					Debug_DrawCircle(
+						box.position,
+						0.3f,
+						XMFLOAT4(1, 0, 0, 1)
+					);
 				}
 			}
 		}
