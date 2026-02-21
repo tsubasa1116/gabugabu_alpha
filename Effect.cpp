@@ -302,6 +302,116 @@ void Effect_Draw()
 	}
 }
 
+//===============================================
+//　エフェクトセット
+//===============================================
+void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex)
+{
+	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
+	if (!g_Texture[texNo]) return;
+
+	// 空きスロットを探す
+	int slot = -1;
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable)
+		{
+			slot = i;
+			break;
+		}
+	}
+
+	if (slot < 0) return;
+
+	effect[slot].enable = true;
+	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
+	effect[slot].size = size;
+	effect[slot].frameCnt = 0;
+	effect[slot].texNo = texNo;
+	effect[slot].playerIndex = playerIndex;
+}
+
+//===============================================
+//　エフェクト消去
+//===============================================
+void Effect_Clear(int pIndex)
+{
+	if (pIndex < 0 || pIndex >= PLAYER_MAX) return;
+
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable) continue;
+
+		// エフェクトが指定プレイヤーのものなら消去
+		if (effect[i].playerIndex == pIndex)
+		{
+			effect[i].enable = false;
+			effect[i].pos = XMFLOAT3(0, 0, 0);
+			effect[i].size = XMFLOAT2(0, 0);
+			effect[i].frameCnt = 0;
+			effect[i].texNo = 0;
+			effect[i].playerIndex = -1;  // 無効な値にリセット
+		}
+	}
+}
+
+//===============================================
+//　プレイヤーUIセット関数
+//===============================================
+void Effect_SetUI(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
+{
+	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
+	if (!g_Texture[texNo]) return;
+
+	// 空きを探す
+	int slot = -1;
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable)
+		{
+			slot = i;
+			break;
+		}
+	}
+
+	if (slot < 0) return;
+
+	effect[slot].enable = true;
+	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
+	effect[slot].size = size;
+	effect[slot].frameCnt = 0;
+	effect[slot].texNo = texNo;
+}
+
+//===============================================
+//　プレイヤーUIエフェクト消去
+//===============================================
+void Effect_ClearUI(int pIndex)
+{
+	// プレイヤーごとのエフェクト位置
+	const XMFLOAT2 playerEffectPos[4] =
+	{
+			{  170.0f, 620.0f },	// プレイヤー1
+			{  490.0f, 620.0f },	// プレイヤー2
+			{  810.0f, 620.0f },	// プレイヤー3
+			{ 1130.0f, 620.0f }		// プレイヤー4
+	};
+
+	if (pIndex < 0 || pIndex >= 4) return;
+
+	XMFLOAT2 targetPos = playerEffectPos[pIndex];
+
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable) continue;
+
+		if (fabsf(effect[i].pos.x - targetPos.x) < 1.0f && fabsf(effect[i].pos.y - targetPos.y) < 1.0f)
+		{
+			effect[i].enable = false;
+		}
+	}
+}
+
 // ===============================================
 // プレイヤー付近に表示するエフェクト更新関数
 // ===============================================
