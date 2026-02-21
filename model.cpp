@@ -9,6 +9,7 @@
 //#include "texture.h"
 #include "model.h"
 //#include "renderer.h"
+#include "shader.h"
 
 //======================================================
 //	ロード
@@ -136,6 +137,8 @@ void ModelRelease(MODEL* model)
 //======================================================
 void ModelDraw(MODEL* model)
 {
+	Shader_Begin();
+
 	// プリミティブトポロジ設定
 	Direct3D_GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
