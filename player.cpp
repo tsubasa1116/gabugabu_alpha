@@ -365,6 +365,40 @@ void Player_Finalize()
 // ------------------------------------------------------
 // 移動ベクトルと向いている方向ベクトルは別で持った方がいい
 // ======================================================
+
+// 入力(ローカル)をカメラ基準でワールドXZへ変換する（平面移動用）
+static inline XMFLOAT3 ToWorldMoveDirByCamera(const XMFLOAT2& input)
+{
+	// input.x: 右(+), input.y: 上(+)
+	XMMATRIX view = GetViewMatrix();
+	XMMATRIX invView = XMMatrixInverse(nullptr, view);
+
+	// invView の行からカメラ軸を取得（world）
+	XMFLOAT3 right = XMFLOAT3(invView.r[0].m128_f32[0], invView.r[0].m128_f32[1], invView.r[0].m128_f32[2]);
+	XMFLOAT3 forward = XMFLOAT3(invView.r[2].m128_f32[0], invView.r[2].m128_f32[1], invView.r[2].m128_f32[2]);
+
+	// XZ平面へ射影（Y成分を捨てる）
+	right.y = 0.0f;
+	forward.y = 0.0f;
+
+	// 正規化（カメラが真上に近い等でゼロ割りを避ける）
+	{
+		float rl = sqrtf(right.x * right.x + right.z * right.z);
+		if (rl > 0.0001f) { right.x /= rl; right.z /= rl; }
+	}
+	{
+		float fl = sqrtf(forward.x * forward.x + forward.z * forward.z);
+		if (fl > 0.0001f) { forward.x /= fl; forward.z /= fl; }
+	}
+
+	// ローカル入力をワールドへ合成
+	XMFLOAT3 worldDir;
+	worldDir.x = right.x * input.x + forward.x * input.y;
+	worldDir.y = 0.0f;
+	worldDir.z = right.z * input.x + forward.z * input.y;
+	return worldDir;
+}
+
 void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 {
 	// 進みたい方向（3平方）
@@ -680,6 +714,8 @@ void Player_Update()
 
 			// 現在のプレイヤー p の移動ベクトルだけをリセット
 			player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+			
+			XMFLOAT2 moveInput = { 0.0f, 0.0f };
 
 			// スペシャル コンクリート使用中は移動不可
 			if (player[p].useSpecial && player[p].type == PlayerType::Concrete)
@@ -690,17 +726,19 @@ void Player_Update()
 			// スペシャル コンクリート使用中でなければ移動処理
 			else
 			{
+				player[p].moveInput2D = { 0.0f, 0.0f };
+
 				if (p == 0) // プレイヤー0 (WASD) 攻撃 Space
 				{
-					if (g_Input[0].LStickX > 0.0f)	 { player[0].moveDir.x += 1.0f; player[0].isMoving = true; }
-					if (g_Input[0].LStickX < 0.0f)	 { player[0].moveDir.x -= 1.0f; player[0].isMoving = true; }
-					if (g_Input[0].LStickY > 0.0f)   { player[0].moveDir.z -= 1.0f; player[0].isMoving = true; }
-					if (g_Input[0].LStickY < 0.0f)   { player[0].moveDir.z += 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickX > 0.0f) { moveInput.x += 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickX < 0.0f) { moveInput.x -= 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickY < 0.0f) { moveInput.y += 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickY > 0.0f) { moveInput.y -= 1.0f; player[0].isMoving = true; }
 					if (Keyboard_IsKeyDown(KK_W))	 { player[0].moveDir.z += 1.0f; player[0].isMoving = true; }
 					if (Keyboard_IsKeyDown(KK_S))	 { player[0].moveDir.z -= 1.0f; player[0].isMoving = true; }
 					if (Keyboard_IsKeyDown(KK_A))	 { player[0].moveDir.x -= 1.0f; player[0].isMoving = true; }
 					if (Keyboard_IsKeyDown(KK_D))	 { player[0].moveDir.x += 1.0f; player[0].isMoving = true; }
-					if (player[0].moveDir.x == 0.0f && player[0].moveDir.z == 0.0f)	player[0].isMoving = false;
+					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[0].isMoving = false;
 				}
 				else if (p == 1) // プレイヤー1 (矢印キー) 攻撃 Enter
 				{
@@ -738,22 +776,30 @@ void Player_Update()
 					if (Keyboard_IsKeyDown(KK_D))	 { player[3].moveDir.x += 1.0f; player[3].isMoving = true; }
 					if (player[3].moveDir.x == 0.0f && player[3].moveDir.z == 0.0f)	player[3].isMoving = false;
 				}
+				// 入力を保存（プレイヤーの向き用）
+				player[p].moveInput2D = moveInput;
+
+				// 移動はカメラ基準をワールドにする
+				player[p].moveDir = ToWorldMoveDirByCamera(moveInput);
 			}
 
-			// 現在のプレイヤー p だけを動かす
+			// 現在のプレイヤーpだけを動かす
 			Move(player[p], player[p].moveDir);
 
-			// 移動中なら lastDir を更新
+			// 移動中ならlastDirを更新
 			if (player[p].isMoving)
 			{
-					 if (player[p].moveDir.x < 0.0f && player[p].moveDir.z < 0.0f)	player[p].lastDir = PlayerDir::Down_Left;
-				else if (player[p].moveDir.x < 0.0f && player[p].moveDir.z > 0.0f)	player[p].lastDir = PlayerDir::Up_Left;
-				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z > 0.0f)	player[p].lastDir = PlayerDir::Up_Right;
-				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z < 0.0f)	player[p].lastDir = PlayerDir::Down_Right;
-				else if (player[p].moveDir.z < 0.0f)								player[p].lastDir = PlayerDir::Down;
-				else if (player[p].moveDir.x < 0.0f)								player[p].lastDir = PlayerDir::Left;
-				else if (player[p].moveDir.z > 0.0f)								player[p].lastDir = PlayerDir::Up;
-				else if (player[p].moveDir.x > 0.0f)								player[p].lastDir = PlayerDir::Right;
+				float dx = player[p].moveInput2D.x;
+				float dz = player[p].moveInput2D.y;
+
+				     if (dx < 0.0f && dz < 0.0f) player[p].lastDir = PlayerDir::Down_Left;
+				else if (dx < 0.0f && dz > 0.0f) player[p].lastDir = PlayerDir::Up_Left;
+				else if (dx > 0.0f && dz > 0.0f) player[p].lastDir = PlayerDir::Up_Right;
+				else if (dx > 0.0f && dz < 0.0f) player[p].lastDir = PlayerDir::Down_Right;
+				else if (dz < 0.0f)              player[p].lastDir = PlayerDir::Down;
+				else if (dx < 0.0f)              player[p].lastDir = PlayerDir::Left;
+				else if (dz > 0.0f)              player[p].lastDir = PlayerDir::Up;
+				else if (dx > 0.0f)              player[p].lastDir = PlayerDir::Right;
 			}
 		}
 
@@ -1050,22 +1096,17 @@ void Player_Update()
 			// 移動 8コマ
 			else if (player[p].isMoving == true)
 			{
-				// 左下 32～39
-				if (player[p].moveDir.x < 0.0f && player[p].moveDir.z < 0.0f)		LoopRange(g_animFrame[p], 32, 8, advance); 
-				// 左上 84～91
-				else if (player[p].moveDir.x < 0.0f && player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 84, 8, advance);
-				// 右上 136～143
-				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 136, 8, advance);
-				// 右下 188～195
-				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p], 188, 8, advance);
-				// 下   6～13
-				else if (player[p].moveDir.z < 0.0f)	LoopRange(g_animFrame[p], 6, 8, advance); 
-				// 左   58～63
-				else if (player[p].moveDir.x < 0.0f)	LoopRange(g_animFrame[p], 58, 8, advance);
-				// 上   110～117
-				else if (player[p].moveDir.z > 0.0f)	LoopRange(g_animFrame[p], 110, 8, advance);
-				// 右   162～169
-				else if (player[p].moveDir.x > 0.0f)	LoopRange(g_animFrame[p], 162, 8, advance);
+				float dx = player[p].moveInput2D.x;
+				float dz = player[p].moveInput2D.y;
+
+					 if (dx < 0.0f && dz < 0.0f) LoopRange(g_animFrame[p], 32, 8, advance);
+				else if (dx < 0.0f && dz > 0.0f) LoopRange(g_animFrame[p], 84, 8, advance);
+				else if (dx > 0.0f && dz > 0.0f) LoopRange(g_animFrame[p], 136, 8, advance);
+				else if (dx > 0.0f && dz < 0.0f) LoopRange(g_animFrame[p], 188, 8, advance);
+				else if (dz < 0.0f)              LoopRange(g_animFrame[p], 6, 8, advance);
+				else if (dx < 0.0f)              LoopRange(g_animFrame[p], 58, 8, advance);
+				else if (dz > 0.0f)              LoopRange(g_animFrame[p], 110, 8, advance);
+				else if (dx > 0.0f)              LoopRange(g_animFrame[p], 162, 8, advance);
 			}
 			// 待機 6コマ
 			else if (player[p].isMoving == false)
