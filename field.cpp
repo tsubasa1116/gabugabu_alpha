@@ -460,34 +460,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			continue; // この先の描画処理をスキップ
 		}
 
-		////スケーリング行列の作成
-		//XMMATRIX	ScalingMatrix = XMMatrixScaling
-		//(
-		//	3.0f, 3.0f, 1.0f
-		//);
-		////平行移動行列の作成
-		//XMMATRIX	TranslationMatrix = XMMatrixTranslation
-		//(
-		//	Map[i].pos.x, Map[i].pos.y, Map[i].pos.z
-		//);
-		////回転行列の作成
-		//XMMATRIX	RotationMatrix = XMMatrixRotationRollPitchYaw
-		//(
-		//	//-3.141592 / 2,
-		//	XMConvertToRadians(-90.0f),
-		//	XMConvertToRadians(0.0f),
-		//	XMConvertToRadians(0.0f)
-		//);
-		////ワールド行列の作成
-		//XMMATRIX	World = ScalingMatrix * RotationMatrix * TranslationMatrix;
-		//最終的な変換行列を作成
-
 		XMMATRIX World = XMMatrixScaling(3.0f, 3.0f, 1.0f) * XMMatrixRotationX(XMConvertToRadians(-90.0f)) * XMMatrixTranslation(Map[i].pos.x, Map[i].pos.y, Map[i].pos.z);
-
-		//XMMATRIX	WVP = World * VP;	//(VP = View * Projection)
-		////DirectXへ行列をセット
-		//Shader_SetWorldMatrix(World);
-		//Shader_SetMatrix(WVP);
 
 		Shader_SetWorldMatrix(World);
 		Shader_SetMatrix(World * VP);

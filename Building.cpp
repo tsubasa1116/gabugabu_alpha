@@ -270,7 +270,7 @@ void Building::Update()
 //=========================================
 // •`‰æ
 //=========================================
-void Building::Draw(bool)
+void Building::Draw(bool s_IsKonamiCodeEntered)
 {
 	if (!m_Model) return;
 
@@ -344,7 +344,12 @@ void Building::Draw(bool)
 
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	ModelDraw(m_Model);
+	if (!s_IsKonamiCodeEntered) ModelDraw(m_Model);
+
+	if (s_IsKonamiCodeEntered)
+	{
+
+	}
 }
 
 
