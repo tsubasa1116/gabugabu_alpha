@@ -165,6 +165,7 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
+
 	Player_Update();
 	Field_Update();
 	Effect_Update();
