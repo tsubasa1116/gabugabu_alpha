@@ -124,10 +124,10 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 
-	player[0].form = Form::Second;
-	player[1].form = Form::Second;
-	player[2].form = Form::Second;
-	player[3].form = Form::Second;
+	player[0].form = Form::First;
+	player[1].form = Form::First;
+	player[2].form = Form::First;
+	player[3].form = Form::First;
 	player[0].type = PlayerType::Glass;
 	player[1].type = PlayerType::Concrete;
 	player[2].type = PlayerType::Plant;
@@ -1026,6 +1026,7 @@ void Player_Update()
 
 		/////////////////////////////////////////////////////////////////////////////////////
 		// TODO:当たり判定の見直し
+		// TODO:建物とのほっそい当たり判定とは別に、攻撃を食らう用の大きめの当たり判定を作る
 		
 		// AABB を現在の位置・スケール（ヒットボックス）で更新しておく（衝突判定で使用）
 		CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);

@@ -483,6 +483,9 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		i++;
 	}
 
+	///////////////////////////////////////
+	// TODO:boundingBoxを参照したい
+	
 	// --- 3. デバッグ描画は全部のマップを描き終わった後に「1回だけ」やる ---
 	if (s_IsKonamiCodeEntered)
 	{
@@ -496,8 +499,8 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		for (int j = 0; j < fieldCount; ++j)
 		{
 			if (!fieldObjects[j].isActive) continue;
-			HexCollider hex{ fieldObjects[j].pos, fieldObjects[j].radius, fieldObjects[j].height };
-			Debug_DrawHex(hex, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+			//HexCollider hex{ fieldObjects[j].pos, fieldObjects[j].radius, fieldObjects[j].height };
+			Debug_DrawHex(Map[j].boundingBox, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 		}
 
 		// プレイヤーのスペシャル範囲（円）
@@ -565,7 +568,25 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 //======================================================
 void Field_Update(void)
 {
+	int i = 0;
+	while (Map[i].no != FIELD_MAX)
+	{
+		// もしアクティブじゃなかったら、描画しないで次へ
+		if (!Map[i].isActive)
+		{
+			i++; // i を進めるのを忘れないで！
+			continue; // この先の描画処理をスキップ
+		}
 
+		HexCollider hex;
+		hex.center = Map[i].pos;		// -1
+		hex.radius = Map[i].radius;		// 1
+		hex.height = Map[i].height;		// 3.0
+
+
+
+		i++;
+	}
 }
 
 // ======================================================
