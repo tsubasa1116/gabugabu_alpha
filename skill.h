@@ -1,18 +1,18 @@
-ï»¿#pragma once
+#pragma once
 
 #include <d3d11.h>
 #include "collider.h"
 
-// ãƒã‚¯ãƒ­å®šç¾©
+// ƒ}ƒNƒ’è‹`
 #define SKILL_GLASS_TIME		(10.0f)
 #define SKILL_CONCRETE_TIME		(10.0f)
 #define SKILL_PLANT_TIME		(10.0f)
 #define SKILL_ELECTRICITY_TIME	(10.0f)
 
-#define SKILL_GLASS_COOLTIME		(0.0f)
-#define SKILL_CONCRETE_COOLTIME		(0.0f)
-#define SKILL_PLANT_COOLTIME		(0.0f)
-#define SKILL_ELECTRICITY_COOLTIME	(0.0f)
+#define SKILL_GLASS_COOLTIME		(3.0f)
+#define SKILL_CONCRETE_COOLTIME		(3.0f)
+#define SKILL_PLANT_COOLTIME		(3.0f)
+#define SKILL_ELECTRICITY_COOLTIME	(3.0f)
 
 #define SKILL_GLASS_DAMAGE			(0.25f)
 
@@ -25,17 +25,17 @@ struct SKILL_OBJECT
 	AABB boundingBox;
 };
 
-// Glasså°‚ç”¨ã®ã‚¹ã‚­ãƒ«ç®¡ç†æ§‹é€ ä½“ï¼ˆ5ã¤ã®ç®±ã®æƒ…å ±ã‚’æ ¼ç´ã™ã‚‹ï¼‰
+// Glassê—p‚ÌƒXƒLƒ‹ŠÇ—\‘¢‘Ìi5‚Â‚Ì” ‚Ìî•ñ‚ğŠi”[‚·‚éj
 struct SKILL_GLASS
 {
-	// Glassã‚¹ã‚­ãƒ«ãŒç”Ÿæˆã™ã‚‹5ã¤ã®ç®±
+	// GlassƒXƒLƒ‹‚ª¶¬‚·‚é5‚Â‚Ì” 
 	SKILL_OBJECT boxes[5];
 
-	// ã‚¹ã‚­ãƒ«ã®ç¾åœ¨ã®çŠ¶æ…‹
+	// ƒXƒLƒ‹‚ÌŒ»İ‚Ìó‘Ô
 	bool isActive = false;
 	float duration = 0.0f;
 
-	// ã‚¹ã‚­ãƒ«ã®å…¨ä½“çš„ãªè¦ªåº§æ¨™ãŒå¿…è¦ãªå ´åˆ
+	// ƒXƒLƒ‹‚Ì‘S‘Ì“I‚ÈeÀ•W‚ª•K—v‚Èê‡
 	XMFLOAT3 parentPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
 };
 

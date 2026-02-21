@@ -1,4 +1,4 @@
-ï»¿// Effect.h
+// Effect.h
 
 #pragma once
 
@@ -14,26 +14,47 @@ public:
 	bool enable;
 	XMFLOAT3 pos;
 	XMFLOAT2 size;
-	int frameCnt;	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
+	float frameCnt;	// ƒAƒjƒ[ƒVƒ‡ƒ“ƒJƒEƒ“ƒ^[
 	int texNo;
+	int playerIndex;
+	float scaleTimer;
+	bool scaleGrowing;
+	XMFLOAT2 baseSize; 
 };
 
-struct EffectAnimState
+struct PLAYER_EFFECT_ANIM
 {
 	int evolutionFrame = 0;
 	float evolutionTimer = 0.0f;
-	int   evolutionPhase = 0; // 0:æœªé€²åŒ–, 1:é€²åŒ–1, 2:é€²åŒ–2, 3:çµ‚äº†
+	int evolutionPhase = 0;		// 0:–¢i‰», 1:i‰»1, 2:i‰»2, 3:I—¹
 	int skillFrame = 0;
 	float skillTimer = 0.0f;
+	int specialFrame = 0;
+	float specialTimer = 0.0f;
 	int poisonFrame = 0;
 	float poisonTimer = 0.0f;
 	int attackedFrame = 0;
 	float attackedTimer = 0.0f;
+	int healingFrame = 0;
+	float healingTimer = 0.0f;
+	int respawnFrame = 0;
+	float respawnTimer = 0.0f;
+	int shadowFrame = 0;
+	float shadowTimer = 0.0f;
 };
 
-static EffectAnimState g_effectAnim[PLAYER_MAX];
+static PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
 
-struct EffectLayer
+struct BUILDING_EFFECT_ANIM
+{
+	int hitFrame = 0;
+	float hitTimer = 0.0f;
+	int hitPhase = 0;
+};
+
+static BUILDING_EFFECT_ANIM g_BuildingEffectAnim[10];
+
+struct EFFECT_LAYER
 {
 	int texNo;
 	int frame;
@@ -41,14 +62,34 @@ struct EffectLayer
 	int sheetRows;
 };
 
-// ãƒ¡ã‚¤ãƒ³å‡¦ç†é–¢æ•°
+// ƒeƒNƒXƒ`ƒƒ‚²‚Æ‚Ìİ’è
+struct EffectConfig {
+	int maxFrame;  // ‘S‘ÌƒtƒŒ[ƒ€”
+	int loopStart; // ƒ‹[ƒvŠJnƒtƒŒ[ƒ€
+	int loopEnd;   // ƒ‹[ƒvI—¹ƒtƒŒ[ƒ€ (‚±‚±‚ğ’´‚¦‚½‚çloopStart‚É–ß‚é)
+	bool isLoop;   // ƒ‹[ƒvƒtƒ‰ƒO
+	float speed;   // Ä¶‘¬“xi1.0f‚ª•W€j
+	int spriteY;
+	float scaleMin;
+	float scaleMax;
+	float scaleSpeed;
+};
+
+// ƒƒCƒ“ˆ—ŠÖ”
 void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Effect_Finalize();
 void Effect_Update();
 void Effect_Draw();
-void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size);
+void Effect_SetUI(int texNo, XMFLOAT2 pos, XMFLOAT2 size);
+void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex);
+void Effect_ClearUI(int pIndex);
 void Effect_Clear(int pIndex);
 
-// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ä»˜è¿‘ã«è¡¨ç¤ºã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆé–¢æ•°
+// ƒvƒŒƒCƒ„[•t‹ß‚É•\¦‚·‚éƒGƒtƒFƒNƒgŠÖ”
 void Effect_UpdateForPlayer(int playerIndex);
-void Effect_DrawForPlayer(int playerIndex);
+void EffectFront_DrawForPlayer(int playerIndex);	// ƒvƒŒƒCƒ„[‚Ì‘O‚É•\¦‚·‚éƒGƒtƒFƒNƒgiƒXƒLƒ‹‚È‚Çj
+void EffectShadow_DrawForPlayer(int playerIndex);	// ƒvƒŒƒCƒ„[‚Ì‰eƒGƒtƒFƒNƒg
+
+// Œš•¨•t‹ß‚É•\¦‚·‚éƒGƒtƒFƒNƒgŠÖ”
+void Effect_UpdateForBuilding(int buildingIndex);
+void Effect_DrawForBuilding(int buildingIndex);

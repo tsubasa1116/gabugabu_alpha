@@ -11,11 +11,13 @@ using namespace DirectX;
 #include "field.h"
 #include "Building.h"
 #include "debug_ostream.h"
-#include "Player.h"
+#include "player.h"
 #include "keyboard.h"
 #include "DamageText.h"
 #include "Effect.h"
 #include "input.h"
+#include "hp.h"
+#include "color.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -351,7 +353,7 @@ void Attack_Update(int playerIndex)
 		// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
 		if (collision.isColliding)
 		{
-			BuildingType type = buildingObjects[i]->Type;
+			BuildingType type = buildingObjects[i]->type;
 
 			if (g_Input[playerIndex].A || Keyboard_IsKeyDown(confirmKey[playerIndex]))
 			{
@@ -359,72 +361,50 @@ void Attack_Update(int playerIndex)
 				switch (type)
 				{
 				case BuildingType::Glass:
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Glass += 1;						// ガラスを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				case BuildingType::Concrete:
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Concrete += 1;					// コンクリートを壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				case BuildingType::Plant:					
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Plant += 1;						// 植物を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				case BuildingType::Electricity:
-					buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 					player.breakCount_Electricity += 1;					// 電気を壊した数をプラス
-					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-					player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
-
-					// 効果音やエフェクトを再生
-
-					// ヒットでスキルを終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					// 更新済みAABB
-					CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 					break;
 
 				default:
 					break;
 				}
+
+				buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+				buildingObjects[i]->isDestroyed = true;				// 建物破壊フラグを有効
+				player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+				player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
+
+				// HP回復
+				player.hp += 10.0f;
+				// HPの上限
+				if (player.hp > PLAYER_MAX_HP)	player.hp = PLAYER_MAX_HP;
+
+				player.isHealing = true;	// 回復中フラグを立てる
+				
+				// 満腹度増加
+				player.satiety += 1.0f;
+				// 満腹度の上限
+				if (player.satiety > PLAYER_MAX_SATIETY)	player.satiety = PLAYER_MAX_SATIETY;
+
+				// 効果音やエフェクトを再生
+
+				// ヒットでスキルを終了
+				player.isAttacking = false;
+				player.attackTimer = 0.0f;
+
+				// 更新済みAABB
+				CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 			}
 
 			// 衝突していたら、MTVの分だけ位置を戻す
@@ -450,6 +430,10 @@ void Attack_Update(int playerIndex)
 		player.isInvincible = true;
 		player.invincibleTimer = 0.0f;
 
+		// 進化フラグを立てる
+		player.isEvolving = true;
+		player.evolvingTimer += DELTA_TIME;
+
 		// 現在のフォーム（進化前の状態）を保存
 		Form currentForm = player.form;
 
@@ -469,8 +453,8 @@ void Attack_Update(int playerIndex)
 			// 4種類の破壊した建物数を配列に格納
 			const int counts[4] =
 			{
-				player.breakCount_Glass,	// idx 0
-				player.breakCount_Concrete,	// idx 1
+				player.breakCount_Glass,		// idx 0
+				player.breakCount_Concrete,		// idx 1
 				player.breakCount_Plant,		// idx 2
 				player.breakCount_Electricity	// idx 3
 			};
@@ -548,13 +532,16 @@ void Attack_Update(int playerIndex)
 		// 第3形態に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
 		if (player.form == Form::Third && currentForm != Form::Third)
 		{
+			float screenX = SCREEN_ADJUST_X;
+			float screenY = 620.0f * SCREEN_ADJUST_Y;
+
 			// プレイヤーごとの画面上のエフェクト位置
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
 			{
-				{ 175.0f, 620.0f }, // プレイヤー1
-				{ 490.0f, 620.0f }, // プレイヤー2
-				{ 805.0f, 620.0f }, // プレイヤー3
-				{ 1120.0f, 620.0f }  // プレイヤー4
+				{  170.0f * screenX, screenY }, // プレイヤー1
+				{  490.0f * screenX, screenY }, // プレイヤー2
+				{  810.0f * screenX, screenY }, // プレイヤー3
+				{ 1130.0f * screenX, screenY }  // プレイヤー4
 			};
 
 			// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）
@@ -570,9 +557,9 @@ void Attack_Update(int playerIndex)
 
 			// プレイヤー番号は playerIndex（0ベース）
 			XMFLOAT2 pos = playerEffectPos[playerIndex];
-			XMFLOAT2 size = { 300.0f, 300.0f };
+			XMFLOAT2 size = { 350.0f, 350.0f };
 
-			Effect_Set(effectTexNo, pos, size);
+			Effect_SetUI(effectTexNo, pos, size);
 		}
 
 		player.brokenHistory.clear(); // 履歴もクリアする
@@ -649,7 +636,7 @@ void Attack_Draw(int playerIndex)
 
 	// 不透明で描画するためブレンドを無効化し、描画カラーのアルファを1に固定する
 	SetBlendState(BLENDSTATE_NONE);
-	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+	Shader_SetColor(color::white);
 
 	// 頂点シェーダーを描画パイプラインへ設定
 	D3D11_MAPPED_SUBRESOURCE msr;
@@ -777,6 +764,8 @@ void AttackPlayerCollisions()
 				// ダメージ（防御で軽減）
 				defender.hp -= rawDamage;
 				if (defender.hp < 0.0f) defender.hp = 0.0f;
+
+				TriggerbyHPShake(def, 8.0f,20.0f,1.5f);
 
 				// スタンゲージ増加
 				defender.stunGauge += 0.5f;

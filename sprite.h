@@ -1,4 +1,4 @@
-ï»¿
+
 //sprite.h
 
 #pragma once
@@ -8,11 +8,11 @@
 #include <DirectXMath.h>
 using namespace DirectX;
 
-//ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€
+//ƒvƒƒgƒ^ƒCƒvéŒ¾
 void		DrawSprite(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col);
 void		DrawSpriteEx(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc);
-void		InitializeSprite();	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆåˆæœŸåŒ–
-void		FinalizeSprite();	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆçµ‚äº†
+void		InitializeSprite();	//ƒXƒvƒ‰ƒCƒg‰Šú‰»
+void		FinalizeSprite();	//ƒXƒvƒ‰ƒCƒgI—¹
 void		DrawSpriteScroll(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col,
 										XMFLOAT2 texcoord);
 void DrawSpriteUV(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col,
@@ -20,28 +20,28 @@ void DrawSpriteUV(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col,
 
 void		DrawSpriteExRotation(XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc, float radian);
 
-void	DrawSprite(XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc);//è¡Œåˆ—ä½¿ç”¨ç‰ˆ
+void	DrawSprite(XMFLOAT2 size, XMFLOAT4 col, int bno, int wc, int hc);//s—ñg—p”Å
 
 
-// é ‚ç‚¹æ§‹é€ ä½“
+// ’¸“_\‘¢‘Ì
 struct Vertex
 {
-	XMFLOAT3 position;	// é ‚ç‚¹åº§æ¨™
-	XMFLOAT4 color;		// é ‚ç‚¹ã‚«ãƒ©ãƒ¼ï¼ˆR,G,B,Aï¼‰
-	XMFLOAT2 tex;		// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™
+	XMFLOAT3 position;	// ’¸“_À•W
+	XMFLOAT4 color;		// ’¸“_ƒJƒ‰[iR,G,B,Aj
+	XMFLOAT2 tex;		// ƒeƒNƒXƒ`ƒƒÀ•W
 };
 
-// é ‚ç‚¹æ§‹é€ ä½“
+// ’¸“_\‘¢‘Ì
 struct Vertex2
 {
-	XMFLOAT3 position;	// é ‚ç‚¹åº§æ¨™
-	XMFLOAT3 normal;	// æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«
-	XMFLOAT4 color;		// é ‚ç‚¹ã‚«ãƒ©ãƒ¼ï¼ˆR,G,B,Aï¼‰
-	XMFLOAT2 tex;		// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™
+	XMFLOAT3 position;	// ’¸“_À•W
+	XMFLOAT3 normal;	// –@üƒxƒNƒgƒ‹
+	XMFLOAT4 color;		// ’¸“_ƒJƒ‰[iR,G,B,Aj
+	XMFLOAT2 tex;		// ƒeƒNƒXƒ`ƒƒÀ•W
 };
 
-// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«æ¸¡ã™å®šæ•°ãƒãƒƒãƒ•ã‚¡
+// ƒVƒF[ƒ_[‚É“n‚·’è”ƒoƒbƒtƒ@
 struct ConstantBuffer
 {
-	XMMATRIX WVP; // World-View-Projection è¡Œåˆ—
+	XMMATRIX WVP; // World-View-Projection s—ñ
 };
