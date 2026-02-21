@@ -417,6 +417,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	Building_Initialize(pDevice, pContext);
 }
+
 //======================================================
 //	èIóπèàóùä÷êî
 //======================================================
