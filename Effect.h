@@ -14,9 +14,12 @@ public:
 	bool enable;
 	XMFLOAT3 pos;
 	XMFLOAT2 size;
-	float frameCnt;	// アニメーションカウンター
+	XMFLOAT2 baseSize;    // 基準サイズ（初期サイズ保存用）
+	float frameCnt;       // アニメーションカウンター
 	int texNo;
 	int playerIndex;
+	float scaleTimer;     // スケールアニメーション用タイマー
+	bool scaleGrowing;    // スケールが増加中かどうか
 };
 
 struct EffectAnimState
@@ -58,6 +61,10 @@ struct EffectConfig {
 	bool isLoop;   // ループフラグ
 	float speed;   // 再生速度（1.0fが標準）
 	int spriteY;
+	// スケーリングアニメーション用
+	float scaleMin;   // 最小スケール倍率
+	float scaleMax;   // 最大スケール倍率
+	float scaleSpeed; // スケール変化速度
 };
 
 // メイン処理関数

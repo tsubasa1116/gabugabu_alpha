@@ -134,10 +134,6 @@ void Title_Draw()
 	Shader_Begin();
 	Shader_SetColor(color::white);
 
-	// 画面サイズ取得
-	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
-	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
-
 	// 頂点シェーダーに変換行列を設定（UI用：直交投影）
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
 		0.0f,

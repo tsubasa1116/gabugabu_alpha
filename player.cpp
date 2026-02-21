@@ -34,14 +34,15 @@ using namespace DirectX;
 #include <codecvt>
 #include <vector>
 #include <algorithm>
+#include "Effect.h"
 
 //======================================================
 //	マクロ定義
 //======================================================
-#define HPBER_SIZE_X	(270.0f)	// HPバーのサイズ
-#define HPBER_SIZE_Y	(270.0f)	// 〃
-#define GAUGE_POS_X		(69.0f)		// HPバーを基準としたゲージの位置調整
-#define GAUGE_POS_Y		(8.0f)		// 〃
+#define GAUGE_POS_X	(69.0f * (SCREEN_WIDTH / 1280.0f))	
+#define GAUGE_POS_Y	(8.0f *  (SCREEN_HEIGHT / 720.0f))	
+#define	HPBER_SIZE_X (270.0f * (SCREEN_WIDTH / 1280.0f))
+#define	HPBER_SIZE_Y (270.0f * (SCREEN_HEIGHT / 720.0f))
 
 //======================================================
 //	グローバル変数
@@ -124,22 +125,22 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 
-	//player[0].form = Form::First;
-	//player[1].form = Form::First;
-	//player[2].form = Form::First;
-	//player[3].form = Form::First;
-	//player[0].type = PlayerType::None;
-	//player[1].type = PlayerType::None;
-	//player[2].type = PlayerType::None;
-	//player[3].type = PlayerType::None;
-	player[0].form = Form::Third;
-	player[1].form = Form::Third;
-	player[2].form = Form::Third;
-	player[3].form = Form::Third;
-	player[0].type = PlayerType::Glass;
-	player[1].type = PlayerType::Concrete;
-	player[2].type = PlayerType::Plant;
-	player[3].type = PlayerType::Plant;
+	player[0].form = Form::First;
+	player[1].form = Form::First;
+	player[2].form = Form::First;
+	player[3].form = Form::First;
+	player[0].type = PlayerType::None;
+	player[1].type = PlayerType::None;
+	player[2].type = PlayerType::None;
+	player[3].type = PlayerType::None;
+	//player[0].form = Form::Third;
+	//player[1].form = Form::Third;
+	//player[2].form = Form::Third;
+	//player[3].form = Form::Third;
+	//player[0].type = PlayerType::Glass;
+	//player[1].type = PlayerType::Concrete;
+	//player[2].type = PlayerType::Plant;
+	//player[3].type = PlayerType::Plant;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
@@ -236,10 +237,13 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// デバッグレンダラー初期化
 	Debug_Initialize(pDevice, pContext);
 
-	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[2], { 800.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[3], { 1120.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	float screenX = SCREEN_ADJUST_X;
+	float screenY = 650.0f * SCREEN_ADJUST_Y;
+
+	InitializeHP(pDevice, pContext, &HPBar[0], {  160.0f * screenX, screenY }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[1], {  480.0f * screenX, screenY }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[2], {  800.0f * screenX, screenY }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[3], { 1120.0f * screenX, screenY }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 
 	HPBar[0].gaugeIndex = 0;
 	HPBar[1].gaugeIndex = 1;
@@ -487,7 +491,7 @@ void Player_Update()
 		XMVECTOR screenPos = XMVector3Project(
 			posVec,
 			0.0f, 0.0f,
-			1280.0f, 720.0f,
+			SCREEN_WIDTH, SCREEN_HEIGHT,
 			0.0f, 1.0f,
 			proj, view,
 			XMMatrixIdentity()
@@ -1076,6 +1080,9 @@ void Player_Update()
 				else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(g_animFrame[p], 182, 6, advance);	// 右下 182～187		
 			}
 		}
+
+
+
 	
 		static XMFLOAT3 posBuff = player[p].position;	// デバッグ表示座標
 
@@ -1626,6 +1633,17 @@ void Player_DrawHP()
 				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
 
+
+		if (Player_CanUseSpecial(i))
+		{
+			Effect_Set(26, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (100.0f * SCREEN_ADJUST_Y) }, { (162.0f * SCREEN_ADJUST_X), (60.0f * SCREEN_ADJUST_Y) }, i);
+		}
+		if (!Player_CanUseSpecial(i))
+		{
+			Effect_Clear(i);
+		}
+
+
 		// 通常ゲージ（内＋外）は常に描画
 		// スキルゲージは属性確定のときのみ描画
 		Gauge_DrawBasic(i);
@@ -1722,15 +1740,16 @@ void Player_DrawStock(int i)
 	Shader_BeginUI();
 
 	// HPバー位置取得・ゲージ座標設定
-	float bx = HPBar[i].pos.x - 60.0f;
-	float by = HPBar[i].pos.y + 60.0f;
+	float bx = HPBar[i].pos.x - (60.0f * SCREEN_ADJUST_X);
+	float by = HPBar[i].pos.y + (60.0f * SCREEN_ADJUST_Y);
+
 
 	// プレイヤーごとのストック描画
 	for (int j = 0; j < player[i].stock; j++)
 	{
 		// ストック描画変数
-		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
-		XMFLOAT2 size = { 260.0f, 260.0f };
+		XMFLOAT2 pos = { bx + (j * 30.0f * SCREEN_ADJUST_X), by };	// 横並び
+		XMFLOAT2 size = { (260.0f * SCREEN_ADJUST_X), (260.0f * SCREEN_ADJUST_Y) };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 13]);
 	
@@ -1826,4 +1845,27 @@ void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float sp
 	
 		SetHPShake(&HPBar[playerIndex], amplitude, duration, speed, playerIndex + 6);
 	
+}
+
+
+bool Player_CanUseSpecial(int playerIndex)
+{
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return false;
+
+	PLAYEROBJECT& pl = player[playerIndex];
+
+	if (!pl.active) return false;
+	if (pl.isStunning) return false;
+	if (pl.isDown) return false;
+	if (pl.rank == 1) return false;
+
+	// 形態が第3形態であること
+	if (pl.form != Form::Third) return false;
+
+	// タイプが未設定だとスペシャルがないからタイプもチェック
+	if (pl.type == PlayerType::None) return false;
+
+	// すべて通ったらtrue
+	return true;
 }

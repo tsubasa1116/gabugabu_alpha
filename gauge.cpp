@@ -11,6 +11,12 @@
 #include "color.h"
 #include "shader.h"
 
+#define GAUGE_IN_SIZE   (XMFLOAT2(55.0f * SCREEN_ADJUST_X, 55.0f * SCREEN_ADJUST_Y))
+#define GAUGE_OUT_SIZE  (XMFLOAT2(62.0f * SCREEN_ADJUST_X, 62.0f * SCREEN_ADJUST_Y))
+#define SKILL_COOL_SIZE (XMFLOAT2(45.0f * SCREEN_ADJUST_X, 45.0f * SCREEN_ADJUST_Y))
+#define SKILL_SIZE      (XMFLOAT2(75.0f * SCREEN_ADJUST_X, 75.0f * SCREEN_ADJUST_Y))
+#define SKILL_TEXT_SIZE (XMFLOAT2(50.0f * SCREEN_ADJUST_X, 15.0f * SCREEN_ADJUST_Y))
+
 static GaugeData g_Gauge[GAUGE_PLAYER_MAX];
 
 static ID3D11ShaderResourceView* g_Texture = NULL;
@@ -105,7 +111,7 @@ void Gauge_DrawBasic(int i)
 	Shader_SetGaugeTextures();
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	DrawSprite(drawPos, { 55,55 }, color::white);
+	DrawSprite(drawPos, GAUGE_IN_SIZE, color::white);
 
 	// 外ゲージ描画
 	Shader_BeginOutGauge();
@@ -113,7 +119,7 @@ void Gauge_DrawBasic(int i)
 	Shader_SetOutGaugeTextures();
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	DrawSprite(drawPos, { 62,62 }, color::white);
+	DrawSprite(drawPos, GAUGE_OUT_SIZE, color::white);
 }
 
 //====================================================================================
@@ -136,14 +142,7 @@ void Gauge_DrawSkill(int i)
 	Shader_SetSkillCoolGaugeTextures(typeIndex);
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	DrawSprite({ g.pos.x + 170, g.pos.y - 45 }, { 45, 45 }, color::white);
-
-	// スキルテキスト描画
-	Shader_Begin();
-	Shader_BeginUI();
-	Shader_SetSkillTextTextures(typeIndex);
-
-	DrawSprite({ g.pos.x + 170, g.pos.y - 10}, { 50, 15 }, color::white);
+	DrawSprite({ g.pos.x + (170 * SCREEN_ADJUST_X), g.pos.y - (45 * SCREEN_ADJUST_Y) }, SKILL_COOL_SIZE, color::white);
 
 	// スキルゲージ(上面)描画
 	Shader_BeginSkillGauge();
@@ -151,7 +150,16 @@ void Gauge_DrawSkill(int i)
 	Shader_SetSkillGaugeTextures(typeIndex);
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	DrawSprite({ g.pos.x + 170, g.pos.y - 45 }, { 75, 75 }, color::white);
+	DrawSprite({ g.pos.x + (170 * SCREEN_ADJUST_X), g.pos.y - (45 * SCREEN_ADJUST_Y) }, SKILL_SIZE, color::white);
+
+	// スキルテキスト描画
+	Shader_Begin();
+	Shader_BeginUI();
+	Shader_SetSkillTextTextures(typeIndex);
+
+	DrawSprite({ g.pos.x + (170 * SCREEN_ADJUST_X), g.pos.y - (10 * SCREEN_ADJUST_Y) }, SKILL_TEXT_SIZE, color::white);
+
+
 }
 
 //====================================================================================

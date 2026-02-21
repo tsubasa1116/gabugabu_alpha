@@ -446,7 +446,9 @@ void Special_Glass_Update(int playerIndex)
 				{
 					box.position.y = box.targetPosition.y;	// 降下完了
 					box.active = false;	// 地面に着いたら非アクティブ化
+
 					Camera_StartShake(0.2f, 0.2f);
+					TriggerVibration(playerIndex, 0.2f, 0.2f, 200);
 
 					// 衝突判定
 					Circle boxCollider = { box.position, 0.3f };	// 半径0.3の円
@@ -549,7 +551,7 @@ void Special_Concrete_Update(int playerIndex)
 
 			// 画面を揺らす
 			Camera_StartShake(0.8f, 0.6f);
-			TriggerVibration(playerIndex, 0.3f, 0.3f, 600);
+			TriggerVibration(playerIndex, 0.6f, 0.6f, 600);
 
 			for (int p = 0; p < PLAYER_MAX; ++p)
 			{
@@ -597,6 +599,7 @@ void Special_Concrete_Update(int playerIndex)
 		player.useSkill = false;
 		player.useSpecial = false;
 		Effect_Clear(playerIndex);
+		Effect_ClearUI(playerIndex);
 		player.isTypeFixed = false;
 
 		// 範囲表示終了フラグを立てる
@@ -624,8 +627,6 @@ void Special_Plant_Update(int playerIndex)
 
 	if (!g_plantInitialized[playerIndex])
 	{
-		const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
-		const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 		Effect_Set(24, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
 		g_plantInitialized[playerIndex] = true;
 	}
