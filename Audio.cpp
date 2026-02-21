@@ -1,4 +1,4 @@
-ï»¿#include <d3d11.h>
+#include <d3d11.h>
 #include <DirectXMath.h>
 using namespace DirectX;
 #include "direct3d.h"
@@ -12,10 +12,10 @@ static IXAudio2MasteringVoice* g_MasteringVoice{};
 
 void InitAudio()
 {
-	// XAudioç”Ÿæˆ
+	// XAudio¶¬
 	XAudio2Create(&g_Xaudio, 0);
 
-	// ãƒžã‚¹ã‚¿ãƒªãƒ³ã‚°ãƒœã‚¤ã‚¹ç”Ÿæˆ
+	// ƒ}ƒXƒ^ƒŠƒ“ƒOƒ{ƒCƒX¶¬
 	g_Xaudio->CreateMasteringVoice(&g_MasteringVoice);
 }
 
@@ -66,7 +66,7 @@ int LoadAudio(const char *FileName)
 
 
 
-	// ã‚µã‚¦ãƒ³ãƒ‰ãƒ‡ãƒ¼ã‚¿èª­è¾¼
+	// ƒTƒEƒ“ƒhƒf[ƒ^“Çž
 	WAVEFORMATEX wfx = { 0 };
 
 	{
@@ -120,7 +120,7 @@ int LoadAudio(const char *FileName)
 	}
 
 
-	// ã‚µã‚¦ãƒ³ãƒ‰ã‚½ãƒ¼ã‚¹ç”Ÿæˆ
+	// ƒTƒEƒ“ƒhƒ\[ƒX¶¬
 	g_Xaudio->CreateSourceVoice(&g_Audio[index].SourceVoice, &wfx);
 	assert(g_Audio[index].SourceVoice);
 
@@ -150,7 +150,7 @@ void PlayAudio(int Index, bool Loop)
 	g_Audio[Index].SourceVoice->FlushSourceBuffers();
 
 
-	// ãƒãƒƒãƒ•ã‚¡è¨­å®š
+	// ƒoƒbƒtƒ@Ý’è
 	XAUDIO2_BUFFER bufinfo;
 
 	memset(&bufinfo, 0x00, sizeof(bufinfo));
@@ -159,7 +159,7 @@ void PlayAudio(int Index, bool Loop)
 	bufinfo.PlayBegin = 0;
 	bufinfo.PlayLength = g_Audio[Index].PlayLength;
 
-	// ãƒ«ãƒ¼ãƒ—è¨­å®š
+	// ƒ‹[ƒvÝ’è
 	if (Loop)
 	{
 		bufinfo.LoopBegin = 0;
@@ -170,7 +170,7 @@ void PlayAudio(int Index, bool Loop)
 	g_Audio[Index].SourceVoice->SubmitSourceBuffer(&bufinfo, NULL);
 
 
-	// å†ç”Ÿ
+	// Ä¶
 	g_Audio[Index].SourceVoice->Start();
 
 }

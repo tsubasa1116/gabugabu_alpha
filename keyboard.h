@@ -1,11 +1,11 @@
-ï»¿//--------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------
 // File: Keyboard.h
 //
-// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
+// ƒL[ƒ{[ƒhƒ‚ƒWƒ…[ƒ‹
 //
 //--------------------------------------------------------------------------------------
 // 2020/06/07
-//     DirectXTKã‚ˆã‚Šã€ãªã‚“ã¡ã‚ƒã£ã¦Cè¨€èªç”¨ã«ã‚·ã‚§ã‚¤ãƒ—ã‚¢ãƒƒãƒ—æ”¹å¤‰
+//     DirectXTK‚æ‚èA‚È‚ñ‚¿‚á‚Á‚ÄCŒ¾Œê—p‚ÉƒVƒFƒCƒvƒAƒbƒv‰ü•Ï
 //
 // Licensed under the MIT License.
 //
@@ -21,7 +21,7 @@
 #include <memory>
 
 
-// ã‚­ãƒ¼åˆ—æŒ™
+// ƒL[—ñ‹“
 typedef enum Keyboard_Keys_tag
 {
     KK_NONE               = 0x0,
@@ -203,7 +203,7 @@ typedef enum Keyboard_Keys_tag
 } Keyboard_Keys;
 
 
-// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰çŠ¶æ…‹æ§‹é€ ä½“
+// ƒL[ƒ{[ƒhó‘Ô\‘¢‘Ì
 typedef struct Keyboard_State_tag
 {
     bool Reserved0 : 8;
@@ -393,30 +393,30 @@ typedef struct Keyboard_State_tag
 } Keyboard_State;
 
 
-// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®åˆæœŸåŒ–
+// ƒL[ƒ{[ƒhƒ‚ƒWƒ…[ƒ‹‚Ì‰Šú‰»
 void Keyboard_Initialize(void);
 
-// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®ç¾åœ¨ã®ã‚­ãƒ¼æ¯ã®çŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
+// ƒL[ƒ{[ƒh‚ÌŒ»İ‚ÌƒL[–ˆ‚Ìó‘Ô‚ğæ“¾‚·‚é
 bool Keyboard_IsKeyDown(Keyboard_Keys key);
 bool Keyboard_IsKeyUp(Keyboard_Keys key);
 
-// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®ç¾åœ¨ã®çŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
+// ƒL[ƒ{[ƒh‚ÌŒ»İ‚Ìó‘Ô‚ğæ“¾‚·‚é
 const Keyboard_State* Keyboard_GetState(void);
 const Keyboard_State* Keyboard_GetStateOld(void);
 
-// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®çŠ¶æ…‹ã‹ã‚‰ã‚­ãƒ¼æ¯ã®çŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
+// ƒL[ƒ{[ƒh‚Ìó‘Ô‚©‚çƒL[–ˆ‚Ìó‘Ô‚ğæ“¾‚·‚é
 bool Keyboard_IsKeyDown(Keyboard_Keys key, const Keyboard_State* pState);
 bool Keyboard_IsKeyUp(Keyboard_Keys key, const Keyboard_State* pState);
 
-// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®çŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
+// ƒL[ƒ{[ƒh‚Ìó‘Ô‚ğƒŠƒZƒbƒg‚·‚é
 void Keyboard_Reset(void);
 
-// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰åˆ¶å¾¡ã®ãŸã‚ã®ã‚¦ã‚©ãƒ³ã©ã†ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£ãƒ•ãƒƒã‚¯é–¢æ•°
+// ƒL[ƒ{[ƒh§Œä‚Ì‚½‚ß‚ÌƒEƒHƒ“‚Ç‚¤ƒƒbƒZ[ƒWƒvƒƒV[ƒWƒƒƒtƒbƒNŠÖ”
 void Keyboard_ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam);
 
 
 
-//ãƒˆãƒªã‚¬ãƒ¼ç”¨
+//ƒgƒŠƒK[—p
 bool Keyboard_IsKeyDownTrigger(Keyboard_Keys key);
 void    keycopy();
 

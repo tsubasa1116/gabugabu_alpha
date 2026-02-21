@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -7,33 +7,33 @@ using namespace DirectX;
 #include "sprite.h"
 #include "shader.h"
 
-#define HPBER_MAX (4)		// HPãƒãƒ¼æœ€å¤§æ•°
-#define HPBAR_SPEED (3.0f)	// HPãƒãƒ¼ã®ã‚¹ãƒ ãƒ¼ã‚ºæ¸›å°‘é€Ÿåº¦
+#define HPBER_MAX (4)		// HPƒo[Å‘å”
+#define HPBAR_SPEED (3.0f)	// HPƒo[‚ÌƒXƒ€[ƒYŒ¸­‘¬“x
 
 struct hp {
-	XMFLOAT2 pos;           // ä½ç½®
-	XMFLOAT2 size;          // ã‚µã‚¤ã‚º
-	float current;          // ç¾åœ¨ã®HPãƒãƒ¼å¹…ï¼ˆå³åº§ã«æ¸›ã‚‹ï¼‰
-	float target;           // ç›®æ¨™HPãƒãƒ¼å¹…
-	float damageCurrent;    // ãƒ€ãƒ¡ãƒ¼ã‚¸è¡¨ç¤ºç”¨ï¼ˆé…ã‚Œã¦æ¸›ã‚‹èµ¤ãƒãƒ¼ï¼‰
-	float damageDelay;      // èµ¤ãƒãƒ¼ãŒæ¸›ã‚Šå§‹ã‚ã‚‹ã¾ã§ã®é…å»¶ãƒ•ãƒ¬ãƒ¼ãƒ 
-	float damageTimer;		// ãƒ€ãƒ¡ãƒ¼ã‚¸ç”¨ã‚¿ã‚¤ãƒãƒ¼
-	bool use;               // ä½¿ç”¨ä¸­ã‹ã©ã†ã‹
-	XMFLOAT4 backColor;     // èƒŒæ™¯è‰²
-	XMFLOAT4 fillColor;     // æ®‹é‡è‰²
-	XMFLOAT4 damageColor;   // ãƒ€ãƒ¡ãƒ¼ã‚¸è‰²ï¼ˆèµ¤ï¼‰
+	XMFLOAT2 pos;           // ˆÊ’u
+	XMFLOAT2 size;          // ƒTƒCƒY
+	float current;          // Œ»İ‚ÌHPƒo[•i‘¦À‚ÉŒ¸‚éj
+	float target;           // –Ú•WHPƒo[•
+	float damageCurrent;    // ƒ_ƒ[ƒW•\¦—pi’x‚ê‚ÄŒ¸‚éÔƒo[j
+	float damageDelay;      // Ôƒo[‚ªŒ¸‚èn‚ß‚é‚Ü‚Å‚Ì’x‰„ƒtƒŒ[ƒ€
+	float damageTimer;		// ƒ_ƒ[ƒW—pƒ^ƒCƒ}[
+	bool use;               // g—p’†‚©‚Ç‚¤‚©
+	XMFLOAT4 backColor;     // ”wŒiF
+	XMFLOAT4 fillColor;     // c—ÊF
+	XMFLOAT4 damageColor;   // ƒ_ƒ[ƒWFiÔj
 	
-	XMFLOAT2 shakeOffset;   // æç”»æ™‚ã«åŠ ãˆã‚‹ã‚ªãƒ•ã‚»ãƒƒãƒˆ
-	float shakeTimer;       // æ®‹ã‚Šãƒ•ãƒ¬ãƒ¼ãƒ æ•°
-	float shakeDuration;    // è¨­å®šã—ãŸãƒ•ãƒ¬ãƒ¼ãƒ é•·ã•
-	float shakeAmplitude;   // æŒ¯å¹…
-	float shakeSpeed;       // æŒ¯å‹•é€Ÿåº¦
+	XMFLOAT2 shakeOffset;   // •`‰æ‚É‰Á‚¦‚éƒIƒtƒZƒbƒg
+	float shakeTimer;       // c‚èƒtƒŒ[ƒ€”
+	float shakeDuration;    // İ’è‚µ‚½ƒtƒŒ[ƒ€’·‚³
+	float shakeAmplitude;   // U•
+	float shakeSpeed;       // U“®‘¬“x
 	int gaugeIndex;
-	int shakeTexNum;        // ã‚·ã‚§ã‚¤ã‚¯ä¸­ã«ä½¿ã†ãƒ†ã‚¯ã‚¹ãƒãƒ£ç•ªå·ï¼ˆ-1ã§ç„¡åŠ¹ï¼‰
+	int shakeTexNum;        // ƒVƒFƒCƒN’†‚Ég‚¤ƒeƒNƒXƒ`ƒƒ”Ô†i-1‚Å–³Œøj
 };
 
 //=============================================
-// HPãƒãƒ¼ã‚’è¨­å®šã—ãŸã„cppã§å‘¼ã³å‡ºã™
+// HPƒo[‚ğİ’è‚µ‚½‚¢cpp‚ÅŒÄ‚Ño‚·
 //=============================================
 void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar, XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 backColor, XMFLOAT4 fillColor);
 void UpdateHP(hp* bar);
@@ -41,8 +41,8 @@ void DrawHP(const hp* bar, int texNum);
 void SetHPValue(hp* bar, int currentHP, int maxHP);
 void FinalizeHP(hp* bar);
 
-// ã‚·ã‚§ã‚¤ã‚¯ã€€ãƒ•ãƒ¬ãƒ¼ãƒ å˜ä½ï¼ˆdurationï¼‰ã¨ãƒ”ã‚¯ã‚»ãƒ«ï¼ˆamplitudeï¼‰
-// int shakeTexNum = -1 ã‚’æ¸¡ã™ã¨ã€ã‚·ã‚§ã‚¤ã‚¯ä¸­ã«ãã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ä½¿ç”¨ã™ã‚‹
+// ƒVƒFƒCƒN@ƒtƒŒ[ƒ€’PˆÊidurationj‚ÆƒsƒNƒZƒ‹iamplitudej
+// int shakeTexNum = -1 ‚ğ“n‚·‚ÆAƒVƒFƒCƒN’†‚É‚»‚ÌƒeƒNƒXƒ`ƒƒ‚ğg—p‚·‚é
 void SetHPShake(hp* bar, float amplitude = 8.0f, float duration = 15.0f, float speed = 1.5f, int shakeTexNum = -1);
 hp* GetHPBar(int HPIndex);
 

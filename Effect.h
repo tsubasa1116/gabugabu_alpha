@@ -1,4 +1,4 @@
-ï»¿// Effect.h
+// Effect.h
 
 #pragma once
 
@@ -14,7 +14,7 @@ public:
 	bool enable;
 	XMFLOAT3 pos;
 	XMFLOAT2 size;
-	float frameCnt;	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
+	float frameCnt;	// ƒAƒjƒ[ƒVƒ‡ƒ“ƒJƒEƒ“ƒ^[
 	int texNo;
 	int playerIndex;
 	float scaleTimer;
@@ -26,7 +26,7 @@ struct PLAYER_EFFECT_ANIM
 {
 	int evolutionFrame = 0;
 	float evolutionTimer = 0.0f;
-	int evolutionPhase = 0;		// 0:æœªé€²åŒ–, 1:é€²åŒ–1, 2:é€²åŒ–2, 3:çµ‚äº†
+	int evolutionPhase = 0;		// 0:–¢i‰», 1:i‰»1, 2:i‰»2, 3:I—¹
 	int skillFrame = 0;
 	float skillTimer = 0.0f;
 	int specialFrame = 0;
@@ -62,20 +62,20 @@ struct EFFECT_LAYER
 	int sheetRows;
 };
 
-// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã”ã¨ã®è¨­å®š
+// ƒeƒNƒXƒ`ƒƒ‚²‚Æ‚Ìİ’è
 struct EffectConfig {
-	int maxFrame;  // å…¨ä½“ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
-	int loopStart; // ãƒ«ãƒ¼ãƒ—é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ 
-	int loopEnd;   // ãƒ«ãƒ¼ãƒ—çµ‚äº†ãƒ•ãƒ¬ãƒ¼ãƒ  (ã“ã“ã‚’è¶…ãˆãŸã‚‰loopStartã«æˆ»ã‚‹)
-	bool isLoop;   // ãƒ«ãƒ¼ãƒ—ãƒ•ãƒ©ã‚°
-	float speed;   // å†ç”Ÿé€Ÿåº¦ï¼ˆ1.0fãŒæ¨™æº–ï¼‰
+	int maxFrame;  // ‘S‘ÌƒtƒŒ[ƒ€”
+	int loopStart; // ƒ‹[ƒvŠJnƒtƒŒ[ƒ€
+	int loopEnd;   // ƒ‹[ƒvI—¹ƒtƒŒ[ƒ€ (‚±‚±‚ğ’´‚¦‚½‚çloopStart‚É–ß‚é)
+	bool isLoop;   // ƒ‹[ƒvƒtƒ‰ƒO
+	float speed;   // Ä¶‘¬“xi1.0f‚ª•W€j
 	int spriteY;
 	float scaleMin;
 	float scaleMax;
 	float scaleSpeed;
 };
 
-// ãƒ¡ã‚¤ãƒ³å‡¦ç†é–¢æ•°
+// ƒƒCƒ“ˆ—ŠÖ”
 void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Effect_Finalize();
 void Effect_Update();
@@ -85,11 +85,11 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex);
 void Effect_ClearUI(int pIndex);
 void Effect_Clear(int pIndex);
 
-// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ä»˜è¿‘ã«è¡¨ç¤ºã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆé–¢æ•°
+// ƒvƒŒƒCƒ„[•t‹ß‚É•\¦‚·‚éƒGƒtƒFƒNƒgŠÖ”
 void Effect_UpdateForPlayer(int playerIndex);
-void EffectFront_DrawForPlayer(int playerIndex);	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‰ã«è¡¨ç¤ºã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆï¼ˆã‚¹ã‚­ãƒ«ãªã©ï¼‰
-void EffectShadow_DrawForPlayer(int playerIndex);	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å½±ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
+void EffectFront_DrawForPlayer(int playerIndex);	// ƒvƒŒƒCƒ„[‚Ì‘O‚É•\¦‚·‚éƒGƒtƒFƒNƒgiƒXƒLƒ‹‚È‚Çj
+void EffectShadow_DrawForPlayer(int playerIndex);	// ƒvƒŒƒCƒ„[‚Ì‰eƒGƒtƒFƒNƒg
 
-// å»ºç‰©ä»˜è¿‘ã«è¡¨ç¤ºã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆé–¢æ•°
+// Œš•¨•t‹ß‚É•\¦‚·‚éƒGƒtƒFƒNƒgŠÖ”
 void Effect_UpdateForBuilding(int buildingIndex);
 void Effect_DrawForBuilding(int buildingIndex);

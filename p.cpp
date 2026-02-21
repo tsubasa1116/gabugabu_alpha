@@ -1,6 +1,6 @@
-ï»¿/*==============================================================================
+/*==============================================================================
 
-   ãƒãƒªã‚´ãƒ³æç”» [p.cpp]
+   ƒ|ƒŠƒSƒ“•`‰æ [p.cpp]
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -22,58 +22,58 @@ static hp g_HPBar[PLAYER_MAX];
 
 static ID3D11ShaderResourceView* g_Texture[5];
 
-static ID3D11Buffer* g_pVertexBuffer = nullptr; // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
-static ID3D11Buffer* g_pIndexBuffer = nullptr; // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
+static ID3D11Buffer* g_pVertexBuffer = nullptr; // ’¸“_ƒoƒbƒtƒ@
+static ID3D11Buffer* g_pIndexBuffer = nullptr; // ’¸“_ƒoƒbƒtƒ@
 static ID3D11Buffer* g_pCubeVertexBuffer = nullptr;
 
-// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
+// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 static ID3D11DeviceContext* g_pContext2 = nullptr;
 
 P p[PLAYER_MAX];
 
-XMFLOAT3 g_Eye = { 0.0f, 10.0f, 15.0f }; // ã‚«ãƒ¡ãƒ©ä½ç½®
-XMFLOAT3 g_At = { 0.0f, 0.0f, 0.0f }; // æ³¨è¦–ç‚¹
-XMFLOAT3 g_Up = { 0.0f, 1.0f, 0.0f }; // ä¸Šæ–¹å‘
-// ã‚«ãƒ¡ãƒ©ã¨ã®è·é›¢
+XMFLOAT3 g_Eye = { 0.0f, 10.0f, 15.0f }; // ƒJƒƒ‰ˆÊ’u
+XMFLOAT3 g_At = { 0.0f, 0.0f, 0.0f }; // ’‹“_
+XMFLOAT3 g_Up = { 0.0f, 1.0f, 0.0f }; // ã•ûŒü
+// ƒJƒƒ‰‚Æ‚Ì‹——£
 XMFLOAT3 g_CamOffset = { 0.0f, 10.0f, 15.0f };
 
-// 8é ‚ç‚¹
+// 8’¸“_
 Vertex cubeVertices[] =
 {
-	{{-1,-1,-1}, {1,1,1,1}, {0,1}}, // 0: å·¦ä¸‹æ‰‹å‰
-	{{-1, 1,-1}, {1,1,1,1}, {0,0}}, // 1: å·¦ä¸Šæ‰‹å‰
-	{{ 1, 1,-1}, {1,1,1,1}, {1,0}}, // 2: å³ä¸Šæ‰‹å‰
-	{{ 1,-1,-1}, {1,1,1,1}, {1,1}}, // 3: å³ä¸‹æ‰‹å‰
-	{{-1,-1, 1}, {1,1,1,1}, {0,1}}, // 4: å·¦ä¸‹å¥¥
-	{{-1, 1, 1}, {1,1,1,1}, {0,0}}, // 5: å·¦ä¸Šå¥¥
-	{{ 1, 1, 1}, {1,1,1,1}, {1,0}}, // 6: å³ä¸Šå¥¥
-	{{ 1,-1, 1}, {1,1,1,1}, {1,1}}, // 7: å³ä¸‹å¥¥
+	{{-1,-1,-1}, {1,1,1,1}, {0,1}}, // 0: ¶‰ºè‘O
+	{{-1, 1,-1}, {1,1,1,1}, {0,0}}, // 1: ¶ãè‘O
+	{{ 1, 1,-1}, {1,1,1,1}, {1,0}}, // 2: ‰Eãè‘O
+	{{ 1,-1,-1}, {1,1,1,1}, {1,1}}, // 3: ‰E‰ºè‘O
+	{{-1,-1, 1}, {1,1,1,1}, {0,1}}, // 4: ¶‰º‰œ
+	{{-1, 1, 1}, {1,1,1,1}, {0,0}}, // 5: ¶ã‰œ
+	{{ 1, 1, 1}, {1,1,1,1}, {1,0}}, // 6: ‰Eã‰œ
+	{{ 1,-1, 1}, {1,1,1,1}, {1,1}}, // 7: ‰E‰º‰œ
 };
 
-// 36ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ï¼ˆ12ä¸‰è§’å½¢ï¼‰
+// 36ƒCƒ“ƒfƒbƒNƒXi12OŠpŒ`j
 unsigned short cubeIndices[] =
 {
-	0,1,2, 0,2,3,   // å‰
-	4,6,5, 4,7,6,   // å¾Œ
-	4,5,1, 4,1,0,   // å·¦
-	3,2,6, 3,6,7,   // å³
-	1,5,6, 1,6,2,   // ä¸Š
-	4,0,3, 4,3,7    // ä¸‹
+	0,1,2, 0,2,3,   // ‘O
+	4,6,5, 4,7,6,   // Œã
+	4,5,1, 4,1,0,   // ¶
+	3,2,6, 3,6,7,   // ‰E
+	1,5,6, 1,6,2,   // ã
+	4,0,3, 4,3,7    // ‰º
 };
 
 static bool debug = false;
 
 //====================================================================================
-// åˆæœŸåŒ–
+// ‰Šú‰»
 //====================================================================================
 void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ãƒã‚§ãƒƒã‚¯
+	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìƒ`ƒFƒbƒN
 	if (!pDevice || !pContext)
 	{
-		hal::dout << "P_Initialize() : ä¸ãˆã‚‰ã‚ŒãŸãƒ‡ãƒã‚¤ã‚¹ã‹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãŒä¸æ­£ã§ã™" << std::endl;
+		hal::dout << "P_Initialize() : —^‚¦‚ç‚ê‚½ƒfƒoƒCƒX‚©ƒRƒ“ƒeƒLƒXƒg‚ª•s³‚Å‚·" << std::endl;
 		return;
 	}
 
@@ -100,27 +100,27 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	p[3].pos = { 9.0f, 1.0f, 0.0f };
 
 
-	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ä¿å­˜
+	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ì•Û‘¶
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
+	// ’¸“_ƒoƒbƒtƒ@¶¬
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚ºã€€æ§‹é€ ä½“Ã—é ‚ç‚¹æ•°
+	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// ƒoƒbƒtƒ@‚ÌƒTƒCƒY@\‘¢‘Ì~’¸“_”
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	g_pDevice->CreateBuffer(&bd, NULL, &g_pVertexBuffer);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡(3D)
+	// ’¸“_ƒoƒbƒtƒ@(3D)
 	D3D11_BUFFER_DESC vbd = {};
-	vbd.ByteWidth = sizeof(cubeVertices);      // 8é ‚ç‚¹ã¶ã‚“
+	vbd.ByteWidth = sizeof(cubeVertices);      // 8’¸“_‚Ô‚ñ
 	vbd.Usage = D3D11_USAGE_DEFAULT;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	D3D11_SUBRESOURCE_DATA initV = { cubeVertices };
 	g_pDevice->CreateBuffer(&vbd, &initV, &g_pCubeVertexBuffer);
 
-	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
+	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
 	D3D11_BUFFER_DESC ibd = {};
 	ibd.ByteWidth = sizeof(cubeIndices);
 	ibd.Usage = D3D11_USAGE_DEFAULT;
@@ -153,7 +153,7 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
 	assert(g_Texture[4]);
 
-	// HPãƒãƒ¼åˆæœŸåŒ–
+	// HPƒo[‰Šú‰»
 	InitializeHP(pDevice, pContext, &g_HPBar[0], { 200.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
 	InitializeHP(pDevice, pContext, &g_HPBar[1], { 500.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
 	InitializeHP(pDevice, pContext, &g_HPBar[2], { 800.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::red, color::green);
@@ -161,7 +161,7 @@ void P_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 }
 
 //====================================================================================
-// çµ‚äº†
+// I—¹
 //====================================================================================
 void P_Finalize(void)
 {
@@ -173,7 +173,7 @@ void P_Finalize(void)
 }
 
 //====================================================================================
-// æç”»
+// •`‰æ
 //====================================================================================
 void P_Update()
 {
@@ -181,38 +181,38 @@ void P_Update()
 	{
 		const float moveSpeed = 0.1f;
 
-		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç§»å‹•
+		// ƒvƒŒƒCƒ„[‚ÌˆÚ“®
 		if (Keyboard_IsKeyDown(KK_W)) p[i].pos.z -= moveSpeed;
 		if (Keyboard_IsKeyDown(KK_S)) p[i].pos.z += moveSpeed;
 		if (Keyboard_IsKeyDown(KK_A)) p[i].pos.x += moveSpeed;
 		if (Keyboard_IsKeyDown(KK_D)) p[i].pos.x -= moveSpeed;
 
-		// ã‚«ãƒ¡ãƒ©ã‚’ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã«è¿½å¾“
+		// ƒJƒƒ‰‚ğƒvƒŒƒCƒ„[‚ÌˆÊ’u‚É’Ç]
 		g_Eye.x = p[i].pos.x + g_CamOffset.x;
 		g_Eye.y = p[i].pos.y + g_CamOffset.y;
 		g_Eye.z = p[i].pos.z + g_CamOffset.z;
 
-		// ã‚«ãƒ¡ãƒ©ãŒè¦‹ã‚‹æ³¨è¦–ç‚¹ã¯ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼è‡ªèº«
+		// ƒJƒƒ‰‚ªŒ©‚é’‹“_‚ÍƒvƒŒƒCƒ„[©g
 		g_At = p[i].pos;
 
-		// å½“ãŸã‚Šåˆ¤å®šå–å¾—
+		// “–‚½‚è”»’èæ“¾
 		Player_UpdateAABB();
 
-		// HPãŒ0ã«ãªã£ãŸã‚‰æ®‹åŸºã‚’æ¸›ã‚‰ã—ã€HPã‚’ã‚‚ãã™
+		// HP‚ª0‚É‚È‚Á‚½‚çcŠî‚ğŒ¸‚ç‚µAHP‚ğ‚à‚»‚·
 		if (p[i].hp <= 0 && p[i].active)
 		{
 			p[i].stock--;
 
-			// æ®‹åŸºãŒã‚ã‚Œã°å¾©æ´»
+			// cŠî‚ª‚ ‚ê‚Î•œŠˆ
 			if (p[i].stock > 0)
 			{
 				p[i].hp = p[i].maxHp;
 
-				// ãƒªã‚¹ãƒãƒ¼ãƒ³
+				// ƒŠƒXƒ|[ƒ“
 			}
 			else
 			{
-				// æ®‹åŸºãŒãªã‘ã‚Œã°false
+				// cŠî‚ª‚È‚¯‚ê‚Îfalse
 				p[i].active = false;
 			}
 		}
@@ -221,7 +221,7 @@ void P_Update()
 		UpdateHP(&g_HPBar[i]);
 	}
 
-	//==================== ImGui ãƒ‡ãƒãƒƒã‚°è¡¨ç¤º ====================//
+	//==================== ImGui ƒfƒoƒbƒO•\¦ ====================//
 	{
 		ImGui::Begin("P Debug");
 
@@ -261,22 +261,22 @@ void P_Update()
 }
 
 //====================================================================================
-// æ®‹åŸºæç”»
+// cŠî•`‰æ
 //====================================================================================
 void PStock_Draw(int i)
 {
 	Shader_Begin();
 	Shader_BeginUI();
 
-	// HPãƒãƒ¼ä½ç½®å–å¾—ãƒ»ã‚²ãƒ¼ã‚¸åº§æ¨™è¨­å®š
+	// HPƒo[ˆÊ’uæ“¾EƒQ[ƒWÀ•Wİ’è
 	float bx = g_HPBar[i].pos.x + 40.0f;
 	float by = g_HPBar[i].pos.y - 10.0f;
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®ã‚¹ãƒˆãƒƒã‚¯æç”»
+	// ƒvƒŒƒCƒ„[‚²‚Æ‚ÌƒXƒgƒbƒN•`‰æ
 	for (int j = 0; j < p[i].stock; j++)
 	{
-		// ã‚¹ãƒˆãƒƒã‚¯æç”»å¤‰æ•°
-		XMFLOAT2 pos = { bx + j * 30.0f, by }; // æ¨ªä¸¦ã³
+		// ƒXƒgƒbƒN•`‰æ•Ï”
+		XMFLOAT2 pos = { bx + j * 30.0f, by }; // ‰¡•À‚Ñ
 		XMFLOAT2 size = { 300.0f, 100.0f };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
@@ -287,56 +287,56 @@ void PStock_Draw(int i)
 }
 
 //====================================================================================
-// æç”»
+// •`‰æ
 //====================================================================================
 void P_Draw(void)
 {
-	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
+	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
 	Shader_Begin();
 
-	// å€‹åˆ¥UIã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹æç”»
+	// ŒÂ•ÊUIƒXƒe[ƒ^ƒX•`‰æ
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		// HPãƒãƒ¼æç”»
+		// HPƒo[•`‰æ
 		//DrawHP(&g_HPBar[i]);
 		XMFLOAT2 hp = g_HPBar[i].pos;
 
-		// ã‚²ãƒ¼ã‚¸æç”»ç”¨è¨­å®š
+		// ƒQ[ƒW•`‰æ—pİ’è
 	/*	Gauge_Set(i, p[i].fi, p[i].wa, p[i].wi, p[i].ea,
 			p[i].gaugeOuter, { hp.x - 120.0f , hp.y });*/
 
-		// ã‚²ãƒ¼ã‚¸æç”»
+		// ƒQ[ƒW•`‰æ
 		Gauge_Draw(i);
 
-		// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒªã‚»ãƒƒãƒˆ
+		// ƒVƒF[ƒ_[ƒŠƒZƒbƒg
 		Shader_Begin();
 
 		PStock_Draw(i);
 	}
 
-	// ç”»é¢ã‚µã‚¤ã‚ºå–å¾—
+	// ‰æ–ÊƒTƒCƒYæ“¾
 	float w = (float)Direct3D_GetBackBufferWidth();
 	float h = (float)Direct3D_GetBackBufferHeight();
 
-	// ã‚«ãƒ¡ãƒ©è¨­å®š
+	// ƒJƒƒ‰İ’è
 	XMVECTOR Eye = XMVectorSet(g_Eye.x, g_Eye.y, g_Eye.z, 1.0f);
 	XMVECTOR At = XMVectorSet(g_At.x, g_At.y, g_At.z, 1.0f);
 	XMVECTOR Up = XMVectorSet(g_Up.x, g_Up.y, g_Up.z, 0.0f);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ãƒ­ãƒƒã‚¯ã™ã‚‹
+	// ’¸“_ƒoƒbƒtƒ@‚ğƒƒbƒN‚·‚é
 	D3D11_MAPPED_SUBRESOURCE msr;
 	g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã¸ã®ä»®æƒ³ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
+	// ’¸“_ƒoƒbƒtƒ@‚Ö‚Ì‰¼‘zƒ|ƒCƒ“ƒ^‚ğæ“¾
 	Vertex* v = (Vertex*)msr.pData;
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®ãƒ­ãƒƒã‚¯ã‚’è§£é™¤
+	// ’¸“_ƒoƒbƒtƒ@‚ÌƒƒbƒN‚ğ‰ğœ
 	g_pContext->Unmap(g_pVertexBuffer, 0);
 
-	{// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼
+	{// ƒvƒŒƒCƒ„[
 		for (int i = 0; i < PLAYER_MAX; i++)
 		{
-			// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
+			// ’¸“_ƒoƒbƒtƒ@‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
 			UINT stride = sizeof(Vertex);
 			UINT offset = 0;
 			g_pContext->IASetVertexBuffers(0, 1, &g_pCubeVertexBuffer, &stride, &offset);
@@ -344,40 +344,40 @@ void P_Draw(void)
 
 			XMMATRIX view = XMMatrixLookAtLH(Eye, At, Up);
 
-			// é€è¦–æŠ•å½±
+			// “§‹“Š‰e
 			XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), w / h, 0.1f, 100.0f);
 
-			// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ¯ãƒ¼ãƒ«ãƒ‰å¤‰æ›
+			// ƒIƒuƒWƒFƒNƒg‚Ìƒ[ƒ‹ƒh•ÏŠ·
 			static float angle = 0.0f;
 			angle += 0.01f;
 			XMMATRIX world =
 				/*XMMatrixRotationY(angle) **/
 				XMMatrixTranslation(p[i].pos.x, p[i].pos.y, p[i].pos.z);
 
-			// æœ€çµ‚çš„ãªè¡Œåˆ—
+			// ÅI“I‚Ès—ñ
 			XMMATRIX wvp = world * view * proj;
 
-			// å®šæ•°ãƒãƒƒãƒ•ã‚¡ã«é€ä¿¡
+			// ’è”ƒoƒbƒtƒ@‚É‘—M
 			Shader_SetMatrix(wvp);
 
-			// ä¸‰è§’å½¢ãƒªã‚¹ãƒˆã§æç”»
+			// OŠpŒ`ƒŠƒXƒg‚Å•`‰æ
 			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[4]);
 
-			// æç”»å‘½ä»¤
+			// •`‰æ–½—ß
 			SetBlendState(BLENDSTATE_NONE);
 			//g_pContext->DrawIndexed(36, 0, 0);
 			//g_pContext->Draw(NUM_VERTEX, 0);
 
-			// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«å¤‰æ›è¡Œåˆ—ã‚’è¨­å®š
+			// ’¸“_ƒVƒF[ƒ_[‚É•ÏŠ·s—ñ‚ğİ’è
 			//Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 1.0f));
 		}
 	}
 }
 
 //====================================================================================
-// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼åˆ¤å®š
+// ƒvƒŒƒCƒ„[”»’è
 //====================================================================================
 void Player_UpdateAABB()
 {
@@ -399,10 +399,10 @@ P* GetP()
 {
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
-		if (p[i].active) // æ¡ä»¶ã‚’è¿½åŠ ã—ã¦ã€ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’è¿”ã™
+		if (p[i].active) // ğŒ‚ğ’Ç‰Á‚µ‚ÄAƒAƒNƒeƒBƒu‚ÈƒvƒŒƒCƒ„[‚ğ•Ô‚·
 		{
 			return &p[i];
 		}
 	}
-	return nullptr; // ã™ã¹ã¦ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒéã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã®å ´åˆã€nullptrã‚’è¿”ã™
+	return nullptr; // ‚·‚×‚Ä‚ÌƒvƒŒƒCƒ„[‚ª”ñƒAƒNƒeƒBƒu‚Ìê‡Anullptr‚ğ•Ô‚·
 }
