@@ -51,7 +51,7 @@ public:
 	XMFLOAT3 scaling;
 
 	// 種類・状態
-	BuildingType  Type;
+	BuildingType  type;
 	BuildingPhase Phase;
 
 	// 当たり判定（未使用）
@@ -60,8 +60,8 @@ public:
 	// モデル
 	MODEL* m_Model;
 
-	// 有効フラグ
-	bool isActive;
+	bool isActive;		// 有効フラグ
+	bool isDestroyed;	// 建物破壊フラグ
 
 	//=================================
 	// コンストラクタ
@@ -81,7 +81,7 @@ public:
 	void SetPhase(BuildingPhase phase);
 
 	// ゲッター
-	BuildingType  GetType()  const { return Type; }
+	BuildingType  GetType()  const { return type; }
 	BuildingPhase GetPhase() const { return Phase; }
 };
 

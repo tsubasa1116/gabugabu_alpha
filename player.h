@@ -19,11 +19,12 @@
 #define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間
 #define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間
 #define	HEALING_TIME		(2.0f)	// 回復持続時間
-#define	EVOLVING_TIME		(2.0f)	// 進化時間
+#define	EVOLVING_TIME		(4.0f)	// 進化時間
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間
 #define	DOWN_TIME			(3.0f)	// ダウン持続時間
 #define	POISON_TIME			(5.0f)	// 毒持続時間
+#define	EGG_BREAKING_TIME	(0.3f)	// 卵エフェクトが割れる再生時間
 
 #define	PLAYER_VERTEX	(6)		// 一面のみの頂点数
 #define COORDINATE		(0.5f)	// デフォルト (0.5f)
@@ -113,10 +114,14 @@ struct PLAYEROBJECT
 	bool duringRespawn;		// リスポーン中かどうか
 	float respawnTimer;		// リスポーン中の経過時間
 
+	bool isEggBreaking;		// 卵エフェクトが割れ始める瞬間
+	float eggBreakingTimer;	// 卵エフェクトのタイマー
+
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	PlayerDir lastDir;							// 待機時の向き
 	bool isMoving = false;						// 移動中かどうか
+	bool isShadowEnabled = false;					// 地上にいるかどうか
 
 	Form form;								// 変身形態
 	PlayerType type;						// プレイヤーの属性タイプ

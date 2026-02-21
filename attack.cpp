@@ -354,7 +354,7 @@ void Attack_Update(int playerIndex)
 		// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
 		if (collision.isColliding)
 		{
-			BuildingType type = buildingObjects[i]->Type;
+			BuildingType type = buildingObjects[i]->type;
 
 			if (g_Input[playerIndex].A || Keyboard_IsKeyDown(confirmKey[playerIndex]))
 			{
@@ -382,6 +382,7 @@ void Attack_Update(int playerIndex)
 				}
 
 				buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
+				buildingObjects[i]->isDestroyed = true;				// 建物破壊フラグを有効
 				player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 				player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
@@ -400,8 +401,8 @@ void Attack_Update(int playerIndex)
 				// 効果音やエフェクトを再生
 
 				// ヒットでスキルを終了
-				//player.isAttacking = false;
-				//player.attackTimer = 0.0f;
+				player.isAttacking = false;
+				player.attackTimer = 0.0f;
 
 				// 更新済みAABB
 				CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
@@ -453,8 +454,8 @@ void Attack_Update(int playerIndex)
 			// 4種類の破壊した建物数を配列に格納
 			const int counts[4] =
 			{
-				player.breakCount_Glass,	// idx 0
-				player.breakCount_Concrete,	// idx 1
+				player.breakCount_Glass,		// idx 0
+				player.breakCount_Concrete,		// idx 1
 				player.breakCount_Plant,		// idx 2
 				player.breakCount_Electricity	// idx 3
 			};
