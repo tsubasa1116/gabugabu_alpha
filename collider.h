@@ -1,7 +1,7 @@
-ï»¿//======================================================
+//======================================================
 //	collider.h
 // -----------------------------------------------------
-//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
+//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
 //======================================================
 #pragma once
 
@@ -9,79 +9,79 @@
 using namespace DirectX;
 
 //======================================================
-//	ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼
+//	ƒRƒ‰ƒCƒ_[
 //======================================================
 struct AABB
 {
-	XMFLOAT3 Min;	// æœ€å°ç‚¹
-	XMFLOAT3 Max;	// æœ€å¤§ç‚¹
+	XMFLOAT3 Min;	// Å¬“_
+	XMFLOAT3 Max;	// Å‘å“_
 };
 
 //======================================================
-// æœ€å°é‡ãªã‚Šé‡ (MTV) ã‚’è¿”ã™æ§‹é€ ä½“
+// Å¬d‚È‚è—Ê (MTV) ‚ğ•Ô‚·\‘¢‘Ì
 //======================================================
 struct MTV
 {
-	XMFLOAT3 translation;	// æŠ¼ã—æˆ»ã™ãŸã‚ã®ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«
-	float overlap;			// æœ€å°ã®é‡ãªã‚Šé‡
-	bool isColliding;		// è¡çªã—ãŸã‹ã©ã†ã‹
+	XMFLOAT3 translation;	// ‰Ÿ‚µ–ß‚·‚½‚ß‚ÌˆÚ“®ƒxƒNƒgƒ‹
+	float overlap;			// Å¬‚Ìd‚È‚è—Ê
+	bool isColliding;		// Õ“Ë‚µ‚½‚©‚Ç‚¤‚©
 };
 
 //======================================================
-//	å½“ãŸã‚Šåˆ¤å®š è¨ˆç®—é–¢æ•°
+//	“–‚½‚è”»’è ŒvZŠÖ”
 //======================================================
 
 /**
- * @brief ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®åº§æ¨™ã¨æ‹¡ç¸®ã‹ã‚‰AABBï¼ˆè»¸ä¸¦è¡Œå¢ƒç•Œãƒœãƒƒã‚¯ã‚¹ï¼‰ã‚’è¨ˆç®—ã™ã‚‹
- * @param boundingBox [out] è¨ˆç®—çµæœãŒæ ¼ç´ã•ã‚Œã‚‹AABB
- * @param position ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ä¸­å¿ƒåº§æ¨™
- * @param scaling ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®æ‹¡ç¸®ï¼ˆã‚µã‚¤ã‚ºï¼‰
+ * @brief ƒIƒuƒWƒFƒNƒg‚ÌÀ•W‚ÆŠgk‚©‚çAABBi²•Às‹«ŠEƒ{ƒbƒNƒXj‚ğŒvZ‚·‚é
+ * @param boundingBox [out] ŒvZŒ‹‰Ê‚ªŠi”[‚³‚ê‚éAABB
+ * @param position ƒIƒuƒWƒFƒNƒg‚Ì’†SÀ•W
+ * @param scaling ƒIƒuƒWƒFƒNƒg‚ÌŠgkiƒTƒCƒYj
  */
 void CalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& scaling);
 
 /**
- * @brief 2ã¤ã®AABBãŒè¡çªã—ã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯ã™ã‚‹
- * @return è¡çªã—ã¦ã„ã‚Œã° true
+ * @brief 2‚Â‚ÌAABB‚ªÕ“Ë‚µ‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN‚·‚é
+ * @return Õ“Ë‚µ‚Ä‚¢‚ê‚Î true
  */
 bool CheckAABBCollision(const AABB& a, const AABB& b);
 
 /**
- * @brief 2ã¤ã®AABBã®è¡çªã‚’æ¤œå‡ºã—ã€æŠ¼ã—æˆ»ã—ãƒ™ã‚¯ãƒˆãƒ«(MTV)ã‚’è¨ˆç®—ã™ã‚‹
- * @param pMovingObject å‹•ãã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®AABB
- * @param pStaticObject é™çš„ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®AABB
- * @return è¡çªæƒ…å ±ã¨æŠ¼ã—æˆ»ã—ãƒ™ã‚¯ãƒˆãƒ«(MTV)
+ * @brief 2‚Â‚ÌAABB‚ÌÕ“Ë‚ğŒŸo‚µA‰Ÿ‚µ–ß‚µƒxƒNƒgƒ‹(MTV)‚ğŒvZ‚·‚é
+ * @param pMovingObject “®‚­ƒIƒuƒWƒFƒNƒg‚ÌAABB
+ * @param pStaticObject Ã“I‚ÈƒIƒuƒWƒFƒNƒg‚ÌAABB
+ * @return Õ“Ëî•ñ‚Æ‰Ÿ‚µ–ß‚µƒxƒNƒgƒ‹(MTV)
  */
 MTV CalculateAABBMTV(const AABB& pMovingObject, const AABB& pStaticObject);
 
 
 // ==============================================================================
-// å…­è§’æŸ±ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ (Hexagon Collider)
+// ˜ZŠp’ŒƒRƒ‰ƒCƒ_[ (Hexagon Collider)
 // ==============================================================================
 struct HexCollider
 {
-	XMFLOAT3 center;	// ä¸­å¿ƒåº§æ¨™
-	float radius;		// åŠå¾„ï¼ˆä¸­å¿ƒã‹ã‚‰è§’ã¾ã§ã®è·é›¢ï¼‰
-	float height;		// é«˜ã•ï¼ˆåšã¿ï¼‰
+	XMFLOAT3 center;	// ’†SÀ•W
+	float radius;		// ”¼Œai’†S‚©‚çŠp‚Ü‚Å‚Ì‹——£j
+	float height;		// ‚‚³iŒú‚İj
 };
 
-// ç‚¹ã¨å…­è§’æŸ±ã®å½“ãŸã‚Šåˆ¤å®šï¼ˆä¸­ã«å…¥ã£ã¦ã„ã‚‹ã‹ï¼Ÿï¼‰
+// “_‚Æ˜ZŠp’Œ‚Ì“–‚½‚è”»’èi’†‚É“ü‚Á‚Ä‚¢‚é‚©Hj
 bool CheckPointHexCollision(const XMFLOAT3& point, const HexCollider& hex);
 
 bool CheckAABBHexCollision(const AABB& box, const HexCollider& hex);
 
 // ==============================================================================
-// å††ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ (Circle Collider)
+// ‰~ƒRƒ‰ƒCƒ_[ (Circle Collider)
 // ==============================================================================
 struct Circle
 {
-	XMFLOAT3 center;	// ä¸­å¿ƒåº§æ¨™
-	float radius;		// åŠå¾„
+	XMFLOAT3 center;	// ’†SÀ•W
+	float radius;		// ”¼Œa
 };
 
 /**
- * @brief å††ã¨AABBã®è¡çªåˆ¤å®š
- * @param circle å††ã®ä¸­å¿ƒåº§æ¨™ã¨åŠå¾„
- * @param box AABBãƒ‡ãƒ¼ã‚¿
- * @return è¡çªã—ã¦ã„ã‚Œã° true
+ * @brief ‰~‚ÆAABB‚ÌÕ“Ë”»’è
+ * @param circle ‰~‚Ì’†SÀ•W‚Æ”¼Œa
+ * @param box AABBƒf[ƒ^
+ * @return Õ“Ë‚µ‚Ä‚¢‚ê‚Î true
  */
 bool CheckCircleAABBCollision(const Circle& circle, const AABB& box);

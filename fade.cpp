@@ -1,4 +1,4 @@
-ï»¿//======================================================
+//======================================================
 //	fade.cpp
 //======================================================
 
@@ -6,9 +6,9 @@
 #include "shader.h"
 #include "LoadingScreen.h"
 
-FadeObject g_Fade;	// ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†æ§‹é€ ä½“
+FadeObject g_Fade;	// ƒtƒF[ƒhˆ—\‘¢‘Ì
 
-static ID3D11ShaderResourceView* g_Texture = NULL;	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼‘æšã‚’è¡¨ã™ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+static ID3D11ShaderResourceView* g_Texture = NULL;	// ƒeƒNƒXƒ`ƒƒ‚P–‡‚ğ•\‚·ƒIƒuƒWƒFƒNƒg
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
@@ -17,18 +17,18 @@ void Fade_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
+	// ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
 	TexMetadata		metadata;
 	ScratchImage	image;
 	LoadFromWICFile(L"asset\\texture\\fade.bmp", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-	assert(g_Texture);	// èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+	assert(g_Texture);	// “Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
 	g_Fade.fadecolor.x = 0.0f;
 	g_Fade.fadecolor.y = 0.0f;
 	g_Fade.fadecolor.z = 0.0f;
 	g_Fade.fadecolor.w = 1.0f;
-	g_Fade.frame = 60.0f;	// 60ãƒ•ãƒ¬ãƒ¼ãƒ ã§ãƒ•ã‚§ãƒ¼ãƒ‰å®Œäº†
+	g_Fade.frame = 60.0f;	// 60ƒtƒŒ[ƒ€‚ÅƒtƒF[ƒhŠ®—¹
 	g_Fade.state = FADE_STATE::FADE_NONE;
 	g_Fade.useLoading = false;
 	g_Fade.loadingVideo = nullptr;
@@ -49,7 +49,7 @@ void Fade_Update()
 
 void Fade_Draw()
 {
-	// ç¾åœ¨ã®çŠ¶æ…‹
+	// Œ»İ‚Ìó‘Ô
 	switch (g_Fade.state)
 	{
 	case FADE_STATE::FADE_NONE:
@@ -58,7 +58,7 @@ void Fade_Draw()
 	case FADE_STATE::FADE_IN:
 		if (g_Fade.fadecolor.w < 0.0)
 		{
-			// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³çµ‚äº†
+			// ƒtƒF[ƒhƒCƒ“I—¹
 			g_Fade.fadecolor.w = 0.0f;
 			g_Fade.state = FADE_STATE::FADE_NONE;
 		}
@@ -67,19 +67,19 @@ void Fade_Draw()
 	case FADE_STATE::FADE_OUT:
 		if (g_Fade.fadecolor.w > 1.0f)
 		{
-			// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆçµ‚äº†
+			// ƒtƒF[ƒhƒAƒEƒgI—¹
 			g_Fade.fadecolor.w = 1.0;
 
-			// ãƒ­ãƒ¼ãƒ‰ç”»é¢ã‚’ä½¿ç”¨ã™ã‚‹ã‹ã©ã†ã‹
+			// ƒ[ƒh‰æ–Ê‚ğg—p‚·‚é‚©‚Ç‚¤‚©
 			if (g_Fade.useLoading)
 			{
-				// ãƒ­ãƒ¼ãƒ‰ç”»é¢ä»˜ãã§ã‚·ãƒ¼ãƒ³é·ç§»(ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¦ãƒ³)
+				// ƒ[ƒh‰æ–Ê•t‚«‚ÅƒV[ƒ“‘JˆÚ(ƒtƒF[ƒhƒEƒ“)
 				g_Fade.state = FADE_STATE::FADE_NONE;
 				SetSceneWithLoading(g_Fade.scene, g_Fade.loadingVideo);
 			}
 			else
 			{
-				// é€šå¸¸ç‰ˆã‚·ãƒ¼ãƒ³é·ç§»
+				// ’Êí”ÅƒV[ƒ“‘JˆÚ
 				SetFade((int)g_Fade.frame, g_Fade.fadecolor, FADE_STATE::FADE_IN, g_Fade.scene);
 				SetScene(g_Fade.scene);
 			}
@@ -87,7 +87,7 @@ void Fade_Draw()
 		break;
 	}
 
-	// ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆè¡¨ç¤º
+	// ƒXƒvƒ‰ƒCƒg•\¦
 	Shader_Begin();
 
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
@@ -101,23 +101,23 @@ void Fade_Draw()
 		0.0f,
 		1.0f));
 
-	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã‚»ãƒƒãƒˆ
+	// ƒeƒNƒXƒ`ƒƒ‚ğƒZƒbƒg
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
 
-	// ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆæç”»
-	SetBlendState(BLENDSTATE_ALPHA);//Î±ãƒ–ãƒ¬ãƒ³ãƒ‰
+	// ƒXƒvƒ‰ƒCƒg•`‰æ
+	SetBlendState(BLENDSTATE_ALPHA);//ƒ¿ƒuƒŒƒ“ƒh
 	XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 	XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
 	DrawSprite(pos, size, g_Fade.fadecolor);
 
-	// ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†
+	// ƒtƒF[ƒhˆ—
 	switch (g_Fade.state)
 	{
 		case FADE_STATE::FADE_IN:
-			g_Fade.fadecolor.w -= (1.0f / g_Fade.frame);	// é€æ˜ã«ã—ã¦ã„ã
+			g_Fade.fadecolor.w -= (1.0f / g_Fade.frame);	// “§–¾‚É‚µ‚Ä‚¢‚­
 			break;
 		case FADE_STATE::FADE_OUT:
-			g_Fade.fadecolor.w += (1.0f / g_Fade.frame);	// ä¸é€æ˜ã«ã—ã¦ã„ã
+			g_Fade.fadecolor.w += (1.0f / g_Fade.frame);	// •s“§–¾‚É‚µ‚Ä‚¢‚­
 			break;
 	}
 
@@ -133,23 +133,23 @@ void SetFade(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene)
 
 	if (g_Fade.state == FADE_IN)
 	{
-		g_Fade.fadecolor.w = 1.0f;	// ä¸é€æ˜ã«ã™ã‚‹
+		g_Fade.fadecolor.w = 1.0f;	// •s“§–¾‚É‚·‚é
 	}
 	else
 	{
-		g_Fade.fadecolor.w = 0.0f;	// é€æ˜ã«ã™ã‚‹
+		g_Fade.fadecolor.w = 0.0f;	// “§–¾‚É‚·‚é
 	}
 }
 
-// ãƒ­ãƒ¼ãƒ‰ç”»é¢ä»˜ããƒ•ã‚§ãƒ¼ãƒ‰
+// ƒ[ƒh‰æ–Ê•t‚«ƒtƒF[ƒh
 void SetFadeWithLoading(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene, const wchar_t* videoPath)
 {
 	g_Fade.frame = (float)fadeframe;
 	g_Fade.fadecolor = color;
 	g_Fade.state = state;
 	g_Fade.scene = scene;
-	g_Fade.useLoading = true;        // ãƒ­ãƒ¼ãƒ‰ç”»é¢ã‚ã‚Š
-	g_Fade.loadingVideo = videoPath; // å‹•ç”»ãƒ‘ã‚¹
+	g_Fade.useLoading = true;        // ƒ[ƒh‰æ–Ê‚ ‚è
+	g_Fade.loadingVideo = videoPath; // “®‰æƒpƒX
 
 	if (g_Fade.state == FADE_IN)
 	{
@@ -163,7 +163,7 @@ void SetFadeWithLoading(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE s
 
 FADE_STATE GetFadeState()
 {
-	return	g_Fade.state;	// ç¾åœ¨ã®çŠ¶æ…‹
+	return	g_Fade.state;	// Œ»İ‚Ìó‘Ô
 }
 
 

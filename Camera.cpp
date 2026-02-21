@@ -89,8 +89,6 @@ void Camera_Finalize()
 
 void Camera_Update()
 {
-
-
 	if(cameraMode == CAMERAMODE_MANUAL)
 	{
 		XMFLOAT3 vec = {};

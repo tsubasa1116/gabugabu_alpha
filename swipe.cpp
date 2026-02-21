@@ -1,7 +1,7 @@
-ï»¿//======================================================
+//======================================================
 //	swipe.cpp[]
 //
-//	åˆ¶ä½œè€…ï¼šç”°ä¸­ä½‘å¥ˆ			æ—¥ä»˜ï¼š2026//
+//	§ìÒF“c’†—C“Ş			“ú•tF2026//
 //======================================================
 
 #include	"swipe.h"
@@ -38,8 +38,8 @@ void Swipe_Finalize()
 
 void Swipe_Update()
 {
-    // sceneChanged ãƒ•ãƒ©ã‚°ãŒç«‹ã£ã¦ã„ãŸã‚‰ã“ã“ã§å®Ÿéš›ã«ã‚·ãƒ¼ãƒ³åˆ‡æ›¿ã‚’è¡Œã†
-    // ï¼ˆDraw ä¸­ã§ã¯ãªã Update ä¸­ã«è¡Œã†ã“ã¨ã§æç”»ç›´ä¸­ã®é‡ã„å‡¦ç†ã‚’é¿ã‘ã‚‹ï¼‰
+    // sceneChanged ƒtƒ‰ƒO‚ª—§‚Á‚Ä‚¢‚½‚ç‚±‚±‚ÅÀÛ‚ÉƒV[ƒ“Ø‘Ö‚ğs‚¤
+    // iDraw ’†‚Å‚Í‚È‚­ Update ’†‚És‚¤‚±‚Æ‚Å•`‰æ’¼’†‚Ìd‚¢ˆ—‚ğ”ğ‚¯‚éj
     if (g_Swipe.sceneChanged)
     {
         g_Swipe.sceneChanged = false;
@@ -65,12 +65,12 @@ void Swipe_Draw()
     float x;
     if (t <= 1.0f)
     {
-        // â‘  å³ â†’ å·¦ ã«è¦†ã†
+        // ‡@ ‰E ¨ ¶ ‚É•¢‚¤
         x = w * (1.0f - t) + w / 2;
     }
     else
     {
-        // â‘¡ ãã®ã¾ã¾å·¦ã¸æŠœã‘ã‚‹
+        // ‡A ‚»‚Ì‚Ü‚Ü¶‚Ö”²‚¯‚é
         x = w * (-(t - 1.0f)) + w / 2;
     }
 
@@ -84,14 +84,14 @@ void Swipe_Draw()
         if (g_Swipe.progress >= 1.0f)
         {
             g_Swipe.progress = 1.0f;
-            // Draw ä¸­ã§ã¯ã‚·ãƒ¼ãƒ³åˆ‡æ›¿ã‚’å®Ÿè¡Œã›ãšã€ãƒ•ãƒ©ã‚°ã ã‘ç«‹ã¦ã‚‹
+            // Draw ’†‚Å‚ÍƒV[ƒ“Ø‘Ö‚ğÀs‚¹‚¸Aƒtƒ‰ƒO‚¾‚¯—§‚Ä‚é
             g_Swipe.sceneChanged = true;
             g_Swipe.state = SWIPE_IN;
         }
     }
     else if (g_Swipe.state == SWIPE_IN)
     {
-        g_Swipe.progress += speed;   // â˜… æ¸›ã‚‰ã•ãªã„
+        g_Swipe.progress += speed;   // š Œ¸‚ç‚³‚È‚¢
         if (g_Swipe.progress >= 2.0f)
         {
             g_Swipe.state = SWIPE_NONE;
@@ -112,5 +112,5 @@ void SetSwipe(float frame, XMFLOAT4 color, SWIPE_STATE state, SCENE scene)
 
 SWIPE_STATE	GetSwipeState()
 {
-    return	g_Swipe.state;	//ç¾åœ¨ã®çŠ¶æ…‹
+    return	g_Swipe.state;	//Œ»İ‚Ìó‘Ô
 }
