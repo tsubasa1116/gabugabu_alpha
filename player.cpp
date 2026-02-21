@@ -1067,17 +1067,11 @@ void Player_Update()
 				continue;
 			}
 
-			// --- 六角柱コライダーの準備 ---
-			HexCollider hex;
-			hex.center = fieldObjects[j].pos;		// -1
-			hex.radius = fieldObjects[j].radius;	// 1
-			hex.height = fieldObjects[j].height;	// 3.0
-
 			// プレイヤーのAABB（体の一部）が六角柱に乗っているか
-			if (CheckAABBHexCollision(player[p].boundingBox, hex))
+			if (CheckAABBHexCollision(player[p].boundingBox, fieldObjects[j].boundingBox))
 			{
 				// タイルの上面のY座標を計算
-				float tileTopY = fieldObjects[j].pos.y + (hex.height / 2.0f);	// -1 + 1.5 = 0.5
+				float tileTopY = fieldObjects[j].pos.y + (fieldObjects[j].boundingBox.height / 2.0f);	// -1 + 1.5 = 0.5
 
 				// プレイヤーの底面がタイルの上面以下か
 				if (player[p].boundingBox.Min.y <= tileTopY)

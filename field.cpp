@@ -499,7 +499,6 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		for (int j = 0; j < fieldCount; ++j)
 		{
 			if (!fieldObjects[j].isActive) continue;
-			//HexCollider hex{ fieldObjects[j].pos, fieldObjects[j].radius, fieldObjects[j].height };
 			Debug_DrawHex(Map[j].boundingBox, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 		}
 
@@ -578,10 +577,9 @@ void Field_Update(void)
 			continue; // この先の描画処理をスキップ
 		}
 
-		HexCollider hex;
-		hex.center = Map[i].pos;		// -1
-		hex.radius = Map[i].radius;		// 1
-		hex.height = Map[i].height;		// 3.0
+		Map[i].boundingBox.center = Map[i].pos;			// -1
+		Map[i].boundingBox.radius = Map[i].radius;		// 1
+		Map[i].boundingBox.height = Map[i].height;		// 3.0
 
 
 
