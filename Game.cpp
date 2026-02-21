@@ -169,6 +169,7 @@ void Game_Update()
 	// ------------------------------------
 	// �X�V����
 	// ------------------------------------
+
 	Player_Update();
 	Field_Update();
 	Effect_Update();
@@ -179,7 +180,7 @@ void Game_Update()
 	//P_Update();
 	//Score_Update();
 	DamageText_Update();
-
+	
 	//�Q�[���V�[���֑J��
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{

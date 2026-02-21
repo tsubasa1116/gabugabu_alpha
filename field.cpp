@@ -39,12 +39,15 @@ static	ID3D11DeviceContext* g_pContext = NULL;
 
 // FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
-#define FIELD_TEX_MAX (1)
+#define FIELD_TEX_MAX (4)
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
 	L"Asset\\Texture\\texturefieldConcrete02_v1.png",  // 0
-	
+	L"Asset\\Texture\\texturefieldTree02_v1.png",  // 1
+	L"Asset\\Texture\\texturefieldTree01_v1.png",  
+	L"Asset\\Texture\\texturefieldConcrete03_v1.png",
+	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
 
 
@@ -69,7 +72,7 @@ static const char* g_ModelName1[] = {
 MAPDATA Map[] =
 {
 	// ===== 地面・特殊 =====			 
-	{ {},{}, FIELD::FIELD_Electricity,1}, // 1kaku
+	{ {},{}, FIELD::FIELD_Electricity,}, // 1kaku
 	{ {},{}, FIELD::FIELD_Electricity,0}, // 2kaku
 	{ {},{}, FIELD::FIELD_Plant,2},           // 3kaku
 	{ {},{}, FIELD::FIELD_Electricity,0},           // 4kaku
@@ -131,7 +134,7 @@ MAPDATA Map[] =
 	// ===== BOX 50 =====
 	{ {},{}, FIELD::FIELD_Electricity }, // 51
 	{ {},{}, FIELD::FIELD_Concrete }, // 52 右下デカい建物
-	{ {},{}, FIELD::FIELD_Plant,4}, // 53左下デカい
+	{ {},{}, FIELD::FIELD_Plant,}, // 53左下デカい
 	{ {},{}, FIELD::FIELD_Electricity}, // 54
 	{ {},{}, FIELD::FIELD_Plant,2}, // 55
 	{ {},{}, FIELD::FIELD_Glass,3}, // 56
@@ -431,12 +434,7 @@ void Field_Finalize(void)
 	Building_Finalize();
 }
 
-//======================================================
-//	描画関数
-//======================================================
-//======================================================
-//	描画関数
-//======================================================
+
 //======================================================
 //	描画関数
 //======================================================
@@ -506,7 +504,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		switch (Map[i].no)
 		{
 		case FIELD::FIELD_Plant:
-			texIndex = 0;
+			texIndex = 2;
 			break;
 
 		case FIELD::FIELD_Concrete:
@@ -522,7 +520,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			break;
 
 		case FIELD::FIELD_BOX:
-			texIndex = 0;
+			texIndex = 3;
 			break;
 
 		default:

@@ -1,4 +1,3 @@
-
 // SkyBall.cpp
 
 #include <d3d11.h>
@@ -8,7 +7,6 @@ using namespace DirectX;
 #include "shader.h"
 #include "Camera.h"
 #include "SkyBall.h"
-
 
 #define SKYBALL_ROTATION_SPEED	(2.0f / 60.0f)  // １フレーム当たりの回転角度
 static SkyBallObject		g_SkyBall;	// BALLオブジェクト
