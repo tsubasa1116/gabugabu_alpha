@@ -623,7 +623,7 @@ void Special_Plant_Update(int playerIndex)
 
 	if (!g_plantInitialized[playerIndex])
 	{
-		Effect_Set(24, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
+		Effect_Set(22, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
 		g_plantInitialized[playerIndex] = true;
 	}
 

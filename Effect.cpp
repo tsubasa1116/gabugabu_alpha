@@ -102,9 +102,9 @@ static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
 	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // 進化2 進化1の直後に使用
 	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // 撃墜
 	 { 32,     0,    30,   true,  0.8f,       4,     0.0f,     0.0f,       0.0f }, // UI 毒状態
-	 { 64,     0,    64,   true,  0.3f,       8,     0.0f,     0.0f,       0.0f },
 	 { 32,     0,    30,   true,  0.8f,       4,     0.0f,     0.0f,       0.0f },
 	 { 32,     0,    30,   true,  0.8f,       4,     0.0f,     0.0f,       0.0f },
+	 { 1,      0,     0,   true,  0.0f,       1,     0.9f,     1.0f,       2.5f },
 	 { 32,     0,    30,   true,  0.8f,       4,     0.0f,     0.0f,       0.0f },
 	 { 1,      0,     0,   true,  0.0f,       1,     0.9f,     1.0f,       2.5f }
 };
@@ -172,9 +172,9 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(20, L"Asset\\Texture\\effectEgg_v3.png");				// リスポーン 卵
 	Effect_LoadTexture(21, L"Asset\\Texture\\effectVenomExplosion_v2.png");		// スペシャル 植物 毒煙
 
-	Effect_LoadTexture(24, L"Asset\\Texture\\uiPoison_vx.png");
-	Effect_LoadTexture(25, L"Asset\\Texture\\uiOrbit_v1.png");
-	Effect_LoadTexture(26, L"Asset\\Texture\\special.png");
+	Effect_LoadTexture(22, L"Asset\\Texture\\uiPoison_vx.png");
+	Effect_LoadTexture(23, L"Asset\\Texture\\uiOrbit_v1.png");
+	Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
@@ -598,6 +598,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 	}
 }
 
+
 //===============================================
 //　エフェクトセット
 //===============================================
@@ -606,13 +607,27 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex)
 	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
 	if (!g_Texture[texNo]) return;
 
+	// 同じtexNo,playerIndexが既にあるならそれを再利用
 	int slot = -1;
 	for (int i = 0; i < EFFECT_MAX; ++i)
 	{
-		if (!effect[i].enable)
+		if (!effect[i].enable) continue;
+		if (effect[i].texNo != texNo) continue;
+		if (effect[i].playerIndex != playerIndex) continue;
+		slot = i;
+		break;
+	}
+
+	// 空きがない場合は空きスロットを探す
+	if (slot < 0)
+	{
+		for (int i = 0; i < EFFECT_MAX; ++i)
 		{
-			slot = i;
-			break;
+			if (!effect[i].enable)
+			{
+				slot = i;
+				break;
+			}
 		}
 	}
 
@@ -621,13 +636,14 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex)
 	effect[slot].enable = true;
 	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
 	effect[slot].size = size;
-	effect[slot].baseSize = size;          // 基準サイズを保存
-	effect[slot].frameCnt = 0;
+	effect[slot].baseSize = size;
+	effect[slot].frameCnt = 0.0f;
 	effect[slot].texNo = texNo;
 	effect[slot].playerIndex = playerIndex;
 	effect[slot].scaleTimer = 0.0f;
 	effect[slot].scaleGrowing = true;
 }
+
 
 //===============================================
 //　エフェクト消去

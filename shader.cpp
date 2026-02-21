@@ -350,25 +350,25 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	const wchar_t* skillOver[4] =
 	{
-		L"asset/texture/icon_growth.png",
-		L"asset/texture/icon_barrier.png",
 		L"asset/texture/icon_thorn.png",
+		L"asset/texture/icon_barrier.png",
+		L"asset/texture/icon_growth.png",
 		L"asset/texture/icon_speed.png"
 	};
 
 	const wchar_t* skillUnder[4] =
 	{
-		L"asset/texture/cool_growth.png",
-		L"asset/texture/cool_barrier.png",
 		L"asset/texture/cool_thorn.png",
+		L"asset/texture/cool_barrier.png",
+		L"asset/texture/cool_growth.png",
 		L"asset/texture/cool_speed.png"
 	};
 
 	const wchar_t* skillText[4] =
 	{
-		L"asset/texture/text_growth.png",
-		L"asset/texture/text_barrier.png",
 		L"asset/texture/text_thorn.png",
+		L"asset/texture/text_barrier.png",
+		L"asset/texture/text_growth.png",
 		L"asset/texture/text_speed.png"
 	};
 
