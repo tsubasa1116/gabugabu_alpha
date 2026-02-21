@@ -500,9 +500,8 @@ void Special_Glass_Update(int playerIndex)
 		player.form = Form::First;			// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;		// タイプをリセット
 		player.useSkill = false;			// スキル解除
-		player.useSpecial = false;			// スペシャル解除
-        Effect_ClearUI(playerIndex);          // エフェクトクリア
-		player.isTypeFixed = false;         // タイプ固定解除
+		Effect_ClearUI(playerIndex);		// エフェクトクリア
+		player.isTypeFixed = false;			// タイプ固定解除
 	}
 }
 
@@ -535,8 +534,6 @@ void Special_Concrete_Update(int playerIndex)
 		// 着地処理
 		player.position.y = player.oldPosition.y + (3.0f * (1.0f - (player.specialTimer - 0.75f) / 0.15f)); // 線形補間でY座標を上げる
 		if (player.position.y <= player.oldPosition.y)	player.position.y = player.oldPosition.y;
-
-
 
 		// ダメージ処理（1回だけ実行）
 		if (player.specialTimer - DELTA_TIME < 0.75f) // 0.75秒を超えた瞬間に実行
@@ -592,7 +589,6 @@ void Special_Concrete_Update(int playerIndex)
 		player.type = PlayerType::None;
 		player.defense = 1.0f;
 		player.useSkill = false;
-		player.useSpecial = false;
 		Effect_Clear(playerIndex);
 		player.isTypeFixed = false;
 
@@ -658,10 +654,10 @@ void Special_Plant_Update(int playerIndex)
 		player.specialTimer = 0.0f;
 		g_animFrame[playerIndex] = 0;
 		g_animTimer[playerIndex] = 0.0f;
-		player.evolutionGaugeRate = 1.0f;
-		player.useSkill = false;			// スキル解除
 		player.form = Form::First;			// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;		// タイプをリセット
+		player.useSkill = false;			// スキル解除
+		player.evolutionGaugeRate = 0.3f;
 		Effect_ClearUI(playerIndex);
 		player.isTypeFixed = false;
 		Effect_Clear(playerIndex);
@@ -750,13 +746,12 @@ void Special_Electricity_Update(int playerIndex)
 		g_animFrame[playerIndex] = 0;		// アニメーションリセット
 		g_animTimer[playerIndex] = 0.0f;
 		initialized[playerIndex] = false;	// 次回のスペシャル使用時に再初期化するため
-		//player.form = Form::First;			// 変身形態を第1形態に戻す
-		//player.type = PlayerType::None;		// タイプをリセット
-		player.speed = 0.06f;				// スキルのスピードバフもリセット
+		player.form = Form::First;			// 変身形態を第1形態に戻す
+		player.type = PlayerType::None;		// タイプをリセット
 		player.useSkill = false;			// スキル解除
-		player.useSpecial = false;			// スペシャル解除
-		Effect_ClearUI(playerIndex);          // エフェクトクリア
-		player.isTypeFixed = false;         // タイプ固定解除
+		player.speed = 0.06f;				// スキルのスピードバフもリセット
+		Effect_ClearUI(playerIndex);		// エフェクトクリア
+		player.isTypeFixed = false;			// タイプ固定解除
 	}
 }
 
