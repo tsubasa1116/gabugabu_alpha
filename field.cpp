@@ -72,7 +72,7 @@ static const char* g_ModelName1[] = {
 MAPDATA Map[] =
 {
 	// ===== 地面・特殊 =====			 
-	{ {},{}, FIELD::FIELD_Electricity,}, // 1kaku
+	{ {},{}, FIELD::FIELD_Electricity,1}, // 1kaku
 	{ {},{}, FIELD::FIELD_Electricity,0}, // 2kaku
 	{ {},{}, FIELD::FIELD_Plant,2},           // 3kaku
 	{ {},{}, FIELD::FIELD_Electricity,0},           // 4kaku
@@ -134,7 +134,7 @@ MAPDATA Map[] =
 	// ===== BOX 50 =====
 	{ {},{}, FIELD::FIELD_Electricity }, // 51
 	{ {},{}, FIELD::FIELD_Concrete }, // 52 右下デカい建物
-	{ {},{}, FIELD::FIELD_Plant,}, // 53左下デカい
+	{ {},{}, FIELD::FIELD_Plant,5}, // 53左下デカい
 	{ {},{}, FIELD::FIELD_Electricity}, // 54
 	{ {},{}, FIELD::FIELD_Plant,2}, // 55
 	{ {},{}, FIELD::FIELD_Glass,3}, // 56
