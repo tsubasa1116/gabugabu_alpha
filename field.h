@@ -3,6 +3,7 @@
 //======================================================
 #pragma once
 
+
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include "direct3d.h"
@@ -50,6 +51,9 @@ struct MAPDATA
 	// ˜ZŠpŒ`“–‚½‚è”»’è—p
 	float radius = 3.0f;
 	float height = 2.25f;
+
+	float respawnTimer;
+	float respawnTimeMax;
 };
 
 //======================================================

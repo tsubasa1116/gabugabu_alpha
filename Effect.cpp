@@ -7,13 +7,14 @@
 #include "player.h"
 #include "Camera.h"
 #include "debug_render.h"
+#include "Building.h"
 
 #define EFFECT_SPRITE_X		(8)
 #define EFFECT_SPRITE_Y		(8)
 #define EFFECT_FRAME_MAX	(64)
 #define EFFECT_SPEED		(2.5f)
-#define EFFECT_TEX_MAX		(22)
-#define EFFECT_MAX			(22)
+#define EFFECT_TEX_MAX		(30)
+#define EFFECT_MAX			(30)
 
 // 頂点配列
 static Vertex2 effect_vdata[PLAYER_VERTEX] =
@@ -74,7 +75,39 @@ static bool g_EffectLoopFlag = false;
 
 static int   g_animFrame[PLAYER_MAX] = { 0 };
 static float g_animTimer[PLAYER_MAX] = { 0.0f };
-static const float ANIM_FRAME_TIME = 0.05f;	// 1フレームあたりの秒数
+static const float ANIM_FRAME_TIME = 0.16f;	// 1フレームあたりの秒数
+
+// テクスチャ番号ごとの設定
+static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
+   // max, loopS, loopE, isLoop, speed, sprintY, scaleMin, scaleMax, scaleSpeed
+	 { 32,     0,    30,   true,  1.5f,       8,     0.0f,     0.0f,       0.0f },
+	 { 32,     0,    30,   true,  1.5f,       8,     0.0f,     0.0f,       0.0f },
+	 { 32,     0,    30,   true,  1.5f,       8,     0.0f,     0.0f,       0.0f },
+	 { 32,     0,    30,   true,  1.5f,       8,     0.0f,     0.0f,       0.0f },
+	 { 32,     0,    30,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },
+	 { 32,     0,    30,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },
+	 { 32,     0,    30,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },
+	 { 32,     0,    30,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // スキル ガラス・コンクリート
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // スキル 植物
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // スキル 電気
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // 毒状態
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // ヒット コンクリートの建物・プレイヤーを攻撃した時
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // ヒット 電気・ガラス・植物の建物を攻撃した時
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // スペシャル コンクリート 地面の衝撃波
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // スペシャル 電気 衝撃波
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // 建物 煙 20%破壊
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // 建物 煙 50%破壊
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // 進化1
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // 進化2 進化1の直後に使用
+	 { 64,     -1,   -1,   true,  1.0f,       8,     0.0f,     0.0f,       0.0f },  // 撃墜
+	 { 32,     0,    30,   true,  0.8f,       4,     0.0f,     0.0f,       0.0f }, // UI 毒状態
+	 { 64,     0,    64,   true,  0.3f,       8,     0.0f,     0.0f,       0.0f },
+	 { 32,     0,    30,   true,  0.8f,       4,     0.0f,     0.0f,       0.0f },
+	 { 32,     0,    30,   true,  0.8f,       4,     0.0f,     0.0f,       0.0f },
+	 { 32,     0,    30,   true,  0.8f,       4,     0.0f,     0.0f,       0.0f },
+	 { 1,      0,     0,   true,  0.0f,       1,     0.9f,     1.0f,       2.5f }
+};
 
 //===============================================
 //　テクスチャセット用関数
@@ -109,6 +142,9 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		effect[i].size = XMFLOAT2(0, 0);
 		effect[i].frameCnt = 0;
 		effect[i].texNo = 0;
+		effect[i].playerIndex = -1;
+		effect[i].scaleTimer = 0.0f;
+		effect[i].scaleGrowing = true;
 	}
 
 	// UI画面
@@ -121,19 +157,24 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(6, L"Asset\\Texture\\uiLightBigTree_v1.png");			// 第3形態 植物
 	Effect_LoadTexture(7, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// 第3形態 電気
 	// ゲーム内
-	Effect_LoadTexture(8, L"Asset\\Texture\\effectSkillGlassConcrete_v3.png");	// スキル ガラス・コンクリート
+	Effect_LoadTexture(8, L"Asset\\Texture\\effectSkillGlassConcrete_v4.png");	// スキル ガラス・コンクリート 回復
 	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v2.png");			// スキル 植物
 	Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// スキル 電気
-	Effect_LoadTexture(11, L"Asset\\Texture\\effectPoison_v2.png");				// 毒状態
+	Effect_LoadTexture(11, L"Asset\\Texture\\effectPoison_v3.png");				// 毒・Aボタン・プレイヤーの影
 	Effect_LoadTexture(12, L"Asset\\Texture\\effectHit01_v2.png");				// ヒット コンクリートの建物・プレイヤーを攻撃した時
 	Effect_LoadTexture(13, L"Asset\\Texture\\effectHit02_v2.png");				// ヒット 電気・ガラス・植物の建物を攻撃した時
-	Effect_LoadTexture(14, L"Asset\\Texture\\effectSPConcrete_v1.png");			// スペシャル コンクリート 地面の衝撃波
-	Effect_LoadTexture(15, L"Asset\\Texture\\effectShockwave_v1.png");			// 
-	Effect_LoadTexture(16, L"Asset\\Texture\\effectSmoke_20per.png");			// 建物 煙 20%破壊
-	Effect_LoadTexture(17, L"Asset\\Texture\\effectSmoke_50per.png");			// 建物 煙 50%破壊
-	Effect_LoadTexture(18, L"Asset\\Texture\\effectEvolution01_v1.png");		// 進化1
-	Effect_LoadTexture(19, L"Asset\\Texture\\effectEvolution02_v1.png");		// 進化2 進化1の直後に使用
-	Effect_LoadTexture(20, L"Asset\\Texture\\effectWin_v1.png");				// 撃墜
+	Effect_LoadTexture(14, L"Asset\\Texture\\effectShockwave_v1.png");			// 
+	Effect_LoadTexture(15, L"Asset\\Texture\\effectSmoke_20per.png");			// 建物 煙 20%破壊
+	Effect_LoadTexture(16, L"Asset\\Texture\\effectSmoke_50per.png");			// 建物 煙 50%破壊
+	Effect_LoadTexture(17, L"Asset\\Texture\\effectEvolution01_v1.png");		// 進化1
+	Effect_LoadTexture(18, L"Asset\\Texture\\effectEvolution02_v1.png");		// 進化2 進化1の直後に使用
+	Effect_LoadTexture(19, L"Asset\\Texture\\effectWin_v1.png");				// 撃墜
+	Effect_LoadTexture(20, L"Asset\\Texture\\effectEgg_v3.png");				// リスポーン 卵
+	Effect_LoadTexture(21, L"Asset\\Texture\\effectVenomExplosion_v2.png");		// スペシャル 植物 毒煙
+
+	Effect_LoadTexture(24, L"Asset\\Texture\\uiPoison_vx.png");
+	Effect_LoadTexture(25, L"Asset\\Texture\\uiOrbit_v1.png");
+	Effect_LoadTexture(26, L"Asset\\Texture\\special.png");
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
@@ -166,7 +207,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		CopyMemory(&index[0], &effect_idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
-	// デバッグレンダラー初期化
+	// デバッグレンダラー初期化 
 	Debug_Initialize(pDevice, pContext);
 
 	// アニメーションの初期化
@@ -198,34 +239,44 @@ void Effect_Finalize()
 //===============================================
 void Effect_Update()
 {
-	g_EffectTimer++;
+	const float deltaTime = 1.0f / 60.0f; // フレーム時間
 
-	if (g_EffectTimer >= EFFECT_SPEED)
+	for (int i = 0; i < EFFECT_MAX; ++i)
 	{
-		g_EffectTimer = 0;
-		g_EffectFrame++;
+		if (!effect[i].enable) continue;
 
-		if (!g_EffectLoopFlag)
+		int texNo = effect[i].texNo;
+		const EffectConfig& config = g_EffectConfigs[texNo];
+
+		// フレームを進める
+		effect[i].frameCnt += (1.0f / EFFECT_SPEED) * config.speed;
+
+		// ループor終了判定
+		if (config.isLoop)
 		{
-			g_EffectTimer++;
-			if (g_EffectFrame > 29)
+			if (effect[i].frameCnt >= config.loopEnd)
 			{
-				g_EffectLoopFlag = true;
-				g_EffectFrame = 32;
-			}
-			if (g_EffectFrame >= EFFECT_FRAME_MAX)
-			{
-				g_EffectFrame = 0;
+				effect[i].frameCnt = (float)config.loopStart;
 			}
 		}
 		else
 		{
-			// ループ
-			g_EffectFrame++;
-			if (g_EffectFrame >= 61)
+			if (effect[i].frameCnt >= config.loopEnd)
 			{
-				g_EffectFrame = 32;
+				effect[i].enable = false;
 			}
+		}
+
+		// スケーリングアニメーション
+		if (config.scaleSpeed > 0.0f)
+		{
+			// サイン波で滑らかに拡大縮小
+			effect[i].scaleTimer += deltaTime * config.scaleSpeed;
+			float t = (sinf(effect[i].scaleTimer) + 1.0f) * 0.5f; // 0.0〜1.0
+			float scale = config.scaleMin + (config.scaleMax - config.scaleMin) * t;
+
+			effect[i].size.x = effect[i].baseSize.x * scale;
+			effect[i].size.y = effect[i].baseSize.y * scale;
 		}
 	}
 }
@@ -235,25 +286,8 @@ void Effect_Update()
 //===============================================
 void Effect_Draw()
 {
-	if (g_CurrentTexNo < 0 || g_CurrentTexNo >= EFFECT_TEX_MAX) return;
-	ID3D11ShaderResourceView* tex = g_Texture[g_CurrentTexNo];
-	if (!tex) return;
-
-	int fx = g_EffectFrame % EFFECT_SPRITE_X;
-	int fy = g_EffectFrame / EFFECT_SPRITE_X;
-
-	float u = 1.0f / EFFECT_SPRITE_X;
-	float v = 1.0f / EFFECT_SPRITE_Y;
-
-	XMFLOAT2 uvMin = { fx * u, fy * v };
-	XMFLOAT2 uvMax = { uvMin.x + u, uvMin.y + v };
-
-	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
 	Shader_BeginUI();
-
-	Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
-
 	SetBlendState(BLENDSTATE_ALPHA);
 
 	for (int i = 0; i < EFFECT_MAX; ++i)
@@ -265,14 +299,44 @@ void Effect_Draw()
 		ID3D11ShaderResourceView* tex = g_Texture[texNo];
 		if (!tex) continue;
 
-		XMFLOAT2 pos = { effect[i].pos.x, effect[i].pos.y };
-		XMFLOAT2 size = effect[i].size;
+		const EffectConfig& config = g_EffectConfigs[texNo];
+		int currentFrame = (int)effect[i].frameCnt;
 
-		g_pContext->PSSetShaderResources(0, 1, &tex);
-		DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
+		if (config.spriteY == 1)
+		{
+			// UV座標全体を使用
+			XMFLOAT2 uvMin = { 0.0f, 0.0f };
+			XMFLOAT2 uvMax = { 1.0f, 1.0f };
+
+			XMFLOAT2 pos = { effect[i].pos.x, effect[i].pos.y };
+			XMFLOAT2 size = effect[i].size;
+
+			g_pContext->PSSetShaderResources(0, 1, &tex);
+			DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
+		}
+		else
+		{
+			int fx = currentFrame % EFFECT_SPRITE_X;
+			int fy = currentFrame / EFFECT_SPRITE_X;
+
+			float u = 1.0f / (float)EFFECT_SPRITE_X;
+			float v = 1.0f / (float)config.spriteY;
+
+			XMFLOAT2 uvMin = { fx * u, fy * v };
+			XMFLOAT2 uvMax = { uvMin.x + u, uvMin.y + v };
+
+			XMFLOAT2 pos = { effect[i].pos.x, effect[i].pos.y };
+			XMFLOAT2 size = effect[i].size;
+
+			g_pContext->PSSetShaderResources(0, 1, &tex);
+			DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
+		}
 	}
 }
 
+// ===============================================
+// プレイヤー付近に表示するエフェクト更新関数
+// ===============================================
 void Effect_UpdateForPlayer(int playerIndex)
 {
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -280,9 +344,17 @@ void Effect_UpdateForPlayer(int playerIndex)
 	PLAYEROBJECT& player = *playerObject;
 
 	// 進化エフェクト
-	if (player.isInvincible)
+	static bool evolutuionFrameInitialized[PLAYER_MAX] = { false };
+
+	if (player.isEvolving)
 	{
-		auto& anim = g_effectAnim[playerIndex];
+		if (!evolutuionFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].evolutionFrame = 0;
+			evolutuionFrameInitialized[playerIndex] = true;
+		}
+
+		auto& anim = g_PlayerEffectAnim[playerIndex];
 		anim.evolutionTimer += DELTA_TIME;
 		if (anim.evolutionPhase == 0)
 		{
@@ -291,7 +363,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		}
 		if (anim.evolutionPhase == 1)
 		{
-			if (anim.evolutionTimer >= ANIM_FRAME_TIME)
+			if (anim.evolutionTimer >= 0.03f)
 			{
 				anim.evolutionTimer = 0.0f;
 				anim.evolutionFrame++;
@@ -304,7 +376,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		}
 		else if (anim.evolutionPhase == 2)
 		{
-			if (anim.evolutionTimer >= ANIM_FRAME_TIME)
+			if (anim.evolutionTimer >= 0.03f)
 			{
 				anim.evolutionTimer = 0.0f;
 				anim.evolutionFrame++;
@@ -316,70 +388,275 @@ void Effect_UpdateForPlayer(int playerIndex)
 			}
 		}
 	}
-	// スキルエフェクト（進化中は更新しない）
+	else
+	{
+		evolutuionFrameInitialized[playerIndex] = false;
+		g_PlayerEffectAnim[playerIndex].evolutionPhase = 0;
+		g_PlayerEffectAnim[playerIndex].evolutionFrame = 0;
+	}
+
+	// スキルエフェクト （進化エフェクト中は更新しない）
 	static bool skillFrameInitialized[PLAYER_MAX] = { false };
 
-	if (player.useSkill && !player.isInvincible)
+	if (player.useSkill && !player.isEvolving)
 	{
-		// Glassタイプのみ途中フレームから開始
-		if (player.type == PlayerType::Glass)
+		int skillStart = 0;
+		int skillEnd = 0;
+		bool useLoopRange = false;
+
+		switch (player.type)
 		{
+		case PlayerType::Glass:
+			skillStart = 8;
+			skillEnd = 15;
 			if (!skillFrameInitialized[playerIndex])
 			{
-				g_effectAnim[playerIndex].skillFrame = 8; // 8からスタート
+				g_PlayerEffectAnim[playerIndex].skillFrame = skillStart;
 				skillFrameInitialized[playerIndex] = true;
 			}
+			break;
+		case PlayerType::Concrete:
+			skillStart = 0;
+			skillEnd = 7;
+			break;
+		case PlayerType::Plant:
+			useLoopRange = true;
+			skillStart = 0;
+			skillEnd = 54;
+			break;
+		case PlayerType::Electricity:
+			useLoopRange = true;
+			skillStart = 0;
+			skillEnd = 62;
+			break;
+		default:
+			break;
 		}
-		else	skillFrameInitialized[playerIndex] = false;
+		if (player.type != PlayerType::Glass)	skillFrameInitialized[playerIndex] = false;
 
-		g_effectAnim[playerIndex].skillTimer += DELTA_TIME;
-		if (g_effectAnim[playerIndex].skillTimer >= ANIM_FRAME_TIME)
+		g_PlayerEffectAnim[playerIndex].skillTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].skillTimer >= ANIM_FRAME_TIME)
 		{
-			g_effectAnim[playerIndex].skillTimer = 0.0f;
-			switch (player.type)
+			g_PlayerEffectAnim[playerIndex].skillTimer = 0.0f;
+			if (useLoopRange)	LoopRange(g_PlayerEffectAnim[playerIndex].skillFrame, skillStart, skillEnd, 1);
+			else
 			{
-			case PlayerType::Glass:			LoopRange(g_effectAnim[playerIndex].skillFrame, 8, 15, 1); break;
-			case PlayerType::Concrete:		LoopRange(g_effectAnim[playerIndex].skillFrame, 0,  7, 1); break;
-			case PlayerType::Plant:			LoopRange(g_effectAnim[playerIndex].skillFrame, 0, 54, 1); break;
-			case PlayerType::Electricity:	LoopRange(g_effectAnim[playerIndex].skillFrame, 0, 62, 1); break;
-			default: break;
+				if (g_PlayerEffectAnim[playerIndex].skillFrame < skillEnd)	g_PlayerEffectAnim[playerIndex].skillFrame++;
 			}
 		}
 	}
 	else	skillFrameInitialized[playerIndex] = false;
+
+	// スペシャルエフェクト
+	static bool specialFrameInitialized[PLAYER_MAX] = { false };
+
+	if (player.useSpecial)
+	{
+		if (!specialFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].specialFrame = 0;
+			specialFrameInitialized[playerIndex] = true;
+		}
+
+		switch (player.type)
+		{
+		case PlayerType::Glass:
+			break;
+		case PlayerType::Concrete:
+			break;
+		case PlayerType::Plant:
+			g_PlayerEffectAnim[playerIndex].specialTimer += DELTA_TIME;
+			if (g_PlayerEffectAnim[playerIndex].specialTimer >= 0.017f)
+			{
+				g_PlayerEffectAnim[playerIndex].specialTimer = 0.0f;
+				LoopRange(g_PlayerEffectAnim[playerIndex].specialFrame, 0, 63, 1);
+			}
+			break;
+		case PlayerType::Electricity:
+			break;
+		default:
+			break;
+		}
+	}
+	else	specialFrameInitialized[playerIndex] = false;
+
 	// 毒エフェクト
 	if (player.isPoisoned)
 	{
-		g_effectAnim[playerIndex].poisonTimer += DELTA_TIME;
-		if (g_effectAnim[playerIndex].poisonTimer >= ANIM_FRAME_TIME)
+		g_PlayerEffectAnim[playerIndex].poisonTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].poisonTimer >= ANIM_FRAME_TIME)
 		{
-			g_effectAnim[playerIndex].poisonTimer = 0.0f;
-			LoopRange(g_effectAnim[playerIndex].poisonFrame, 0, 49, 1);
+			g_PlayerEffectAnim[playerIndex].poisonTimer = 0.0f;
+			LoopRange(g_PlayerEffectAnim[playerIndex].poisonFrame, 0, 49, 1);
 		}
 	}
+
 	// 被弾エフェクト
 	static bool attackedFrameInitialized[PLAYER_MAX] = { false };
 
 	if (player.isAttacked)
 	{
-		if (!attackedFrameInitialized[playerIndex]) {
-			g_effectAnim[playerIndex].attackedFrame = 21; // 21からスタート
+		if (!attackedFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].attackedFrame = 21; // 21からスタート
 			attackedFrameInitialized[playerIndex] = true;
 		}
-		g_effectAnim[playerIndex].attackedTimer += DELTA_TIME;
-		if (g_effectAnim[playerIndex].attackedTimer >= ANIM_FRAME_TIME)
+		g_PlayerEffectAnim[playerIndex].attackedTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].attackedTimer >= 0.05f)
 		{
-			g_effectAnim[playerIndex].attackedTimer = 0.0f;
-			LoopRange(g_effectAnim[playerIndex].attackedFrame, 21, 37, 1);
+			g_PlayerEffectAnim[playerIndex].attackedTimer = 0.0f;
+			LoopRange(g_PlayerEffectAnim[playerIndex].attackedFrame, 21, 37, 1);
 		}
 	}
 	else	attackedFrameInitialized[playerIndex] = false;
+
+	// 回復エフェクト （進化エフェクト中は更新しない）
+	static bool healingFrameInitialized[PLAYER_MAX] = { false };
+
+	if (player.isHealing && !player.isEvolving)
+	{
+		if (!healingFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].healingFrame = 16; // 16からスタート
+			healingFrameInitialized[playerIndex] = true;
+		}
+
+		g_PlayerEffectAnim[playerIndex].healingTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].healingTimer >= ANIM_FRAME_TIME)
+		{
+			g_PlayerEffectAnim[playerIndex].healingTimer = 0.0f;
+			LoopRange(g_PlayerEffectAnim[playerIndex].healingFrame, 16, 45, 1);
+		}
+	}
+	else	healingFrameInitialized[playerIndex] = false;
+
+	// リスポーン卵エフェクト
+	static bool respawnFrameInitialized[PLAYER_MAX] = { false };
+	static bool eggBreakingFrameInitialized[PLAYER_MAX] = { false };
+	static bool eggBreakingFinished[PLAYER_MAX] = { false };
+
+	// isEggBreakingがtrueのとき、各プレイヤーごとに一回だけ再生
+	if (player.isEggBreaking && !eggBreakingFinished[playerIndex])
+	{
+		int start = playerIndex * 16 + 12;
+		int end = start + 3;
+
+		if (!eggBreakingFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].respawnFrame = start;
+			g_PlayerEffectAnim[playerIndex].respawnTimer = 0.0f;
+			eggBreakingFrameInitialized[playerIndex] = true;
+		}
+		g_PlayerEffectAnim[playerIndex].respawnTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].respawnTimer >= 0.1f)
+		{
+			g_PlayerEffectAnim[playerIndex].respawnTimer = 0.0f;
+			g_PlayerEffectAnim[playerIndex].respawnFrame++;
+			if (g_PlayerEffectAnim[playerIndex].respawnFrame > end)
+			{
+				g_PlayerEffectAnim[playerIndex].respawnFrame = end;
+				eggBreakingFinished[playerIndex] = true;
+			}
+		}
+		respawnFrameInitialized[playerIndex] = false; // ここでリセット
+	}
+
+	else if (player.duringRespawn)
+	{
+		eggBreakingFrameInitialized[playerIndex] = false;
+		eggBreakingFinished[playerIndex] = false;
+
+
+		// 各プレイヤーごとにループ範囲を決定
+		int start = playerIndex * 16;
+		int end = start + 11;
+
+		if (!respawnFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].respawnFrame = start;
+			g_PlayerEffectAnim[playerIndex].respawnTimer = 0.0f;
+			respawnFrameInitialized[playerIndex] = true;
+		}
+
+		g_PlayerEffectAnim[playerIndex].respawnTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].respawnTimer >= 0.1f)
+		{
+			g_PlayerEffectAnim[playerIndex].respawnTimer = 0.0f;
+			// ループ処理
+			g_PlayerEffectAnim[playerIndex].respawnFrame++;
+			if (g_PlayerEffectAnim[playerIndex].respawnFrame > end)
+			{
+				g_PlayerEffectAnim[playerIndex].respawnFrame = start;
+			}
+		}
+	}
+	else
+	{
+		respawnFrameInitialized[playerIndex] = false;
+		eggBreakingFrameInitialized[playerIndex] = false;
+		eggBreakingFinished[playerIndex] = false;
+	}
 }
 
 //===============================================
-//　セット関数
+//　エフェクトセット
 //===============================================
-void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
+void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex)
+{
+	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
+	if (!g_Texture[texNo]) return;
+
+	int slot = -1;
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable)
+		{
+			slot = i;
+			break;
+		}
+	}
+
+	if (slot < 0) return;
+
+	effect[slot].enable = true;
+	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
+	effect[slot].size = size;
+	effect[slot].baseSize = size;          // 基準サイズを保存
+	effect[slot].frameCnt = 0;
+	effect[slot].texNo = texNo;
+	effect[slot].playerIndex = playerIndex;
+	effect[slot].scaleTimer = 0.0f;
+	effect[slot].scaleGrowing = true;
+}
+
+//===============================================
+//　エフェクト消去
+//===============================================
+void Effect_Clear(int pIndex)
+{
+	if (pIndex < 0 || pIndex >= PLAYER_MAX) return;
+
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable) continue;
+
+		// エフェクトが指定プレイヤーのものなら消去
+		if (effect[i].playerIndex == pIndex)
+		{
+			effect[i].enable = false;
+			effect[i].pos = XMFLOAT3(0, 0, 0);
+			effect[i].size = XMFLOAT2(0, 0);
+			effect[i].frameCnt = 0;
+			effect[i].texNo = 0;
+			effect[i].playerIndex = -1;  // 無効な値にリセット
+		}
+	}
+}
+
+//===============================================
+//　プレイヤーUIセット関数
+//===============================================
+void Effect_SetUI(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
 {
 	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
 	if (!g_Texture[texNo]) return;
@@ -399,23 +676,26 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
 
 	effect[slot].enable = true;
 	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
-	effect[slot].size = size;
+	effect[slot].size = XMFLOAT2((size.x * SCREEN_ADJUST_X), (size.y * SCREEN_ADJUST_Y));
 	effect[slot].frameCnt = 0;
 	effect[slot].texNo = texNo;
 }
 
 //===============================================
-//　エフェクト消去
+//　プレイヤーUIエフェクト消去
 //===============================================
-void Effect_Clear(int pIndex)
+void Effect_ClearUI(int pIndex)
 {
+	float screenX = SCREEN_ADJUST_X;
+	float screenY = 620.0f * SCREEN_ADJUST_Y;
+
 	// プレイヤーごとのエフェクト位置
 	const XMFLOAT2 playerEffectPos[4] =
 	{
-		{  175.0f, 620.0f },	// プレイヤー1
-		{  490.0f, 620.0f },	// プレイヤー2
-		{  805.0f, 620.0f },	// プレイヤー3
-		{ 1120.0f, 620.0f }		// プレイヤー4
+			{  170.0f * screenX, screenY },	// プレイヤー1
+			{  490.0f * screenX, screenY },	// プレイヤー2
+			{  810.0f * screenX, screenY },	// プレイヤー3
+			{ 1130.0f * screenX, screenY }		// プレイヤー4
 	};
 
 	if (pIndex < 0 || pIndex >= 4) return;
@@ -426,7 +706,6 @@ void Effect_Clear(int pIndex)
 	{
 		if (!effect[i].enable) continue;
 
-		// 位置が一致するエフェクトを無効化
 		if (fabsf(effect[i].pos.x - targetPos.x) < 1.0f && fabsf(effect[i].pos.y - targetPos.y) < 1.0f)
 		{
 			effect[i].enable = false;
@@ -434,8 +713,10 @@ void Effect_Clear(int pIndex)
 	}
 }
 
-// プレイヤーの状態に応じて複数のテクスチャを条件付きで重ねて描画する
-void Effect_DrawForPlayer(int playerIndex)
+// ===============================================
+// プレイヤーの手前に表示するエフェクト描画関数
+// ===============================================
+void EffectFront_DrawForPlayer(int playerIndex)
 {
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
@@ -454,7 +735,8 @@ void Effect_DrawForPlayer(int playerIndex)
 	XMMATRIX view = GetViewMatrix();
 
 	const float spriteScale = 2.0f;
-	XMMATRIX ScalingMatrix = XMMatrixScaling(
+	XMMATRIX ScalingMatrix = XMMatrixScaling
+	(
 		player.scaling.x * spriteScale,
 		player.scaling.y * spriteScale,
 		player.scaling.z * spriteScale
@@ -507,55 +789,97 @@ void Effect_DrawForPlayer(int playerIndex)
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// --- 条件に応じて複数のテクスチャを指定 ---
-	std::vector<std::pair<int, int>> texNosAndFrames;
+	std::vector<std::tuple<int, int, float, XMFLOAT3>> texNosFramesScales;
 
-	// 進化 エフェクト
-	if (player.isInvincible)
+	// 進化エフェクト
+	if (player.isEvolving)
 	{
-		const auto& anim = g_effectAnim[playerIndex];
-		if (anim.evolutionPhase == 1)		texNosAndFrames.emplace_back(18, anim.evolutionFrame); // 進化1テクスチャ
-		else if (anim.evolutionPhase == 2)	texNosAndFrames.emplace_back(19, anim.evolutionFrame); // 進化2テクスチャ
+		const auto& anim = g_PlayerEffectAnim[playerIndex];
+			 if (anim.evolutionPhase == 1) texNosFramesScales.emplace_back(17, anim.evolutionFrame, 3.0f, XMFLOAT3(0,-0.2f,0));
+		else if (anim.evolutionPhase == 2) texNosFramesScales.emplace_back(18, anim.evolutionFrame, 3.0f, XMFLOAT3(0,-0.2f,0));
 	}
-	// スキル エフェクト 進化中は描画しない
-	else if (player.useSkill)
+	// 進化中はスキルエフェクト・回復エフェクト非表示
+	else
 	{
-		int texNo = -1;
-		switch (player.type)
+		// スキルエフェクト
+		if (player.useSkill)
 		{
-		case PlayerType::Glass:			texNo = 8;	break;
-		case PlayerType::Concrete:		texNo = 8;	break;
-		case PlayerType::Plant:			texNo = 9;	break;
-		case PlayerType::Electricity:	texNo = 10;	break;
-		default: break;
+			int texNo = -1;
+			float scale = 1.0f;
+			XMFLOAT3 offset(0, 0, 0);
+			switch (player.type)
+			{
+			case PlayerType::Glass:			texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Concrete:		texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Plant:			texNo = 9;	scale = 1.0f; offset = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Electricity:	texNo = 10;	scale = 1.5f; offset = XMFLOAT3(0, 0, 0); break;
+			default: break;
+			}
+			if (texNo >= 0) texNosFramesScales.emplace_back(texNo, g_PlayerEffectAnim[playerIndex].skillFrame, scale, offset);
 		}
-		if (texNo >= 0)	texNosAndFrames.emplace_back(texNo, g_effectAnim[playerIndex].skillFrame);
+
+		// 回復エフェクト
+		if (player.isHealing)
+		{
+			texNosFramesScales.emplace_back(8, g_PlayerEffectAnim[playerIndex].healingFrame, 1.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		}
 	}
-	// スペシャル エフェクト
+	// スペシャルエフェクト
 	if (player.useSpecial)
 	{
+		int texNo = -1;
+		float scale = 1.0f;
+		XMFLOAT3 offset(0,0,0);
+		switch (player.type)
+		{
+		//case PlayerType::Glass:			texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
+		//case PlayerType::Concrete:		texNo = 8;	scale = 0.8f; offset = XMFLOAT3(0,0,0); break;
+		case PlayerType::Plant:			texNo = 21;	scale = 9.0f; offset = XMFLOAT3(0,0,0);
+			SetDepthTest(false);
+			break;
+		//case PlayerType::Electricity:	texNo = 10;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
+		default: break;
+		}
+		if (texNo >= 0) texNosFramesScales.emplace_back(texNo, g_PlayerEffectAnim[playerIndex].specialFrame, scale, offset);
 	}
-	// 毒状態 エフェクト
+	// 毒状態エフェクト
 	if (player.isPoisoned)
 	{
-		texNosAndFrames.emplace_back(11, g_effectAnim[playerIndex].poisonFrame);
+		texNosFramesScales.emplace_back(11, g_PlayerEffectAnim[playerIndex].poisonFrame, 2.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
-	// 被弾 エフェクト
+	// 被弾エフェクト
 	if (player.isAttacked)
 	{
-		texNosAndFrames.emplace_back(12, g_effectAnim[playerIndex].attackedFrame);
+		texNosFramesScales.emplace_back(12, g_PlayerEffectAnim[playerIndex].attackedFrame, 1.2f, XMFLOAT3(0.0f, 0.5f, 0.0f));
 	}
-
+	// リスポーン卵エフェクト
+	if (player.isEggBreaking)
+	{
+		// 卵割れ演出のみ（AボタンUIは表示しない）
+		texNosFramesScales.emplace_back(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 2.5f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+	}
+	else if (player.duringRespawn)
+	{
+		// リスポーン卵＋AボタンUI
+		texNosFramesScales.emplace_back(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 5.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		texNosFramesScales.emplace_back(11, 50, 1.0f, XMFLOAT3(1.5f, -0.75f, 0.0f));
+	}
 	// 通常色を設定
 	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // 通常色
 
 	// 条件に合致したテクスチャをすべて重ねて描画
-	for (const auto& texFrame : texNosAndFrames)
+	for (const auto& texFrameScale : texNosFramesScales)
 	{
-		int texNo = texFrame.first;
-		int frame = texFrame.second;
+		int texNo;
+		int frame;
+		float scale;
+		XMFLOAT3 offset;
+		std::tie(texNo, frame, scale, offset) = texFrameScale;
 		if (texNo < 0 || texNo >= EFFECT_TEX_MAX) continue;
 		ID3D11ShaderResourceView* srv = g_Texture[texNo];
 		if (!srv) continue;
+
+		Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // 通常
 
 		int col = frame % EFFECT_SPRITE_X;
 		int row = frame / EFFECT_SPRITE_X;
@@ -569,12 +893,209 @@ void Effect_DrawForPlayer(int playerIndex)
 		localV[2].tex = XMFLOAT2(u0, v1);
 		localV[3].tex = XMFLOAT2(u1, v1);
 
+		// サイズに倍率を掛ける
+		XMMATRIX ScalingMatrix = XMMatrixScaling(
+			player.scaling.x * spriteScale * scale,
+			player.scaling.y * spriteScale * scale,
+			player.scaling.z * spriteScale * scale
+		);
+
+		// オフセットを反映
+		XMMATRIX offsetMatrix = XMMatrixTranslation(offset.x, offset.y, offset.z);
+		XMMATRIX WorldMatrix = ScalingMatrix * offsetMatrix * vm;
+		Shader_SetWorldMatrix(WorldMatrix);
+
+		XMMATRIX WVP = ScalingMatrix * offsetMatrix * vm * view * projection;
+		Shader_SetMatrix(WVP);
+
 		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		Vertex2* vertex = (Vertex2*)msr.pData;
 		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
 		g_pContext->Unmap(g_VertexBuffer, 0);
 
 		g_pContext->PSSetShaderResources(0, 1, &srv);
+		g_pContext->DrawIndexed(6, 0, 0);
+	}
+}
+
+// ==============================================
+// プレイヤーの影エフェクト描画関数
+// ==============================================
+void EffectShadow_DrawForPlayer(int playerIndex)
+{
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
+	// 影を非表示にする条件
+	if (!player.duringRespawn && !player.isEggBreaking && !player.isShadowEnabled)	return;
+
+	// 影のY座標（地面の高さ）を決める
+	float groundY = 0.0f;
+
+	// 影の位置
+	XMFLOAT3 shadowPos(player.position.x, groundY + 0.5f, player.position.z - 0.3f);
+
+	// 影のワールド行列（XZ平面に平行、回転なし）
+	XMMATRIX ScalingMatrix;
+
+	float shadowScaling_x = player.scaling.x;
+	float shadowScaling_z = player.scaling.z;
+
+	if(player.duringRespawn)	ScalingMatrix = XMMatrixScaling(shadowScaling_x += 2.0f, 1.0f, shadowScaling_z += 6.0f);
+	else						ScalingMatrix = XMMatrixScaling(shadowScaling_x += 1.5f, 1.0f, shadowScaling_z += 2.0f);
+
+	XMMATRIX TranslationMatrix = XMMatrixTranslation(shadowPos.x, shadowPos.y, shadowPos.z);
+	XMMATRIX WorldMatrix = ScalingMatrix * TranslationMatrix;
+
+	XMMATRIX view = GetViewMatrix();
+	XMMATRIX projection = GetProjectionMatrix();
+	XMMATRIX WVP = WorldMatrix * view * projection;
+
+	Shader_SetWorldMatrix(WorldMatrix);
+	Shader_SetMatrix(WVP);
+
+	// 頂点バッファにデータコピー
+	D3D11_MAPPED_SUBRESOURCE msr;
+	Vertex2 localV[PLAYER_VERTEX];
+	CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+
+	int frame = 51;
+	int col = frame % EFFECT_SPRITE_X;
+	int row = frame / EFFECT_SPRITE_X;
+	float u0 = (float)col / (float)EFFECT_SPRITE_X;
+	float v0 = (float)row / (float)EFFECT_SPRITE_Y;
+	float u1 = u0 + 1.0f / (float)EFFECT_SPRITE_X;
+	float v1 = v0 + 1.0f / (float)EFFECT_SPRITE_Y;
+
+	localV[0].tex = XMFLOAT2(u0, v0);
+	localV[1].tex = XMFLOAT2(u1, v0);
+	localV[2].tex = XMFLOAT2(u0, v1);
+	localV[3].tex = XMFLOAT2(u1, v1);
+
+	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	Vertex2* vertex = (Vertex2*)msr.pData;
+	CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
+	g_pContext->Unmap(g_VertexBuffer, 0);
+
+	UINT stride = sizeof(Vertex2);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// 影テクスチャ
+	int texNo = 11;
+	ID3D11ShaderResourceView* srv = g_Texture[texNo];
+	if (!srv) return;
+
+	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+	g_pContext->PSSetShaderResources(0, 1, &srv);
+	g_pContext->DrawIndexed(6, 0, 0);
+}
+
+// ===============================================
+// 建物付近に表示するエフェクト更新関数
+// ===============================================
+void Effect_UpdateForBuilding(int buildingIndex)
+{
+	// 建物の破壊状態を取得
+	int buildingCount = GetBuildingCount();	// 数を取得
+	Building** building = GetBuildings();
+	if (!building) return;
+
+	auto& anim = g_BuildingEffectAnim[buildingIndex];
+
+	for (int i = 0; i < buildingCount; ++i)
+	{
+		if (building[i]->isDestroyed)
+		{
+			anim.hitTimer += DELTA_TIME;
+			if (anim.hitPhase == 0)
+			{
+				anim.hitPhase = 1;
+				anim.hitFrame = 0;
+			}
+			if (anim.hitPhase == 1)
+			{
+				if (anim.hitTimer >= 0.05f)
+				{
+					anim.hitTimer = 0.0f;
+					anim.hitFrame++;
+					if (anim.hitFrame > 16) // アニメーション終了
+					{
+						anim.hitPhase = 2;
+						anim.hitFrame = 0;
+					}
+				}
+			}
+		}
+		else
+		{
+			anim.hitPhase = 0;
+			anim.hitFrame = 0;
+			anim.hitTimer = 0.0f;
+		}
+	}
+}
+
+// ===============================================
+// 建物付近に表示するエフェクト描画関数
+// ===============================================
+void Effect_DrawForBuilding(int buildingIndex)
+{
+	int buildingCount = GetBuildingCount();	// 数を取得
+	Building** building = GetBuildings();
+	if (!building) return;
+
+	auto& anim = g_BuildingEffectAnim[buildingIndex];
+	if (anim.hitPhase != 1) return; // アニメーション中のみ描画
+
+	for (int i = 0; i < buildingCount; ++i)
+	{
+		// テクスチャ番号は建物タイプで分岐
+		int texNo = (building[i]->type == BuildingType::Concrete) ? 12 : 13;
+
+		// 座標・スケールは建物情報から取得
+		XMFLOAT3 pos = building[i]->position;
+		float scale = 1.5f;
+
+		// UV計算
+		int col = anim.hitFrame % EFFECT_SPRITE_X;
+		int row = anim.hitFrame / EFFECT_SPRITE_X;
+		float u0 = (float)col / (float)EFFECT_SPRITE_X;
+		float v0 = (float)row / (float)EFFECT_SPRITE_Y;
+		float u1 = u0 + 1.0f / (float)EFFECT_SPRITE_X;
+		float v1 = v0 + 1.0f / (float)EFFECT_SPRITE_Y;
+
+		// 頂点データ作成
+		Vertex2 localV[PLAYER_VERTEX];
+		CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+		localV[0].tex = XMFLOAT2(u0, v0);
+		localV[1].tex = XMFLOAT2(u1, v0);
+		localV[2].tex = XMFLOAT2(u0, v1);
+		localV[3].tex = XMFLOAT2(u1, v1);
+
+		// 行列計算（建物座標・スケール）
+		XMMATRIX ScalingMatrix = XMMatrixScaling(scale, scale, scale);
+		XMMATRIX offsetMatrix = XMMatrixTranslation(pos.x, pos.y, pos.z);
+		XMMATRIX WorldMatrix = ScalingMatrix * offsetMatrix;
+		Shader_SetWorldMatrix(WorldMatrix);
+
+		XMMATRIX view = GetViewMatrix();
+		XMMATRIX projection = GetProjectionMatrix();
+		XMMATRIX WVP = ScalingMatrix * offsetMatrix * view * projection;
+		Shader_SetMatrix(WVP);
+
+		// バッファ転送
+		D3D11_MAPPED_SUBRESOURCE msr;
+		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		Vertex2* vertex = (Vertex2*)msr.pData;
+		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
+		g_pContext->Unmap(g_VertexBuffer, 0);
+
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNo]);
 		g_pContext->DrawIndexed(6, 0, 0);
 	}
 }

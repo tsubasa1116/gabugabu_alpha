@@ -100,12 +100,10 @@ void Start_Update()
 	//繧ｭ繝ｼ蜈･蜉帙メ繧ｧ繝�繧ｯ
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
-		// キー入力チェック（ロード中は受け付けない）
 		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
-			// ロード画面付きフェードでゲームシーンへ遷移
 			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\uiRored.mp4");
 		}
 	}

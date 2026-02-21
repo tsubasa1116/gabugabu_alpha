@@ -8,22 +8,27 @@
 #include "Building.h"
 #include "special.h"
 
-// ƒ}ƒNƒ’è‹`
-#define	PLAYER_MAX				(4)	// ƒvƒŒƒCƒ„[Å‘å”
-#define	DELTA_TIME	 (1.0f / 60.0f)	// ƒfƒ‹ƒ^ƒ^ƒCƒ€i•bj
+// ãƒã‚¯ãƒ­å®šç¾©
+#define	PLAYER_MAX			(4)		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æœ€å¤§æ•°
+#define	DELTA_TIME	 (1.0f / 60.0f)	// ãƒ‡ãƒ«ã‚¿ã‚¿ã‚¤ãƒ ï¼ˆç§’ï¼‰
 
-#define	EVOLUTIONGAUGE_MAX	(1.0f)	// i‰»ƒQ[ƒWÅ‘å’l
-#define	ATTACKING_TIME		(0.2f)	// UŒ‚‘±ŠÔi•bj
-#define	ATTACKED_TIME		(10.5f)	// ƒ_ƒ[ƒW‘±ŠÔi•bj
-#define	INVINCIBLE_TIME		(3.0f)	// i‰»–³“GŠÔi•bj
-#define	STUNGAUGE_MAX		(10)	// ƒXƒ^ƒ“ƒQ[ƒWÅ‘å’l
-#define	STUN_TIME			(5.0f)	// ƒXƒ^ƒ“‘±ŠÔi•bj
-#define	DOWN_TIME			(3.0f)	// ƒ_ƒEƒ“‘±ŠÔi•bj
-#define	POISON_TIME			(5.0f)	// “Å‘±ŠÔi•bj
+#define	PLAYER_MAX_HP		(500.0f)// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ æœ€å¤§HP
+#define	PLAYER_MAX_SATIETY	(7.0f)	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ æœ€å¤§æº€è…¹åº¦
 
-#define	PLAYER_VERTEX	(6)		// ˆê–Ê‚Ì‚İ‚Ì’¸“_”
-#define COORDINATE		(0.5f)	// ƒfƒtƒHƒ‹ƒg (0.5f)
-#define TEXCOORD		(1.0f)	// ƒfƒtƒHƒ‹ƒg (1.0f)
+#define	EVOLUTIONGAUGE_MAX	(1.0f)	// é€²åŒ–ã‚²ãƒ¼ã‚¸æœ€å¤§å€¤
+#define	ATTACKING_TIME		(0.2f)	// æ”»æ’ƒæŒç¶šæ™‚é–“
+#define	ATTACKED_TIME		(0.5f)	// ãƒ€ãƒ¡ãƒ¼ã‚¸æŒç¶šæ™‚é–“
+#define	HEALING_TIME		(2.0f)	// å›å¾©æŒç¶šæ™‚é–“
+#define	EVOLVING_TIME		(4.0f)	// é€²åŒ–æ™‚é–“
+#define	STUNGAUGE_MAX		(10)	// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸æœ€å¤§å€¤
+#define	STUN_TIME			(5.0f)	// ã‚¹ã‚¿ãƒ³æŒç¶šæ™‚é–“
+#define	DOWN_TIME			(3.0f)	// ãƒ€ã‚¦ãƒ³æŒç¶šæ™‚é–“
+#define	POISON_TIME			(5.0f)	// æ¯’æŒç¶šæ™‚é–“
+#define	EGG_BREAKING_TIME	(0.3f)	// åµã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒå‰²ã‚Œã‚‹å†ç”Ÿæ™‚é–“
+
+#define	PLAYER_VERTEX	(6)		// ï¿½ï¿½Ê‚Ì‚İ‚Ì’ï¿½ï¿½_ï¿½ï¿½
+#define COORDINATE		(0.5f)	// ï¿½fï¿½tï¿½Hï¿½ï¿½ï¿½g (0.5f)
+#define TEXCOORD		(1.0f)	// ï¿½fï¿½tï¿½Hï¿½ï¿½ï¿½g (1.0f)
 
 enum class PlayerDir
 {
@@ -40,92 +45,106 @@ enum class PlayerDir
 
 enum class Form
 {
-	First = 0,	// ‘æ1Œ`‘Ô
-	Second,		// ‘æ2Œ`‘Ô
-	Third		// ‘æ3Œ`‘Ô
+	First = 0,	// ï¿½ï¿½1ï¿½`ï¿½ï¿½
+	Second,		// ï¿½ï¿½2ï¿½`ï¿½ï¿½
+	Third		// ï¿½ï¿½3ï¿½`ï¿½ï¿½
 };
 
 enum class PlayerType
 {
-	None,		// –¢İ’è
-	Glass,		// ƒKƒ‰ƒX
-	Concrete,	// ƒRƒ“ƒNƒŠ
-	Plant,		// A•¨
-	Electricity,// “d‹C
+	None,		// ï¿½ï¿½ï¿½İ’ï¿½
+	Glass,		// ï¿½Kï¿½ï¿½ï¿½X
+	Concrete,	// ï¿½Rï¿½ï¿½ï¿½Nï¿½ï¿½
+	Plant,		// ï¿½Aï¿½ï¿½
+	Electricity,// ï¿½dï¿½C
 	Max
 };
 
-// ƒvƒŒƒCƒ„[ƒIƒuƒWƒFƒNƒgê—p‚Ì\‘¢‘Ì
+// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½pï¿½Ì\ï¿½ï¿½ï¿½ï¿½
 struct PLAYEROBJECT
 {
-	XMFLOAT3 position;		// À•W
-	XMFLOAT3 velocity;		// 
-	XMFLOAT3 oldPosition;	// ‰ß‹‚ÌÀ•W
-	XMFLOAT3 rotation;		// ‰ñ“]Šp“x
-	XMFLOAT3 scaling;		// Šg‘å—¦
-	AABB boundingBox;		// “–‚½‚è”»’è
-	float hp;				// ‘Ì—Í
-	float maxHp;			// Å‘å‘Ì—Í
-	float attack;			// UŒ‚—Í
-	float power;			// ‚Ó‚Á‚Æ‚Î‚µ‚Ìƒpƒ[
-	float speed;			// ƒXƒs[ƒh
-	float defense;			// –hŒä—¦
-	XMFLOAT3 dir;			// Œü‚«
-	int stock;				// c‹@
-	int rank;				// ‡ˆÊ
-	bool active;			// ¶‘¶ƒtƒ‰ƒO
+	XMFLOAT3 position;		// åº§æ¨™
+	XMFLOAT3 oldPosition;	// éå»ã®åº§æ¨™
+	XMFLOAT3 rotation;		// å›è»¢è§’åº¦
+	XMFLOAT3 scaling;		// æ‹¡å¤§ç‡
+	AABB boundingBox;		// å½“ãŸã‚Šåˆ¤å®š
+	float hp;				// ä½“åŠ›
+	float attack;			// æ”»æ’ƒåŠ›
+	float power;			// ãµã£ã¨ã°ã—ã®ãƒ‘ãƒ¯ãƒ¼
+	float speed;			// ã‚¹ãƒ”ãƒ¼ãƒ‰
+	float defense;			// é˜²å¾¡ç‡
+	XMFLOAT3 dir;			// å‘ã
+	int stock;				// æ®‹æ©Ÿ
+	int rank;				// é †ä½
+	bool active;			// ç”Ÿå­˜ãƒ•ãƒ©ã‚°
+	float satiety;			// æº€è…¹åº¦
 
-	bool isAttacking;		// UŒ‚’†‚©‚Ç‚¤‚©
-	float attackTimer;		// UŒ‚ƒ^ƒCƒ}[
+	bool isAttacking;		// æ”»æ’ƒä¸­ã‹ã©ã†ã‹
+	float attackTimer;		// æ”»æ’ƒä¸­ã®çµŒéæ™‚é–“
 
-	bool isAttacked;		// ƒ_ƒ[ƒW’†‚©‚Ç‚¤‚©
-	float attackedTimer;	// ƒ_ƒ[ƒWƒ^ƒCƒ}[
+	bool isAttacked;		// è¢«å¼¾ä¸­ã‹ã©ã†ã‹
+	float attackedTimer;	// è¢«å¼¾ä¸­ã®çµŒéæ™‚é–“
 
-	bool useSkill;			// ƒXƒLƒ‹g—p’†‚©‚Ç‚¤‚©
-	float skillTimer;		// ƒXƒLƒ‹ƒ^ƒCƒ}[
-	float skillCoolTimer;	// ƒXƒLƒ‹ƒN[ƒ‹ƒ^ƒCƒ}[
+	bool isHealing;			// å›å¾©ä¸­ã‹ã©ã†ã‹
+	float healingTimer;		// å›å¾©ä¸­ã®çµŒéæ™‚é–“
 
-	bool useSpecial;		// ƒXƒyƒVƒƒƒ‹g—p’†‚©‚Ç‚¤‚©
-	float specialTimer;		// ƒXƒyƒVƒƒƒ‹ƒ^ƒCƒ}[
+	bool isEvolving;		// é€²åŒ–ä¸­ã‹ã©ã†ã‹
+	float evolvingTimer;	// é€²åŒ–ä¸­ã®çµŒéæ™‚é–“
 
-	bool isInvincible;		// –³“G’†‚©‚Ç‚¤‚©
-	float invincibleTimer;	// –³“Gƒ^ƒCƒ}[
+	bool useSkill;			// ã‚¹ã‚­ãƒ«ä¸­ã‹ã©ã†ã‹
+	float skillTimer;		// ã‚¹ã‚­ãƒ«ä¸­ã®çµŒéæ™‚é–“
+	float skillCoolTimer;	// ã‚¹ã‚­ãƒ«ã‚¯ãƒ¼ãƒ«ä¸­ã®çµŒéæ™‚é–“
 
-	float stunGauge;		// ƒXƒ^ƒ“ƒQ[ƒW
-	bool isStunning;		// ƒXƒ^ƒ“’†‚©‚Ç‚¤‚©
-	float stunTimer;		// ƒXƒ^ƒ“ƒ^ƒCƒ}[
+	bool useSpecial;		// ã‚¹ãƒšã‚·ãƒ£ãƒ«ä¸­ã‹ã©ã†ã‹
+	float specialTimer;		// ã‚¹ãƒšã‚·ãƒ£ãƒ«ä¸­ã®çµŒéæ™‚é–“
 
-	bool isDown;			// ƒ_ƒEƒ“’†‚©‚Ç‚¤‚©
-	float downTimer;		// ƒ_ƒEƒ“ƒ^ƒCƒ}[
+	bool isInvincible;		// ç„¡æ•µä¸­ã‹ã©ã†ã‹
+	float invincibleTimer;	// ç„¡æ•µä¸­ã®çµŒéæ™‚é–“
 
-	bool isPoisoned;		// “Åó‘Ô‚©‚Ç‚¤‚©
-	float poisonTimer;		// “Åƒ^ƒCƒ}[
+	float stunGauge;		// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸
+	bool isStunning;		// ã‚¹ã‚¿ãƒ³ä¸­ã‹ã©ã†ã‹
+	float stunTimer;		// ã‚¹ã‚¿ãƒ³ä¸­ã®çµŒéæ™‚é–“
 
-	float moveAngle = 0.0f;	// ƒvƒŒƒCƒ„[ŒÅ—L‚Ì‰ñ“]•âŠÔ—pŠp“x
-	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// ˆÚ“®ƒxƒNƒgƒ‹
-	PlayerDir lastDir;							// ‘Ò‹@‚ÌŒü‚«
-	bool isMoving = false;						// ˆÚ“®’†‚©‚Ç‚¤‚©
+	bool isDown;			// ãƒ€ã‚¦ãƒ³ä¸­ã‹ã©ã†ã‹
+	float downTimer;		// ãƒ€ã‚¦ãƒ³ä¸­ã®çµŒéæ™‚é–“
 
-	Form form;								// •ÏgŒ`‘Ô
-	PlayerType type;						// ƒvƒŒƒCƒ„[‚Ì‘®«ƒ^ƒCƒv
-	bool isTypeFixed = false;				// i‰»ƒ^ƒCƒv‚ªŒÅ’è‚³‚ê‚½‚©‚Ç‚¤‚©
-	float evolutionGauge;					// i‰»ƒQ[ƒW
-	float evolutionGaugeRate;				// i‰»ƒQ[ƒW ”{—¦
-	int breakCount_Glass;					// ”j‰ó‚µ‚½” ƒKƒ‰ƒX
-	int breakCount_Concrete;				// ”j‰ó‚µ‚½” ƒRƒ“ƒNƒŠ[ƒg
-	int breakCount_Plant;					// ”j‰ó‚µ‚½” A•¨
-	int breakCount_Electricity;				// ”j‰ó‚µ‚½” “d‹C
-	std::vector<BuildingType> brokenHistory;// ”j‰ó‚µ‚½Œš•¨‚ÌƒŠƒXƒg
+	bool isPoisoned;		// æ¯’çŠ¶æ…‹ã‹ã©ã†ã‹
+	float poisonTimer;		// æ¯’ã®çµŒéæ™‚é–“
 
-	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// ‚«”ò‚Î‚µ—p‚Ì‘¬“xƒxƒNƒgƒ‹
-	bool is_knocked_back = false;						// ‚«”ò‚Î‚µ’†‚©‚Ç‚¤‚©
-	float knockback_duration = 0.0f;					// ‚«”ò‚Î‚µ‚Ìc‚èŠÔiƒtƒŒ[ƒ€”
+	bool duringRespawn;		// ãƒªã‚¹ãƒãƒ¼ãƒ³ä¸­ã‹ã©ã†ã‹
+	float respawnTimer;		// ãƒªã‚¹ãƒãƒ¼ãƒ³ä¸­ã®çµŒéæ™‚é–“
 
-	XMFLOAT2 screenPos;	// ƒeƒLƒXƒg•`‰æ—pƒXƒNƒŠ[ƒ“À•W
+	bool isEggBreaking;		// åµã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒå‰²ã‚Œå§‹ã‚ã‚‹ç¬é–“
+	float eggBreakingTimer;	// åµã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ã‚¿ã‚¤ãƒãƒ¼
+
+	float moveAngle = 0.0f;	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å›ºæœ‰ã®å›è»¢è£œé–“ç”¨è§’åº¦
+	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«
+	PlayerDir lastDir;							// å¾…æ©Ÿæ™‚ã®å‘ã
+	bool isMoving = false;						// ç§»å‹•ä¸­ã‹ã©ã†ã‹
+	bool isShadowEnabled = false;					// åœ°ä¸Šã«ã„ã‚‹ã‹ã©ã†ã‹
+
+	Form form;								// å¤‰èº«å½¢æ…‹
+	PlayerType type;						// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å±æ€§ã‚¿ã‚¤ãƒ—
+	bool isTypeFixed = false;				// é€²åŒ–ã‚¿ã‚¤ãƒ—ãŒå›ºå®šã•ã‚ŒãŸã‹ã©ã†ã‹
+	float evolutionGauge;					// é€²åŒ–ã‚²ãƒ¼ã‚¸
+	float evolutionGaugeRate;				// é€²åŒ–ã‚²ãƒ¼ã‚¸ å€ç‡
+	int breakCount_Glass;					// ç ´å£Šã—ãŸæ•° ã‚¬ãƒ©ã‚¹
+	int breakCount_Concrete;				// ç ´å£Šã—ãŸæ•° ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ
+	int breakCount_Plant;					// ç ´å£Šã—ãŸæ•° æ¤ç‰©
+	int breakCount_Electricity;				// ç ´å£Šã—ãŸæ•° é›»æ°—
+	std::vector<BuildingType> brokenHistory;// ç ´å£Šã—ãŸå»ºç‰©ã®ãƒªã‚¹ãƒˆ
+
+	XMFLOAT3 knockback_velocity = { 0.0f, 0.0f, 0.0f };	// å¹ãé£›ã°ã—ç”¨ã®é€Ÿåº¦ãƒ™ã‚¯ãƒˆãƒ«
+	bool is_knocked_back = false;						// å¹ãé£›ã°ã—ä¸­ã‹ã©ã†ã‹
+	float knockback_duration = 0.0f;					// å¹ãé£›ã°ã—ã®æ®‹ã‚Šæ™‚é–“ï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+
+	XMFLOAT2 screenPos;	// ãƒ†ã‚­ã‚¹ãƒˆæç”»ç”¨ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™
 	bool isOnScreen;
 
-	Circle electricityCircles[SPECIAL_ELECTRICITY_QUANTITY]; // ƒXƒyƒVƒƒƒ‹ “d‹C‚Ì‰~
-	std::vector<GLASS_BOX> glassBoxes; // ƒXƒyƒVƒƒƒ‹ ƒKƒ‰ƒX‚Ìƒ~ƒTƒCƒ‹ƒŠƒXƒg
+	Circle electricityCircles[SPECIAL_ELECTRICITY_QUANTITY]; // ã‚¹ãƒšã‚·ãƒ£ãƒ« é›»æ°—ã®å††
+	std::vector<GLASS_BOX> glassBoxes; // ã‚¹ãƒšã‚·ãƒ£ãƒ« ã‚¬ãƒ©ã‚¹ã®ãƒŸã‚µã‚¤ãƒ«ãƒªã‚¹ãƒˆ
+
+	XMFLOAT2 moveInput2D;
 };
 
 void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -135,7 +154,7 @@ void Player_Update();
 void Player_Draw(bool s_IsKonamiCodeEntered);
 void Player_DrawHP();
 
-// ƒAƒjƒ[ƒVƒ‡ƒ“ŠÖ”
+// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Öï¿½
 inline void LoopRange(int& animFrame, int start, int count, int advance = 1);
 
 void Ranking(int playerIndex);
@@ -146,3 +165,9 @@ void Player_DrawStock(int i);
 PLAYEROBJECT* GetPlayer(int playerIndex);
 
 void Player_DrawText();
+
+void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float speed);
+
+bool Player_CanUseSpecial(int playerIndex);
+
+

@@ -1,15 +1,15 @@
 //======================================================
 //	main.cpp[]
 // 
-//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
+//	ï¿½ï¿½ï¿½ï¿½ÒFï¿½Oï¿½ì—ƒ			ï¿½ï¿½ï¿½tï¿½F2024//
 //======================================================
-//ƒEƒBƒ“ƒhƒE‚Ì•\¦
-#include <SDKDDKVer.h>		// —˜—p‚Å‚«‚éÅ‚àãˆÊ‚Ì Windows ƒvƒ‰ƒbƒgƒtƒH[ƒ€‚ª’è‹`‚³‚ê‚é
-#define WIN32_LEAN_AND_MEAN	// 32bitƒAƒvƒŠ‚É‚Í•s—v‚Èî•ñ‚ğ—}~‚µ‚ÄƒRƒ“ƒpƒCƒ‹ŠÔ‚ğ’Zk
+//ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½Ì•\ï¿½ï¿½
+#include <SDKDDKVer.h>		// ï¿½ï¿½ï¿½pï¿½Å‚ï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½Ê‚ï¿½ Windows ï¿½vï¿½ï¿½ï¿½bï¿½gï¿½tï¿½Hï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½
+#define WIN32_LEAN_AND_MEAN	// 32bitï¿½Aï¿½vï¿½ï¿½ï¿½É‚Í•sï¿½vï¿½Èï¿½ï¿½ï¿½}ï¿½~ï¿½ï¿½ï¿½ÄƒRï¿½ï¿½ï¿½pï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½Ô‚ï¿½Zï¿½k
 #include <windows.h>
-#include "debug_ostream.h"	//ƒfƒoƒbƒO•\¦
+#include "debug_ostream.h"	//ï¿½fï¿½oï¿½bï¿½Oï¿½\ï¿½ï¿½
 
-#include <chrono> // ’Ç‰Á
+#include <chrono>
 #include <algorithm>
 #include "direct3d.h"
 #include "shader.h"
@@ -30,58 +30,38 @@
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
 
-#define		SCREEN_WIDTH	(1280)
-#define		SCREEN_HEIGHT	(720)
-//#define		SCREEN_WIDTH	(1920)
-//#define		SCREEN_HEIGHT	(1080)
+#include <SDL3/SDL.h>
+#include "gamepad.h"
+
+//#define		SCREEN_WIDTH	(1280)
+//#define		SCREEN_HEIGHT	(720)
+#define		SCREEN_WIDTH	(1920)
+#define		SCREEN_HEIGHT	(1080)
 
 //==================================
-//ƒOƒ[ƒoƒ‹•Ï”
+//ï¿½Oï¿½ï¿½ï¿½[ï¿½oï¿½ï¿½ï¿½Ïï¿½
 //==================================
-LPDIRECTINPUT8 g_pDI = nullptr;
-LPDIRECTINPUTDEVICE8 g_pGamepad[4] = { nullptr };
-int g_GamepadCount = 0;  // Ú‘±‚³‚ê‚½ƒvƒƒRƒ“‚Ì”
-
-#ifdef _DEBUG	//ƒfƒoƒbƒOƒrƒ‹ƒh‚Ì‚¾‚¯•Ï”‚ªì‚ç‚ê‚é
-int		g_CountFPS;			//FPSƒJƒEƒ“ƒ^[
-char	g_DebugStr[2048];	//FPS•\¦•¶š—ñ
+#ifdef _DEBUG	//ãƒ‡ãƒãƒƒã‚°ãƒ“ãƒ«ãƒ‰ã®æ™‚ã ã‘å¤‰æ•°ãŒä½œã‚‰ã‚Œã‚‹
+int		g_CountFPS;			//FPSã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
+char	g_DebugStr[2048];	//FPSè¡¨ç¤ºæ–‡å­—åˆ—
 #endif
 
 #pragma comment(lib, "winmm.lib")
 
 //=================================
-//ƒ}ƒNƒ’è‹`
+//ï¿½}ï¿½Nï¿½ï¿½ï¿½ï¿½`
 //=================================
 #define	 CLASS_NAME	"DX21 Window"
-#define	 WINDOW_CAPTION	"ƒ|ƒŠƒSƒ“•`‰æ"
+#define	 WINDOW_CAPTION	"ï¿½|ï¿½ï¿½ï¿½Sï¿½ï¿½ï¿½`ï¿½ï¿½"
 
 //===================================
-//ƒvƒƒgƒ^ƒCƒvéŒ¾
+//ï¿½vï¿½ï¿½ï¿½gï¿½^ï¿½Cï¿½vï¿½éŒ¾
 //===================================
 LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-//ƒEƒBƒ“ƒhƒEƒvƒƒV[ƒWƒƒ
-//ƒR[ƒ‹ƒoƒbƒNŠÖ”„‘¼l‚ªŒÄ‚Ño‚µ‚Ä‚­‚ê‚éŠÖ”
+//ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½vï¿½ï¿½ï¿½Vï¿½[ï¿½Wï¿½ï¿½
+//ï¿½Rï¿½[ï¿½ï¿½ï¿½oï¿½bï¿½Nï¿½Öï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½Ä‚Ñoï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½Öï¿½
 LRESULT	CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-BOOL CALLBACK EnumGamepadCallback(const DIDEVICEINSTANCE* inst, VOID* ctx)
-{
-	// ƒvƒƒRƒ“‚¾‚¯E‚¤i–¼Ìˆê’vj
-	//if (strstr(inst->tszProductName, "Pro Controller"))
-
-	if (g_GamepadCount < 4)
-	{
-		HRESULT hr = g_pDI->CreateDevice(inst->guidInstance, &g_pGamepad[g_GamepadCount], NULL);
-
-		if (SUCCEEDED(hr))
-		{
-			g_GamepadCount++;
-		}
-	}
-
-	return DIENUM_CONTINUE;
-}
-
 
 void InitImGui(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* context)
 {
@@ -110,48 +90,13 @@ void ShutdownImGui()
 	ImGui::DestroyContext();
 }
 
-void SetAxisRange(LPDIRECTINPUTDEVICE8 device)
-{
-	DIPROPRANGE range;
-	range.diph.dwSize = sizeof(DIPROPRANGE);
-	range.diph.dwHeaderSize = sizeof(DIPROPHEADER);
-	range.diph.dwHow = DIPH_BYOFFSET;
-
-	// X²
-	range.diph.dwObj = DIJOFS_X;
-	range.lMin = -32767;
-	range.lMax = 32767;
-	device->SetProperty(DIPROP_RANGE, &range.diph);
-
-	// Y²
-	range.diph.dwObj = DIJOFS_Y;
-	device->SetProperty(DIPROP_RANGE, &range.diph);
-}
-
-float NormalizeStickWithDeadZone(LONG value)
-{
-	constexpr float DEAD_ZONE = 4000.0f;
-	constexpr float MAX_VALUE = 32767.0f;
-
-	// ƒfƒbƒhƒ][ƒ“
-	if (value > -DEAD_ZONE && value < DEAD_ZONE)
-		return 0.0f;
-
-	// ³‹K‰»
-	float v = static_cast<float>(value);
-
-	if (v > 0.0f)
-		return (v - DEAD_ZONE) / (MAX_VALUE - DEAD_ZONE);
-	else
-		return (v + DEAD_ZONE) / (MAX_VALUE - DEAD_ZONE);
-}
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, int nCmdShow)
 {
-	// —”‚Ì‰Šú‰»
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
 	srand(timeGetTime());
 
-	// ƒtƒŒ[ƒ€ƒŒ[ƒgŒv‘ª—p•Ï”
+	// ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½gï¿½vï¿½ï¿½ï¿½pï¿½Ïï¿½
 	DWORD	dwExecLastTime;
 	DWORD	dwFPSLastTime;
 	DWORD	dwCurrentTime;
@@ -159,30 +104,30 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, 
 
 	HRESULT hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
 
-	// ƒEƒBƒ“ƒhƒEƒNƒ‰ƒX‚Ì“o˜^iƒEƒBƒ“ƒhƒE‚Ìd—l“I‚È•¨‚ğŒˆ‚ß‚ÄWindows‚ÖƒZƒbƒg‚·‚éj
-	WNDCLASS	wc;	// \‘¢‘Ì‚ğ€”õ
-	ZeroMemory(&wc, sizeof(WNDCLASS));	// “à—e‚ğ‚O‚Å‰Šú‰»
-	wc.lpfnWndProc = WndProc;			// ƒR[ƒ‹ƒoƒbƒNŠÖ”‚Ìƒ|ƒCƒ“ƒ^[
-	wc.lpszClassName = CLASS_NAME;		// ‚±‚Ìd—l‘‚Ì–¼‘O
-	wc.hInstance = hInstance;			// ‚±‚ÌƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì‚±‚Æ
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);	// ƒJ[ƒ\ƒ‹‚Ìí—Ş
-	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);	// ƒEƒBƒ“ƒhƒE‚Ì”wŒiF‚Í•
-	RegisterClass(&wc);	// \‘¢‘Ì‚ğWindows‚ÖƒZƒbƒg
+	// ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½Nï¿½ï¿½ï¿½Xï¿½Ì“oï¿½^ï¿½iï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½Ìdï¿½lï¿½Iï¿½È•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß‚ï¿½Windowsï¿½ÖƒZï¿½bï¿½gï¿½ï¿½ï¿½ï¿½j
+	WNDCLASS	wc;	// ï¿½\ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½ï¿½ï¿½ï¿½
+	ZeroMemory(&wc, sizeof(WNDCLASS));	// ï¿½ï¿½ï¿½eï¿½ï¿½ï¿½Oï¿½Åï¿½ï¿½ï¿½ï¿½ï¿½
+	wc.lpfnWndProc = WndProc;			// ï¿½Rï¿½[ï¿½ï¿½ï¿½oï¿½bï¿½Nï¿½Öï¿½ï¿½Ìƒ|ï¿½Cï¿½ï¿½ï¿½^ï¿½[
+	wc.lpszClassName = CLASS_NAME;		// ï¿½ï¿½ï¿½Ìdï¿½lï¿½ï¿½ï¿½Ì–ï¿½ï¿½O
+	wc.hInstance = hInstance;			// ï¿½ï¿½ï¿½ÌƒAï¿½vï¿½ï¿½ï¿½Pï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½ï¿½
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);	// ï¿½Jï¿½[ï¿½\ï¿½ï¿½ï¿½Ìï¿½ï¿½
+	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);	// ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½Ì”wï¿½iï¿½Fï¿½Íï¿½
+	RegisterClass(&wc);	// ï¿½\ï¿½ï¿½ï¿½Ì‚ï¿½Windowsï¿½ÖƒZï¿½bï¿½g
 
-	// ƒNƒ‰ƒCƒAƒ“ƒg—Ìˆæ‚ÌƒTƒCƒY‚ğ•\‚·‹éŒ` (¶‚©‚çleft, top, right, bottom)
+	// ï¿½Nï¿½ï¿½ï¿½Cï¿½Aï¿½ï¿½ï¿½gï¿½Ìˆï¿½ÌƒTï¿½Cï¿½Yï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½` (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½left, top, right, bottom)
 	RECT window_rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
-	// ƒtƒ‹HD
+	// ï¿½tï¿½ï¿½HD
 	//RECT window_rect = { -960, -540, SCREEN_WIDTH, SCREEN_HEIGHT };
 
-	// ƒEƒBƒ“ƒhƒE‚ÌƒXƒ^ƒCƒ‹
+	// ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½ÌƒXï¿½^ï¿½Cï¿½ï¿½
 	DWORD window_style = WS_OVERLAPPEDWINDOW;
-	// w’è‚µ‚½ƒNƒ‰ƒCƒAƒ“ƒg—Ìˆæ‚ğŠm•Û‚·‚é‚½‚ß‚ÉV‚½‚È‹éŒ`À•W‚ğŒvZ
+	// ï¿½wï¿½è‚µï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½Cï¿½Aï¿½ï¿½ï¿½gï¿½Ìˆï¿½ï¿½ï¿½mï¿½Û‚ï¿½ï¿½é‚½ï¿½ß‚ÉVï¿½ï¿½ï¿½È‹ï¿½`ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½vï¿½Z
 	AdjustWindowRect(&window_rect, window_style, FALSE);
-	// ’²®‚³‚ê‚½‹éŒ`‚Ì‰¡‚Æc‚ÌƒTƒCƒY‚ğŒvZ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½ï¿½`ï¿½Ì‰ï¿½ï¿½Æcï¿½ÌƒTï¿½Cï¿½Yï¿½ï¿½ï¿½vï¿½Z
 	int window_width = window_rect.right - window_rect.left;
 	int window_height = window_rect.bottom - window_rect.top;
 
-	// ƒEƒBƒ“ƒhƒE‚Ìì¬
+	// ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½Ìì¬
 	HWND	hWnd = CreateWindow(
 		CLASS_NAME,
 		WINDOW_CAPTION,
@@ -197,200 +142,129 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, 
 		NULL
 	);
 
-	// ì¬‚µ‚½ƒEƒBƒ“ƒhƒE‚ğ•\¦‚·‚é
-	ShowWindow(hWnd, nCmdShow);	// ˆø”‚É]‚Á‚Ä•\¦A‚Ü‚½‚Í”ñ•\¦
-	// ƒEƒBƒ“ƒhƒE“à•”‚ÌXV—v‹
+	// ï¿½ì¬ï¿½ï¿½ï¿½ï¿½ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	ShowWindow(hWnd, nCmdShow);	// ï¿½ï¿½ï¿½ï¿½ï¿½É]ï¿½ï¿½ï¿½Ä•\ï¿½ï¿½ï¿½Aï¿½Ü‚ï¿½ï¿½Í”ï¿½\ï¿½ï¿½
+	// ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½ÌXï¿½Vï¿½vï¿½ï¿½
 	UpdateWindow(hWnd);
 
 	Direct3D_Initialize(hWnd);
 	Keyboard_Initialize();
-	Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext()); // ƒVƒF[ƒ_‚Ì‰Šú‰»
-	InitializeSprite();	// ƒXƒvƒ‰ƒCƒg‚Ì‰Šú‰»
-	InitAudio();		// ƒTƒEƒ“ƒh‚Ì‰Šú‰»
+	Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext()); // ï¿½Vï¿½Fï¿½[ï¿½_ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
+	InitializeSprite();	// ï¿½Xï¿½vï¿½ï¿½ï¿½Cï¿½gï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
+	InitAudio();		// ï¿½Tï¿½Eï¿½ï¿½ï¿½hï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
 	InitImGui(hWnd, Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 
-	////////////////////////////////////////////////////////////////
-	// DirectInput ‰Šú‰»
-	////////////////////////////////////////////////////////////////
-	HRESULT hrDI = DirectInput8Create(
-		hInstance,
-		DIRECTINPUT_VERSION,
-		IID_IDirectInput8,
-		(void**)&g_pDI,
-		NULL
-	);
-
-	// ƒvƒƒRƒ“‚ğ—ñ‹“
-	g_pDI->EnumDevices(
-		DI8DEVCLASS_GAMECTRL,
-		EnumGamepadCallback,
-		NULL,
-		DIEDFL_ATTACHEDONLY
-	);
-
-	// Œ©‚Â‚©‚Á‚½ƒvƒƒRƒ“‚É‘Î‚µ‚Ä Device €”õ
-	for (int i = 0; i < g_GamepadCount; i++)
-	{
-		if (!g_pGamepad[i]) continue;
-
-		g_pGamepad[i]->SetDataFormat(&c_dfDIJoystick2);
-		g_pGamepad[i]->SetCooperativeLevel(hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-		SetAxisRange(g_pGamepad[i]);
-		g_pGamepad[i]->Acquire();
-	}
-	/////////////////////////////////////////////////////////////////
+	Gamepad_Initialize();
 
 	Manager_Initialize();
 
-	// ƒƒbƒZ[ƒWƒ‹[ƒv
+	// ï¿½ï¿½ï¿½bï¿½Zï¿½[ï¿½Wï¿½ï¿½ï¿½[ï¿½v
 	MSG	msg;
 	ZeroMemory(&msg, sizeof(MSG));
 
-	// ƒtƒŒ[ƒ€ƒŒ[ƒgŒv‘ª‰Šú‰»
-	timeBeginPeriod(1);	// ƒ^ƒCƒ}[‚Ì¸“x‚ğİ’è
-	dwExecLastTime = dwFPSLastTime = timeGetTime();	// Œ»İ‚Ìƒ^ƒCƒ}[’l
+	// ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½gï¿½vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	timeBeginPeriod(1);	// ï¿½^ï¿½Cï¿½}ï¿½[ï¿½Ìï¿½ï¿½xï¿½ï¿½İ’ï¿½
+	dwExecLastTime = dwFPSLastTime = timeGetTime();	// ï¿½ï¿½ï¿½İ‚Ìƒ^ï¿½Cï¿½}ï¿½[ï¿½l
 	dwCurrentTime = dwFrameCount = 0;
 
-	// I—¹ƒƒbƒZ[ƒW‚ª—ˆ‚é‚Ü‚Åƒ‹[ƒv‚·‚é
+	// ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½bï¿½Zï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚Åƒï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½ï¿½
 	do {
 		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-		{ // ƒEƒBƒ“ƒhƒEƒƒbƒZ[ƒW‚ª—ˆ‚Ä‚¢‚½‚ç
+		{ // ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½ï¿½ï¿½bï¿½Zï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
 		else
-		{ // ƒQ[ƒ€‚Ìˆ—
+		{ // ï¿½Qï¿½[ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½
 			dwCurrentTime = timeGetTime();
 			if ((dwCurrentTime - dwFPSLastTime) >= 1000)
 			{
 #ifdef _DEBUG
 				g_CountFPS = dwFrameCount;
 #endif
-				dwFPSLastTime = dwCurrentTime;	// Œ»İ‚Ìƒ^ƒCƒ}[’l•Û‘¶
+				dwFPSLastTime = dwCurrentTime;	// ï¿½ï¿½ï¿½İ‚Ìƒ^ï¿½Cï¿½}ï¿½[ï¿½lï¿½Û‘ï¿½
 				dwFrameCount = 0;
 			}
 
 			if ((dwCurrentTime - dwExecLastTime) >= ((float)1000 / 60))
-			{// 1/60s Œo‰ß‚µ‚½
-				dwExecLastTime = dwCurrentTime;	// Œ»İ‚Ìƒ^ƒCƒ}[‚Æ•Û‘¶
+			{// 1/60s ï¿½oï¿½ß‚ï¿½ï¿½ï¿½
+				dwExecLastTime = dwCurrentTime;	// ï¿½ï¿½ï¿½İ‚Ìƒ^ï¿½Cï¿½}ï¿½[ï¿½Æ•Û‘ï¿½
 #ifdef _DEBUG
-				// ƒEƒBƒ“ƒhƒEƒLƒƒƒvƒVƒ‡ƒ“‚ÖŒ»İ‚ÌFPS‚ğ•\¦
-				wsprintf(g_DebugStr, "DX21 ƒvƒƒWƒFƒNƒg ");
+				// ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½Lï¿½ï¿½ï¿½vï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ÖŒï¿½ï¿½İ‚ï¿½FPSï¿½ï¿½\ï¿½ï¿½
+				wsprintf(g_DebugStr, "DX21 ï¿½vï¿½ï¿½ï¿½Wï¿½Fï¿½Nï¿½g ");
 				wsprintf(&g_DebugStr[strlen(g_DebugStr)],
 					" FPS : %d", g_CountFPS);
 				SetWindowText(hWnd, g_DebugStr);
 #endif
-				// ======= ImGui‰Šú‰» =======
+				// ======= ImGuiï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ =======
 				BeginImGuiFrame();
 				Manager_Update();
-				//// ======= ImGui•`‰æƒeƒXƒg =======
-				//ImGui::Begin("Debug Window");
 
-				//// ƒQƒbƒ^[‚Æ‚©‚©‚çî•ñ‚ğæ‚Á‚Ä‚«‚Ä•\¦‚µ‚Ä‚¢‚­
-				//ImGui::Text("Hello, Dear ImGui!");
-				//ImGui::End();
-				for (int p = 0; p < g_GamepadCount; p++)
+				// SDLã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰å…¥åŠ›æ›´æ–°
+				Gamepad_Update();
+
+				// ImGuiæç”»ãƒ†ã‚¹ãƒˆ
+#ifdef _DEBUG
+				int gamepadCount = Gamepad_GetCount();
+				if (gamepadCount > 0)
 				{
-					DIJOYSTATE2 js;
-					if (FAILED(g_pGamepad[p]->GetDeviceState(sizeof(js), &js)))
+					ImGui::Begin("Gamepad Debug");
+					for (int p = 0; p < gamepadCount; p++)
 					{
-						g_pGamepad[p]->Acquire();
-						continue;
+						
+						ImGui::Text("=== Gamepad %d ===", p);
+						ImGui::Text("Name: %s", Gamepad_GetName(p));
+						ImGui::Text("LStick X : %.3f", g_Input[p].LStickX);
+						ImGui::Text("LStick Y : %.3f", g_Input[p].LStickY);
+						ImGui::Text("A Button : %d", g_Input[p].A);
+						ImGui::Text("B Button : %d", g_Input[p].B);
+						ImGui::Text("X Button : %d", g_Input[p].X);
+						ImGui::Text("Y Button : %d", g_Input[p].Y);
+						ImGui::Text("D-Pad: U:%d D:%d L:%d R:%d",
+							g_Input[p].Up, g_Input[p].Down,
+							g_Input[p].Left, g_Input[p].Right);
+						ImGui::Separator();
+						
 					}
-
-					g_Input[p].LStickX = NormalizeStickWithDeadZone(js.lX);
-					g_Input[p].LStickY = NormalizeStickWithDeadZone(js.lY);
-
-					// ==== ƒ{ƒ^ƒ“ ====
-					g_Input[p].B = (js.rgbButtons[0] & 0x80);
-					g_Input[p].A = (js.rgbButtons[1] & 0x80);
-					g_Input[p].Y = (js.rgbButtons[2] & 0x80);
-					g_Input[p].X = (js.rgbButtons[3] & 0x80);
-					g_Input[p].L = (js.rgbButtons[4] & 0x80);
-					g_Input[p].R = (js.rgbButtons[5] & 0x80);
-					g_Input[p].ZL = (js.rgbButtons[6] & 0x80);
-					g_Input[p].ZR = (js.rgbButtons[7] & 0x80);
-					g_Input[p].Minus = (js.rgbButtons[8] & 0x80);
-					g_Input[p].Plus = (js.rgbButtons[9] & 0x80);
-
-					g_Input[p].LStickPush = (js.rgbButtons[10] & 0x80);
-					g_Input[p].RStickPush = (js.rgbButtons[11] & 0x80);
-
-					// ==== POVi\šƒL[j ====
-					int pov = js.rgdwPOV[0];
-					g_Input[p].Up = (pov == 0);
-					g_Input[p].Right = (pov == 9000);
-					g_Input[p].Down = (pov == 18000);
-					g_Input[p].Left = (pov == 27000);
-
-					if (g_pGamepad[p])
-					{
-						if (SUCCEEDED(g_pGamepad[p]->GetDeviceState(sizeof(DIJOYSTATE2), &js)))
-						{
-							ImGui::Text("LStick X : %.3f", g_Input[p].LStickX);
-							ImGui::Text("LStick Y : %.3f", g_Input[p].LStickY);
-							ImGui::Text("B Button : %d", (js.rgbButtons[0] & 0x80) != 0);
-							ImGui::Text("A Button : %d", (js.rgbButtons[1] & 0x80) != 0);
-							ImGui::Text("Y Button : %d", (js.rgbButtons[2] & 0x80) != 0);
-							ImGui::Text("X Button : %d", (js.rgbButtons[3] & 0x80) != 0);
-							ImGui::Text("Cross Button : %d", js.rgdwPOV[0]);
-						}
-					}
-
-				// ------------------------------
-
-
+					ImGui::End();
 				}
-				// •`‰æˆ—
-				Direct3D_Clear();	// ƒoƒbƒNƒoƒbƒtƒ@‚ğƒNƒŠƒA
+#endif
+				// æç”»å‡¦ç†
+				Direct3D_Clear();	// ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã‚’ã‚¯ãƒªã‚¢
 				Manager_Draw();
 				
-				EndImGuiFrame();	// ImGui ‚ğ•`‰æ
+				EndImGuiFrame();	// ImGui ï¿½ï¿½`ï¿½ï¿½
 				
 				Direct3D_Present();
 				keycopy();
 				
-				dwFrameCount++;		//ˆ—‰ñ”XV
+				dwFrameCount++;		//ï¿½ï¿½ï¿½ï¿½ï¿½ñ”Xï¿½V
 			}
 		}
 	} while (msg.message != WM_QUIT);
 	
 	Manager_Finalize();
-	UninitAudio();		// ƒTƒEƒ“ƒh‚ÌI—¹
-	Shader_Finalize();	// ƒVƒF[ƒ_‚ÌI—¹ˆ—
+	UninitAudio();		// ï¿½Tï¿½Eï¿½ï¿½ï¿½hï¿½ÌIï¿½ï¿½
+	Shader_Finalize();	// ï¿½Vï¿½Fï¿½[ï¿½_ï¿½ÌIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-	// DirectInputI—¹ˆ—
-	for (int i = 0; i < g_GamepadCount; i++)
-	{
-		if (g_pGamepad[i])
-		{
-			g_pGamepad[i]->Unacquire();
-			g_pGamepad[i]->Release();
-			g_pGamepad[i] = nullptr;
-		}
-	}
-	if (g_pDI)
-	{
-		g_pDI->Release();
-		g_pDI = nullptr;
-	}
+	Gamepad_Finalize();
 
 	ShutdownImGui();
 	Direct3D_Finalize();
 
-	//I—¹‚·‚é
+	//ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	return (int)msg.wParam;
 }
 
 //=========================================
-//ƒEƒBƒ“ƒhƒEƒvƒƒV[ƒWƒƒ
-// ƒƒbƒZ[ƒWƒ‹[ƒv“à‚ÅŒÄ‚Ño‚³‚ê‚é
+//ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½vï¿½ï¿½ï¿½Vï¿½[ï¿½Wï¿½ï¿½
+// ï¿½ï¿½ï¿½bï¿½Zï¿½[ï¿½Wï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½ÅŒÄ‚Ñoï¿½ï¿½ï¿½ï¿½ï¿½
 //=========================================
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	//HGDIOBJ hbrWhite, hbrGray;
-	//HDC		hdc;	//ƒEƒBƒ“ƒhƒE‰æ–Ê‚ğ•\‚·î•ñiƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg “üo—Íæj
-	//PAINTSTRUCT	ps;	//ƒEƒBƒ“ƒhƒE‰æ–Ê‚Ì‘å‚«‚³‚È‚Ç•`‰æŠÖ˜A‚Ìî•ñ
+	//HDC		hdc;	//ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½ï¿½Ê‚ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½iï¿½fï¿½oï¿½Cï¿½Xï¿½Rï¿½ï¿½ï¿½eï¿½Lï¿½Xï¿½g ï¿½ï¿½ï¿½oï¿½Íï¿½j
+	//PAINTSTRUCT	ps;	//ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½ï¿½Ê‚Ì‘å‚«ï¿½ï¿½ï¿½È‚Ç•`ï¿½ï¿½Ö˜Aï¿½Ìï¿½ï¿½
 
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
 		return true;
@@ -404,34 +278,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		Keyboard_ProcessMessage(uMsg, wParam, lParam);
 		break;
 
-	case WM_KEYDOWN:	// ƒL[‚ª‰Ÿ‚³‚ê‚½
-		if (wParam == VK_ESCAPE)	// ‰Ÿ‚³‚ê‚½‚Ì‚ÍESCƒL[
+	case WM_KEYDOWN:	// ï¿½Lï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½
+		if (wParam == VK_ESCAPE)	// ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½Ì‚ï¿½ESCï¿½Lï¿½[
 		{
-			// ƒEƒBƒ“ƒhƒE‚ğ•Â‚¶‚½‚¢ƒŠƒNƒGƒXƒg‚ğWindows‚É‘—‚é
+			// ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½ï¿½Â‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Nï¿½Gï¿½Xï¿½gï¿½ï¿½Windowsï¿½É‘ï¿½ï¿½ï¿½
 			SendMessage(hWnd, WM_CLOSE, 0, 0);
 		}
 
 		Keyboard_ProcessMessage(uMsg, wParam, lParam);
 		break;
-	case WM_CLOSE:	// ƒEƒBƒ“ƒhƒE‚ğ•Â‚¶‚È‚³‚¢–½—ß				
+	case WM_CLOSE:	// ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½ï¿½Â‚ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½				
 		//if (
-		//	MessageBox(hWnd, "–{“–‚ÉI—¹‚µ‚Ä‚æ‚ë‚µ‚¢‚Å‚·‚©H",
-		//		"Šm”F", MB_OKCANCEL | MB_DEFBUTTON2) == IDOK
+		//	MessageBox(hWnd, "ï¿½{ï¿½ï¿½ï¿½ÉIï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ë‚µï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½ï¿½H",
+		//		"ï¿½mï¿½F", MB_OKCANCEL | MB_DEFBUTTON2) == IDOK
 		//	)
-		//{//OK‚ª‰Ÿ‚³‚ê‚½‚Æ‚«
-		//	DestroyWindow(hWnd);//I—¹‚·‚éè‘±‚«‚ğWindows‚ÖƒŠƒNƒGƒXƒg
+		//{//OKï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½Æ‚ï¿½
+		//	DestroyWindow(hWnd);//ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è‘±ï¿½ï¿½ï¿½ï¿½Windowsï¿½Öƒï¿½ï¿½Nï¿½Gï¿½Xï¿½g
 		//}
 		//else
 		//{
-		//	return 0;	//‚â‚Á‚Ï‚èI‚í‚ç‚È‚¢
+		//	return 0;	//ï¿½ï¿½ï¿½ï¿½Ï‚ï¿½Iï¿½ï¿½ï¿½È‚ï¿½
 		//}
 
 		//break;
-	case WM_DESTROY:			// I—¹‚µ‚ÄOK‚Å‚·‚æ
-		PostQuitMessage(0);		// ©•ª‚ÌƒƒbƒZ[ƒW‚É0‚ğ‘—‚é
+	case WM_DESTROY:			// ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½OKï¿½Å‚ï¿½ï¿½ï¿½
+		PostQuitMessage(0);		// ï¿½ï¿½ï¿½ï¿½ï¿½Ìƒï¿½ï¿½bï¿½Zï¿½[ï¿½Wï¿½ï¿½0ï¿½ğ‘—‚ï¿½
 		break;
 	}
-	// •K—v‚Ì–³‚¢ƒƒbƒZ[ƒW‚Í“K“–‚Éˆ—‚³‚¹‚ÄI—¹
+	// ï¿½Kï¿½vï¿½Ì–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½bï¿½Zï¿½[ï¿½Wï¿½Í“Kï¿½ï¿½ï¿½Éï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÄIï¿½ï¿½
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 

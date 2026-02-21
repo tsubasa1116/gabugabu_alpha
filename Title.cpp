@@ -3,26 +3,24 @@
 // 
 //	制作者：田中佑奈			日付：2026//
 //======================================================
-#include	"Manager.h"
-#include	"sprite.h"
-#include	"keyboard.h"
-
-#include	"Title.h"
-
+#include "Manager.h"
+#include "sprite.h"
+#include "keyboard.h"
+#include "Title.h"
 #include "fade.h"
 #include "swipe.h"
 #include "shader.h"
-
 #include <chrono>
 #include <cmath>
 #include "VideoTexture.h"
+#include "color.h"
 
 static VideoTexture g_VideoTex;
 
-static	ID3D11ShaderResourceView* g_Texture = NULL;		//背景
-static	ID3D11ShaderResourceView* g_Texture2 = NULL;	//ゲームロゴ
-static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//はじめるボタン
-static	DirectX::TexMetadata		g_Metadata3{};
+static	ID3D11ShaderResourceView* g_Texture = NULL;		// 背景
+static	ID3D11ShaderResourceView* g_Texture2 = NULL;	// ゲームロゴ
+static	ID3D11ShaderResourceView* g_Texture3 = NULL;	// はじめるボタン
+static	DirectX::TexMetadata g_Metadata3{};
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
@@ -128,14 +126,9 @@ void Title_Update()
 
 void Title_Draw()
 {
-
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
-	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-
-	// 画面サイズ取得
-	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
-	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
+	Shader_SetColor(color::white);
 
 	// 頂点シェーダーに変換行列を設定（UI用：直交投影）
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
