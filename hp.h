@@ -7,8 +7,8 @@ using namespace DirectX;
 #include "sprite.h"
 #include "shader.h"
 
-#define HPBER_MAX (4)         // HPバー最大数
-#define HPBAR_SPEED (3.0f)    // HPバーのスムーズ減少速度
+#define HPBER_MAX (4)		// HPバー最大数
+#define HPBAR_SPEED (3.0f)	// HPバーのスムーズ減少速度
 
 struct hp {
 	XMFLOAT2 pos;           // 位置

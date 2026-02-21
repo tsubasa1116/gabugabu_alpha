@@ -8,7 +8,7 @@
 #include "debug_render.h"
 #include "model.h"
 #include "Building.h"
-#include "Player.h"
+#include "player.h"
 #include "special.h"
 #include "imgui.h"
 #include "imgui_impl_win32.h"

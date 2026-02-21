@@ -3,28 +3,24 @@
 // 
 //	制作者：田中佑奈			日付：2026//
 //======================================================
-#include	"Manager.h"
-#include	"sprite.h"
-#include	"keyboard.h"
-
-#include	"Title.h"
-
+#include "Manager.h"
+#include "sprite.h"
+#include "keyboard.h"
+#include "Title.h"
 #include "fade.h"
 #include "swipe.h"
 #include "shader.h"
-
 #include <chrono>
 #include <cmath>
 #include "VideoTexture.h"
-
 #include "color.h"
 
 static VideoTexture g_VideoTex;
 
-static	ID3D11ShaderResourceView* g_Texture = NULL;		//背景
-static	ID3D11ShaderResourceView* g_Texture2 = NULL;	//ゲームロゴ
-static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//はじめるボタン
-static	DirectX::TexMetadata		g_Metadata3{};
+static	ID3D11ShaderResourceView* g_Texture = NULL;		// 背景
+static	ID3D11ShaderResourceView* g_Texture2 = NULL;	// ゲームロゴ
+static	ID3D11ShaderResourceView* g_Texture3 = NULL;	// はじめるボタン
+static	DirectX::TexMetadata g_Metadata3{};
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 

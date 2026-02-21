@@ -13,9 +13,8 @@ static	ID3D11ShaderResourceView* g_Texture[10];
 hp HPBar[HPBER_MAX];
 
 // HPバーのスムーズ減少速度
-#define HPBAR_SPEED 3.0f
-#define DAMAGE_BAR_SPEED 1.5f      // 赤バーの減少速度
-#define DAMAGE_BAR_DELAY 30.0f     // 赤バーが減り始めるまでの遅延フレーム
+#define DAMAGE_BAR_SPEED (1.5f)		// 赤バーの減少速度
+#define DAMAGE_BAR_DELAY (30.0f)	// 赤バーが減り始めるまでの遅延フレーム
 #define SIZE_ADJUST	((1.88f *  (SCREEN_WIDTH / 1280.0f)))
 #define POS_ADJUST	((86.4f *  (SCREEN_WIDTH / 1280.0f)))
 

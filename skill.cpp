@@ -11,7 +11,7 @@ using namespace DirectX;
 #include "field.h"
 #include "building.h"
 #include "debug_ostream.h"
-#include "Player.h"
+#include "player.h"
 #include "keyboard.h"
 
 #include "color.h"
