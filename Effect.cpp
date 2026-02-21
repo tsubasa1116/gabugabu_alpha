@@ -8,8 +8,8 @@
 #include "Camera.h"
 #include "debug_render.h"
 
-#define EFFECT_SPRITE_X		(6)
-#define EFFECT_SPRITE_Y		(6)
+#define EFFECT_SPRITE_X		(8)
+#define EFFECT_SPRITE_Y		(8)
 #define EFFECT_FRAME_MAX	(64)
 #define EFFECT_SPEED		(2.5f)
 #define EFFECT_TEX_MAX		(30)
