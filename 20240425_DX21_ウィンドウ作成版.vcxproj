@@ -126,6 +126,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)SDL3\lib\x63;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <UseDynamicDebugging>true</UseDynamicDebugging>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -152,6 +153,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)SDL3\lib\x63;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <UseDynamicDebugging>true</UseDynamicDebugging>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>

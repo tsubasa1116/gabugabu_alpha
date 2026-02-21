@@ -162,7 +162,9 @@
     <ClCompile Include="imgui_draw.cpp">
       <Filter>外部ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="gamepad.cpp" />
+    <ClCompile Include="gamepad.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attack.h">
@@ -306,7 +308,9 @@
     <ClInclude Include="imgui.h">
       <Filter>外部ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="gamepad.h" />
+    <ClInclude Include="gamepad.h">
+      <Filter>h</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="cpp">
