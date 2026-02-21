@@ -1426,7 +1426,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	SetDepthTest(false); // コライダーを最前面に出したいならこれでOK
 
 	/////////////////////////////////////////////////////////////////////////////////////
-	// TODO:
+	// TODO:当たり判定の可視化
 	if (s_IsKonamiCodeEntered)
 	{
 		// プレイヤーの描画に使われた行列をクリアする
