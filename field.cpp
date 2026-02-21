@@ -513,6 +513,8 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			break;
 		}
 
+		if (!s_IsKonamiCodeEntered || input2) ModelDraw(Test);
+
 		//// テクスチャをパイプラインから解除
 		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
