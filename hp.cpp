@@ -13,8 +13,11 @@ static	ID3D11ShaderResourceView* g_Texture[10];
 hp HPBar[HPBER_MAX];
 
 // HPバーのスムーズ減少速度
-#define DAMAGE_BAR_SPEED	(1.5f)	// 赤バーの減少速度
-#define DAMAGE_BAR_DELAY	(30.0f)	// 赤バーが減り始めるまでの遅延フレーム
+#define HPBAR_SPEED 3.0f
+#define DAMAGE_BAR_SPEED 1.5f      // 赤バーの減少速度
+#define DAMAGE_BAR_DELAY 30.0f     // 赤バーが減り始めるまでの遅延フレーム
+#define SIZE_ADJUST	((1.88f *  (SCREEN_WIDTH / 1280.0f)))
+#define POS_ADJUST	((86.4f *  (SCREEN_WIDTH / 1280.0f)))
 
 // -------------------------------------------------------------
 // 初期化
@@ -206,15 +209,17 @@ void DrawHP(const hp* bar, int texNum)
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[backTexIndex]);
 	DrawSprite(backPos, backSize, bar->backColor);
 
+	float AdjScreenX = SCREEN_ADJUST_X;
+
 	// 赤バー（ダメージ表示）を先に描画
 	if (damageRatio > ratio)
 	{
 		XMFLOAT2 damageUvMin = { 0.0f, 0.0f };
 		XMFLOAT2 damageUvMax = { damageRatio, 1.0f };
 
-		XMFLOAT2 damageFillSize   = { bar->size.x * damageRatio, bar->size.y };
-		XMFLOAT2 damageFillSizeOK = { damageFillSize.x / 1.88f, damageFillSize.y };
-		XMFLOAT2 damageFillPosOK  = { drawPos.x - (bar->size.x / 2.0f) + damageFillSizeOK.x / 2.0f + 86.4f, drawPos.y };
+		XMFLOAT2 damageFillSize   = { bar->size.x * damageRatio * AdjScreenX, bar->size.y };
+		XMFLOAT2 damageFillSizeOK = { damageFillSize.x / SIZE_ADJUST, damageFillSize.y };
+		XMFLOAT2 damageFillPosOK  = { drawPos.x - (bar->size.x / 2.0f) + damageFillSizeOK.x / 2.0f + POS_ADJUST, drawPos.y };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 		Shader_BeginHpber();
@@ -226,9 +231,9 @@ void DrawHP(const hp* bar, int texNum)
 	XMFLOAT2 uvMin = { 0.0f, 0.0f };
 	XMFLOAT2 uvMax = { ratio, 1.0f };
 
-	XMFLOAT2 fillSize =   { bar->size.x * ratio, bar->size.y };
-	XMFLOAT2 fillSizeOK = { fillSize.x / 1.88f, fillSize.y };
-	XMFLOAT2 fillPosOK =  { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, drawPos.y };
+	XMFLOAT2 fillSize =   { bar->size.x * ratio * AdjScreenX, bar->size.y };
+	XMFLOAT2 fillSizeOK = { fillSize.x / SIZE_ADJUST, fillSize.y };
+	XMFLOAT2 fillPosOK =  { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + POS_ADJUST, drawPos.y };
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	Shader_BeginHpber();

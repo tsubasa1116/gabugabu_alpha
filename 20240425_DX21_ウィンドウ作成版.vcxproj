@@ -119,10 +119,14 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir)SDL3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)SDL3\lib\x63;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <UseDynamicDebugging>true</UseDynamicDebugging>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -140,12 +144,16 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir)SDL3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)SDL3\lib\x63;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <UseDynamicDebugging>true</UseDynamicDebugging>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -170,6 +178,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="fade.cpp" />
     <ClCompile Include="field.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="gamepad.cpp" />
     <ClCompile Include="gauge.cpp" />
     <ClCompile Include="hp.cpp" />
     <ClCompile Include="imgui.cpp" />
@@ -220,6 +229,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="fade.h" />
     <ClInclude Include="field.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="gamepad.h" />
     <ClInclude Include="gauge.h" />
     <ClInclude Include="hp.h" />
     <ClInclude Include="imconfig.h" />

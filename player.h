@@ -143,6 +143,8 @@ struct PLAYEROBJECT
 
 	Circle electricityCircles[SPECIAL_ELECTRICITY_QUANTITY]; // スペシャル 電気の円
 	std::vector<GLASS_BOX> glassBoxes; // スペシャル ガラスのミサイルリスト
+
+	XMFLOAT2 moveInput2D;
 };
 
 void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -165,5 +167,7 @@ PLAYEROBJECT* GetPlayer(int playerIndex);
 void Player_DrawText();
 
 void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float speed);
+
+bool Player_CanUseSpecial(int playerIndex);
 
 

@@ -533,13 +533,16 @@ void Attack_Update(int playerIndex)
 		// 第3形態に到達した直後ならエフェクトをセット（プレイヤー番号別位置・タイプ別テクスチャ）
 		if (player.form == Form::Third && currentForm != Form::Third)
 		{
+			float screenX = SCREEN_ADJUST_X;
+			float screenY = 620.0f * SCREEN_ADJUST_Y;
+
 			// プレイヤーごとの画面上のエフェクト位置
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
 			{
-				{  170.0f, 620.0f }, // プレイヤー1
-				{  490.0f, 620.0f }, // プレイヤー2
-				{  810.0f, 620.0f }, // プレイヤー3
-				{ 1130.0f, 620.0f }  // プレイヤー4
+				{  170.0f * screenX, screenY }, // プレイヤー1
+				{  490.0f * screenX, screenY }, // プレイヤー2
+				{  810.0f * screenX, screenY }, // プレイヤー3
+				{ 1130.0f * screenX, screenY }  // プレイヤー4
 			};
 
 			// 進化タイプ別のテクスチャ番号（Effect のテクスチャ配列と合わせること）

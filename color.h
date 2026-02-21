@@ -5,7 +5,10 @@ using namespace DirectX;
 
 #define SIZE_DEFAULT { 1.0f, 1.0f ,1.0f }
 #define COLL 0.9f
-
+#define	SCREEN_WIDTH ((float)Direct3D_GetBackBufferWidth())
+#define	SCREEN_HEIGHT ((float)Direct3D_GetBackBufferHeight())
+#define	SCREEN_ADJUST_X (SCREEN_WIDTH / 1280.0f)
+#define	SCREEN_ADJUST_Y (SCREEN_HEIGHT / 720.0f)
 namespace color
 {
     constexpr XMFLOAT4 white(1, 1, 1, 1);

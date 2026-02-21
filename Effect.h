@@ -17,6 +17,9 @@ public:
 	float frameCnt;	// アニメーションカウンター
 	int texNo;
 	int playerIndex;
+	float scaleTimer;
+	bool scaleGrowing;
+	XMFLOAT2 baseSize; 
 };
 
 struct PLAYER_EFFECT_ANIM
@@ -67,6 +70,9 @@ struct EffectConfig {
 	bool isLoop;   // ループフラグ
 	float speed;   // 再生速度（1.0fが標準）
 	int spriteY;
+	float scaleMin;
+	float scaleMax;
+	float scaleSpeed;
 };
 
 // メイン処理関数
