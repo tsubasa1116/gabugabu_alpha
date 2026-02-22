@@ -39,7 +39,7 @@ static ATTACK_OBJECT Attack[PLAYER_MAX];
 #define ATTACK_VERTEX (24)
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// TODO:三角形の攻撃用の当たり判定を作り、2重に食らうのをなくす
+// TODO:三角形の攻撃用の当たり判定を作り、2重に食らうのをなくし、ヒットストップを作る
 
 static Vertex2 Attack_vdata[ATTACK_VERTEX] =
 {
