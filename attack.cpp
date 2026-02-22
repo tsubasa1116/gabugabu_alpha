@@ -744,10 +744,19 @@ void AttackPlayerCollisions()
 
 			if (col.isColliding)
 			{
-				// ノックバック（攻撃者の向きと攻撃力を使用）
-				defender.position.x += attacker.dir.x * attacker.power;
-				defender.position.y += attacker.power;
-				defender.position.z += attacker.dir.z * attacker.power;
+				//// ノックバック（攻撃者の向きと攻撃力を使用）
+				//defender.position.x += attacker.dir.x/* * attacker.power*/;
+				//defender.position.y += attacker.power;
+				//defender.position.z += attacker.dir.z/* * attacker.power*/;
+
+				// 吹っ飛ばす強さ（ここを大きくするとめっちゃ飛ぶ！）
+				float knockbackPower = 0.4f;
+				float liftUpPower = 0.2f;    // 少し上に浮かせると吹っ飛ばされた感が出るよ
+
+				// 座標を直接いじるのではなく、速度（velocity）に力を溜める
+				defender.velocity.x = attacker.dir.x * knockbackPower;
+				defender.velocity.y = liftUpPower;
+				defender.velocity.z = attacker.dir.z * knockbackPower;
 
 				// ダメージ用変数
 				float rawDamage = attacker.attack * defender.defense;
@@ -767,7 +776,7 @@ void AttackPlayerCollisions()
 				hitPos.y += defender.scaling.y + 0.3f;
 				SetDamageText(hitPos, dmgInt, TextColor::Blue);
 
-				// ダメージフラグ・タイマー（アニメ／UI 用）
+				// ダメージフラグ・タイマー（アニメ/UI 用）
 				defender.isAttacked = true;
 				defender.attackedTimer = 0.0f;
 

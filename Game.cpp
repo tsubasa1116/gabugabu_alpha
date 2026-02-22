@@ -38,51 +38,8 @@ LIGHTOBJECT Light;
 static int g_BgmID = NULL;	
 bool input2 = false;
 
-const int KONAMI_CODE[] = {
-	KK_UP, KK_UP, KK_DOWN, KK_DOWN,
-	KK_LEFT, KK_RIGHT, KK_LEFT, KK_RIGHT,
-	KK_B, KK_A
-};
-
-
-const int KONAMI_CODE_LENGTH = sizeof(KONAMI_CODE) / sizeof(KONAMI_CODE[0]);
-
-
-static int s_KonamiCodeIndex = 0;
-
-
+// コマンドが入力されたときに立つフラグ
 static bool s_IsKonamiCodeEntered = false;
-
-void CheckKonamiCode(int currentKeyCode)
-{
-
-	if (currentKeyCode == KONAMI_CODE[s_KonamiCodeIndex])
-	{
-
-		s_KonamiCodeIndex++;
-
-
-		if (s_KonamiCodeIndex >= KONAMI_CODE_LENGTH)
-		{
-
-			s_IsKonamiCodeEntered = !s_IsKonamiCodeEntered;
-
-
-			s_KonamiCodeIndex = 0; 
-		}
-	}
-	else
-	{
-
-		s_KonamiCodeIndex = 0;
-
-
-		if (currentKeyCode == KONAMI_CODE[0])
-		{
-			s_KonamiCodeIndex = 1;
-		}
-	}
-}
 
 //======================================================
 //	
@@ -106,10 +63,10 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext);		
 	//Score_Initialize(pDevice, pContext);
 
-	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");
-	//PlayAudio(g_BgmID, true);	
-	//PlayAudio(g_BgmID);		
-	//PlayAudio(g_BgmID, false);
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// サウンドロード
+	//PlayAudio(g_BgmID, true);		// 再生開始(ループあり)
+	//PlayAudio(g_BgmID);			// 再生開始（ループなし）
+	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし）
 
 	XMFLOAT4 para;
 
@@ -156,12 +113,12 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
-		 if (Keyboard_IsKeyDownTrigger(KK_UP))		CheckKonamiCode(KK_UP);
-	else if (Keyboard_IsKeyDownTrigger(KK_DOWN))	CheckKonamiCode(KK_DOWN);
-	else if (Keyboard_IsKeyDownTrigger(KK_LEFT))	CheckKonamiCode(KK_LEFT);
-	else if (Keyboard_IsKeyDownTrigger(KK_RIGHT))	CheckKonamiCode(KK_RIGHT);
-	else if (Keyboard_IsKeyDownTrigger(KK_B))		CheckKonamiCode(KK_B);
-	else if (Keyboard_IsKeyDownTrigger(KK_A))		CheckKonamiCode(KK_A);
+	// コマンドで使用する全てのキーの押下トリガーをチェックし、検出関数に渡す
+	if (Keyboard_IsKeyDownTrigger(KK_P))
+	{
+		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
+		else						s_IsKonamiCodeEntered = false;
+	}
 	// ------------------------------------
 	// 
 	// ------------------------------------
@@ -202,8 +159,9 @@ void Game_Draw()
 	Shader_SetLight(Light.Light);	
 	SetDepthTest(TRUE);
 
-	Field_Draw(s_IsKonamiCodeEntered);
-	Player_Draw(s_IsKonamiCodeEntered);
+	Camera_Draw();	// Drawの最初で呼ぶ！
+	Field_Draw	(s_IsKonamiCodeEntered);
+	Player_Draw	(s_IsKonamiCodeEntered);
 
 	Light.SetEnable(FALSE);			
 	Shader_SetLight(Light.Light);	

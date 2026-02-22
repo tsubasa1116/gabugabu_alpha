@@ -64,6 +64,7 @@ enum class PlayerType
 struct PLAYEROBJECT
 {
 	XMFLOAT3 position;		// À•W
+	XMFLOAT3 velocity;		// 
 	XMFLOAT3 oldPosition;	// ‰ß‹‚ÌÀ•W
 	XMFLOAT3 rotation;		// ‰ñ“]Šp“x
 	XMFLOAT3 scaling;		// Šg‘å—¦
