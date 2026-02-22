@@ -80,6 +80,7 @@ void Camera_Initialize()
 	s_ShakeTimer = 0.0f;
 	s_ShakeOffset = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
+	cameraMode = CAMERAMODE_MANUAL;
 }
 
 void Camera_Finalize()
@@ -240,6 +241,8 @@ void Camera_Update()
 	else if(cameraMode == CAMERAMODE_AUTO)
 	{
 		Camera_UpdateAuto();
+		if (Keyboard_IsKeyDown(KK_O))
+			Camera_Initialize();
 	}
 
 	// 毎フレームの補間（目標値へ追従する）

@@ -49,7 +49,7 @@ struct MAPDATA
 	bool isActive = true;
 
 	// ˜ZŠpŒ`“–‚½‚è”»’è—p
-	float radius = 3.0f;
+	float radius = 2.0f;
 	float height = 2.25f;
 
 	float respawnTimer;
