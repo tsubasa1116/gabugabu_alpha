@@ -38,6 +38,9 @@ static ATTACK_OBJECT Attack[PLAYER_MAX];
 // マクロ定義
 #define ATTACK_VERTEX (24)
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// TODO:三角形の攻撃用の当たり判定を作り、2重に食らうのをなくす
+
 static Vertex2 Attack_vdata[ATTACK_VERTEX] =
 {
 	// -Z面 (法線: 0,0,-1)
