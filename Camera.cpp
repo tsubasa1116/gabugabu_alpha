@@ -280,19 +280,31 @@ void Camera_Update()
 
 void Camera_UpdateAuto()
 {
+	// すべてのプレイヤーの位置を平均して中心を計算
 	XMFLOAT3 center = { 0.0f, 0.0f, 0.0f };
+
+	// プレイヤーの位置の範囲を計算
 	float minX = FLT_MAX, maxX = -FLT_MAX;
 	float minZ = FLT_MAX, maxZ = -FLT_MAX;
 
+	// プレイヤーの数をカウント
 	int playerCount = 0;
+
+	// 全プレイヤーの位置を取得して中心と範囲を計算
 	for (int i = 0; i < 4; i++) 
 	{
 		PLAYEROBJECT* player = GetPlayer(i);
 		if (!player) continue;
 
+		// 死んだプレイヤーは中心計算の対象外にする
+		bool isDead = (!player->active && player->stock <= 0);
+		if (isDead) continue;
+
+		// プレイヤーの位置を中心に加算
 		center.x += player->position.x;
 		center.z += player->position.z;
 
+		// プレイヤーの位置の範囲を更新
 		if (player->position.x < minX) minX = player->position.x;
 		if (player->position.x > maxX) maxX = player->position.x;
 		if (player->position.z < minZ) minZ = player->position.z;
@@ -300,15 +312,21 @@ void Camera_UpdateAuto()
 		playerCount++;
 	}
 
-	if (playerCount > 0) {
+	// プレイヤーの平均位置を中心とする
+	if (playerCount > 0) 
+	{
 		center.x /= (float)playerCount;
 		center.z /= (float)playerCount;
 	}
 
+	// カメラオフセットの初期値
 	static float camera_offset_x = 0.0f;
 	static float camera_offset_y = 10.0f;
 	static float camera_offset_z = -10.0f;
 
+	//=================================================================
+	// ImGuiでカメラオフセットの調整UI
+	//=================================================================
 	ImGui::Begin("CameraOffset");
 	ImGui::SliderFloat("X", &camera_offset_x, -20.0f, 20.0f, "%.1f");
 	ImGui::SliderFloat("Y", &camera_offset_y,  0.0f,  30.0f, "%.1f");
@@ -338,9 +356,11 @@ void Camera_UpdateAuto()
 	}
 
 	ImGui::End();
+	//=================================================================
 
 	// 注視点は中心（目標に設定する）
 	s_TargetAt = center;
+
 	// カメラの位置を調整（平行投影の立体感）
 	// 50度　(x,5 y,13.3 z,-10)
 	s_TargetPos = XMFLOAT3(center.x + 5.0f, center.y + 13.3f, center.z + -10.0f);

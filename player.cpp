@@ -252,6 +252,11 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	HPBar[2].gaugeIndex = 2;
 	HPBar[3].gaugeIndex = 3;
 
+	SetDeathHP(&HPBar[0], 6);
+	SetDeathHP(&HPBar[1], 7);
+	SetDeathHP(&HPBar[2], 8);
+	SetDeathHP(&HPBar[3], 9);
+
 	// アニメーションの初期化
 	for (int i = 0; i < PLAYER_MAX; ++i)
 	{
@@ -892,6 +897,7 @@ void Player_Update()
 			{
 				// 残機無しで完全に非アクティブ化
 				player[p].active = false;
+
 				// 順位登録
 				Ranking(p);
 			}
@@ -1631,7 +1637,21 @@ void Player_DrawHP()
 	{
 		SetBlendState(BLENDSTATE_ALPHA);
 
-		DrawHP(&HPBar[i], i + 2);
+		// プレイヤーが死んでいるかどうかを判定
+		bool isDead = (!player[i].active && player[i].stock <= 0);
+
+		DrawHP(&HPBar[i], i + 2, isDead);
+		
+
+		if (isDead)
+		{// 死んだときは、灰色のHPバーを残して全てのUIを消す
+			if (!Player_CanUseSpecial(i))
+			{
+				Effect_Clear(i);
+			}
+			continue;
+		}
+
 		XMFLOAT2 hp = HPBar[i].pos;
 
 		// スキルゲージ表示用の値を計算する
@@ -1705,7 +1725,7 @@ void Player_DrawHP()
 				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
 
-
+		// スペシャル使用可能ならエフェクトを表示、そうでなければ消す
 		if (Player_CanUseSpecial(i))
 		{
 			Effect_Set(24, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (100.0f * SCREEN_ADJUST_Y) }, { (162.0f * SCREEN_ADJUST_X), (60.0f * SCREEN_ADJUST_Y) }, i);
@@ -1720,6 +1740,7 @@ void Player_DrawHP()
 		// スキルゲージは属性確定のときのみ描画
 		Gauge_DrawBasic(i);
 
+		// 属性確定しているときはスキルUIも描画
 		if (player[i].isTypeFixed)
 		{
 			Gauge_DrawSkill(i);
