@@ -200,6 +200,7 @@ static Vertex2 Attack_vdata[ATTACK_VERTEX] =
 	},
 };
 
+
 // インデックス配列
 static UINT Attack_idxdata[6 * 6]
 {
