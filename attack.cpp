@@ -38,6 +38,9 @@ static ATTACK_OBJECT Attack[PLAYER_MAX];
 // マクロ定義
 #define ATTACK_VERTEX (24)
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// TODO:三角形の攻撃用の当たり判定を作り、2重に食らうのをなくす
+
 static Vertex2 Attack_vdata[ATTACK_VERTEX] =
 {
 	// -Z面 (法線: 0,0,-1)
@@ -196,6 +199,7 @@ static Vertex2 Attack_vdata[ATTACK_VERTEX] =
 		XMFLOAT2(1.0f,1.0f)
 	},
 };
+
 
 // インデックス配列
 static UINT Attack_idxdata[6 * 6]
@@ -744,10 +748,18 @@ void AttackPlayerCollisions()
 
 			if (col.isColliding)
 			{
-				// ノックバック（攻撃者の向きと攻撃力を使用）
-				defender.position.x += attacker.dir.x * attacker.power;
-				defender.position.y += attacker.power;
-				defender.position.z += attacker.dir.z * attacker.power;
+				//// ノックバック（攻撃者の向きと攻撃力を使用）
+				//defender.position.x += attacker.dir.x/* * attacker.power*/;
+				//defender.position.y += attacker.power;
+				//defender.position.z += attacker.dir.z/* * attacker.power*/;
+
+				// 吹っ飛ばす強さ（ここを大きくするとめっちゃ飛ぶ！）
+				float liftUpPower = 2.0f;    // 少し上に浮かせると吹っ飛ばされた感が出るよ
+
+				// 座標を直接いじるのではなく、速度（velocity）に力を溜める
+				defender.velocity.x = attacker.dir.x * attacker.power * defender.weight;
+				defender.velocity.y = liftUpPower;
+				defender.velocity.z = attacker.dir.z * attacker.power * defender.weight;
 
 				// ダメージ用変数
 				float rawDamage = attacker.attack * defender.defense;
@@ -767,13 +779,15 @@ void AttackPlayerCollisions()
 				hitPos.y += defender.scaling.y + 0.3f;
 				SetDamageText(hitPos, dmgInt, TextColor::Blue);
 
-				// ダメージフラグ・タイマー（アニメ／UI 用）
+				// ダメージフラグ・タイマー（アニメ/UI 用）
 				defender.isAttacked = true;
 				defender.attackedTimer = 0.0f;
 
 				// 再計算
 				CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);
 				CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
+			
+				attacker.isAttacking = false;	// 攻撃終了
 			}
 		}
 	}

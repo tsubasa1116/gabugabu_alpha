@@ -12,8 +12,9 @@
 #define	PLAYER_MAX			(4)		// プレイヤー最大数
 #define	DELTA_TIME	 (1.0f / 60.0f)	// デルタタイム（秒）
 
-#define	PLAYER_MAX_HP		(5.0f)// プレイヤー 最大HP
-#define	PLAYER_MAX_SATIETY	(7.0f)	// プレイヤー 最大満腹度
+#define	PLAYER_MAX_HP				(50.0f)// プレイヤー 最大HP
+#define	PLAYER_MAX_SATIETY			(7.0f)	// プレイヤー 最大満腹度
+#define	PLAYER_EVOLUTION_GAUGE_RATE	(0.5f)	// プレイヤー 進化ゲージ増加率
 
 #define	EVOLUTIONGAUGE_MAX	(1.0f)	// 進化ゲージ最大値
 #define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間
@@ -64,6 +65,7 @@ enum class PlayerType
 struct PLAYEROBJECT
 {
 	XMFLOAT3 position;		// 座標
+	XMFLOAT3 velocity;		// 
 	XMFLOAT3 oldPosition;	// 過去の座標
 	XMFLOAT3 rotation;		// 回転角度
 	XMFLOAT3 scaling;		// 拡大率
@@ -71,6 +73,7 @@ struct PLAYEROBJECT
 	float hp;				// 体力
 	float attack;			// 攻撃力
 	float power;			// ふっとばしのパワー
+	float weight;			// 重さ （重いほどふっとばされにくい）
 	float speed;			// スピード
 	float defense;			// 防御率
 	XMFLOAT3 dir;			// 向き
@@ -143,8 +146,6 @@ struct PLAYEROBJECT
 
 	Circle electricityCircles[SPECIAL_ELECTRICITY_QUANTITY]; // スペシャル 電気の円
 	std::vector<GLASS_BOX> glassBoxes; // スペシャル ガラスのミサイルリスト
-
-	XMFLOAT2 moveInput2D;
 };
 
 void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -167,7 +168,5 @@ PLAYEROBJECT* GetPlayer(int playerIndex);
 void Player_DrawText();
 
 void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float speed);
-
-bool Player_CanUseSpecial(int playerIndex);
 
 

@@ -7,8 +7,7 @@
 #include <SDKDDKVer.h>		// 利用できる最も上位の Windows プラットフォームが定義される
 #define WIN32_LEAN_AND_MEAN	// 32bitアプリには不要な情報を抑止してコンパイル時間を短縮
 #include <windows.h>
-#include "debug_ostream.h"	//デバッグ表示
-
+#include "debug_ostream.h"	// デバッグ表示
 #include <chrono>
 #include <algorithm>
 #include "direct3d.h"
@@ -33,10 +32,10 @@
 #include <SDL3/SDL.h>
 #include "gamepad.h"
 
-//#define		SCREEN_WIDTH	(1280)
-//#define		SCREEN_HEIGHT	(720)
-#define		SCREEN_WIDTH	(1920)
-#define		SCREEN_HEIGHT	(1080)
+#define		SCREEN_WIDTH	(1280)
+#define		SCREEN_HEIGHT	(720)
+//#define		SCREEN_WIDTH	(1920)
+//#define		SCREEN_HEIGHT	(1080)
 
 //==================================
 //グローバル変数
@@ -111,7 +110,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, 
 	wc.lpszClassName = CLASS_NAME;		// この仕様書の名前
 	wc.hInstance = hInstance;			// このアプリケーションのこと
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);	// カーソルの種類
-	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND + 1);	// ウィンドウの背景色は黒
+	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);	// ウィンドウの背景色は黒
 	RegisterClass(&wc);	// 構造体をWindowsへセット
 
 	// クライアント領域のサイズを表す矩形 (左からleft, top, right, bottom)

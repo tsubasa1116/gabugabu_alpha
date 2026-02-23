@@ -250,12 +250,8 @@ void Camera_Update()
 	else if(cameraMode == CAMERAMODE_AUTO)
 	{
 		Camera_UpdateAuto();
-
-
-		if (Keyboard_IsKeyDown(KK_M))
-		{
+		if (Keyboard_IsKeyDown(KK_O))
 			Camera_Initialize();
-		}
 	}
 
 	// ƒtƒŒ[ƒ€‚Ì•âŠÔ
