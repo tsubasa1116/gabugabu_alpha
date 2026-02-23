@@ -51,5 +51,5 @@ void FinalizeHP(hp* bar);
 void SetHPShake(hp* bar, float amplitude = 8.0f, float duration = 15.0f, float speed = 1.5f, int shakeTexNum = -1);
 void SetDeathHP(hp* bar, int deathTexNum = -1);
 hp* GetHPBar(int HPIndex);
-void SetHPTypeOutline(hp* bar, PlayerType type);
+void SetHPOutline(hp* bar, PlayerType type);
 

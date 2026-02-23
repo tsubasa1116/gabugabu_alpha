@@ -3,6 +3,7 @@
 #include <cmath> 
 #include "gauge.h"
 
+
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
@@ -225,31 +226,28 @@ void DrawHP(const hp* bar, int texNum, bool isDead)
 
 	if (bar->isOutline && !isDead)
 	{
-		const float outerScale = 1.05f * (SCREEN_WIDTH / 1280.0f); 
+		const float outerScale = 1.02f; 
 
 		XMFLOAT2 outerSize = { backSize.x * outerScale, backSize.y * outerScale };
 		XMFLOAT4 outerColor = color::black;
 
 		switch (bar->currentType)
 		{
-			switch (bar->currentType)
-			{
-			case PlayerType::Glass:
-				outerColor = color::sky;
-				break;
-			case PlayerType::Concrete:
-				outerColor = color::gray;
-				break;
-			case PlayerType::Plant:
-				outerColor = color::green;
-				break;
-			case PlayerType::Electricity:
-				outerColor = color::yellow;
-				break;
-			default:
-				outerColor = color::black;
-				break;
-			}
+		case PlayerType::Glass:
+			outerColor = color::sky;
+			break;
+		case PlayerType::Concrete:
+			outerColor = color::gray;
+			break;
+		case PlayerType::Plant:
+			outerColor = color::green;
+			break;
+		case PlayerType::Electricity:
+			outerColor = color::yellow;
+			break;
+		default:
+			outerColor = color::black;
+			break;
 		}
 
 		Shader_SetDrawMode(2);

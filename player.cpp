@@ -1390,7 +1390,7 @@ void Player_Update()
 
 		if (&HPBar[p])
 		{
-			SetHPTypeOutline(&HPBar[p], player[p].type);
+			SetHPOutline(&HPBar[p], player[p].type);
 		}
 	}
 	ImGui::End();
