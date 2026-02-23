@@ -4,8 +4,8 @@
 #include "keyboard.h"
 #include "Effect.h"
 #include "player.h"
-#include "debug_ostream.h"     // ← 追加: hal::dout を使うため
-#include <codecvt>            // ← 追加: ワイド→UTF-8 変換用
+#include "debug_ostream.h"		// ← 追加: hal::dout を使うため
+#include <codecvt>				// ← 追加: ワイド→UTF-8 変換用
 #include <locale>
 
 
