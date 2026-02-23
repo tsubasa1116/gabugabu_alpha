@@ -44,7 +44,7 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
 	L"Asset\\Texture\\óŒ.png",  // 0
-	L"Asset\\Texture\\texturefieldTree02_v1.png",  // 1
+	L"Asset\\Texture\\murasaki.png",  // 1
 	L"Asset\\Texture\\texturefieldTree01_v1.png",  
 	L"Asset\\Texture\\äDêF.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
@@ -490,23 +490,23 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		switch (Map[i].no)
 		{
 		case FIELD::FIELD_Plant:
-			texIndex = 2;
+			texIndex = 0;
 			break;
 
 		case FIELD::FIELD_Concrete:
-			texIndex = 0;
+			texIndex = 3;
 			break;
 
 		case FIELD::FIELD_Glass:
-			texIndex = 0;
+			texIndex = 3;
 			break;
 
 		case FIELD::FIELD_Electricity:
-			texIndex = 0;
+			texIndex = 3;
 			break;
 
 		case FIELD::FIELD_BOX:
-			texIndex = 3;
+			texIndex = 1;
 			break;
 
 		default:
