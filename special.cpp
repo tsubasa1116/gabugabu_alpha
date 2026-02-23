@@ -1009,7 +1009,7 @@ void Special_Plant_Draw(int playerIndex)
 	XMMATRIX rangeWorldMatrix =
 		XMMatrixScaling(5.0f, 1.0f, 5.0f) * // 半径2.5の円を表現するためにスケールを5倍に設定
 		XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-		XMMatrixTranslation(player.position.x, 0.1f, player.position.z); // Y座標を少し上げて地面と重ならないようにする
+		XMMatrixTranslation(player.position.x + 0.2f, 0.1f, player.position.z - 0.5f); // Y座標を少し上げて地面と重ならないようにする
 
 	XMMATRIX rangeWVP = rangeWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(rangeWVP);
@@ -1115,7 +1115,7 @@ void Special_Electricity_Draw(int playerIndex)
 		XMMATRIX lightningWorldMatrix =
 			XMMatrixScaling(2.0f, length * 1.0f, 2.0f) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			XMMatrixTranslation(target.x, 4.0f, target.z);
+			XMMatrixTranslation(target.x + 0.5f, 4.0f, target.z + 0.1f);
 		//XMMatrixTranslation(target.x, (lightningTopY + lightningBottomY) / 2.0f, target.z);
 
 		XMMATRIX lightningWVP = lightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
