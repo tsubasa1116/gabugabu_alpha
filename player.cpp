@@ -460,6 +460,7 @@ void Player_Update()
 		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
 		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
 		ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
+		ImGui::BulletText("position.y        : %.2f", player[p].position.y);
 		ImGui::BulletText("isEggBreaking     : %d", player[p].isEggBreaking);
 		ImGui::BulletText("isShadowEnabled   : %d", player[p].isShadowEnabled);
 		ImGui::BulletText("isHealing         : %d", player[p].isHealing);
@@ -560,7 +561,8 @@ void Player_Update()
 			player[p].scaling.y = 0.5f;
 			player[p].scaling.z = 0.5f;
 			player[p].attack = 10.0f;
-			player[p].power = 1.0f;
+			player[p].power = 0.3f;
+			player[p].weight = 0.5f;
 			player[p].speed = 0.06f;
 			break;
 
@@ -569,7 +571,8 @@ void Player_Update()
 			player[p].scaling.y = 0.8f;
 			player[p].scaling.z = 0.8f;
 			player[p].attack = 15.0f;
-			player[p].power = 1.5f;
+			player[p].power = 0.4f;
+			player[p].weight = 0.6f;
 			player[p].speed = 0.05f;
 			break;
 
@@ -578,7 +581,8 @@ void Player_Update()
 			player[p].scaling.y = 1.2f;
 			player[p].scaling.z = 1.2f;
 			player[p].attack = 20.0f;
-			player[p].power = 2.0f;
+			player[p].power = 0.5f;
+			player[p].weight = 0.7f;
 			player[p].speed = 0.04f;
 			break;
 		default:
@@ -751,52 +755,56 @@ void Player_Update()
 			{
 				player[p].moveInput2D = { 0.0f, 0.0f };
 
+				float moveMultiplier;
+				if(player[p].isAttacked)	moveMultiplier = 0.75f;	// 攻撃を受けている間は移動速度を減少させる
+				else						moveMultiplier = 1.0f;
+
 				if (p == 0) // プレイヤー0 (WASD) 攻撃 Space
 				{
-					if (g_Input[0].LStickX > 0.0f) { moveInput.x += 1.0f; player[0].isMoving = true; }
-					if (g_Input[0].LStickX < 0.0f) { moveInput.x -= 1.0f; player[0].isMoving = true; }
-					if (g_Input[0].LStickY < 0.0f) { moveInput.y += 1.0f; player[0].isMoving = true; }
-					if (g_Input[0].LStickY > 0.0f) { moveInput.y -= 1.0f; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_W))  { moveInput.y += 1.0f; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S))  { moveInput.y -= 1.0f; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A))  { moveInput.x -= 1.0f; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D))  { moveInput.x += 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickX > 0.0f) { moveInput.x += moveMultiplier; player[0].isMoving = true; }
+					if (g_Input[0].LStickX < 0.0f) { moveInput.x -= moveMultiplier; player[0].isMoving = true; }
+					if (g_Input[0].LStickY < 0.0f) { moveInput.y += moveMultiplier; player[0].isMoving = true; }
+					if (g_Input[0].LStickY > 0.0f) { moveInput.y -= moveMultiplier; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_W))  { moveInput.y += moveMultiplier; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_S))  { moveInput.y -= moveMultiplier; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_A))  { moveInput.x -= moveMultiplier; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_D))  { moveInput.x += moveMultiplier; player[0].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[0].isMoving = false;
 				}
 				else if (p == 1) // プレイヤー1 (矢印キー) 攻撃 Enter
 				{
-					if (g_Input[1].LStickX > 0.0f)	  { moveInput.x += 1.0f; player[1].isMoving = true; }
-					if (g_Input[1].LStickX < 0.0f)	  { moveInput.x -= 1.0f; player[1].isMoving = true; }
-					if (g_Input[1].LStickY < 0.0f)	  { moveInput.y += 1.0f; player[1].isMoving = true; }
-					if (g_Input[1].LStickY > 0.0f)	  { moveInput.y -= 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_UP))	  { moveInput.y += 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_DOWN))  { moveInput.y -= 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_LEFT))  { moveInput.x -= 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_RIGHT)) { moveInput.x += 1.0f; player[1].isMoving = true; }
+					if (g_Input[1].LStickX > 0.0f)	  { moveInput.x += moveMultiplier; player[1].isMoving = true; }
+					if (g_Input[1].LStickX < 0.0f)	  { moveInput.x -= moveMultiplier; player[1].isMoving = true; }
+					if (g_Input[1].LStickY < 0.0f)	  { moveInput.y += moveMultiplier; player[1].isMoving = true; }
+					if (g_Input[1].LStickY > 0.0f)	  { moveInput.y -= moveMultiplier; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_UP))	  { moveInput.y += moveMultiplier; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_DOWN))  { moveInput.y -= moveMultiplier; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_LEFT))  { moveInput.x -= moveMultiplier; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_RIGHT)) { moveInput.x += moveMultiplier; player[1].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[1].isMoving = false;
 				}
 				else if (p == 2) // プレイヤー2 (TFGH) 攻撃 V
 				{
-					if (g_Input[2].LStickX > 0.0f) { moveInput.x += 1.0f; player[2].isMoving = true; }
-					if (g_Input[2].LStickX < 0.0f) { moveInput.x -= 1.0f; player[2].isMoving = true; }
-					if (g_Input[2].LStickY < 0.0f) { moveInput.y += 1.0f; player[2].isMoving = true; }
-					if (g_Input[2].LStickY > 0.0f) { moveInput.y -= 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_T))  { moveInput.y += 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_G))  { moveInput.y -= 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_F))  { moveInput.x -= 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_H))  { moveInput.x += 1.0f; player[2].isMoving = true; }
+					if (g_Input[2].LStickX > 0.0f) { moveInput.x += moveMultiplier; player[2].isMoving = true; }
+					if (g_Input[2].LStickX < 0.0f) { moveInput.x -= moveMultiplier; player[2].isMoving = true; }
+					if (g_Input[2].LStickY < 0.0f) { moveInput.y += moveMultiplier; player[2].isMoving = true; }
+					if (g_Input[2].LStickY > 0.0f) { moveInput.y -= moveMultiplier; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_T))  { moveInput.y += moveMultiplier; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_G))  { moveInput.y -= moveMultiplier; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_F))  { moveInput.x -= moveMultiplier; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_H))  { moveInput.x += moveMultiplier; player[2].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[2].isMoving = false;
 				}
 				if (p == 3) // プレイヤー3 (WASD) 攻撃 Space
 				{
-					if (g_Input[3].LStickX > 0.0f) { moveInput.x += 1.0f; player[3].isMoving = true; }
-					if (g_Input[3].LStickX < 0.0f) { moveInput.x -= 1.0f; player[3].isMoving = true; }
-					if (g_Input[3].LStickY > 0.0f) { moveInput.y += 1.0f; player[3].isMoving = true; }
-					if (g_Input[3].LStickY < 0.0f) { moveInput.y -= 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_W))  { moveInput.y += 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S))  { moveInput.y -= 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A))  { moveInput.x -= 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D))  { moveInput.x += 1.0f; player[3].isMoving = true; }
+					if (g_Input[3].LStickX > 0.0f) { moveInput.x += moveMultiplier; player[3].isMoving = true; }
+					if (g_Input[3].LStickX < 0.0f) { moveInput.x -= moveMultiplier; player[3].isMoving = true; }
+					if (g_Input[3].LStickY > 0.0f) { moveInput.y += moveMultiplier; player[3].isMoving = true; }
+					if (g_Input[3].LStickY < 0.0f) { moveInput.y -= moveMultiplier; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_W))  { moveInput.y += moveMultiplier; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_S))  { moveInput.y -= moveMultiplier; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_A))  { moveInput.x -= moveMultiplier; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_D))  { moveInput.x += moveMultiplier; player[3].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[3].isMoving = false;
 				}
 				// 入力を保存（プレイヤーの向き用）
@@ -894,6 +902,7 @@ void Player_Update()
 				player[p].active = false;
 				// 順位登録
 				Ranking(p);
+				player[p].position.y = 0.0f;
 			}
 		}
 
@@ -1211,12 +1220,14 @@ void Player_Update()
 		player[p].velocity.z *= 0.95f;
 
 		// 3. 重力をかける（浮かせた場合）
-		if (player[p].position.y > -100.0f) {
-			player[p].velocity.y -= 0.02f; // 下向きの力
-		}
-		else {
-			player[p].position.y = 0.0f;
-			player[p].velocity.y = 0.0f;
+		if (!player[p].duringRespawn)
+		{
+			if (player[p].position.y >= -11.0f) {
+				player[p].velocity.y = 0.02f; // 下向きの力
+			}
+			else {
+				player[p].velocity.y = 0.0f;
+			}
 		}
 
 		posBuff = player[p].position;
@@ -1617,7 +1628,6 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	}
 }
 
-
 void Player_DrawHP()
 {
 	Shader_Begin();
@@ -1700,7 +1710,6 @@ void Player_DrawHP()
 			Gauge_Set(i, player[i].breakCount_Glass, player[i].breakCount_Concrete, player[i].breakCount_Plant, player[i].breakCount_Electricity,
 				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
-
 
 		if (Player_CanUseSpecial(i))
 		{

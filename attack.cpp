@@ -754,13 +754,12 @@ void AttackPlayerCollisions()
 				//defender.position.z += attacker.dir.z/* * attacker.power*/;
 
 				// 吹っ飛ばす強さ（ここを大きくするとめっちゃ飛ぶ！）
-				float knockbackPower = 0.4f;
-				float liftUpPower = 0.2f;    // 少し上に浮かせると吹っ飛ばされた感が出るよ
+				float liftUpPower = 2.0f;    // 少し上に浮かせると吹っ飛ばされた感が出るよ
 
 				// 座標を直接いじるのではなく、速度（velocity）に力を溜める
-				defender.velocity.x = attacker.dir.x * knockbackPower;
+				defender.velocity.x = attacker.dir.x * attacker.power * defender.weight;
 				defender.velocity.y = liftUpPower;
-				defender.velocity.z = attacker.dir.z * knockbackPower;
+				defender.velocity.z = attacker.dir.z * attacker.power * defender.weight;
 
 				// ダメージ用変数
 				float rawDamage = attacker.attack * defender.defense;
@@ -787,6 +786,8 @@ void AttackPlayerCollisions()
 				// 再計算
 				CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);
 				CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
+			
+				attacker.isAttacking = false;	// 攻撃終了
 			}
 		}
 	}

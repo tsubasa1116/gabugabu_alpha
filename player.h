@@ -72,6 +72,7 @@ struct PLAYEROBJECT
 	float hp;				// 体力
 	float attack;			// 攻撃力
 	float power;			// ふっとばしのパワー
+	float weight;			// 重さ （重いほどふっとばされにくい）
 	float speed;			// スピード
 	float defense;			// 防御率
 	XMFLOAT3 dir;			// 向き
