@@ -20,9 +20,6 @@ using namespace DirectX;
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
 
-// ファイル先頭のグローバル変数部分に追加
-static bool g_plantInitialized[PLAYER_MAX] = { false };
-
 // 頂点バッファ
 static ID3D11Buffer* g_VertexBuffer;
 
@@ -34,6 +31,9 @@ static ID3D11ShaderResourceView* g_Special_Texture[10];
 
 // オブジェクト
 static SPECIAL_OBJECT Special[PLAYER_MAX];
+
+static bool g_plantInitialized[PLAYER_MAX] = { false };
+static PLANT_CIRCLE g_PlantCircle[PLAYER_MAX];
 
 // マクロ定義
 #define SPECIAL_VERTEX (24)
@@ -287,14 +287,10 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"Asset\\Texture\\effectSPConcrete02_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[6]);
 	assert(g_Special_Texture[6]);
-	//// 植物 毒霧 エフェクト
-	//LoadFromWICFile(L"Asset\\Texture\\effectlighting.png", WIC_FLAGS_NONE, &metadata, image);
-	//CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[7]);
-	//assert(g_Special_Texture[7]);
 	// 電気 雷 エフェクト
 	LoadFromWICFile(L"Asset\\Texture\\effectlighting.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[8]);
-	assert(g_Special_Texture[8]);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[7]);
+	assert(g_Special_Texture[7]);
 
 	// インデックスバッファ作成
 	{
@@ -637,9 +633,9 @@ void Special_Plant_Update(int playerIndex)
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
 
-	// 半径5.0fの円形当たり判定を作成
-	const float radius = 5.0f;
-	Circle circle = { player.position, radius }; // 円の中心と半径を設定
+	// 半径2.5fの円形当たり判定を作成
+	g_PlantCircle[playerIndex].radius = 2.5f;
+	Circle circle = { player.position, g_PlantCircle[playerIndex].radius }; // 円の中心と半径を設定
 
 	if (!g_plantInitialized[playerIndex])
 	{
@@ -770,13 +766,13 @@ void Special_Electricity_Update(int playerIndex)
 		g_animFrame[playerIndex] = 0;		// アニメーションリセット
 		g_animTimer[playerIndex] = 0.0f;
 		initialized[playerIndex] = false;	// 次回のスペシャル使用時に再初期化するため
-		//player.form = Form::First;			// 変身形態を第1形態に戻す
-		//player.type = PlayerType::None;		// タイプをリセット
+		player.form = Form::First;			// 変身形態を第1形態に戻す
+		player.type = PlayerType::None;		// タイプをリセット
 		player.speed = 0.06f;				// スキルのスピードバフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
-		Effect_ClearUI(playerIndex);          // エフェクトクリア
-		player.isTypeFixed = false;         // タイプ固定解除
+		Effect_ClearUI(playerIndex);		// エフェクトクリア
+		player.isTypeFixed = false;			// タイプ固定解除
 	}
 }
 
@@ -1011,7 +1007,7 @@ void Special_Plant_Draw(int playerIndex)
 
 	// 攻撃範囲の描画
 	XMMATRIX rangeWorldMatrix =
-		XMMatrixScaling(10.0f, 1.0f, 10.0f) * // 半径5の円を表現するためにスケールを10倍に設定
+		XMMatrixScaling(5.0f, 1.0f, 5.0f) * // 半径2.5の円を表現するためにスケールを5倍に設定
 		XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 		XMMatrixTranslation(player.position.x, 0.1f, player.position.z); // Y座標を少し上げて地面と重ならないようにする
 
@@ -1125,7 +1121,7 @@ void Special_Electricity_Draw(int playerIndex)
 		XMMATRIX lightningWVP = lightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 		Shader_SetMatrix(lightningWVP);
 
-		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[8]);
+		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[7]);
 		SetBlendState(BLENDSTATE_ALPHA);
 
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);

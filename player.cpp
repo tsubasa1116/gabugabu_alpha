@@ -137,9 +137,9 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//player[2].form = Form::Third;
 	//player[3].form = Form::Third;
 	//player[0].type = PlayerType::Glass;
-	//player[1].type = PlayerType::Glass;
-	//player[2].type = PlayerType::Glass;
-	//player[3].type = PlayerType::Glass;
+	//player[1].type = PlayerType::Concrete;
+	//player[2].type = PlayerType::Plant;
+	//player[3].type = PlayerType::Electricity;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
@@ -281,7 +281,7 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		{  9, L"asset\\texture\\characterBigConcrete_v2.png" },		// 第3形態 コンクリート
 		{ 10, L"asset\\texture\\characterBigTree_v2.png" },			// 第3形態 植物
 		{ 11, L"asset\\texture\\characterBigElectricity_v2.png" },	// 第3形態 電気
-		{ 12, L"asset\\texture\\characterBigSP_v3.png" },			// 第3形態 スペシャル
+		{ 12, L"asset\\texture\\characterBigSP_v4.png" },			// 第3形態 スペシャル
 		{ 13, L"asset\\texture\\uiStockRed_v4.png"},				// UI ストック 赤
 		{ 14, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ストック 青
 		{ 15, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ストック 黄
@@ -752,7 +752,7 @@ void Player_Update()
 			// 移動中なら lastDir を更新
 			if (player[p].isMoving)
 			{
-				if (player[p].moveDir.x < 0.0f && player[p].moveDir.z < 0.0f)	player[p].lastDir = PlayerDir::Down_Left;
+					 if (player[p].moveDir.x < 0.0f && player[p].moveDir.z < 0.0f)	player[p].lastDir = PlayerDir::Down_Left;
 				else if (player[p].moveDir.x < 0.0f && player[p].moveDir.z > 0.0f)	player[p].lastDir = PlayerDir::Up_Left;
 				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z > 0.0f)	player[p].lastDir = PlayerDir::Up_Right;
 				else if (player[p].moveDir.x > 0.0f && player[p].moveDir.z < 0.0f)	player[p].lastDir = PlayerDir::Down_Right;
@@ -866,7 +866,7 @@ void Player_Update()
 		if (player[p].useSpecial && !g_specialAnimStarted[p])
 		{
 			int type = -1;
-			if (player[p].type == PlayerType::Concrete)		type = 0;
+				 if (player[p].type == PlayerType::Concrete)	type = 0;
 			else if (player[p].type == PlayerType::Electricity)	type = 1;
 			else if (player[p].type == PlayerType::Glass)		type = 2;
 			else if (player[p].type == PlayerType::Plant)		type = 3;
@@ -891,7 +891,7 @@ void Player_Update()
 
 			// 通常テクスチャの待機アニメーション開始フレームにリセット
 			int start = 0;
-			if (player[p].lastDir == PlayerDir::Down)		start = 0;
+				 if (player[p].lastDir == PlayerDir::Down)		start = 0;
 			else if (player[p].lastDir == PlayerDir::Down_Left)	start = 26;
 			else if (player[p].lastDir == PlayerDir::Left)		start = 52;
 			else if (player[p].lastDir == PlayerDir::Up_Left)	start = 78;
@@ -967,7 +967,7 @@ void Player_Update()
 			{
 				// 向きに応じた開始フレームを決定
 				int start = 15; // デフォルト（Down）
-				if (player[p].lastDir == PlayerDir::Down)		 start = 15;
+					 if (player[p].lastDir == PlayerDir::Down)		 start = 15;
 				else if (player[p].lastDir == PlayerDir::Down_Left)	 start = 41;
 				else if (player[p].lastDir == PlayerDir::Left)		 start = 67;
 				else if (player[p].lastDir == PlayerDir::Up_Left)	 start = 93;
@@ -1013,14 +1013,14 @@ void Player_Update()
 			else if (player[p].useSpecial)
 			{
 				int type = -1;
-				if (player[p].type == PlayerType::Concrete)		type = 0;
+					 if (player[p].type == PlayerType::Concrete)	type = 0;
 				else if (player[p].type == PlayerType::Electricity)	type = 1;
 				else if (player[p].type == PlayerType::Glass)		type = 2;
 				else if (player[p].type == PlayerType::Plant)		type = 3;
 
 				// 向きに応じた開始フレームを決定
 				int start = type * 64;
-				if (player[p].lastDir == PlayerDir::Down)		start += 0;
+					 if (player[p].lastDir == PlayerDir::Down)		start += 0;
 				else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
 				else if (player[p].lastDir == PlayerDir::Left)		start += 16;
 				else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;

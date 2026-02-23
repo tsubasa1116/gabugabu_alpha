@@ -9,7 +9,7 @@ using namespace DirectX;
 #include "player.h"
 
 // マクロ定義
-#define BUILDING_EFFECT_MAX (50)	// 建物エフェクトの最大数
+#define BUILDING_EFFECT_MAX (100)	// 建物エフェクトの最大数
 
 class EFFECT
 {
@@ -38,6 +38,8 @@ struct PLAYER_EFFECT_ANIM
 	float poisonTimer = 0.0f;
 	int attackedFrame = 0;
 	float attackedTimer = 0.0f;
+	int stunFrame = 0;
+	float stunTimer = 0.0f;
 	int healingFrame = 0;
 	float healingTimer = 0.0f;
 	int respawnFrame = 0;

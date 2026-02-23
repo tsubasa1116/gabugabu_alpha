@@ -78,7 +78,7 @@ static float g_animTimer[PLAYER_MAX] = { 0.0f };
 static const float ANIM_FRAME_TIME = 0.16f;	// 1フレームあたりの秒数
 
 PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
-BUILDING_EFFECT_ANIM g_BuildingEffectAnim[10];
+BUILDING_EFFECT_ANIM g_BuildingEffectAnim[BUILDING_EFFECT_MAX];
 
 // テクスチャ番号ごとの設定
 static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
@@ -161,8 +161,8 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v2.png");			// スキル 植物
 	Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// スキル 電気
 	Effect_LoadTexture(11, L"Asset\\Texture\\effectPoison_v3.png");				// 毒・Aボタン・プレイヤーの影
-	Effect_LoadTexture(12, L"Asset\\Texture\\effectHit01_v2.png");				// ヒット コンクリートの建物・プレイヤーを攻撃した時
-	Effect_LoadTexture(13, L"Asset\\Texture\\effectHit02_v2.png");				// ヒット 電気・ガラス・植物の建物を攻撃した時
+	Effect_LoadTexture(12, L"Asset\\Texture\\effectHit01_v4.png");				// ヒット コンクリート 建物・プレイヤーを攻撃した時 スタン
+	Effect_LoadTexture(13, L"Asset\\Texture\\effectHit02_v2.png");				// ヒット 電気・ガラス・植物 建物を攻撃した時
 	Effect_LoadTexture(14, L"Asset\\Texture\\effectShockwave_v1.png");			// 
 	Effect_LoadTexture(15, L"Asset\\Texture\\effectSmoke_20per.png");			// 建物 煙 20%破壊
 	Effect_LoadTexture(16, L"Asset\\Texture\\effectSmoke_50per.png");			// 建物 煙 50%破壊
@@ -402,7 +402,7 @@ void Effect_ClearUI(int pIndex)
 			{  170.0f * screenX, screenY },	// プレイヤー1
 			{  490.0f * screenX, screenY },	// プレイヤー2
 			{  810.0f * screenX, screenY },	// プレイヤー3
-			{ 1130.0f * screenX, screenY }		// プレイヤー4
+			{ 1130.0f * screenX, screenY }	// プレイヤー4
 	};
 
 	if (pIndex < 0 || pIndex >= 4) return;
@@ -596,10 +596,29 @@ void Effect_UpdateForPlayer(int playerIndex)
 		if (g_PlayerEffectAnim[playerIndex].attackedTimer >= 0.05f)
 		{
 			g_PlayerEffectAnim[playerIndex].attackedTimer = 0.0f;
-			LoopRange(g_PlayerEffectAnim[playerIndex].attackedFrame, 20, 37, 1);
+			LoopRange(g_PlayerEffectAnim[playerIndex].attackedFrame, 20, 18, 1);
 		}
 	}
 	else	attackedFrameInitialized[playerIndex] = false;
+
+	// スタンエフェクト
+	static bool stunFrameInitialized[PLAYER_MAX] = { false };
+
+	if (player.isStunning)
+	{
+		if (!stunFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].stunFrame = 38; // 38からスタート
+			stunFrameInitialized[playerIndex] = true;
+		}
+		g_PlayerEffectAnim[playerIndex].stunTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].stunTimer >= 0.05f)
+		{
+			g_PlayerEffectAnim[playerIndex].stunTimer = 0.0f;
+			LoopRange(g_PlayerEffectAnim[playerIndex].stunFrame, 38, 26, 1);
+		}
+	}
+	else	stunFrameInitialized[playerIndex] = false;
 
 	// 回復エフェクト （進化エフェクト中は更新しない）
 	static bool healingFrameInitialized[PLAYER_MAX] = { false };
@@ -814,7 +833,7 @@ void EffectFront_DrawForPlayer(int playerIndex)
 		XMFLOAT3 ofs(0, 0, 0);
 		switch (player.type)
 		{
-		case PlayerType::Plant:			texNo = 21;	scale = 9.0f; ofs = XMFLOAT3(0, 0, 0);
+		case PlayerType::Plant:			texNo = 21;	scale = 5.0f; ofs = XMFLOAT3(0, 0, 0);
 			SetDepthTest(false);
 			break;
 		default: break;
@@ -831,14 +850,19 @@ void EffectFront_DrawForPlayer(int playerIndex)
 	{
 		addEntry(12, g_PlayerEffectAnim[playerIndex].attackedFrame, 1.2f, XMFLOAT3(0.0f, 0.5f, 0.0f));
 	}
+	// スタンエフェクト
+	if (player.isStunning)
+	{
+		addEntry(12, g_PlayerEffectAnim[playerIndex].stunFrame, 2.2f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+	}
 	// リスポーン卵エフェクト
 	if (player.isEggBreaking)	// 卵割れエフェクト
 	{
-		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 1.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
 	else if (player.duringRespawn)	// 卵エフェクト
 	{
-		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 5.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 		addEntry(11, 50, 1.0f, XMFLOAT3(1.5f, -0.75f, 0.0f));
 	}
 	// 通常色を設定
@@ -1028,70 +1052,6 @@ void Effect_UpdateForBuilding(int buildingIndex)
 }
 
 // ===============================================
-// 建物付近に表示するエフェクト一括更新関数
-// ===============================================
-void Effect_UpdateAllBuildings()
-{
-	int buildingCount = GetBuildingCount();
-	Building** building = GetBuildings();
-	if (!building) return;
-	if (buildingCount <= 0) return;
-
-	int loopCount = (buildingCount < BUILDING_EFFECT_MAX) ? buildingCount : BUILDING_EFFECT_MAX;
-
-	for (int i = 0; i < loopCount; ++i)
-	{
-		auto& anim = g_BuildingEffectAnim[i];
-
-		if (building[i]->isDestroyed)
-		{
-			// 再生完了済みならスキップ
-			if (anim.hitFinished) continue;
-
-			// 初回：建物タイプに応じたフレーム範囲を設定して再生開始
-			if (!anim.hitPlaying)
-			{
-				switch (building[i]->type)
-				{
-				case BuildingType::Concrete:	anim.hitStartFrame = 0;  anim.hitEndFrame = 19; break;
-				case BuildingType::Electricity:	anim.hitStartFrame = 0;  anim.hitEndFrame = 19; break;
-				case BuildingType::Glass:		anim.hitStartFrame = 20; anim.hitEndFrame = 39; break;
-				case BuildingType::Plant:		anim.hitStartFrame = 40; anim.hitEndFrame = 59; break;
-				default: continue;
-				}
-				anim.hitFrame = anim.hitStartFrame;
-				anim.hitTimer = 0.0f;
-				anim.hitPlaying = true;
-			}
-
-			// フレーム進行
-			anim.hitTimer += DELTA_TIME;
-			if (anim.hitTimer >= 0.05f)
-			{
-				anim.hitTimer = 0.0f;
-				anim.hitFrame++;
-				if (anim.hitFrame > anim.hitEndFrame)
-				{
-					anim.hitFrame = anim.hitEndFrame;
-					anim.hitPlaying = false;
-					anim.hitFinished = true;
-				}
-			}
-		}
-		else
-		{
-			// 破壊状態が解除されたらリセット
-			anim.hitFrame = 0;
-			anim.hitTimer = 0.0f;
-			anim.hitPlaying = false;
-			anim.hitFinished = false;
-			anim.hitStartFrame = 0;
-			anim.hitEndFrame = 0;
-		}
-	}
-}
-
-// ===============================================
 // 建物付近に表示するエフェクト描画関数
 // ===============================================
 void Effect_DrawForBuilding(int buildingIndex)
@@ -1166,86 +1126,150 @@ void Effect_DrawForBuilding(int buildingIndex)
 	g_pContext->DrawIndexed(6, 0, 0);
 }
 
-// ===============================================
-// 建物エフェクト一括描画関数
-// ===============================================
-void Effect_DrawAllBuildings()
-{
-	int buildingCount = GetBuildingCount();
-	Building** building = GetBuildings();
-	if (!building) return;
-	if (buildingCount <= 0) return;
+//// ===============================================
+//// 建物付近に表示するエフェクト一括更新関数
+//// ===============================================
+//void Effect_UpdateAllBuildings()
+//{
+//	int buildingCount = GetBuildingCount();
+//	Building** building = GetBuildings();
+//	if (!building) return;
+//	if (buildingCount <= 0) return;
+//
+//	int loopCount = (buildingCount < BUILDING_EFFECT_MAX) ? buildingCount : BUILDING_EFFECT_MAX;
+//
+//	for (int i = 0; i < loopCount; ++i)
+//	{
+//		auto& anim = g_BuildingEffectAnim[i];
+//
+//		if (building[i]->isDestroyed)
+//		{
+//			// 再生完了済みならスキップ
+//			if (anim.hitFinished) continue;
+//
+//			// 初回：建物タイプに応じたフレーム範囲を設定して再生開始
+//			if (!anim.hitPlaying)
+//			{
+//				switch (building[i]->type)
+//				{
+//				case BuildingType::Concrete:	anim.hitStartFrame = 0;  anim.hitEndFrame = 19; break;
+//				case BuildingType::Electricity:	anim.hitStartFrame = 0;  anim.hitEndFrame = 19; break;
+//				case BuildingType::Glass:		anim.hitStartFrame = 20; anim.hitEndFrame = 39; break;
+//				case BuildingType::Plant:		anim.hitStartFrame = 40; anim.hitEndFrame = 59; break;
+//				default: continue;
+//				}
+//				anim.hitFrame = anim.hitStartFrame;
+//				anim.hitTimer = 0.0f;
+//				anim.hitPlaying = true;
+//			}
+//
+//			// フレーム進行
+//			anim.hitTimer += DELTA_TIME;
+//			if (anim.hitTimer >= 0.05f)
+//			{
+//				anim.hitTimer = 0.0f;
+//				anim.hitFrame++;
+//				if (anim.hitFrame > anim.hitEndFrame)
+//				{
+//					anim.hitFrame = anim.hitEndFrame;
+//					anim.hitPlaying = false;
+//					anim.hitFinished = true;
+//				}
+//			}
+//		}
+//		else
+//		{
+//			// 破壊状態が解除されたらリセット
+//			anim.hitFrame = 0;
+//			anim.hitTimer = 0.0f;
+//			anim.hitPlaying = false;
+//			anim.hitFinished = false;
+//			anim.hitStartFrame = 0;
+//			anim.hitEndFrame = 0;
+//		}
+//	}
+//}
 
-	int loopCount = (buildingCount < BUILDING_EFFECT_MAX) ? buildingCount : BUILDING_EFFECT_MAX;
-
-	// ビュー・射影行列はループ外で1回だけ取得
-	XMMATRIX view = GetViewMatrix();
-	XMMATRIX projection = GetProjectionMatrix();
-
-	// ビルボード用の回転行列もループ外で1回だけ計算
-	XMMATRIX billboardRot = view;
-	billboardRot.r[3].m128_f32[0] = 0.0f;
-	billboardRot.r[3].m128_f32[1] = 0.0f;
-	billboardRot.r[3].m128_f32[2] = 0.0f;
-	billboardRot.r[3].m128_f32[3] = 1.0f;
-	billboardRot = XMMatrixTranspose(billboardRot);
-
-	// パイプライン設定もループ外で1回だけ
-	UINT stride = sizeof(Vertex2);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-
-	for (int i = 0; i < loopCount; ++i)
-	{
-		auto& anim = g_BuildingEffectAnim[i];
-
-		// 再生中でなければスキップ（早期リターン）
-		if (!anim.hitPlaying) continue;
-
-		int texNo = (building[i]->type == BuildingType::Concrete) ? 12 : 13;
-
-		XMFLOAT3 pos = building[i]->position;
-		float scale = 5.0f;
-
-		int col = anim.hitFrame % EFFECT_SPRITE_X;
-		int row = anim.hitFrame / EFFECT_SPRITE_X;
-		float u0 = (float)col / (float)EFFECT_SPRITE_X;
-		float v0 = (float)row / (float)EFFECT_SPRITE_Y;
-		float u1 = u0 + 1.0f / (float)EFFECT_SPRITE_X;
-		float v1 = v0 + 1.0f / (float)EFFECT_SPRITE_Y;
-
-		Vertex2 localV[PLAYER_VERTEX];
-		CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
-		localV[0].tex = XMFLOAT2(u0, v0);
-		localV[1].tex = XMFLOAT2(u1, v0);
-		localV[2].tex = XMFLOAT2(u0, v1);
-		localV[3].tex = XMFLOAT2(u1, v1);
-
-		XMMATRIX ScalingMatrix = XMMatrixScaling(scale, scale, scale);
-
-		// ビルボード：ループ外で計算済みの回転行列に位置だけ設定
-		XMMATRIX vm = billboardRot;
-		vm.r[3].m128_f32[0] = pos.x;
-		vm.r[3].m128_f32[1] = pos.y + 2.0f;
-		vm.r[3].m128_f32[2] = pos.z;
-		vm.r[3].m128_f32[3] = 1.0f;
-
-		XMMATRIX WorldMatrix = ScalingMatrix * vm;
-		Shader_SetWorldMatrix(WorldMatrix);
-
-		XMMATRIX WVP = WorldMatrix * view * projection;
-		Shader_SetMatrix(WVP);
-
-		D3D11_MAPPED_SUBRESOURCE msr;
-		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-		Vertex2* vertex = (Vertex2*)msr.pData;
-		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
-		g_pContext->Unmap(g_VertexBuffer, 0);
-
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNo]);
-		g_pContext->DrawIndexed(6, 0, 0);
-	}
-}
+//// ===============================================
+//// 建物エフェクト一括描画関数
+//// ===============================================
+//void Effect_DrawAllBuildings()
+//{
+//	int buildingCount = GetBuildingCount();
+//	Building** building = GetBuildings();
+//	if (!building) return;
+//	if (buildingCount <= 0) return;
+//
+//	int loopCount = (buildingCount < BUILDING_EFFECT_MAX) ? buildingCount : BUILDING_EFFECT_MAX;
+//
+//	// ビュー・射影行列はループ外で1回だけ取得
+//	XMMATRIX view = GetViewMatrix();
+//	XMMATRIX projection = GetProjectionMatrix();
+//
+//	// ビルボード用の回転行列もループ外で1回だけ計算
+//	XMMATRIX billboardRot = view;
+//	billboardRot.r[3].m128_f32[0] = 0.0f;
+//	billboardRot.r[3].m128_f32[1] = 0.0f;
+//	billboardRot.r[3].m128_f32[2] = 0.0f;
+//	billboardRot.r[3].m128_f32[3] = 1.0f;
+//	billboardRot = XMMatrixTranspose(billboardRot);
+//
+//	// パイプライン設定もループ外で1回だけ
+//	UINT stride = sizeof(Vertex2);
+//	UINT offset = 0;
+//	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+//	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+//	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+//	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+//
+//	for (int i = 0; i < loopCount; ++i)
+//	{
+//		auto& anim = g_BuildingEffectAnim[i];
+//
+//		// 再生中でなければスキップ（早期リターン）
+//		if (!anim.hitPlaying) continue;
+//
+//		int texNo = (building[i]->type == BuildingType::Concrete) ? 12 : 13;
+//
+//		XMFLOAT3 pos = building[i]->position;
+//		float scale = 5.0f;
+//
+//		int col = anim.hitFrame % EFFECT_SPRITE_X;
+//		int row = anim.hitFrame / EFFECT_SPRITE_X;
+//		float u0 = (float)col / (float)EFFECT_SPRITE_X;
+//		float v0 = (float)row / (float)EFFECT_SPRITE_Y;
+//		float u1 = u0 + 1.0f / (float)EFFECT_SPRITE_X;
+//		float v1 = v0 + 1.0f / (float)EFFECT_SPRITE_Y;
+//
+//		Vertex2 localV[PLAYER_VERTEX];
+//		CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+//		localV[0].tex = XMFLOAT2(u0, v0);
+//		localV[1].tex = XMFLOAT2(u1, v0);
+//		localV[2].tex = XMFLOAT2(u0, v1);
+//		localV[3].tex = XMFLOAT2(u1, v1);
+//
+//		XMMATRIX ScalingMatrix = XMMatrixScaling(scale, scale, scale);
+//
+//		// ビルボード：ループ外で計算済みの回転行列に位置だけ設定
+//		XMMATRIX vm = billboardRot;
+//		vm.r[3].m128_f32[0] = pos.x;
+//		vm.r[3].m128_f32[1] = pos.y + 2.0f;
+//		vm.r[3].m128_f32[2] = pos.z;
+//		vm.r[3].m128_f32[3] = 1.0f;
+//
+//		XMMATRIX WorldMatrix = ScalingMatrix * vm;
+//		Shader_SetWorldMatrix(WorldMatrix);
+//
+//		XMMATRIX WVP = WorldMatrix * view * projection;
+//		Shader_SetMatrix(WVP);
+//
+//		D3D11_MAPPED_SUBRESOURCE msr;
+//		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+//		Vertex2* vertex = (Vertex2*)msr.pData;
+//		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
+//		g_pContext->Unmap(g_VertexBuffer, 0);
+//
+//		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNo]);
+//		g_pContext->DrawIndexed(6, 0, 0);
+//	}
+//}

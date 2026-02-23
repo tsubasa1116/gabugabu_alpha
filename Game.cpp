@@ -170,8 +170,13 @@ void Game_Update()
 	Building_UpdateAll();
 	Effect_Update();
 
-	//// プレイヤーが近づいた時に建物テクスチャ差し替え
-	//Effect_UpdateAllBuildings();
+	// 建物エフェクト更新（1棟ずつ）
+	int buildingCount = GetBuildingCount();
+	for (int i = 0; i < buildingCount; i++)
+	{
+		Effect_UpdateForBuilding(i);
+		//Effect_UpdateAllBuildings();
+	}
 
 	Gauge_Update();
 	Gauge_Update();
@@ -196,7 +201,6 @@ void Game_Update()
 //======================================================
 void Game_Draw()
 {
-
 	Light.SetEnable(FALSE);
 	Shader_SetLight(Light.Light);
 	SkyBall_Draw();
@@ -214,7 +218,14 @@ void Game_Draw()
 		Shader_Begin();
 		SetBlendState(BLENDSTATE_ALPHA);
 		SetDepthReadOnly();
-		Effect_DrawAllBuildings();
+		//Effect_DrawAllBuildings();
+
+		int buildingCount = GetBuildingCount();
+		for (int i = 0; i < buildingCount; i++)
+		{
+			Effect_DrawForBuilding(i);
+		}
+
 		SetDepthTest(TRUE);
 	}
 	Player_Draw(s_IsKonamiCodeEntered);
