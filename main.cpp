@@ -111,7 +111,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, 
 	wc.lpszClassName = CLASS_NAME;		// この仕様書の名前
 	wc.hInstance = hInstance;			// このアプリケーションのこと
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);	// カーソルの種類
-	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND + 1);	// ウィンドウの背景色は黒
+	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);	// ウィンドウの背景色は黒
 	RegisterClass(&wc);	// 構造体をWindowsへセット
 
 	// クライアント領域のサイズを表す矩形 (左からleft, top, right, bottom)

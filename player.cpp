@@ -421,7 +421,7 @@ void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 		if (diff > 180.0f) diff -= 360.0f;
 		if (diff < -180.0f) diff += 360.0f;
 
-		static float angSpeed = 0.5f;
+		static float angSpeed = 0.9f;
 
 		// スムーズに補間（0.1fが補間スピード）
 		player.moveAngle += diff * angSpeed;
@@ -430,6 +430,7 @@ void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 
 		// 前進
 		float rad = XMConvertToRadians(player.moveAngle);
+
 		player.position.x += sinf(rad) * player.speed;
 		player.position.z += cosf(rad) * player.speed;
 	}
@@ -460,6 +461,7 @@ void Player_Update()
 		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
 		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
 		ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
+		ImGui::BulletText("position.y        : %.2f", player[p].position.y);
 		ImGui::BulletText("isEggBreaking     : %d", player[p].isEggBreaking);
 		ImGui::BulletText("isShadowEnabled   : %d", player[p].isShadowEnabled);
 		ImGui::BulletText("isHealing         : %d", player[p].isHealing);
@@ -560,7 +562,8 @@ void Player_Update()
 			player[p].scaling.y = 0.5f;
 			player[p].scaling.z = 0.5f;
 			player[p].attack = 10.0f;
-			player[p].power = 1.0f;
+			player[p].power = 0.3f;
+			player[p].weight = 0.5f;
 			player[p].speed = 0.06f;
 			break;
 
@@ -569,7 +572,8 @@ void Player_Update()
 			player[p].scaling.y = 0.8f;
 			player[p].scaling.z = 0.8f;
 			player[p].attack = 15.0f;
-			player[p].power = 1.5f;
+			player[p].power = 0.4f;
+			player[p].weight = 0.6f;
 			player[p].speed = 0.05f;
 			break;
 
@@ -578,7 +582,8 @@ void Player_Update()
 			player[p].scaling.y = 1.2f;
 			player[p].scaling.z = 1.2f;
 			player[p].attack = 20.0f;
-			player[p].power = 2.0f;
+			player[p].power = 0.5f;
+			player[p].weight = 0.7f;
 			player[p].speed = 0.04f;
 			break;
 		default:
@@ -894,6 +899,7 @@ void Player_Update()
 				player[p].active = false;
 				// 順位登録
 				Ranking(p);
+				player[p].position.y = 0.0f;
 			}
 		}
 
@@ -1025,6 +1031,7 @@ void Player_Update()
 					}
 				}
 			}
+
 			// ダウン 5コマ (ダメージ 2コマ + ダウン 3コマ) 最終コマで停止
 			else if (player[p].isDown == true)
 			{
@@ -1076,14 +1083,14 @@ void Player_Update()
 			else if (player[p].useSpecial)
 			{
 				int type = -1;
-				if (player[p].type == PlayerType::Concrete)		type = 0;
+					 if (player[p].type == PlayerType::Concrete)	type = 0;
 				else if (player[p].type == PlayerType::Electricity)	type = 1;
 				else if (player[p].type == PlayerType::Glass)		type = 2;
 				else if (player[p].type == PlayerType::Plant)		type = 3;
 
 				// 向きに応じた開始フレームを決定
 				int start = type * 64;
-				if (player[p].lastDir == PlayerDir::Down)		start += 0;
+					 if (player[p].lastDir == PlayerDir::Down)		start += 0;
 				else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
 				else if (player[p].lastDir == PlayerDir::Left)		start += 16;
 				else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
@@ -1159,6 +1166,10 @@ void Player_Update()
 		// 描画スケールを反映したスケール（表示用）
 		XMFLOAT3 physicsScaling = XMFLOAT3(player[p].scaling.x * renderScale, player[p].scaling.y * renderScale, player[p].scaling.z * renderScale);
 
+
+		////////////////////////////////////////////////////////////////////////////////////////////
+		// TODO:
+
 		// --- プレイヤー用ヒットボックス比率（向きで長短を切り替える） ---
 		// 高さは固定、水平面は向きに応じて長短を切り替える
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
@@ -1171,8 +1182,8 @@ void Player_Update()
 		float facingZ = cosf(radFacing);
 		bool facingZDominant = fabsf(facingZ) >= fabsf(facingX);
 
-		float widthScale  = facingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
-		float depthScale  = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
+		float widthScale = facingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
+		float depthScale = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
 
 		// 第2形態 第3形態はXとZ同じにする
 		if (player[p].form == Form::Second || player[p].form == Form::Third)
@@ -1188,8 +1199,33 @@ void Player_Update()
 			player[p].scaling.z * renderScale * depthScale
 		);
 
+
+		/////////////////////////////////////////////////////////////////////////////////////
+		// TODO:建物とのほっそい当たり判定とは別に、攻撃を食らう用の大きめの当たり判定を作る
+		// TODO:重力の見直しと、プレイヤーが重力により無限に死ぬのを防ぐ
+		
 		// AABB を現在の位置・スケール（ヒットボックス）で更新しておく（衝突判定で使用）
 		CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+
+		// 1. 速度があれば、その分だけ座標を動かす（これが「吹っ飛んでいる」状態）
+		player[p].position.x += player[p].velocity.x;
+		player[p].position.y += player[p].velocity.y;
+		player[p].position.z += player[p].velocity.z;
+
+		// 2. 摩擦で減速
+		player[p].velocity.x *= 0.95f; // 1未満を掛けるとだんだん遅くなる
+		player[p].velocity.z *= 0.95f;
+
+		// 3. 重力をかける（浮かせた場合）
+		if (!player[p].duringRespawn)
+		{
+			if (player[p].position.y >= -11.0f) {
+				player[p].velocity.y = 0.02f; // 下向きの力
+			}
+			else {
+				player[p].velocity.y = 0.0f;
+			}
+		}
 
 		posBuff = player[p].position;
 
@@ -1209,17 +1245,11 @@ void Player_Update()
 				continue;
 			}
 
-			// --- 六角柱コライダーの準備 ---
-			HexCollider hex;
-			hex.center = fieldObjects[j].pos;		// -1
-			hex.radius = fieldObjects[j].radius;	// 1
-			hex.height = fieldObjects[j].height;	// 3.0
-
 			// プレイヤーのAABB（体の一部）が六角柱に乗っているか
-			if (CheckAABBHexCollision(player[p].boundingBox, hex))
+			if (CheckAABBHexCollision(player[p].boundingBox, fieldObjects[j].boundingBox))
 			{
 				// タイルの上面のY座標を計算
-				float tileTopY = fieldObjects[j].pos.y + (hex.height / 2.0f);	// -1 + 1.5 = 0.5
+				float tileTopY = fieldObjects[j].pos.y + (fieldObjects[j].boundingBox.height / 2.0f);	// -1 + 1.5 = 0.5
 
 				// プレイヤーの底面がタイルの上面以下か
 				if (player[p].boundingBox.Min.y <= tileTopY)
@@ -1295,6 +1325,7 @@ void Player_Update()
 		}
 
 		///////////////////////////////////////////////////////////////////////////////////////////////
+		// TODO:
 
 		// -------------------------------------------------------------
 		// プレイヤーオブジェクト同士の当たり判定（PLAYER_MAX分対応）
@@ -1304,39 +1335,8 @@ void Player_Update()
 			// 非アクティブは無視
 			if (!player[otherIndex].active) continue;
 
-			// 他プレイヤーのヒットボックススケーリング（向きで長短を切り替える）
-			const float HITBOX_HEIGHT_SCALE = 1.0f;
-			const float HITBOX_SHORT = 0.35f;
-			const float HITBOX_LONG = 0.65f;
-
-			// 宣言をループスコープの先頭に置く（後で再利用するため）
-			XMFLOAT3 hitboxScalingOther;
-
-			{
-				float radOther = XMConvertToRadians(player[otherIndex].rotation.y);
-				float otherFacingX = sinf(radOther);
-				float otherFacingZ = cosf(radOther);
-				bool otherFacingZDominant = fabsf(otherFacingZ) >= fabsf(otherFacingX);
-
-				float otherWidthScale = otherFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;
-				float otherDepthScale = otherFacingZDominant ? HITBOX_LONG : HITBOX_SHORT;
-
-				// 第2形態 第3形態はXとZ同じにする
-				if (player[otherIndex].form == Form::Second || player[otherIndex].form == Form::Third)
-				{
-					widthScale = 0.25f;
-					depthScale = 0.25f;
-				}
-
-				hitboxScalingOther = XMFLOAT3(
-					player[otherIndex].scaling.x * renderScale * otherWidthScale,
-					player[otherIndex].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
-					player[otherIndex].scaling.z * renderScale * otherDepthScale
-				);
-			}
-
 			// 他プレイヤーの AABB を更新（ここで定義済みの hitboxScalingOther を使用）
-			CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScalingOther);
+			CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScaling);
 
 			// 衝突チェック（ペア p <-> otherIndex を一度だけ判定）
 			MTV collision_player = CalculateAABBMTV(player[p].boundingBox, player[otherIndex].boundingBox);
@@ -1349,6 +1349,8 @@ void Player_Update()
 					player[p].dir.x = sinf(rad_p);
 					player[p].dir.z = cosf(rad_p);
 				}
+
+
 				{
 					float rad_o = XMConvertToRadians(player[otherIndex].rotation.y);
 					player[otherIndex].dir.x = sinf(rad_o);
@@ -1375,7 +1377,7 @@ void Player_Update()
 
 				// 押し戻し後の新しいAABBを再計算 (ヒットボックスで)
 				CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
-				CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScalingOther);
+				CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScaling);
 			}
 		}
 
@@ -1597,30 +1599,31 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	// 3Dオブジェクトは深度テストを無効にして描画
 	SetDepthTest(false);
 
+	// 3Dオブジェクト（プレイヤー）の描画が終わった後...
+	SetDepthTest(false); // コライダーを最前面に出したいならこれでOK
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	// TODO:当たり判定の可視化
 	if (s_IsKonamiCodeEntered)
 	{
-		// ------------------------------------
-		// コライダーフレーム（AABB）の描画
-		// ------------------------------------
+		// プレイヤーの描画に使われた行列をクリアする
+		Shader_SetMatrix(XMMatrixIdentity() * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
+
+		// 3. 透過や色がおかしくならないようにブレンドステートをリセット
+		SetBlendState(BLENDSTATE_NONE); // 枠線ならアルファなしでもOK
+
+		for (int i = 0; i < PLAYER_MAX; i++)
 		{
-			// プレイヤーの描画に使われた行列をクリアする
-			XMMATRIX world = XMMatrixIdentity();
-			 Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVP行列をIdentity * View * Projectionに設定
-			//Shader_Begin(); // シェーダーを再設定
+			if (!player[i].active) continue;
 
-			for (int i = 0; i < PLAYER_MAX; i++)
-			{
-				if (!player[i].active) continue;
+			// 4. 色をセット（青色にするなら第4引数のアルファを1.0fに！）
+			Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 
-				// AABBを描画
-				// AABBのMin/Maxは既にワールド座標なので、行列はリセットしたまま描写すればOK
-				Debug_DrawAABB(player[i].boundingBox, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
-			}
+			// 5. 描画！
+			Debug_DrawAABB(player[i].boundingBox, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
 		}
-		//s_IsKonamiCodeEntered = false;
 	}
 }
-
 
 void Player_DrawHP()
 {
@@ -1704,7 +1707,6 @@ void Player_DrawHP()
 			Gauge_Set(i, player[i].breakCount_Glass, player[i].breakCount_Concrete, player[i].breakCount_Plant, player[i].breakCount_Electricity,
 				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
-
 
 		if (Player_CanUseSpecial(i))
 		{
@@ -1930,10 +1932,10 @@ bool Player_CanUseSpecial(int playerIndex)
 
 	PLAYEROBJECT& pl = player[playerIndex];
 
-	if (!pl.active) return false;
-	if (pl.isStunning) return false;
-	if (pl.isDown) return false;
-	if (pl.rank == 1) return false;
+	if (!pl.active)		return false;
+	if (pl.isStunning)	return false;
+	if (pl.isDown)		return false;
+	if (pl.rank == 1)	return false;
 
 	// 形態が第3形態であること
 	if (pl.form != Form::Third) return false;

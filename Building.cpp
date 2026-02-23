@@ -4,71 +4,71 @@
 #include "keyboard.h"
 #include "Effect.h"
 #include "player.h"
-#include "debug_ostream.h"     // © ’Ç‰Á: hal::dout ‚ğg‚¤‚½‚ß
-#include <codecvt>            // © ’Ç‰Á: ƒƒCƒh¨UTF-8 •ÏŠ·—p
+#include "debug_ostream.h"     // â† è¿½åŠ : hal::dout ã‚’ä½¿ã†ãŸã‚
+#include <codecvt>            // â† è¿½åŠ : ãƒ¯ã‚¤ãƒ‰â†’UTF-8 å¤‰æ›ç”¨
 #include <locale>
 
 
 //=========================================
-// ƒOƒ[ƒoƒ‹ŠÇ—
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«ç®¡ç†
 //=========================================
-// šDirect3D ƒfƒoƒCƒX•ƒRƒ“ƒeƒLƒXƒg
-static	ID3D11Device* g_pDevice = NULL;				// ƒeƒNƒXƒ`ƒƒ‚ÌêŠ‚ğGPUã‚ÉŠm•Û‚·‚é‚½‚ß‚Ég‚¤
-static	ID3D11DeviceContext* g_pContext = NULL;		// ƒeƒNƒXƒ`ƒƒ‚ğ•`‰æ‚·‚é‚½‚ß‚Ég‚¤
+// â˜…Direct3D ãƒ‡ãƒã‚¤ã‚¹ï¼†ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ
+static	ID3D11Device* g_pDevice = NULL;				// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®å ´æ‰€ã‚’GPUä¸Šã«ç¢ºä¿ã™ã‚‹ãŸã‚ã«ä½¿ã†
+static	ID3D11DeviceContext* g_pContext = NULL;		// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’æç”»ã™ã‚‹ãŸã‚ã«ä½¿ã†
 
-// Œš•¨”z—ñiÅ‘å100ŒÂj
+// å»ºç‰©é…åˆ—ï¼ˆæœ€å¤§100å€‹ï¼‰
 static Building* Buildings[300];
 
-// Œ»İ‚ÌŒš•¨”
+// ç¾åœ¨ã®å»ºç‰©æ•°
 static int BuildingCount = 0;
 
-// šƒeƒNƒXƒ`ƒƒ‚ÌƒpƒX—pˆÓ
+// â˜…ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ãƒ‘ã‚¹ç”¨æ„
 static const wchar_t* g_TexturePaths[] =
 { L"Asset\\Texture\\gure.jpg",
-	L"Asset\\Texture\\‚Æ‚ñ‚ª‚è–Ø.png",   // © togekiê—p
-	L"Asset\\Texture\\‚Æ‚ñ‚ª‚è–ØƒGƒtƒFƒNƒg.png",
-	L"Asset\\Texture\\ƒ‰ƒCƒu.png",
-	L"Asset\\Texture\\ƒ‰ƒCƒuƒGƒtƒFƒNƒg.png",
-	L"Asset\\Texture\\”üpŠÙ.png",
-	L"Asset\\Texture\\”üpŠÙƒGƒtƒFƒNƒg.png",
-	L"Asset\\Texture\\‚±‚ñ‚­‚èO’i.png",
-	L"Asset\\Texture\\‚±‚ñ‚­‚èO’iƒGƒtƒFƒNƒg.png",
-	L"Asset\\Texture\\‚RŒÂ‚ÌƒRƒ“ƒNƒŠ.png",
-	L"Asset\\Texture\\‚RŒÂ‚ÌƒRƒ“ƒNƒŠƒGƒtƒFƒNƒg.png",
-	L"Asset\\Texture\\‚S‚Â‚ÌƒKƒ‰ƒX.png",
-	L"Asset\\Texture\\‚S‚Â‚ÌƒKƒ‰ƒXƒGƒtƒFƒNƒg.png",
-	L"Asset\\Texture\\M†.png",
-	L"Asset\\Texture\\M†ƒGƒtƒFƒNƒg.png",
-	L"Asset\\Texture\\‚Q‚±‚ÌŠÛƒKƒ‰ƒX.png",
-	L"Asset\\Texture\\‚Q‚±‚ÌŠÛƒKƒ‰ƒXƒGƒtƒFƒNƒg.png",
-	L"Asset\\Texture\\–Ø‚Æ—V‹ï.png",
-	L"Asset\\Texture\\–Ø‚Æ—V‹ïƒGƒtƒFƒNƒg.png",
-	L"Asset\\Texture\\–Ø‚Æ‚¢‚¦.png",
-	L"Asset\\Texture\\–Ø‚Æ‚¢‚¦ƒGƒtƒFƒNƒg.png",
+	L"Asset\\Texture\\ã¨ã‚“ãŒã‚Šæœ¨.png",   // â† togekiå°‚ç”¨
+	L"Asset\\Texture\\ã¨ã‚“ãŒã‚Šæœ¨ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
+	L"Asset\\Texture\\ãƒ©ã‚¤ãƒ–.png",
+	L"Asset\\Texture\\ãƒ©ã‚¤ãƒ–ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
+	L"Asset\\Texture\\ç¾è¡“é¤¨.png",
+	L"Asset\\Texture\\ç¾è¡“é¤¨ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
+	L"Asset\\Texture\\ã“ã‚“ãã‚Šä¸‰æ®µ.png",
+	L"Asset\\Texture\\ã“ã‚“ãã‚Šä¸‰æ®µã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
+	L"Asset\\Texture\\ï¼“å€‹ã®ã‚³ãƒ³ã‚¯ãƒª.png",
+	L"Asset\\Texture\\ï¼“å€‹ã®ã‚³ãƒ³ã‚¯ãƒªã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
+	L"Asset\\Texture\\ï¼”ã¤ã®ã‚¬ãƒ©ã‚¹.png",
+	L"Asset\\Texture\\ï¼”ã¤ã®ã‚¬ãƒ©ã‚¹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
+	L"Asset\\Texture\\ä¿¡å·.png",
+	L"Asset\\Texture\\ä¿¡å·ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
+	L"Asset\\Texture\\ï¼’ã“ã®ä¸¸ã‚¬ãƒ©ã‚¹.png",
+	L"Asset\\Texture\\ï¼’ã“ã®ä¸¸ã‚¬ãƒ©ã‚¹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
+	L"Asset\\Texture\\æœ¨ã¨éŠå…·.png",
+	L"Asset\\Texture\\æœ¨ã¨éŠå…·ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
+	L"Asset\\Texture\\æœ¨ã¨ã„ãˆ.png",
+	L"Asset\\Texture\\æœ¨ã¨ã„ãˆã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
 	L"Asset\\Texture\\togegarasu.png",
-	L"Asset\\Texture\\togegarasuƒGƒtƒFƒNƒg.png",
+	L"Asset\\Texture\\togegarasuã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
 	L"Asset\\Texture\\3kabe.png",
-	L"Asset\\Texture\\3kabeƒGƒtƒFƒNƒg.png",
+	L"Asset\\Texture\\3kabeã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
 	L"Asset\\Texture\\1kabe.png",
-	L"Asset\\Texture\\1kabeƒGƒtƒFƒNƒg.png",
+	L"Asset\\Texture\\1kabeã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
 	L"Asset\\Texture\\textureTreeMain_v3.png",
 	L"Asset\\Texture\\textureTreeMainHighlight_v2.png",
 	L"Asset\\Texture\\textureTowerMain_v2.png",
-	L"Asset\\Texture\\“Œ‹ƒ^ƒ[ƒGƒtƒFƒNƒg.png",
+	L"Asset\\Texture\\æ±äº¬ã‚¿ãƒ¯ãƒ¼ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ.png",
 	L"Asset\\Texture\\fade.bmp"
 };
-// ”z—ñ—v‘f”‚©‚ç’è”‚ğì¬i’è‹`‚ÆÀƒf[ƒ^‚Ì•sˆê’v‚ğ–h‚®j
+// é…åˆ—è¦ç´ æ•°ã‹ã‚‰å®šæ•°ã‚’ä½œæˆï¼ˆå®šç¾©ã¨å®Ÿãƒ‡ãƒ¼ã‚¿ã®ä¸ä¸€è‡´ã‚’é˜²ãï¼‰
 static const int FIELD_TEX_MAX = static_cast<int>(sizeof(g_TexturePaths) / sizeof(g_TexturePaths[0]));
 
-// ƒeƒNƒXƒ`ƒƒ”z—ñi—v‘f”‚Í FIELD_TEX_MAX ‚É‡‚í‚¹‚éj
+// ãƒ†ã‚¯ã‚¹ãƒãƒ£é…åˆ—ï¼ˆè¦ç´ æ•°ã¯ FIELD_TEX_MAX ã«åˆã‚ã›ã‚‹ï¼‰
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX] = { nullptr };
 
 
 //=========================================
-// ƒ‚ƒfƒ‹’è‹`i•¡”‘Î‰j
+// ãƒ¢ãƒ‡ãƒ«å®šç¾©ï¼ˆè¤‡æ•°å¯¾å¿œï¼‰
 //=========================================
 
-// ƒKƒ‰ƒXŒš•¨
+// ã‚¬ãƒ©ã‚¹å»ºç‰©
 static const char* g_GlassModels[] = {
 	"3birugarsu",
 	"2marugarasu",
@@ -77,7 +77,7 @@ static const char* g_GlassModels[] = {
 
 };
 
-// ƒRƒ“ƒNƒŠ[ƒgŒš•¨
+// ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆå»ºç‰©
 static const char* g_ConcreteModels[] = {
 	"bizyutukan",
 	"biru3dannkonkuri",
@@ -85,7 +85,7 @@ static const char* g_ConcreteModels[] = {
 
 };
 
-// A•¨Œš•¨
+// æ¤ç‰©å»ºç‰©
 static const char* g_PlantModels[] = {
 	"propsTreeSub_v2",
 	"kitoyugu",
@@ -95,7 +95,7 @@ static const char* g_PlantModels[] = {
 	"propsTreeMain_v12"
 };
 
-// “d‹CŒš•¨
+// é›»æ°—å»ºç‰©
 static const char* g_ElectricModels[] = {
 	"singou",
 	"taw-",
@@ -105,11 +105,11 @@ static const char* g_ElectricModels[] = {
 
 };
 
-// ”z—ñ”æ“¾ƒ}ƒNƒ
+// é…åˆ—æ•°å–å¾—ãƒã‚¯ãƒ­
 #define COUNT(arr) (sizeof(arr) / sizeof(arr[0]))
 
 //=========================================
-// ‘SŒš•¨XV
+// å…¨å»ºç‰©æ›´æ–°
 //=========================================
 void Building_UpdateAll()
 {
@@ -122,7 +122,7 @@ void Building_UpdateAll()
 	}
 }
 //=========================================
-// ‘SŒš•¨•`‰æ
+// å…¨å»ºç‰©æç”»
 //=========================================
 void Building_DrawAll(bool s_IsKonamiCodeEntered)
 {
@@ -136,7 +136,7 @@ void Building_DrawAll(bool s_IsKonamiCodeEntered)
 }
 
 //=========================================
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 //=========================================
 Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 	: type(type),
@@ -149,11 +149,11 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 	m_TexOffset(0),
 	m_IsPlayerNear(false)
 {
-	// ‰Šúƒgƒ‰ƒ“ƒXƒtƒH[ƒ€
+	// åˆæœŸãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ 
 	scaling = { 1.0f, 1.0f, 1.0f };
 	rotation = { 0.0f, 0.0f, 0.0f };
 
-	// ƒ‚ƒfƒ‹”Ô†‚Ì”ÍˆÍƒ`ƒFƒbƒN
+	// ãƒ¢ãƒ‡ãƒ«ç•ªå·ã®ç¯„å›²ãƒã‚§ãƒƒã‚¯
 	switch (type)
 	{
 	case BuildingType::Glass:
@@ -173,13 +173,13 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 		break;
 	}
 
-	// ƒ‚ƒfƒ‹“Ç‚İ‚İ
+	// ãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿
 	LoadModelForPhase();
 }
 
 
 //=========================================
-// ƒfƒXƒgƒ‰ƒNƒ^
+// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 //=========================================
 Building::~Building()
 {
@@ -191,31 +191,31 @@ Building::~Building()
 }
 
 //=========================================
-// ‰Šú‰»iField ‚©‚çŒš•¨¶¬j
+// åˆæœŸåŒ–ï¼ˆField ã‹ã‚‰å»ºç‰©ç”Ÿæˆï¼‰
 //=========================================
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	Building_Finalize();
 
-	// šƒfƒoƒCƒX•ƒRƒ“ƒeƒLƒXƒg•Û‘¶
+	// â˜…ãƒ‡ãƒã‚¤ã‚¹ï¼†ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆä¿å­˜
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
 	MAPDATA* map = GetFieldObjects();
 	int count = GetFieldObjectCount();
 
-	// š•¡”‚ÌƒeƒNƒXƒ`ƒƒ‚ğ“Ç‚İ‚İ
+	// â˜…è¤‡æ•°ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’èª­ã¿è¾¼ã¿
 	int texToLoad = FIELD_TEX_MAX;
-	// •ÏŠ·ƒ†[ƒeƒBƒŠƒeƒB‚ğ—pˆÓ
+	// å¤‰æ›ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£ã‚’ç”¨æ„
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
-	for (int i = 0; i < texToLoad; ++i) // ’è‹`‚µ‚½ƒeƒNƒXƒ`ƒƒ‚Ì”‚¾‚¯ƒ‹[ƒv
+	for (int i = 0; i < texToLoad; ++i) // å®šç¾©ã—ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ã®æ•°ã ã‘ãƒ«ãƒ¼ãƒ—
 	{
 		TexMetadata metadata;
 		ScratchImage image;
 		HRESULT hr = LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
 		if (FAILED(hr))
 		{
-			// “Ç‚İ‚İ¸”s ¨ nullptr ‚ğƒZƒbƒg‚µ‚ÄƒƒOiƒpƒX‚Í UTF-8 ‚É•ÏŠ·‚µ‚Äo—Íj
+			// èª­ã¿è¾¼ã¿å¤±æ•— â†’ nullptr ã‚’ã‚»ãƒƒãƒˆã—ã¦ãƒ­ã‚°ï¼ˆãƒ‘ã‚¹ã¯ UTF-8 ã«å¤‰æ›ã—ã¦å‡ºåŠ›ï¼‰
 			hal::dout << "Building_Initialize: LoadFromWICFile failed for " << conv.to_bytes(g_TexturePaths[i]) << " index=" << i << " hr=0x" << std::hex << hr << std::endl;
 			g_Texture[i] = nullptr;
 			continue;
@@ -224,7 +224,7 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		HRESULT hr2 = CreateShaderResourceView(g_pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[i]);
 		if (FAILED(hr2) || g_Texture[i] == nullptr)
 		{
-			// SRV ì¬¸”s ¨ nullptr ‚ğƒZƒbƒg‚µ‚ÄƒƒO
+			// SRV ä½œæˆå¤±æ•— â†’ nullptr ã‚’ã‚»ãƒƒãƒˆã—ã¦ãƒ­ã‚°
 			hal::dout << "Building_Initialize: CreateShaderResourceView failed for index=" << i << " hr=0x" << std::hex << hr2 << std::endl;
 			g_Texture[i] = nullptr;
 			continue;
@@ -235,7 +235,7 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		BuildingType type = BuildingType::None;
 
-		// FIELD ¨ BuildingType •ÏŠ·
+		// FIELD â†’ BuildingType å¤‰æ›
 		switch (map[i].no)
 		{
 		case FIELD::FIELD_Glass:		type = BuildingType::Glass;			break;
@@ -246,10 +246,10 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		default: continue;
 		}
 
-		// Field‘¤‚Åw’è‚µ‚½ƒ‚ƒfƒ‹”Ô†‚ğg—p
+		// Fieldå´ã§æŒ‡å®šã—ãŸãƒ¢ãƒ‡ãƒ«ç•ªå·ã‚’ä½¿ç”¨
 		int modelIndex = map[i].variant;
 
-		// Œš•¨¶¬
+		// å»ºç‰©ç”Ÿæˆ
 		Buildings[BuildingCount++] =
 			new Building(type, map[i].pos, modelIndex);
 
@@ -258,7 +258,7 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 }
 
 //=========================================
-// I—¹ˆ—
+// çµ‚äº†å‡¦ç†
 //=========================================
 void Building_Finalize()
 {
@@ -269,7 +269,7 @@ void Building_Finalize()
 	}
 	BuildingCount = 0;
 
-	// ƒeƒNƒXƒ`ƒƒ‰ğ•úiˆÀ‘S‚Ì‚½‚ß‚±‚±‚É’Ç‰Áj
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£è§£æ”¾ï¼ˆå®‰å…¨ã®ãŸã‚ã“ã“ã«è¿½åŠ ï¼‰
 	for (int i = 0; i < FIELD_TEX_MAX; ++i)
 	{
 		if (g_Texture[i])
@@ -281,11 +281,11 @@ void Building_Finalize()
 }
 
 //=========================================
-// ƒ‚ƒfƒ‹“Ç‚İ‚İˆ—
+// ãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿å‡¦ç†
 //=========================================
 void Building::LoadModelForPhase()
 {
-	// Šù‘¶ƒ‚ƒfƒ‹‰ğ•ú
+	// æ—¢å­˜ãƒ¢ãƒ‡ãƒ«è§£æ”¾
 	if (m_Model)
 	{
 		ModelRelease(m_Model);
@@ -294,7 +294,7 @@ void Building::LoadModelForPhase()
 
 	const char* modelName = nullptr;
 
-	// Œš•¨ƒ^ƒCƒv‚²‚Æ‚Éƒ‚ƒfƒ‹Œˆ’è
+	// å»ºç‰©ã‚¿ã‚¤ãƒ—ã”ã¨ã«ãƒ¢ãƒ‡ãƒ«æ±ºå®š
 	switch (type)
 	{
 	case BuildingType::Glass:		modelName = g_GlassModels[m_ModelIndex];	break;
@@ -302,7 +302,7 @@ void Building::LoadModelForPhase()
 	case BuildingType::Plant:		modelName = g_PlantModels[m_ModelIndex];	break;
 	case BuildingType::Electricity:	modelName = g_ElectricModels[m_ModelIndex];	break;
 	default:
-		//path = "asset/build_default.fbx"; // ƒfƒtƒHƒ‹ƒgƒ‚ƒfƒ‹
+		//path = "asset/build_default.fbx"; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ¢ãƒ‡ãƒ«
 		break;
 	}
 
@@ -310,15 +310,15 @@ void Building::LoadModelForPhase()
 	{
 		hal::dout << "Building::LoadModelForPhase: modelName==nullptr for type=" << (int)type << " index=" << m_ModelIndex << std::endl;
 		m_Model = nullptr;
-		isActive = false; // ƒ‚ƒfƒ‹–³‚¯‚ê‚Î•`‰æ‚µ‚È‚¢
+		isActive = false; // ãƒ¢ãƒ‡ãƒ«ç„¡ã‘ã‚Œã°æç”»ã—ãªã„
 		return;
 	}
 
-	// ƒpƒX‘g‚İ—§‚Ä
+	// ãƒ‘ã‚¹çµ„ã¿ç«‹ã¦
 	char path[256];
 	snprintf(path, sizeof(path), "asset/model/%s.fbx", modelName);
 
-	// ƒ‚ƒfƒ‹ƒ[ƒhi—áŠO”­¶‚Ì‰Â”\«‚Ì‚ ‚éÀ‘•‚È‚ç‚±‚±‚ÅƒLƒƒƒbƒ`j
+	// ãƒ¢ãƒ‡ãƒ«ãƒ­ãƒ¼ãƒ‰ï¼ˆä¾‹å¤–ç™ºç”Ÿã®å¯èƒ½æ€§ã®ã‚ã‚‹å®Ÿè£…ãªã‚‰ã“ã“ã§ã‚­ãƒ£ãƒƒãƒï¼‰
 	try
 	{
 		m_Model = ModelLoad(path);
@@ -346,7 +346,7 @@ void Building::LoadModelForPhase()
 }
 
 //=========================================
-// ƒtƒF[ƒY•ÏXi«—ˆŠg’£—pj
+// ãƒ•ã‚§ãƒ¼ã‚ºå¤‰æ›´ï¼ˆå°†æ¥æ‹¡å¼µç”¨ï¼‰
 //=========================================
 void Building::SetPhase(BuildingPhase phase)
 {
@@ -358,11 +358,11 @@ void Building::SetPhase(BuildingPhase phase)
 }
 
 //=========================================
-// XV
+// æ›´æ–°
 //=========================================
 void Building::Update()
 {
-	// ƒvƒŒƒCƒ„[‚Æ‚Ì‹——£”»’è
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã®è·é›¢åˆ¤å®š
 	bool anyPlayerNear = false;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
@@ -382,12 +382,12 @@ void Building::Update()
 		}
 	}
 
-	// ‹ß‚Ã‚¢‚½uŠÔ‚ÉƒeƒNƒXƒ`ƒƒƒIƒtƒZƒbƒg‚ğ+1
+	// è¿‘ã¥ã„ãŸç¬é–“ã«ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’+1
 	if (anyPlayerNear && !m_IsPlayerNear)
 	{
 		m_TexOffset = (m_TexOffset + 1) % FIELD_TEX_MAX;
 	}
-	// —£‚ê‚½uŠÔ‚ÉƒeƒNƒXƒ`ƒƒƒIƒtƒZƒbƒg‚ğƒŠƒZƒbƒg
+	// é›¢ã‚ŒãŸç¬é–“ã«ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’ãƒªã‚»ãƒƒãƒˆ
 	else if (!anyPlayerNear && m_IsPlayerNear)
 	{
 		m_TexOffset = 0;
@@ -397,9 +397,9 @@ void Building::Update()
 }
 
 //=========================================
-// •`‰æ
+// æç”»
 //=========================================
-void Building::Draw(bool)
+void Building::Draw(bool s_IsKonamiCodeEntered)
 {
 	if (!m_Model) return;
 
@@ -420,9 +420,9 @@ void Building::Draw(bool)
 
 
 	//===========================
-	// š ƒeƒNƒXƒ`ƒƒ‘I‘ğ
+	// â˜… ãƒ†ã‚¯ã‚¹ãƒãƒ£é¸æŠ
 	//===========================
-	int baseTexIndex = 0; // ƒfƒtƒHƒ‹ƒg
+	int baseTexIndex = 0; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
 
 	// Plant 
 	if (type == BuildingType::Plant &&
@@ -506,10 +506,10 @@ void Building::Draw(bool)
 		baseTexIndex = 21;//ok
 	}
 
-	// ƒvƒŒƒCƒ„[Ú‹ß‚ÉƒeƒNƒXƒ`ƒƒƒIƒtƒZƒbƒg‚ğ‰ÁZ
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ¥è¿‘æ™‚ã«ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’åŠ ç®—
 	int finalTexIndex = (baseTexIndex + m_TexOffset) % FIELD_TEX_MAX;
 
-	// SRV ‚ª nullptr ‚Ìê‡‚Í null ‚ğƒZƒbƒgi‘OƒtƒŒ[ƒ€‚Ì SRV ‚ªc‚ç‚È‚¢‚æ‚¤‚É‚·‚éj
+	// SRV ãŒ nullptr ã®å ´åˆã¯ null ã‚’ã‚»ãƒƒãƒˆï¼ˆå‰ãƒ•ãƒ¬ãƒ¼ãƒ ã® SRV ãŒæ®‹ã‚‰ãªã„ã‚ˆã†ã«ã™ã‚‹ï¼‰
 	if (finalTexIndex >= 0 && finalTexIndex < FIELD_TEX_MAX && g_Texture[finalTexIndex])
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[finalTexIndex]);
@@ -520,11 +520,11 @@ void Building::Draw(bool)
 		g_pContext->PSSetShaderResources(0, 1, nullSRV);
 	}
 
-	ModelDraw(m_Model);
+	if (!s_IsKonamiCodeEntered) ModelDraw(m_Model);
 }
 
 //=========================================
-// ƒQƒbƒ^[
+// ã‚²ãƒƒã‚¿ãƒ¼
 //=========================================
 int GetBuildingCount()
 {

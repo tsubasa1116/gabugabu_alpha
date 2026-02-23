@@ -25,22 +25,22 @@
 //======================================================
 //	グローバル変数
 //======================================================
-MODEL* Test = NULL;//デバッグ
+MODEL* Test = NULL;//チE��チE��
 
 ////グローバル変数
 static	ID3D11Device* g_pDevice = NULL;
 static	ID3D11DeviceContext* g_pContext = NULL;
 ////頂点バッファ
 //static	ID3D11Buffer* g_VertexBuffer = NULL;
-////インデックスバッファ
+////インチE��クスバッファ
 //static	ID3D11Buffer* g_IndexBuffer = NULL;
-//テクスチャ変数
+//チE��スチャ変数
 //static ID3D11ShaderResourceView* g_Texture;
 
-// FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
+// FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管琁E
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 #define FIELD_TEX_MAX (4)
-// FIELD::no の値に対応するテクスチャファイル名
+// FIELD::no の値に対応するテクスチャファイル吁E
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
 	L"Asset\\Texture\\灰色.png",  // 0
@@ -58,7 +58,7 @@ static const char* g_ModelName[] = {
 	"propsConcreteSub_v2",		// マンション
 	"propsElectricitySub_v2",	// 車と信号
 	"propsGlassSub_v2",			// ビル
-	"propsTreeSub_v2",			// 広葉樹
+	"propsTreeSub_v2",			// 庁E��樹
 	"build_glass_new"			// 変な建物
 	"propsTowerMain_v3"			//東京タワ-
 };
@@ -67,10 +67,10 @@ static const char* g_ModelName1[] = {
 	"kitosaku"
 };
  
-//マップデータ配列
+//マップデータ配�E
 MAPDATA Map[] =
 {
-	// ===== 地面・特殊 =====			 
+	// ===== 地面・特殁E=====			 
 	{ {},{}, FIELD::FIELD_Electricity,1}, // 1kaku
 	{ {},{}, FIELD::FIELD_Electricity,0}, // 2kaku
 	{ {},{}, FIELD::FIELD_Plant,2},           // 3kaku
@@ -126,14 +126,14 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Plant,2 }, // 45
 	{ {},{}, FIELD::FIELD_Glass, }, // 46
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 47
-	{ {},{}, FIELD::FIELD_Glass,1 }, // 48  左上デカい建物
-	{ {},{}, FIELD::FIELD_Electricity,2 }, // 49   右上デカい建物
+	{ {},{}, FIELD::FIELD_Glass,1 }, // 48  ����f�J������
+	{ {},{}, FIELD::FIELD_Electricity,2 }, // 49   �E��f�J������
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 50
 						 
 	// ===== BOX 50 =====
 	{ {},{}, FIELD::FIELD_Electricity }, // 51
-	{ {},{}, FIELD::FIELD_Concrete }, // 52 右下デカい建物
-	{ {},{}, FIELD::FIELD_Plant,5}, // 53左下デカい
+	{ {},{}, FIELD::FIELD_Concrete }, // 52 �E���f�J������
+	{ {},{}, FIELD::FIELD_Plant,5}, // 53�����f�J��
 	{ {},{}, FIELD::FIELD_Electricity}, // 54
 	{ {},{}, FIELD::FIELD_Plant,2}, // 55
 	{ {},{}, FIELD::FIELD_Glass,3}, // 56
@@ -192,7 +192,7 @@ MAPDATA Map[] =
 						  
 	// ===== BOX 100 =====
 	{ {},{}, FIELD::FIELD_Plant,2}, // 101
-	{ {},{}, FIELD::FIELD_Concrete,2 }, // 102  いまのままだとここまでしかモデルが置けない
+	{ {},{}, FIELD::FIELD_Concrete,2 }, // 102  ぁE��のままだとここまでしかモチE��が置けなぁE
 	{ {},{}, FIELD::FIELD_BOX }, // 103
 	{ {},{}, FIELD::FIELD_BOX }, // 104
 	{ {},{}, FIELD::FIELD_BOX }, // 105
@@ -214,10 +214,12 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX }, // 119
 	{ {},{}, FIELD::FIELD_BOX }, // 120
 
-	// ===== 終了マーカー（カウントしない）=====
+	// ===== 終亁E�Eーカー�E�カウントしなぁE��E====
 	{ XMFLOAT3(2.0f,-1.0f,5.0f), {}, FIELD::FIELD_MAX }
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// TODO:�������I�u�W�F�N�g�����A�g���܂킹��悤�ɂ��A�����蔻����������Ƃɍ��A���������ł���悤�ɂ���
 
 //======================================================
 //	初期化関数
@@ -227,9 +229,9 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	char modelPath[256];
 	snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[1]);
 
-	Test = ModelLoad(modelPath);//デバッグ
+	Test = ModelLoad(modelPath);//チE��チE��
 
-	// 配列要素数（終了マーカー FIELD_MAX を含まない）
+	// 配�E要素数�E�終亁E�Eーカー FIELD_MAX を含まなぁE��E
 	int count = GetFieldObjectCount();
 	if (count <= 1)
 	{
@@ -239,31 +241,31 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		return;
 	}
 
-	// ====== 六角格子候補を多数生成し、中心に近いものから N 個選んで「より円形」に配置 ======
-	// MAPDATA::radius を hex size（center->corner）と見なす（flat-top）
+	// ====== 六角格子候補を多数生�Eし、中忁E��近いも�Eから N 個選んで「より�E形」に配置 ======
+	// MAPDATA::radius めEhex size�E�Eenter->corner�E�と見なす！Elat-top�E�E
 	const float size = Map->radius;
 	const float sqrt3 = sqrtf(3.0f);
 
-	// 横方向スケール（必要なら調整）
+	// 横方向スケール�E�忁E��なら調整�E�E
 	const float horizontalScale = 1.0f;
 
-	// 候補を生成するためのリング数（余裕を持たせる）
-	// count 個を丸く選ぶため、候補は多少多めに生成する（marginFactor）
-	const float marginFactor =5.0f; // 1.0 = 最低限, 1.25 = 余裕 25%
+	// 候補を生�Eするためのリング数�E�余裕を持たせる�E�E
+	// count 個を丸く選ぶため、候補�E多少多めに生�Eする�E�EarginFactor�E�E
+	const float marginFactor =5.0f; // 1.0 = 最低限, 1.25 = 余裁E25%
 	int rings = 1;
 	while (1 + 3 * rings * (rings + 1) < static_cast<int>(count * marginFactor))
 		++rings;
 
-	// 軸座標(q,r)を同心リングで生成（totalCandidates >= count）
+	// 軸座樁Eq,r)を同忁E��ングで生�E�E�EotalCandidates >= count�E�E
 	int totalCandidates = 1 + 3 * rings * (rings + 1);
 
-	// ヘルパー構造体（ローカル）
+	// ヘルパ�E構造体（ローカル�E�E
 	struct Candidate { int q; int r; float wx; float wz; float dist; };
 
-	// 動的確保（ローカルに vector を使わない形にしてインクルード不要に）
+	// 動的確保（ローカルに vector を使わなぁE��にしてインクルード不要に�E�E
 	Candidate* candidates = new Candidate[totalCandidates];
 
-	// 中心
+	// 中忁E
 	int idx = 0;
 	candidates[idx].q = 0;
 	candidates[idx].r = 0;
@@ -272,7 +274,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	candidates[idx].dist = 0.0f;
 	++idx;
 
-	// 6方向ベクトル（axial coords）
+	// 6方向�Eクトル�E�Exial coords�E�E
 	const int dirQ[6] = { 1, 1, 0, -1, -1, 0 };
 	const int dirR[6] = { 0, -1, -1, 0, 1, 1 };
 
@@ -301,18 +303,18 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 	}
 
-	// 中心に近い順に count 個を選ぶ（簡易選択ソートライク）
-	// 選択数 N = count（Map 配列の要素数）
+	// 中忁E��近い頁E�� count 個を選ぶ�E�簡易選択ソートライク�E�E
+	// 選択数 N = count�E�Eap 配�Eの要素数�E�E
 	int N = count;
-	// 安全策: N が候補数を超えないように
+	// 安�E筁E N が候補数を趁E��なぁE��ぁE��
 	if (N > totalCandidates) N = totalCandidates;
 
-	// 部分選択：先頭 N 件を初期選択し，残りを走査してより近ければ入れ替える（O(M*N)だが候補はそこまで大きくない）
-	// まず先頭 N を selected とする（配列内操作）
+	// 部刁E��択：�E頭 N 件を�E期選択し�E�残りを走査してより近けれ�E入れ替える�E�E(M*N)だが候補�Eそこまで大きくなぁE��E
+	// まず�E頭 N めEselected とする�E��E列�E操作！E
 	Candidate* selected = new Candidate[N];
 	for (int i = 0; i < N; ++i) selected[i] = candidates[i];
 
-	// 現在の最遠インデックスを求める関数
+	// 現在の最遠インチE��クスを求める関数
 	auto findWorstIndex = [&](int limit) -> int {
 		int worst = 0;
 		float maxd = selected[0].dist;
@@ -335,15 +337,15 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		if (candidates[i].dist < selected[worstIdx].dist)
 		{
-			// 置換
+			// 置揁E
 			selected[worstIdx] = candidates[i];
-			// worstIndex を再計算
+			// worstIndex を�E計箁E
 			worstIdx = findWorstIndex(N);
 		}
 	}
 
-	// ここで selected[] は中心に近い N 個の候補（ただし順序は任意）なので、中心に近い順に並べ替えることで見た目がより自然に
-	// 簡易的にバブルソート（N が小さいので十分）
+	// ここで selected[] は中忁E��近い N 個�E候補（ただし頁E���E任意）なので、中忁E��近い頁E��並べ替えることで見た目がより�E然に
+	// 簡易的にバブルソート！E が小さぁE�Eで十�E�E�E
 	for (int a = 0; a < N - 1; ++a)
 	{
 		for (int b = 0; b < N - 1 - a; ++b)
@@ -357,7 +359,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 	}
 
-	// Map 配列へ割り当て：中心に近い順に配置していく
+	// Map 配�Eへ割り当て�E�中忁E��近い頁E��配置してぁE��
 	int assign = 0;
 	for (int i = 0; i < count; ++i)
 	{
@@ -388,13 +390,13 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pContext = pContext;
 
 	// --------------------------------------------------------------------
-	// 複数のテクスチャを読み込み
+	// 褁E��のチE��スチャを読み込み
 	// --------------------------------------------------------------------
-	for (int i = 0; i < FIELD_TEX_MAX; ++i) // 定義したテクスチャの数だけループ
+	for (int i = 0; i < FIELD_TEX_MAX; ++i) // 定義したチE��スチャの数だけルーチE
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		// 配列に定義したパスからテクスチャを読み込む
+		// 配�Eに定義したパスからチE��スチャを読み込む
 		LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(g_pDevice, image.GetImages(),
 			image.GetImageCount(), metadata, &g_Texture[i]);
@@ -402,25 +404,12 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	}
 	// --------------------------------------------------------------------
 
-	// 初期ブロックの生成とAABBの計算
-	int i = 0;
-
-	while (Map[i].no != FIELD::FIELD_MAX && Map[i].isActive) {
-		if (i == 0) {
-			//CreateBox();
-		}
-
-		// 全てのマップオブジェクトに対してAABBを計算する
-		// Player_CalculateAABB(&map[i]); // 古い呼び出し
-		//CalculateAABB(Map[i].boundingBox, Map[i].pos, XMFLOAT3{ 1.0f, 1.0f, 1.0f }); // ★新しい呼び出し
-
-		i++;
-	}
-
 	Building_Initialize(pDevice, pContext);
 }
+
+
 //======================================================
-//	終了処理関数
+//	終亁E�E琁E��数
 //======================================================
 void Field_Finalize(void)
 {
@@ -441,7 +430,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 {
 	static bool input2 = false;
 
-	// デバッグキー
+	// チE��チE��キー
 	if (s_IsKonamiCodeEntered)
 	{
 		if (Keyboard_IsKeyDownTrigger(KK_D2))
@@ -450,11 +439,11 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		}
 	}
 
-	// シェーダー開始
+	// シェーダー開姁E
 	Shader_Begin();
 	Shader_SetColor(color::white);
 
-	// 行列取得
+	// �s��擾
 	XMMATRIX projection = GetProjectionMatrix();
 	XMMATRIX view = GetViewMatrix();
 	XMMATRIX VP = view * projection;
@@ -462,7 +451,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	int i = 0;
 
 	// ======================================================
-	// フィールド描画
+	// �t�B�[���h�`��
 	// ======================================================
 	while (Map[i].no != FIELD_MAX)
 	{
@@ -473,9 +462,9 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		}
 
 		// ------------------------------
-		// ワールド行列作成
+		// ���[���h�s��쐬
 		// ------------------------------
-		XMMATRIX ScalingMatrix = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+		XMMATRIX ScalingMatrix = XMMatrixScaling(2.0f, 2.0f, 1.0f);
 
 		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			XMConvertToRadians(-90.0f),
@@ -493,12 +482,12 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		XMMATRIX WVP = World * VP;
 
 		Shader_SetWorldMatrix(World);
-		Shader_SetMatrix(WVP);
+		Shader_SetMatrix(World * VP);
 
 		// ------------------------------
-		// 種類ごとにテクスチャ切り替え
+		// ��ނ��ƂɃe�N�X�`���؂�ւ�
 		// ------------------------------
-		int texIndex = 0; // デフォルト
+		int texIndex = 0; // �f�t�H���g
 
 		switch (Map[i].no)
 		{
@@ -530,26 +519,43 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
 
 		// ------------------------------
-		// 地面モデル描画
+		// �n�ʃ��f���`��
 		// ------------------------------
 		if (!s_IsKonamiCodeEntered || input2)
 		{
 			ModelDraw(Test);
 		}
 
+		//// �e�N�X�`�����p�C�v���C���������
+		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
+		//------------------------------------------------
 		i++;
 	}
 
+	///////////////////////////////////////
+	// TODO:boundingBox���Q�Ƃ�����
 	// ======================================================
-	// 建物描画
+	// �����`��
 	// ======================================================
 	Building_DrawAll(s_IsKonamiCodeEntered);
-
-	// ======================================================
-	// デバッグ描画
-	// ======================================================
+	
+	// --- 3. �f�o�b�O�`��͑S���̃}�b�v��`���I�������Ɂu1�񂾂��v��� ---
 	if (s_IsKonamiCodeEntered)
 	{
+		SetBlendState(BLENDSTATE_NONE);
+		SetDepthTest(false); // �d�Ȃ�𖳎����Č�����悤��
+		Shader_SetMatrix(VP); // ���[���h�s���Identity�ɂ���̂�VP������OK
+
+		// �t�B�[���h�I�u�W�F�N�g�̘Z�p��
+		int fieldCount = GetFieldObjectCount();
+		MAPDATA* fieldObjects = GetFieldObjects();
+		for (int j = 0; j < fieldCount; ++j)
+		{
+			if (!fieldObjects[j].isActive) continue;
+			Debug_DrawHex(Map[j].boundingBox, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		}
+
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
 			PLAYEROBJECT* playerObject = GetPlayer(p);
@@ -597,29 +603,45 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 }
 
 //======================================================
-//	更新処理
+//	更新処琁E
 //======================================================
 void Field_Update(void)
 {
+	int i = 0;
+	while (Map[i].no != FIELD_MAX)
+	{
+		// もしアクチE��ブじめE��かったら、描画しなぁE��次へ
+		if (!Map[i].isActive)
+		{
+			i++; // i を進めるのを忘れなぁE���E�E
+			continue; // こ�E先�E描画処琁E��スキチE�E
+		}
 
+		Map[i].boundingBox.center = Map[i].pos;			// -1
+		Map[i].boundingBox.radius = Map[i].radius;		// 1
+		Map[i].boundingBox.height = Map[i].height;		// 3.0
+
+
+
+		i++;
+	}
 }
 
 // ======================================================
-//	ゲッター
+//	ゲチE��ー
 // ------------------------------------------------------
-//	フィールドの配列の先頭ポインタを返す
+//	フィールド�E配�Eの先頭ポインタを返す
 // ======================================================
 MAPDATA* GetFieldObjects()
 {
 	return Map;
 }
 
-// フィールドオブジェクトの総数を返す
+// フィールドオブジェクト�E総数を返す
 int GetFieldObjectCount()
 {
-
 	int count = 0;
-	// map配列はFIELD_MAXを終了マーカーとしている
+	// map配�EはFIELD_MAXを終亁E�EーカーとしてぁE��
 	while (Map[count].no != FIELD_MAX)
 	{
 		count++;
