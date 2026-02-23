@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include "debug_render.h"
 #include "Building.h"
+#include "imgui.h"
 
 #define EFFECT_SPRITE_X		(8)
 #define EFFECT_SPRITE_Y		(8)
@@ -175,6 +176,8 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(22, L"Asset\\Texture\\uiPoison_vx.png");
 	Effect_LoadTexture(23, L"Asset\\Texture\\uiOrbit_v1.png");
 	Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
+	Effect_LoadTexture(25, L"Asset\\Texture\\effectSmork02_v1.png");
+	
 
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
@@ -489,6 +492,62 @@ void Effect_UpdateForPlayer(int playerIndex)
 			g_PlayerEffectAnim[playerIndex].poisonTimer = 0.0f;
 			LoopRange(g_PlayerEffectAnim[playerIndex].poisonFrame, 0, 49, 1);
 		}
+	}
+
+	// 死亡時の爆発エフェクト
+	static bool explosionFrameInitialized[PLAYER_MAX] = { false };
+	static bool explosionFinished[PLAYER_MAX] = { false };
+	static bool cameraFocusStarted[PLAYER_MAX] = { false };
+
+	bool isDeathConfirmed = (player.isDown && player.stock <= 1);
+
+	if (isDeathConfirmed && !explosionFinished[playerIndex])
+	{
+		// 爆発エフェクト開始
+		if (!explosionFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].explosionFrame = 0;
+			g_PlayerEffectAnim[playerIndex].explosionTimer = 0.0f;
+			explosionFrameInitialized[playerIndex] = true;
+		}
+		// カメラがまだフォーカスしていない時はフォーカスを開始
+		if (!cameraFocusStarted[playerIndex])
+		{
+			// カメラフォーカス開始
+			Camera_FocusOnPlayer(playerIndex, 10.0f);
+			cameraFocusStarted[playerIndex] = true;
+		}
+
+		g_PlayerEffectAnim[playerIndex].explosionTimer += DELTA_TIME;
+
+		// 0.1秒ごとにフレームを進める
+		if (g_PlayerEffectAnim[playerIndex].explosionTimer >= 0.1f)
+		{
+			g_PlayerEffectAnim[playerIndex].explosionTimer = 0.0f;
+			g_PlayerEffectAnim[playerIndex].explosionFrame++;
+
+			// エフェクトが最後まで再生されたら終了
+			if (g_PlayerEffectAnim[playerIndex].explosionFrame >= 29)
+			{
+				g_PlayerEffectAnim[playerIndex].explosionFrame = 29;
+				explosionFinished[playerIndex] = true;
+
+				// エフェクト終了と同時にカメラフォーカスを解除
+				if (cameraFocusStarted[playerIndex])
+				{
+					Camera_ReturnToNormal();
+					cameraFocusStarted[playerIndex] = false;
+				}
+			}
+		}
+	}
+	else if (player.active && player.stock > 1)
+	{
+		// リスポーンしたらリセット
+		explosionFrameInitialized[playerIndex] = false;
+		explosionFinished[playerIndex] = false;
+		cameraFocusStarted[playerIndex] = false;
+		g_PlayerEffectAnim[playerIndex].explosionFrame = 0;
 	}
 
 	// 被弾エフェクト
@@ -866,6 +925,11 @@ void EffectFront_DrawForPlayer(int playerIndex)
 		}
 		if (texNo >= 0) texNosFramesScales.emplace_back(texNo, g_PlayerEffectAnim[playerIndex].specialFrame, scale, offset);
 	}
+	// 死亡エフェクト
+	if (player.isDown && player.stock <= 1)
+	{
+		texNosFramesScales.emplace_back(25, g_PlayerEffectAnim[playerIndex].explosionFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+	}
 	// 毒状態エフェクト
 	if (player.isPoisoned)
 	{
@@ -1018,6 +1082,7 @@ void EffectShadow_DrawForPlayer(int playerIndex)
 	g_pContext->PSSetShaderResources(0, 1, &srv);
 	g_pContext->DrawIndexed(6, 0, 0);
 }
+
 
 // ===============================================
 // 建物付近に表示するエフェクト更新関数

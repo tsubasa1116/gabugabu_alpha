@@ -41,6 +41,8 @@ struct PLAYER_EFFECT_ANIM
 	float respawnTimer = 0.0f;
 	int shadowFrame = 0;
 	float shadowTimer = 0.0f;
+	int explosionFrame = 0;
+	float explosionTimer = 0.0f;
 };
 
 static PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
@@ -73,6 +75,7 @@ struct EffectConfig {
 	float scaleMin;
 	float scaleMax;
 	float scaleSpeed;
+
 };
 
 // ƒƒCƒ“ˆ—ŠÖ”
