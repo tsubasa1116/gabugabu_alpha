@@ -368,7 +368,7 @@ void Building::Update()
 		float dz = player->position.z - position.z;
 		float distSq = dx * dx + dy * dy + dz * dz;
 
-		if (distSq <= 2.0f * 2.0f)
+		if (distSq <= 3.0f * 3.0f)
 		{
 			anyPlayerNear = true;
 			break;
