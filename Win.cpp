@@ -19,13 +19,15 @@ static ID3D11ShaderResourceView* g_Texture2 = NULL;		// ストライプ
 static ID3D11ShaderResourceView* g_Texture3 = NULL;		// PLAYER WIN
 static ID3D11ShaderResourceView* g_Texture4 = NULL;		// 次へ
 static ID3D11ShaderResourceView* g_WinTex = nullptr;    // 既存モデル用テクスチャ
-static ID3D11ShaderResourceView* g_Texture5 = NULL; // 王冠
+static ID3D11ShaderResourceView* g_Texture5 = NULL;		// 王冠
+static ID3D11ShaderResourceView* g_Texture6 = NULL;		// アニメーしぃん
 
 static TexMetadata g_WinTexMeta{};
 static TexMetadata g_TexMeta2{}; // ストライプ
 static TexMetadata g_TexMeta3{}; // PLAYER WIN
 static TexMetadata g_TexMeta4{}; // 次へ
 static TexMetadata g_TexMeta5{}; // 王冠
+static TexMetadata g_TexMeta6{}; // アニメーしぃん
 
 static MODEL* g_WinModel = nullptr;						// 既存モデル
 
@@ -35,6 +37,12 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 static float g_SlideOffsetTop = 0.0f;
 static float g_SlideOffsetBottom = 0.0f;
 const float SLIDE_SPEED = 2.0f;	
+
+static int g_AnimFrame = 0;
+static float g_AnimTimer = 0.0f;
+const int ANIM_START = 8;
+const int ANIM_END = 15;
+const float ANIM_SPEED = 0.12f; // 1フレームあたりの秒数（お好みで調整）
 
 //======================================================
 //	初期化関数
@@ -93,6 +101,16 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		assert(g_Texture5);
 	}
 
+	// アニメ―しぃん
+	{
+		TexMetadata metadata;
+		ScratchImage image;
+		LoadFromWICFile(L"asset\\texture\\characterWin01_v1.png", WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture6);
+		g_TexMeta6 = metadata;
+		assert(g_Texture6);
+	}
+
 	// フェードインのセット
 	XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	SetFade(60.0f, color, FADE_IN, SCENE_GAME);
@@ -109,6 +127,7 @@ void Win_Finalize()
 	SAFE_RELEASE(g_Texture3);
 	SAFE_RELEASE(g_Texture4);
 	SAFE_RELEASE(g_Texture5);
+	SAFE_RELEASE(g_Texture6);
 }
 
 //======================================================
@@ -134,6 +153,14 @@ void Win_Update()
 
 		g_SlideOffsetBottom = fmodf(g_SlideOffsetBottom, (float)g_TexMeta2.width);
 		if (g_SlideOffsetBottom < 0) g_SlideOffsetBottom += (float)g_TexMeta2.width;
+	}
+
+	// アニメーションフレーム更新
+	g_AnimTimer += 1.0f / 60.0f; // 60FPS前提
+	if (g_AnimTimer >= ANIM_SPEED) {
+		g_AnimTimer = 0.0f;
+		g_AnimFrame++;
+		if (g_AnimFrame > ANIM_END) g_AnimFrame = ANIM_START;
 	}
 }
 
@@ -208,6 +235,30 @@ void Win_Draw()
 		XMFLOAT2 pos = { SCREEN_WIDTH - 80, SCREEN_HEIGHT  - 180 };
 		XMFLOAT2 size = { (float)g_TexMeta4.width, (float)g_TexMeta4.height };
 		DrawSprite(pos, size, col);//1枚絵を表示
+	}
+
+	// アニメーションキャラ描画
+	if (g_Texture6)
+	{
+		SetBlendState(BLENDSTATE_ALPHA); // 必要に応じて
+		int frame = g_AnimFrame;
+		int framesPerRow = 8;
+		int frameX = frame % framesPerRow;
+		int frameY = frame / framesPerRow;
+
+		float frameWidth = (float)g_TexMeta6.width / 8.0f;
+		float frameHeight = (float)g_TexMeta6.height / 8.0f;
+
+		float u0 = frameX * frameWidth / g_TexMeta6.width;
+		float v0 = frameY * frameHeight / g_TexMeta6.height;
+		float u1 = (frameX + 1) * frameWidth / g_TexMeta6.width;
+		float v1 = (frameY + 1) * frameHeight / g_TexMeta6.height;
+
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
+		XMFLOAT2 size = { frameWidth * 1.0f, frameHeight * 1.0f };
+		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f }; // ←ここを必ず白に
+
+		DrawSpriteUV(pos, size, col, XMFLOAT2(u0, v0), XMFLOAT2(u1, v1));
 	}
 
 	// スプライトの描画は第1形態ブレンド無しかアルファにする（既存スタイルに合わせる）
