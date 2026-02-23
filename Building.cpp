@@ -72,7 +72,6 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX] = { nullptr };
 static const char* g_GlassModels[] = {
 	"3birugarsu",
 	"2marugarasu",
-	"anaaiterugarasu",
 	"togegarasu"
 
 };
@@ -87,11 +86,9 @@ static const char* g_ConcreteModels[] = {
 
 // êAï®åöï®
 static const char* g_PlantModels[] = {
-	"propsTreeSub_v2",
 	"kitoyugu",
 	"togeki",
 	"kitoie",
-	"propsTreeMain_v10",
 	"propsTreeMain_v12"
 };
 
