@@ -217,6 +217,21 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadTextureList(pDevice);
 #endif
 
+	// ===== GPU テクスチャ ウォームアップ =====
+	{
+		const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
+		for (size_t i = 0; i < TEX_COUNT; ++i)
+		{
+			if (g_Texture[i] != nullptr)
+			{
+				g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
+				g_pContext->DrawIndexed(0, 0, 0);
+			}
+		}
+		ID3D11ShaderResourceView* nullSRV = nullptr;
+		g_pContext->PSSetShaderResources(0, 1, &nullSRV);
+	}
+
 	// インデックスバッファ作成
 	{
 		D3D11_BUFFER_DESC	bd;
