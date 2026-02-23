@@ -1,6 +1,6 @@
-ï»¿/*==============================================================================
+/*==============================================================================
 
-   ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ [shader.h]
+   ƒVƒF[ƒ_[ [shader.h]
 														 Author : Youhei Sato
 														 Date   : 2025/05/15
 --------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ void Shader_SetSingleGauge(float fill);
 void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed);
 void Shader_SetColor(const XMFLOAT4& color);
 
-// ç·šå½¢è£œé–“ã‚«ãƒ©ãƒ¼è¨­å®šã€€mulColor=ä¹—ç®—è‰²ã€lerpColor=è£œé–“ã™ã‚‹è‰²ã€lerpFactor=è£œé–“ã®åº¦åˆã„
+// üŒ`•âŠÔƒJƒ‰[İ’è@mulColor=æZFAlerpColor=•âŠÔ‚·‚éFAlerpFactor=•âŠÔ‚Ì“x‡‚¢
 void Shader_SetColorLerp(const XMFLOAT4& mulColor, const XMFLOAT4& lerpColor, float lerpFactor);
 
 void Shader_BeginDebugColor();

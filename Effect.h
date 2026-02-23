@@ -1,4 +1,4 @@
-ï»¿// Effect.h
+// Effect.h
 
 #pragma once
 
@@ -8,22 +8,28 @@ using namespace DirectX;
 #include "direct3d.h"
 #include "player.h"
 
+// ƒ}ƒNƒ’è‹`
+#define BUILDING_EFFECT_MAX (100)	// Œš•¨ƒGƒtƒFƒNƒg‚ÌÅ‘å”
+
 class EFFECT
 {
 public:
 	bool enable;
 	XMFLOAT3 pos;
 	XMFLOAT2 size;
-	float frameCnt;	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
+	float frameCnt;	// ƒAƒjƒ[ƒVƒ‡ƒ“ƒJƒEƒ“ƒ^[
 	int texNo;
 	int playerIndex;
+	float scaleTimer;
+	bool scaleGrowing;
+	XMFLOAT2 baseSize;
 };
 
-struct EffectAnimState
+struct PLAYER_EFFECT_ANIM
 {
 	int evolutionFrame = 0;
 	float evolutionTimer = 0.0f;
-	int evolutionPhase = 0;		// 0:æœªé€²åŒ–, 1:é€²åŒ–1, 2:é€²åŒ–2, 3:çµ‚äº†
+	int evolutionPhase = 0;		// 0:–¢i‰», 1:i‰»1, 2:i‰»2, 3:I—¹
 	int skillFrame = 0;
 	float skillTimer = 0.0f;
 	int specialFrame = 0;
@@ -32,17 +38,27 @@ struct EffectAnimState
 	float poisonTimer = 0.0f;
 	int attackedFrame = 0;
 	float attackedTimer = 0.0f;
+	int stunFrame = 0;
+	float stunTimer = 0.0f;
 	int healingFrame = 0;
 	float healingTimer = 0.0f;
 	int respawnFrame = 0;
 	float respawnTimer = 0.0f;
-	int runDustFrame = 0;
-	float runDustTimer = 0.0f;
+	int shadowFrame = 0;
+	float shadowTimer = 0.0f;
 };
 
-static EffectAnimState g_effectAnim[PLAYER_MAX];
+struct BUILDING_EFFECT_ANIM
+{
+	int hitFrame = 0;
+	float hitTimer = 0.0f;
+	bool hitPlaying = false;	// Ä¶’†ƒtƒ‰ƒO
+	bool hitFinished = false;	// Ä¶Š®—¹ƒtƒ‰ƒOi1‰ñ‚¾‚¯Ä¶j
+	int hitStartFrame = 0;		// ŠJnƒtƒŒ[ƒ€
+	int hitEndFrame = 0;		// I—¹ƒtƒŒ[ƒ€
+};
 
-struct EffectLayer
+struct EFFECT_LAYER
 {
 	int texNo;
 	int frame;
@@ -50,17 +66,17 @@ struct EffectLayer
 	int sheetRows;
 };
 
-// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã”ã¨ã®è¨­å®š
+// ƒeƒNƒXƒ`ƒƒ‚²‚Æ‚Ìİ’è
 struct EffectConfig {
-	int maxFrame;  // å…¨ä½“ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
-	int loopStart; // ãƒ«ãƒ¼ãƒ—é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ 
-	int loopEnd;   // ãƒ«ãƒ¼ãƒ—çµ‚äº†ãƒ•ãƒ¬ãƒ¼ãƒ  (ã“ã“ã‚’è¶…ãˆãŸã‚‰loopStartã«æˆ»ã‚‹)
-	bool isLoop;   // ãƒ«ãƒ¼ãƒ—ãƒ•ãƒ©ã‚°
-	float speed;   // å†ç”Ÿé€Ÿåº¦ï¼ˆ1.0fãŒæ¨™æº–ï¼‰
+	int maxFrame;  // ‘S‘ÌƒtƒŒ[ƒ€”
+	int loopStart; // ƒ‹[ƒvŠJnƒtƒŒ[ƒ€
+	int loopEnd;   // ƒ‹[ƒvI—¹ƒtƒŒ[ƒ€ (‚±‚±‚ğ’´‚¦‚½‚çloopStart‚É–ß‚é)
+	bool isLoop;   // ƒ‹[ƒvƒtƒ‰ƒO
+	float speed;   // Ä¶‘¬“xi1.0f‚ª•W€j
 	int spriteY;
 };
 
-// ãƒ¡ã‚¤ãƒ³å‡¦ç†é–¢æ•°
+// ƒƒCƒ“ˆ—ŠÖ”
 void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Effect_Finalize();
 void Effect_Update();
@@ -70,6 +86,15 @@ void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex);
 void Effect_ClearUI(int pIndex);
 void Effect_Clear(int pIndex);
 
-// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ä»˜è¿‘ã«è¡¨ç¤ºã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆé–¢æ•°
+// ƒvƒŒƒCƒ„[•t‹ß‚É•\¦‚·‚éƒGƒtƒFƒNƒgŠÖ”
 void Effect_UpdateForPlayer(int playerIndex);
-void Effect_DrawForPlayer(int playerIndex);
+void EffectFront_DrawForPlayer(int playerIndex);	// ƒvƒŒƒCƒ„[‚Ì‘O‚É•\¦‚·‚éƒGƒtƒFƒNƒgiƒXƒLƒ‹‚È‚Çj
+void EffectShadow_DrawForPlayer(int playerIndex);	// ƒvƒŒƒCƒ„[‚Ì‰eƒGƒtƒFƒNƒg
+
+// Œš•¨•t‹ß‚É•\¦‚·‚éƒGƒtƒFƒNƒgŠÖ”
+void Effect_UpdateForBuilding(int buildingIndex);
+void Effect_DrawForBuilding(int buildingIndex);
+
+// Œš•¨ƒGƒtƒFƒNƒgˆêŠ‡ˆ—ŠÖ”iŒy—Ê”Åj
+void Effect_UpdateAllBuildings();
+void Effect_DrawAllBuildings();

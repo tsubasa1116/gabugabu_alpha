@@ -1,4 +1,4 @@
-ï»¿// Effect.cpp
+// Effect.cpp
 
 #include "Effect.h"
 #include "sprite.h"
@@ -7,6 +7,7 @@
 #include "player.h"
 #include "Camera.h"
 #include "debug_render.h"
+#include "Building.h"
 
 #define EFFECT_SPRITE_X		(8)
 #define EFFECT_SPRITE_Y		(8)
@@ -15,28 +16,28 @@
 #define EFFECT_TEX_MAX		(30)
 #define EFFECT_MAX			(30)
 
-// é ‚ç‚¹é…åˆ—
+// ’¸“_”z—ñ
 static Vertex2 effect_vdata[PLAYER_VERTEX] =
 {
-	{// é ‚ç‚¹0 LEFT-TOP
-		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),	// åº§æ¨™
-		XMFLOAT3(0.0f, 0.0f, -1.0f),				// æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),			// ã‚«ãƒ©ãƒ¼
-		XMFLOAT2(0.0f, 0.0f)						// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™
+	{// ’¸“_0 LEFT-TOP
+		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),	// À•W
+		XMFLOAT3(0.0f, 0.0f, -1.0f),				// –@üƒxƒNƒgƒ‹
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),			// ƒJƒ‰[
+		XMFLOAT2(0.0f, 0.0f)						// ƒeƒNƒXƒ`ƒƒÀ•W
 	},
-	{// é ‚ç‚¹1 RIGHT-TOP
+	{// ’¸“_1 RIGHT-TOP
 		XMFLOAT3(COORDINATE, COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(TEXCOORD, 0.0f)
 	},
-	{// é ‚ç‚¹2 LEFT-BOTTOM
+	{// ’¸“_2 LEFT-BOTTOM
 		XMFLOAT3(-COORDINATE, -COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f, TEXCOORD)
 	},
-	{// é ‚ç‚¹3 RIGHT-BOTTOM
+	{// ’¸“_3 RIGHT-BOTTOM
 		XMFLOAT3(COORDINATE, -COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -44,21 +45,21 @@ static Vertex2 effect_vdata[PLAYER_VERTEX] =
 	},
 };
 
-// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹é…åˆ—
+// ƒCƒ“ƒfƒbƒNƒX”z—ñ
 static UINT effect_idxdata[6]
 {
-	 0, 1, 2, 2, 1, 3, // -Zé¢
+	 0, 1, 2, 2, 1, 3, // -Z–Ê
 };
 
-// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
-// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
+// ƒOƒ[ƒoƒ‹•Ï”
+// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
-// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
+// ’¸“_ƒoƒbƒtƒ@
 static ID3D11Buffer* g_VertexBuffer = NULL;
 
-// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
+// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
 static ID3D11Buffer* g_IndexBuffer = NULL;
 
 static ID3D11ShaderResourceView* g_Texture[EFFECT_TEX_MAX] = {};
@@ -74,9 +75,12 @@ static bool g_EffectLoopFlag = false;
 
 static int   g_animFrame[PLAYER_MAX] = { 0 };
 static float g_animTimer[PLAYER_MAX] = { 0.0f };
-static const float ANIM_FRAME_TIME = 0.15f;	// 1ãƒ•ãƒ¬ãƒ¼ãƒ ã‚ãŸã‚Šã®ç§’æ•°
+static const float ANIM_FRAME_TIME = 0.16f;	// 1ƒtƒŒ[ƒ€‚ ‚½‚è‚Ì•b”
 
-// ãƒ†ã‚¯ã‚¹ãƒãƒ£ç•ªå·ã”ã¨ã®è¨­å®š
+PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
+BUILDING_EFFECT_ANIM g_BuildingEffectAnim[BUILDING_EFFECT_MAX];
+
+// ƒeƒNƒXƒ`ƒƒ”Ô†‚²‚Æ‚Ìİ’è
 static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
 	// max, loopS, loopE, isLoop, speed, sprintY
 	{ 32,  0,  30,  true, 1.5f, 8},
@@ -87,20 +91,20 @@ static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
 	{ 32,  0,  30,  true, 1.0f, 8},
 	{ 32,  0,  30,  true, 1.0f, 8},
 	{ 32,  0,  30,  true, 1.0f, 8},
-	{ 64,  -1, -1,  true, 1.0f, 8},  // ã‚¹ã‚­ãƒ« ã‚¬ãƒ©ã‚¹ãƒ»ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ
-	{ 64,  -1, -1,  true, 1.0f, 8},  // ã‚¹ã‚­ãƒ« æ¤ç‰©
-	{ 64,  -1, -1,  true, 1.0f, 8},  // ã‚¹ã‚­ãƒ« é›»æ°—
-	{ 64,  -1, -1,  true, 1.0f, 8},  // æ¯’çŠ¶æ…‹
-	{ 64,  -1, -1,  true, 1.0f, 8},  // ãƒ’ãƒƒãƒˆ ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆã®å»ºç‰©ãƒ»ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’æ”»æ’ƒã—ãŸæ™‚
-	{ 64,  -1, -1,  true, 1.0f, 8},  // ãƒ’ãƒƒãƒˆ é›»æ°—ãƒ»ã‚¬ãƒ©ã‚¹ãƒ»æ¤ç‰©ã®å»ºç‰©ã‚’æ”»æ’ƒã—ãŸæ™‚
-	{ 64,  -1, -1,  true, 1.0f, 8},  // ã‚¹ãƒšã‚·ãƒ£ãƒ« ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ åœ°é¢ã®è¡æ’ƒæ³¢
-	{ 64,  -1, -1,  true, 1.0f, 8},  // ã‚¹ãƒšã‚·ãƒ£ãƒ« é›»æ°— è¡æ’ƒæ³¢
-	{ 64,  -1, -1,  true, 1.0f, 8},  // å»ºç‰© ç…™ 20%ç ´å£Š
-	{ 64,  -1, -1,  true, 1.0f, 8},  // å»ºç‰© ç…™ 50%ç ´å£Š
-	{ 64,  -1, -1,  true, 1.0f, 8},  // é€²åŒ–1
-	{ 64,  -1, -1,  true, 1.0f, 8},  // é€²åŒ–2 é€²åŒ–1ã®ç›´å¾Œã«ä½¿ç”¨
-	{ 64,  -1, -1,  true, 1.0f, 8},  // æ’ƒå¢œ
-	{ 32,  0,  30,  true, 0.8f, 4 }, // UI æ¯’çŠ¶æ…‹
+	{ 64,  -1, -1,  true, 1.0f, 8},  // ƒXƒLƒ‹ ƒKƒ‰ƒXEƒRƒ“ƒNƒŠ[ƒg
+	{ 64,  -1, -1,  true, 1.0f, 8},  // ƒXƒLƒ‹ A•¨
+	{ 64,  -1, -1,  true, 1.0f, 8},  // ƒXƒLƒ‹ “d‹C
+	{ 64,  -1, -1,  true, 1.0f, 8},  // “Åó‘Ô
+	{ 64,  -1, -1,  true, 1.0f, 8},  // ƒqƒbƒg ƒRƒ“ƒNƒŠ[ƒg‚ÌŒš•¨EƒvƒŒƒCƒ„[‚ğUŒ‚‚µ‚½
+	{ 64,  -1, -1,  true, 1.0f, 8},  // ƒqƒbƒg “d‹CEƒKƒ‰ƒXEA•¨‚ÌŒš•¨‚ğUŒ‚‚µ‚½
+	{ 64,  -1, -1,  true, 1.0f, 8},  // ƒXƒyƒVƒƒƒ‹ ƒRƒ“ƒNƒŠ[ƒg ’n–Ê‚ÌÕŒ‚”g
+	{ 64,  -1, -1,  true, 1.0f, 8},  // ƒXƒyƒVƒƒƒ‹ “d‹C ÕŒ‚”g
+	{ 64,  -1, -1,  true, 1.0f, 8},  // Œš•¨ ‰Œ 20%”j‰ó
+	{ 64,  -1, -1,  true, 1.0f, 8},  // Œš•¨ ‰Œ 50%”j‰ó
+	{ 64,  -1, -1,  true, 1.0f, 8},  // i‰»1
+	{ 64,  -1, -1,  true, 1.0f, 8},  // i‰»2 i‰»1‚Ì’¼Œã‚Ég—p
+	{ 64,  -1, -1,  true, 1.0f, 8},  // Œ‚’Ä
+	{ 32,  0,  30,  true, 0.8f, 4 }, // UI “Åó‘Ô
 	{ 64,  0,  64,  true, 0.3f, 8 },
 	{ 32,  0,  30,  true, 0.8f, 4 },
 	{ 32,  0,  30,  true, 0.8f, 4 },
@@ -108,7 +112,7 @@ static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
 };
 
 //===============================================
-//ã€€ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚»ãƒƒãƒˆç”¨é–¢æ•°
+//@ƒeƒNƒXƒ`ƒƒƒZƒbƒg—pŠÖ”
 //===============================================
 static void Effect_LoadTexture(int i, const wchar_t* num)
 {
@@ -126,7 +130,7 @@ static void Effect_LoadTexture(int i, const wchar_t* num)
 }
 
 //===============================================
-//ã€€åˆæœŸåŒ–
+//@‰Šú‰»
 //===============================================
 void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
@@ -143,41 +147,39 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		effect[i].playerIndex = -1;
 	}
 
-	// UIç”»é¢
-	Effect_LoadTexture(0, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// ç¬¬2å½¢æ…‹ ã‚¬ãƒ©ã‚¹
-	Effect_LoadTexture(1, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// ç¬¬2å½¢æ…‹ ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ
-	Effect_LoadTexture(2, L"Asset\\Texture\\uiLightBigTree_v1.png");			// ç¬¬2å½¢æ…‹ æ¤ç‰©
-	Effect_LoadTexture(3, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// ç¬¬2å½¢æ…‹ é›»æ°—
-	Effect_LoadTexture(4, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// ç¬¬3å½¢æ…‹ ã‚¬ãƒ©ã‚¹
-	Effect_LoadTexture(5, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// ç¬¬3å½¢æ…‹ ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ
-	Effect_LoadTexture(6, L"Asset\\Texture\\uiLightBigTree_v1.png");			// ç¬¬3å½¢æ…‹ æ¤ç‰©
-	Effect_LoadTexture(7, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// ç¬¬3å½¢æ…‹ é›»æ°—
-	// ã‚²ãƒ¼ãƒ å†…
-	Effect_LoadTexture(8, L"Asset\\Texture\\effectSkillGlassConcrete_v4.png");	// ã‚¹ã‚­ãƒ« ã‚¬ãƒ©ã‚¹ãƒ»ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ å›å¾©
-	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v2.png");			// ã‚¹ã‚­ãƒ« æ¤ç‰©
-	Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// ã‚¹ã‚­ãƒ« é›»æ°—
-	Effect_LoadTexture(11, L"Asset\\Texture\\effectPoison_v2.png");				// æ¯’çŠ¶æ…‹
-	Effect_LoadTexture(12, L"Asset\\Texture\\effectHit01_v2.png");				// ãƒ’ãƒƒãƒˆ ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆã®å»ºç‰©ãƒ»ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’æ”»æ’ƒã—ãŸæ™‚
-	Effect_LoadTexture(13, L"Asset\\Texture\\effectHit02_v2.png");				// ãƒ’ãƒƒãƒˆ é›»æ°—ãƒ»ã‚¬ãƒ©ã‚¹ãƒ»æ¤ç‰©ã®å»ºç‰©ã‚’æ”»æ’ƒã—ãŸæ™‚
+	// UI‰æ–Ê
+	Effect_LoadTexture(0, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// ‘æ2Œ`‘Ô ƒKƒ‰ƒX
+	Effect_LoadTexture(1, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// ‘æ2Œ`‘Ô ƒRƒ“ƒNƒŠ[ƒg
+	Effect_LoadTexture(2, L"Asset\\Texture\\uiLightBigTree_v1.png");			// ‘æ2Œ`‘Ô A•¨
+	Effect_LoadTexture(3, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// ‘æ2Œ`‘Ô “d‹C
+	Effect_LoadTexture(4, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// ‘æ3Œ`‘Ô ƒKƒ‰ƒX
+	Effect_LoadTexture(5, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// ‘æ3Œ`‘Ô ƒRƒ“ƒNƒŠ[ƒg
+	Effect_LoadTexture(6, L"Asset\\Texture\\uiLightBigTree_v1.png");			// ‘æ3Œ`‘Ô A•¨
+	Effect_LoadTexture(7, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// ‘æ3Œ`‘Ô “d‹C
+	// ƒQ[ƒ€“à
+	Effect_LoadTexture(8, L"Asset\\Texture\\effectSkillGlassConcrete_v4.png");	// ƒXƒLƒ‹ ƒKƒ‰ƒXEƒRƒ“ƒNƒŠ[ƒg ‰ñ•œ
+	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v2.png");			// ƒXƒLƒ‹ A•¨
+	Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// ƒXƒLƒ‹ “d‹C
+	Effect_LoadTexture(11, L"Asset\\Texture\\effectPoison_v3.png");				// “ÅEAƒ{ƒ^ƒ“EƒvƒŒƒCƒ„[‚Ì‰e
+	Effect_LoadTexture(12, L"Asset\\Texture\\effectHit01_v4.png");				// ƒqƒbƒg ƒRƒ“ƒNƒŠ[ƒg Œš•¨EƒvƒŒƒCƒ„[‚ğUŒ‚‚µ‚½ ƒXƒ^ƒ“
+	Effect_LoadTexture(13, L"Asset\\Texture\\effectHit02_v2.png");				// ƒqƒbƒg “d‹CEƒKƒ‰ƒXEA•¨ Œš•¨‚ğUŒ‚‚µ‚½
 	Effect_LoadTexture(14, L"Asset\\Texture\\effectShockwave_v1.png");			// 
-	Effect_LoadTexture(15, L"Asset\\Texture\\effectSmoke_20per.png");			// å»ºç‰© ç…™ 20%ç ´å£Š
-	Effect_LoadTexture(16, L"Asset\\Texture\\effectSmoke_50per.png");			// å»ºç‰© ç…™ 50%ç ´å£Š
-	Effect_LoadTexture(17, L"Asset\\Texture\\effectEvolution01_v1.png");		// é€²åŒ–1
-	Effect_LoadTexture(18, L"Asset\\Texture\\effectEvolution02_v1.png");		// é€²åŒ–2 é€²åŒ–1ã®ç›´å¾Œã«ä½¿ç”¨
-	Effect_LoadTexture(19, L"Asset\\Texture\\effectWin_v1.png");				// æ’ƒå¢œ
-	Effect_LoadTexture(20, L"Asset\\Texture\\effectEgg_v3.png");				// ãƒªã‚¹ãƒãƒ¼ãƒ³ åµ
-	Effect_LoadTexture(21, L"Asset\\Texture\\effectEgg_v3.png");				// ãƒªã‚¹ãƒãƒ¼ãƒ³ åµ å½±
-	Effect_LoadTexture(22, L"Asset\\Texture\\effectRun_v1.png");				// åŸƒ
-	Effect_LoadTexture(23, L"Asset\\Texture\\effectVenomExplosion.png");		// æ¯’ã‚¹ãƒšã‚·ãƒ£ãƒ«
+	Effect_LoadTexture(15, L"Asset\\Texture\\effectSmoke_20per.png");			// Œš•¨ ‰Œ 20%”j‰ó
+	Effect_LoadTexture(16, L"Asset\\Texture\\effectSmoke_50per.png");			// Œš•¨ ‰Œ 50%”j‰ó
+	Effect_LoadTexture(17, L"Asset\\Texture\\effectEvolution01_v1.png");		// i‰»1
+	Effect_LoadTexture(18, L"Asset\\Texture\\effectEvolution02_v1.png");		// i‰»2 i‰»1‚Ì’¼Œã‚Ég—p
+	Effect_LoadTexture(19, L"Asset\\Texture\\effectWin_v1.png");				// Œ‚’Ä
+	Effect_LoadTexture(20, L"Asset\\Texture\\effectEgg_v3.png");				// ƒŠƒXƒ|[ƒ“ —‘
+	Effect_LoadTexture(21, L"Asset\\Texture\\effectVenomExplosion_v2.png");		// ƒXƒyƒVƒƒƒ‹ A•¨ “Å‰Œ
 
 	Effect_LoadTexture(24, L"Asset\\Texture\\uiPoison_vx.png");
 	Effect_LoadTexture(25, L"Asset\\Texture\\uiOrbit_v1.png");
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
+	// ’¸“_ƒoƒbƒtƒ@ì¬
 	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));// 0ã§ã‚¯ãƒªã‚¢
+	ZeroMemory(&bd, sizeof(bd));// 0‚ÅƒNƒŠƒA
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// æ ¼ç´ã§ãã‚‹é ‚ç‚¹æ•°*é ‚ç‚¹ã‚µã‚¤ã‚º
+	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// Ši”[‚Å‚«‚é’¸“_”*’¸“_ƒTƒCƒY
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -185,38 +187,52 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
+	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@ì¬
 	{
 		D3D11_BUFFER_DESC	bd;
-		ZeroMemory(&bd, sizeof(bd));	// 0ã§ã‚¯ãƒªã‚¢
+		ZeroMemory(&bd, sizeof(bd));	// 0‚ÅƒNƒŠƒA
 		bd.Usage = D3D11_USAGE_DYNAMIC;
 		bd.ByteWidth = sizeof(UINT) * 6 * 6;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
 
-		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã¸æ›¸ãè¾¼ã¿
+		// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚Ö‘‚«‚İ
 		D3D11_MAPPED_SUBRESOURCE msr;
 		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		UINT* index = (UINT*)msr.pData;
 
-		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ•ã‚¡ã¸ã‚³ãƒ”ãƒ¼
+		// ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^‚ğƒoƒbƒtƒ@‚ÖƒRƒs[
 		CopyMemory(&index[0], &effect_idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
-	// ãƒ‡ãƒãƒƒã‚°ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼åˆæœŸåŒ– 
+	// ƒfƒoƒbƒOƒŒƒ“ƒ_ƒ‰[‰Šú‰» 
 	Debug_Initialize(pDevice, pContext);
 
-	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®åˆæœŸåŒ–
+	// ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‰Šú‰»
 	for (int i = 0; i < PLAYER_MAX; ++i)
 	{
 		g_animFrame[i] = 0;
 		g_animTimer[i] = 0.0f;
 	}
+
+	// ===== GPU ƒeƒNƒXƒ`ƒƒ ƒEƒH[ƒ€ƒAƒbƒv =====
+	{
+		for (int i = 0; i < EFFECT_TEX_MAX; ++i)
+		{
+			if (g_Texture[i] != nullptr)
+			{
+				g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
+				g_pContext->DrawIndexed(0, 0, 0);
+			}
+		}
+		ID3D11ShaderResourceView* nullSRV = nullptr;
+		g_pContext->PSSetShaderResources(0, 1, &nullSRV);
+	}
 }
 
 //===============================================
-//ã€€çµ‚äº†
+//@I—¹
 //===============================================
 void Effect_Finalize()
 {
@@ -232,7 +248,7 @@ void Effect_Finalize()
 }
 
 //===============================================
-//ã€€æ›´æ–°
+//@XV
 //===============================================
 void Effect_Update()
 {
@@ -243,10 +259,10 @@ void Effect_Update()
 		int texNo = effect[i].texNo;
 		const EffectConfig& config = g_EffectConfigs[texNo];
 
-		// ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’é€²ã‚ã‚‹
+		// ƒtƒŒ[ƒ€‚ği‚ß‚é
 		effect[i].frameCnt += (1.0f / EFFECT_SPEED) * config.speed;
 
-		// ãƒ«ãƒ¼ãƒ—orçµ‚äº†åˆ¤å®š
+		// ƒ‹[ƒvorI—¹”»’è
 		if (config.isLoop)
 		{
 			if (effect[i].frameCnt >= config.loopEnd)
@@ -256,17 +272,17 @@ void Effect_Update()
 		}
 		else
 		{
-			// ãƒ«ãƒ¼ãƒ—ã—ãªã„æ™‚ã¯ã€è¨­å®šã•ã‚ŒãŸæœ€å¤§ã‚’è¶…ãˆãŸã‚‰æ¶ˆæ»…
+			// ƒ‹[ƒv‚µ‚È‚¢‚ÍAİ’è‚³‚ê‚½Å‘å‚ğ’´‚¦‚½‚çÁ–Å
 			if (effect[i].frameCnt >= config.loopEnd)
 			{
-				effect[i].enable = false; // å†ç”Ÿçµ‚äº†
+				effect[i].enable = false; // Ä¶I—¹
 			}
 		}
 	}
 }
 
 //===============================================
-//ã€€æç”»
+//@•`‰æ
 //===============================================
 void Effect_Draw()
 {
@@ -290,7 +306,7 @@ void Effect_Draw()
 		int fy = currentFrame / EFFECT_SPRITE_X;
 
 		float u = 1.0f / (float)EFFECT_SPRITE_X;
-		float v = 1.0f / (float)config.spriteY ;
+		float v = 1.0f / (float)config.spriteY;
 
 		XMFLOAT2 uvMin = { fx * u, fy * v };
 		XMFLOAT2 uvMax = { uvMin.x + u, uvMin.y + v };
@@ -303,284 +319,14 @@ void Effect_Draw()
 	}
 }
 
-// ===============================================
-// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ä»˜è¿‘ã«è¡¨ç¤ºã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°é–¢æ•°
-// ===============================================
-void Effect_UpdateForPlayer(int playerIndex)
-{
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
-	if (playerObject == nullptr) return;
-	PLAYEROBJECT& player = *playerObject;
-
-	// é€²åŒ–ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
-	if (player.isInvincible)
-	{
-		auto& anim = g_effectAnim[playerIndex];
-		anim.evolutionTimer += DELTA_TIME;
-		if (anim.evolutionPhase == 0)
-		{
-			anim.evolutionPhase = 1;			// é€²åŒ–1ãƒ†ã‚¯ã‚¹ãƒãƒ£ é–‹å§‹
-			anim.evolutionFrame = 0;
-		}
-		if (anim.evolutionPhase == 1)
-		{
-			if (anim.evolutionTimer >= ANIM_FRAME_TIME)
-			{
-				anim.evolutionTimer = 0.0f;
-				anim.evolutionFrame++;
-				if (anim.evolutionFrame > 63)
-				{
-					anim.evolutionPhase = 2;	// é€²åŒ–2ãƒ†ã‚¯ã‚¹ãƒãƒ£ é–‹å§‹
-					anim.evolutionFrame = 0;
-				}
-			}
-		}
-		else if (anim.evolutionPhase == 2)
-		{
-			if (anim.evolutionTimer >= ANIM_FRAME_TIME)
-			{
-				anim.evolutionTimer = 0.0f;
-				anim.evolutionFrame++;
-				if (anim.evolutionFrame > 47)
-				{
-					anim.evolutionPhase = 3;	// çµ‚äº†
-					anim.evolutionFrame = 0;
-				}
-			}
-		}
-	}
-
-	// ã‚¹ã‚­ãƒ«ã‚¨ãƒ•ã‚§ã‚¯ãƒˆï¼ˆé€²åŒ–ä¸­ã¯æ›´æ–°ã—ãªã„ï¼‰
-	static bool skillFrameInitialized[PLAYER_MAX] = { false };
-
-	if (player.useSkill && !player.isInvincible)
-	{
-		int skillStart = 0;
-		int skillEnd = 0;
-		bool useLoopRange = false;
-
-		switch (player.type)
-		{
-		case PlayerType::Glass:
-			skillStart = 8;
-			skillEnd = 15;
-			if (!skillFrameInitialized[playerIndex])
-			{
-				g_effectAnim[playerIndex].skillFrame = skillStart;
-				skillFrameInitialized[playerIndex] = true;
-			}
-			break;
-		case PlayerType::Concrete:
-			skillStart = 0;
-			skillEnd = 7;
-			break;
-		case PlayerType::Plant:
-			useLoopRange = true;
-			skillStart = 0;
-			skillEnd = 54;
-			break;
-		case PlayerType::Electricity:
-			useLoopRange = true;
-			skillStart = 0;
-			skillEnd = 62;
-			break;
-		default:
-			break;
-		}
-		if (player.type != PlayerType::Glass)	skillFrameInitialized[playerIndex] = false;
-
-		g_effectAnim[playerIndex].skillTimer += DELTA_TIME;
-		if (g_effectAnim[playerIndex].skillTimer >= ANIM_FRAME_TIME)
-		{
-			g_effectAnim[playerIndex].skillTimer = 0.0f;
-			if (useLoopRange)	LoopRange(g_effectAnim[playerIndex].skillFrame, skillStart, skillEnd, 1);
-			else
-			{
-				if (g_effectAnim[playerIndex].skillFrame < skillEnd)	g_effectAnim[playerIndex].skillFrame++;
-			}
-		}
-	}
-	else	skillFrameInitialized[playerIndex] = false;
-
-	// ã‚¹ãƒšã‚·ãƒ£ãƒ«ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
-	if (player.useSpecial)
-	{
-		switch (player.type)
-		{
-		case PlayerType::Glass:
-			break;
-		case PlayerType::Concrete:
-			break;
-		case PlayerType::Plant:
-			g_effectAnim[playerIndex].specialTimer += DELTA_TIME;
-			if (g_effectAnim[playerIndex].specialTimer >= ANIM_FRAME_TIME)
-			{
-				g_effectAnim[playerIndex].specialTimer = 0.0f;
-				LoopRange(g_effectAnim[playerIndex].specialFrame, 0, 23, 1);
-			}
-			break;
-		case PlayerType::Electricity:
-			break;
-		default:
-			break;
-		}
-	}
-
-	// æ¯’ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
-	if (player.isPoisoned)
-	{
-		g_effectAnim[playerIndex].poisonTimer += DELTA_TIME;
-		if (g_effectAnim[playerIndex].poisonTimer >= ANIM_FRAME_TIME)
-		{
-			g_effectAnim[playerIndex].poisonTimer = 0.0f;
-			LoopRange(g_effectAnim[playerIndex].poisonFrame, 0, 49, 1);
-		}
-	}
-
-	// è¢«å¼¾ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
-	static bool attackedFrameInitialized[PLAYER_MAX] = { false };
-
-	if (player.isAttacked)
-	{
-		if (!attackedFrameInitialized[playerIndex])
-		{
-			g_effectAnim[playerIndex].attackedFrame = 21; // 21ã‹ã‚‰ã‚¹ã‚¿ãƒ¼ãƒˆ
-			attackedFrameInitialized[playerIndex] = true;
-		}
-		g_effectAnim[playerIndex].attackedTimer += DELTA_TIME;
-		if (g_effectAnim[playerIndex].attackedTimer >= ANIM_FRAME_TIME)
-		{
-			g_effectAnim[playerIndex].attackedTimer = 0.0f;
-			LoopRange(g_effectAnim[playerIndex].attackedFrame, 21, 37, 1);
-		}
-	}
-	else	attackedFrameInitialized[playerIndex] = false;
-
-	// å›å¾©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
-	static bool healingFrameInitialized[PLAYER_MAX] = { false };
-
-	if (player.isHealing)
-	{
-		if (!healingFrameInitialized[playerIndex])
-		{
-			g_effectAnim[playerIndex].healingFrame = 16; // 16ã‹ã‚‰ã‚¹ã‚¿ãƒ¼ãƒˆ
-			healingFrameInitialized[playerIndex] = true;
-		}
-			g_effectAnim[playerIndex].healingTimer += DELTA_TIME;
-		if (g_effectAnim[playerIndex].healingTimer >= ANIM_FRAME_TIME)
-		{
-			g_effectAnim[playerIndex].healingTimer = 0.0f;
-			LoopRange(g_effectAnim[playerIndex].healingFrame, 16, 45, 1);
-		}
-	}
-	else	healingFrameInitialized[playerIndex] = false;
-	static bool respawnFrameInitialized[PLAYER_MAX] = { false };
-
-	if(player.duringRespawn)
-	{
-	// ãƒ•ãƒ©ã‚°ãŒtrueã«ãªã£ãŸç¬é–“ã ã‘åˆæœŸåŒ–
-		if (!respawnFrameInitialized[playerIndex])
-		{
-			g_effectAnim[playerIndex].respawnFrame = playerIndex * 16;
-			g_effectAnim[playerIndex].respawnTimer = 0.0f;
-			respawnFrameInitialized[playerIndex] = true;
-		}
-	
-		g_effectAnim[playerIndex].respawnTimer += DELTA_TIME;
-		if (g_effectAnim[playerIndex].respawnTimer >= ANIM_FRAME_TIME)
-		{
-		g_effectAnim[playerIndex].respawnTimer = 0.0f;
-		int start = playerIndex * 16;
-		int end = start + 15;
-		LoopRange(g_effectAnim[playerIndex].respawnFrame, start, end, 1);
-		}
-	}
-	else	respawnFrameInitialized[playerIndex] = false;
-
-	//// ç§»å‹•æ™‚ã®åŸƒ 8ã‚³ãƒ
-		//if (player.isMoving == true)
-		//{
-		//	// å·¦ä¸‹ 8ï½15
-		//		 if (player.moveDir.x < 0.0f && player.moveDir.z < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 8, 8, 1);
-		//	// å·¦ä¸Š 24ï½31
-		//	else if (player.moveDir.x < 0.0f && player.moveDir.z > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 24, 8, 1);
-		//	// å³ä¸Š 40ï½47
-		//	else if (player.moveDir.x > 0.0f && player.moveDir.z > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 40, 8, 1);
-		//	// å³ä¸‹ 56ï½63
-		//	else if (player.moveDir.x > 0.0f && player.moveDir.z < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 56, 8, 1);
-		//	// ä¸‹   0ï½7
-		//	else if (player.moveDir.z < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 0, 8, 1);
-		//	// å·¦   16ï½23
-		//	else if (player.moveDir.x < 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 16, 8, 1);
-		//	// ä¸Š   32ï½39
-		//	else if (player.moveDir.z > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 32, 8, 1);
-		//	// å³   48ï½55
-		//	else if (player.moveDir.x > 0.0f)	LoopRange(g_effectAnim[playerIndex].runDustFrame, 48, 8, 1);
-		//}
-}
-
 //===============================================
-//ã€€ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚»ãƒƒãƒˆ
+//@ƒGƒtƒFƒNƒgƒZƒbƒg
 //===============================================
 void Effect_Set(int texNo, XMFLOAT2 pos, XMFLOAT2 size, int playerIndex)
 {
 	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
 	if (!g_Texture[texNo]) return;
-	
-	// ç©ºãã‚¹ãƒ­ãƒƒãƒˆã‚’æ¢ã™
-	int slot = -1;
-	for (int i = 0; i < EFFECT_MAX; ++i)
-	{
-		if (!effect[i].enable)
-		{
-			slot = i;
-			break;	
-		}
-	}
-	
-	if(slot < 0) return;
 
-	effect[slot].enable = true;
-	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
-	effect[slot].size = size;
-	effect[slot].frameCnt = 0;
-	effect[slot].texNo = texNo;
-	effect[slot].playerIndex = playerIndex; 
-}
-
-//===============================================
-//ã€€ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ¶ˆå»
-//===============================================
-void Effect_Clear(int pIndex)
-{
-	if (pIndex < 0 || pIndex >= PLAYER_MAX) return;
-
-	for (int i = 0; i < EFFECT_MAX; ++i)
-	{
-		if (!effect[i].enable) continue;
-
-		// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒæŒ‡å®šãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚‚ã®ãªã‚‰æ¶ˆå»
-		if (effect[i].playerIndex == pIndex)
-		{
-			effect[i].enable = false;
-			effect[i].pos = XMFLOAT3(0, 0, 0);
-			effect[i].size = XMFLOAT2(0, 0);
-			effect[i].frameCnt = 0;
-			effect[i].texNo = 0;
-			effect[i].playerIndex = -1;  // ç„¡åŠ¹ãªå€¤ã«ãƒªã‚»ãƒƒãƒˆ
-		}
-	}
-}
-
-//===============================================
-//ã€€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼UIã‚»ãƒƒãƒˆé–¢æ•°
-//===============================================
-void Effect_SetUI(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
-{
-	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
-	if (!g_Texture[texNo]) return;
-
-	// ç©ºãã‚’æ¢ã™
 	int slot = -1;
 	for (int i = 0; i < EFFECT_MAX; ++i)
 	{
@@ -596,22 +342,81 @@ void Effect_SetUI(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
 	effect[slot].enable = true;
 	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
 	effect[slot].size = size;
+	effect[slot].baseSize = size;	// Šî€ƒTƒCƒY‚ğ•Û‘¶
+	effect[slot].frameCnt = 0;
+	effect[slot].texNo = texNo;
+	effect[slot].playerIndex = playerIndex;
+	effect[slot].scaleTimer = 0.0f;
+	effect[slot].scaleGrowing = true;
+}
+
+//===============================================
+//@ƒGƒtƒFƒNƒgÁ‹
+//===============================================
+void Effect_Clear(int pIndex)
+{
+	if (pIndex < 0 || pIndex >= PLAYER_MAX) return;
+
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable) continue;
+
+		// ƒGƒtƒFƒNƒg‚ªw’èƒvƒŒƒCƒ„[‚Ì‚à‚Ì‚È‚çÁ‹
+		if (effect[i].playerIndex == pIndex)
+		{
+			effect[i].enable = false;
+			effect[i].pos = XMFLOAT3(0, 0, 0);
+			effect[i].size = XMFLOAT2(0, 0);
+			effect[i].frameCnt = 0;
+			effect[i].texNo = 0;
+			effect[i].playerIndex = -1;	// –³Œø‚È’l‚ÉƒŠƒZƒbƒg
+		}
+	}
+}
+
+//===============================================
+//@ƒvƒŒƒCƒ„[UIƒZƒbƒgŠÖ”
+//===============================================
+void Effect_SetUI(int texNo, XMFLOAT2 pos, XMFLOAT2 size)
+{
+	if (texNo < 0 || texNo >= EFFECT_TEX_MAX) return;
+	if (!g_Texture[texNo]) return;
+
+	// ‹ó‚«‚ğ’T‚·
+	int slot = -1;
+	for (int i = 0; i < EFFECT_MAX; ++i)
+	{
+		if (!effect[i].enable)
+		{
+			slot = i;
+			break;
+		}
+	}
+
+	if (slot < 0) return;
+
+	effect[slot].enable = true;
+	effect[slot].pos = XMFLOAT3(pos.x, pos.y, 0.0f);
+	effect[slot].size = XMFLOAT2((size.x * SCREEN_ADJUST_X), (size.y * SCREEN_ADJUST_Y));
 	effect[slot].frameCnt = 0;
 	effect[slot].texNo = texNo;
 }
 
 //===============================================
-//ã€€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼UIã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ¶ˆå»
+//@ƒvƒŒƒCƒ„[UIƒGƒtƒFƒNƒgÁ‹
 //===============================================
 void Effect_ClearUI(int pIndex)
 {
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆä½ç½®
+	float screenX = SCREEN_ADJUST_X;
+	float screenY = 620.0f * SCREEN_ADJUST_Y;
+
+	// ƒvƒŒƒCƒ„[‚²‚Æ‚ÌƒGƒtƒFƒNƒgˆÊ’u
 	const XMFLOAT2 playerEffectPos[4] =
-{
-		{  170.0f, 620.0f },	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1
-		{  490.0f, 620.0f },	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼2
-		{  810.0f, 620.0f },	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼3
-		{ 1130.0f, 620.0f }		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼4
+	{
+			{  170.0f * screenX, screenY },	// ƒvƒŒƒCƒ„[1
+			{  490.0f * screenX, screenY },	// ƒvƒŒƒCƒ„[2
+			{  810.0f * screenX, screenY },	// ƒvƒŒƒCƒ„[3
+			{ 1130.0f * screenX, screenY }	// ƒvƒŒƒCƒ„[4
 	};
 
 	if (pIndex < 0 || pIndex >= 4) return;
@@ -622,7 +427,7 @@ void Effect_ClearUI(int pIndex)
 	{
 		if (!effect[i].enable) continue;
 
-		if(fabsf(effect[i].pos.x - targetPos.x) < 1.0f && fabsf(effect[i].pos.y - targetPos.y) < 1.0f)
+		if (fabsf(effect[i].pos.x - targetPos.x) < 1.0f && fabsf(effect[i].pos.y - targetPos.y) < 1.0f)
 		{
 			effect[i].enable = false;
 		}
@@ -630,9 +435,296 @@ void Effect_ClearUI(int pIndex)
 }
 
 // ===============================================
-// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ä»˜è¿‘ã«è¡¨ç¤ºã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæç”»é–¢æ•°
+// ƒvƒŒƒCƒ„[•t‹ß‚É•\¦‚·‚éƒGƒtƒFƒNƒgXVŠÖ”
 // ===============================================
-void Effect_DrawForPlayer(int playerIndex)
+void Effect_UpdateForPlayer(int playerIndex)
+{
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
+	// i‰»ƒGƒtƒFƒNƒg
+	static bool evolutuionFrameInitialized[PLAYER_MAX] = { false };
+
+	if (player.isEvolving)
+	{
+		if (!evolutuionFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].evolutionFrame = 0;
+			evolutuionFrameInitialized[playerIndex] = true;
+		}
+
+		auto& anim = g_PlayerEffectAnim[playerIndex];
+		anim.evolutionTimer += DELTA_TIME;
+		if (anim.evolutionPhase == 0)
+		{
+			anim.evolutionPhase = 1;			// i‰»1ƒeƒNƒXƒ`ƒƒ ŠJn
+			anim.evolutionFrame = 0;
+		}
+		if (anim.evolutionPhase == 1)
+		{
+			if (anim.evolutionTimer >= 0.03f)
+			{
+				anim.evolutionTimer = 0.0f;
+				anim.evolutionFrame++;
+				if (anim.evolutionFrame > 63)
+				{
+					anim.evolutionPhase = 2;	// i‰»2ƒeƒNƒXƒ`ƒƒ ŠJn
+					anim.evolutionFrame = 0;
+				}
+			}
+		}
+		else if (anim.evolutionPhase == 2)
+		{
+			if (anim.evolutionTimer >= 0.03f)
+			{
+				anim.evolutionTimer = 0.0f;
+				anim.evolutionFrame++;
+				if (anim.evolutionFrame > 47)
+				{
+					anim.evolutionPhase = 3;	// I—¹
+					anim.evolutionFrame = 0;
+				}
+			}
+		}
+	}
+	else
+	{
+		evolutuionFrameInitialized[playerIndex] = false;
+		g_PlayerEffectAnim[playerIndex].evolutionPhase = 0;
+		g_PlayerEffectAnim[playerIndex].evolutionFrame = 0;
+	}
+
+	// ƒXƒLƒ‹ƒGƒtƒFƒNƒg ii‰»ƒGƒtƒFƒNƒg’†‚ÍXV‚µ‚È‚¢j
+	static bool skillFrameInitialized[PLAYER_MAX] = { false };
+
+	if (player.useSkill && !player.isEvolving)
+	{
+		int skillStart = 0;
+		int skillEnd = 0;
+		bool useLoopRange = false;
+
+		switch (player.type)
+		{
+		case PlayerType::Glass:
+			skillStart = 8;
+			skillEnd = 15;
+			if (!skillFrameInitialized[playerIndex])
+			{
+				g_PlayerEffectAnim[playerIndex].skillFrame = skillStart;
+				skillFrameInitialized[playerIndex] = true;
+			}
+			break;
+		case PlayerType::Concrete:
+			skillStart = 0;
+			skillEnd = 7;
+			if (!skillFrameInitialized[playerIndex])
+			{
+				g_PlayerEffectAnim[playerIndex].skillFrame = skillStart;
+				skillFrameInitialized[playerIndex] = true;
+			}
+			break;
+		case PlayerType::Plant:
+			useLoopRange = true;
+			skillStart = 0;
+			skillEnd = 54;
+			break;
+		case PlayerType::Electricity:
+			useLoopRange = true;
+			skillStart = 0;
+			skillEnd = 62;
+			break;
+		default:
+			break;
+		}
+		if (player.type != PlayerType::Glass && player.type != PlayerType::Concrete)	skillFrameInitialized[playerIndex] = false;
+
+		g_PlayerEffectAnim[playerIndex].skillTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].skillTimer >= ANIM_FRAME_TIME)
+		{
+			g_PlayerEffectAnim[playerIndex].skillTimer = 0.0f;
+			if (useLoopRange)	LoopRange(g_PlayerEffectAnim[playerIndex].skillFrame, skillStart, skillEnd, 1);
+			else
+			{
+				if (g_PlayerEffectAnim[playerIndex].skillFrame < skillEnd)	g_PlayerEffectAnim[playerIndex].skillFrame++;
+			}
+		}
+	}
+	else	skillFrameInitialized[playerIndex] = false;
+
+	// ƒXƒyƒVƒƒƒ‹ƒGƒtƒFƒNƒg
+	static bool specialFrameInitialized[PLAYER_MAX] = { false };
+
+	if (player.useSpecial)
+	{
+		if (!specialFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].specialFrame = 0;
+			specialFrameInitialized[playerIndex] = true;
+		}
+
+		switch (player.type)
+		{
+		case PlayerType::Glass:
+			break;
+		case PlayerType::Concrete:
+			break;
+		case PlayerType::Plant:
+			g_PlayerEffectAnim[playerIndex].specialTimer += DELTA_TIME;
+			if (g_PlayerEffectAnim[playerIndex].specialTimer >= 0.017f)
+			{
+				g_PlayerEffectAnim[playerIndex].specialTimer = 0.0f;
+				LoopRange(g_PlayerEffectAnim[playerIndex].specialFrame, 0, 63, 1);
+			}
+			break;
+		case PlayerType::Electricity:
+			break;
+		default:
+			break;
+		}
+	}
+	else	specialFrameInitialized[playerIndex] = false;
+
+	// “ÅƒGƒtƒFƒNƒg
+	if (player.isPoisoned)
+	{
+		g_PlayerEffectAnim[playerIndex].poisonTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].poisonTimer >= ANIM_FRAME_TIME)
+		{
+			g_PlayerEffectAnim[playerIndex].poisonTimer = 0.0f;
+			LoopRange(g_PlayerEffectAnim[playerIndex].poisonFrame, 0, 49, 1);
+		}
+	}
+
+	// ”í’eƒGƒtƒFƒNƒg
+	static bool attackedFrameInitialized[PLAYER_MAX] = { false };
+
+	if (player.isAttacked)
+	{
+		if (!attackedFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].attackedFrame = 20; // 20‚©‚çƒXƒ^[ƒg
+			attackedFrameInitialized[playerIndex] = true;
+		}
+		g_PlayerEffectAnim[playerIndex].attackedTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].attackedTimer >= 0.05f)
+		{
+			g_PlayerEffectAnim[playerIndex].attackedTimer = 0.0f;
+			LoopRange(g_PlayerEffectAnim[playerIndex].attackedFrame, 20, 18, 1);
+		}
+	}
+	else	attackedFrameInitialized[playerIndex] = false;
+
+	// ƒXƒ^ƒ“ƒGƒtƒFƒNƒg
+	static bool stunFrameInitialized[PLAYER_MAX] = { false };
+
+	if (player.isStunning)
+	{
+		if (!stunFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].stunFrame = 38; // 38‚©‚çƒXƒ^[ƒg
+			stunFrameInitialized[playerIndex] = true;
+		}
+		g_PlayerEffectAnim[playerIndex].stunTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].stunTimer >= 0.05f)
+		{
+			g_PlayerEffectAnim[playerIndex].stunTimer = 0.0f;
+			LoopRange(g_PlayerEffectAnim[playerIndex].stunFrame, 38, 26, 1);
+		}
+	}
+	else	stunFrameInitialized[playerIndex] = false;
+
+	// ‰ñ•œƒGƒtƒFƒNƒg ii‰»ƒGƒtƒFƒNƒg’†‚ÍXV‚µ‚È‚¢j
+	static bool healingFrameInitialized[PLAYER_MAX] = { false };
+
+	if (player.isHealing && !player.isEvolving)
+	{
+		if (!healingFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].healingFrame = 16; // 16‚©‚çƒXƒ^[ƒg
+			healingFrameInitialized[playerIndex] = true;
+		}
+
+		g_PlayerEffectAnim[playerIndex].healingTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].healingTimer >= ANIM_FRAME_TIME)
+		{
+			g_PlayerEffectAnim[playerIndex].healingTimer = 0.0f;
+			LoopRange(g_PlayerEffectAnim[playerIndex].healingFrame, 16, 45, 1);
+		}
+	}
+	else	healingFrameInitialized[playerIndex] = false;
+
+	// ƒŠƒXƒ|[ƒ“—‘ƒGƒtƒFƒNƒg
+	static bool respawnFrameInitialized[PLAYER_MAX] = { false };
+	static bool eggBreakingFrameInitialized[PLAYER_MAX] = { false };
+	static bool eggBreakingFinished[PLAYER_MAX] = { false };
+
+	// isEggBreaking‚ªtrue‚Ì‚Æ‚«AŠeƒvƒŒƒCƒ„[‚²‚Æ‚Éˆê‰ñ‚¾‚¯Ä¶
+	if (player.isEggBreaking && !eggBreakingFinished[playerIndex])
+	{
+		int start = playerIndex * 16 + 12;
+		int end = start + 3;
+
+		if (!eggBreakingFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].respawnFrame = start;
+			g_PlayerEffectAnim[playerIndex].respawnTimer = 0.0f;
+			eggBreakingFrameInitialized[playerIndex] = true;
+		}
+
+		g_PlayerEffectAnim[playerIndex].respawnTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].respawnTimer >= 0.1f)
+		{
+			g_PlayerEffectAnim[playerIndex].respawnTimer = 0.0f;
+			g_PlayerEffectAnim[playerIndex].respawnFrame++;
+			if (g_PlayerEffectAnim[playerIndex].respawnFrame > end)
+			{
+				g_PlayerEffectAnim[playerIndex].respawnFrame = end;
+				eggBreakingFinished[playerIndex] = true;
+			}
+		}
+		respawnFrameInitialized[playerIndex] = false; // ‚±‚±‚ÅƒŠƒZƒbƒg
+	}
+	else if (player.duringRespawn)
+	{
+		eggBreakingFrameInitialized[playerIndex] = false;
+		eggBreakingFinished[playerIndex] = false;
+
+		// ŠeƒvƒŒƒCƒ„[‚²‚Æ‚Éƒ‹[ƒv”ÍˆÍ‚ğŒˆ’è
+		int start = playerIndex * 16;
+		int end = start + 11;
+
+		if (!respawnFrameInitialized[playerIndex])
+		{
+			g_PlayerEffectAnim[playerIndex].respawnFrame = start;
+			g_PlayerEffectAnim[playerIndex].respawnTimer = 0.0f;
+			respawnFrameInitialized[playerIndex] = true;
+		}
+
+		g_PlayerEffectAnim[playerIndex].respawnTimer += DELTA_TIME;
+		if (g_PlayerEffectAnim[playerIndex].respawnTimer >= 0.1f)
+		{
+			g_PlayerEffectAnim[playerIndex].respawnTimer = 0.0f;
+			// ƒ‹[ƒvˆ—
+			g_PlayerEffectAnim[playerIndex].respawnFrame++;
+			if (g_PlayerEffectAnim[playerIndex].respawnFrame > end)
+			{
+				g_PlayerEffectAnim[playerIndex].respawnFrame = start;
+			}
+		}
+	}
+	else
+	{
+		respawnFrameInitialized[playerIndex] = false;
+		eggBreakingFrameInitialized[playerIndex] = false;
+		eggBreakingFinished[playerIndex] = false;
+	}
+}
+
+// ===============================================
+// ƒvƒŒƒCƒ„[‚Ìè‘O‚É•\¦‚·‚éƒGƒtƒFƒNƒg•`‰æŠÖ”
+// ===============================================
+void EffectFront_DrawForPlayer(int playerIndex)
 {
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
@@ -675,7 +767,7 @@ void Effect_DrawForPlayer(int playerIndex)
 	XMMATRIX WVP = ScalingMatrix * vm * view * projection;
 	Shader_SetMatrix(WVP);
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã«ãƒ‡ãƒ¼ã‚¿ã‚³ãƒ”ãƒ¼
+	// ’¸“_ƒoƒbƒtƒ@‚Éƒf[ƒ^ƒRƒs[
 	D3D11_MAPPED_SUBRESOURCE msr;
 	Vertex2 localV[PLAYER_VERTEX];
 	CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
@@ -704,103 +796,104 @@ void Effect_DrawForPlayer(int playerIndex)
 	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// --- æ¡ä»¶ã«å¿œã˜ã¦è¤‡æ•°ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’æŒ‡å®š ---
-	std::vector<std::tuple<int, int, float, XMFLOAT3>> texNosFramesScales;
+	// --- ŒÅ’è’·”z—ñ‚Å“®“Iƒƒ‚ƒŠŠm•Û‚ğ”rœ ---
+	struct EffectEntry { int texNo; int frame; float scale; XMFLOAT3 offset; };
+	EffectEntry entries[8]; // Å‘å“¯8ƒŒƒCƒ„[‚Å\•ª
+	int entryCount = 0;
 
-	// é€²åŒ–ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
-	if (player.isInvincible)
-	{
-		const auto& anim = g_effectAnim[playerIndex];
-			 if (anim.evolutionPhase == 1) texNosFramesScales.emplace_back(18, anim.evolutionFrame, 3.0f, XMFLOAT3(0,0,0));
-		else if (anim.evolutionPhase == 2) texNosFramesScales.emplace_back(19, anim.evolutionFrame, 3.0f, XMFLOAT3(0,0,0));
-	}
-	// ã‚¹ã‚­ãƒ«ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
-	else if (player.useSkill)
-	{
-		int texNo = -1;
-		float scale = 1.0f;
-		XMFLOAT3 offset(0,0,0);
-		switch (player.type)
+	auto addEntry = [&](int texNo, int f, float s, XMFLOAT3 o)
 		{
-		case PlayerType::Glass:			texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
-		case PlayerType::Concrete:		texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
-		case PlayerType::Plant:			texNo = 9;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
-		case PlayerType::Electricity:	texNo = 10;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
-		default: break;
-		}
-		if (texNo >= 0) texNosFramesScales.emplace_back(texNo, g_effectAnim[playerIndex].skillFrame, scale, offset);
+			if (entryCount < 8) entries[entryCount++] = { texNo, f, s, o };
+		};
+
+	// i‰»ƒGƒtƒFƒNƒg
+	if (player.isEvolving)
+	{
+		const auto& anim = g_PlayerEffectAnim[playerIndex];
+		if (anim.evolutionPhase == 1) addEntry(17, anim.evolutionFrame, 3.0f, XMFLOAT3(0, -0.2f, 0));
+		else if (anim.evolutionPhase == 2) addEntry(18, anim.evolutionFrame, 3.0f, XMFLOAT3(0, -0.2f, 0));
 	}
-	// ã‚¹ãƒšã‚·ãƒ£ãƒ«ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
+	// i‰»’†‚ÍƒXƒLƒ‹ƒGƒtƒFƒNƒgE‰ñ•œƒGƒtƒFƒNƒg”ñ•\¦
+	else
+	{
+		// ƒXƒLƒ‹ƒGƒtƒFƒNƒg
+		if (player.useSkill)
+		{
+			int texNo = -1;
+			float scale = 1.0f;
+			XMFLOAT3 ofs(0, 0, 0);
+			switch (player.type)
+			{
+			case PlayerType::Glass:			texNo = 8;	scale = 1.0f; ofs = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Concrete:		texNo = 8;	scale = 1.0f; ofs = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Plant:			texNo = 9;	scale = 1.0f; ofs = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Electricity:	texNo = 10;	scale = 1.5f; ofs = XMFLOAT3(0, 0, 0); break;
+			default: break;
+			}
+			if (texNo >= 0) addEntry(texNo, g_PlayerEffectAnim[playerIndex].skillFrame, scale, ofs);
+		}
+
+		// ‰ñ•œƒGƒtƒFƒNƒg
+		if (player.isHealing)
+		{
+			addEntry(8, g_PlayerEffectAnim[playerIndex].healingFrame, 1.75f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		}
+	}
+	// ƒXƒyƒVƒƒƒ‹ƒGƒtƒFƒNƒg
 	if (player.useSpecial)
 	{
 		int texNo = -1;
 		float scale = 1.0f;
-		XMFLOAT3 offset(0,0,0);
+		XMFLOAT3 ofs(0, 0, 0);
 		switch (player.type)
 		{
-		//case PlayerType::Glass:			texNo = 8;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
-		//case PlayerType::Concrete:		texNo = 8;	scale = 0.8f; offset = XMFLOAT3(0,0,0); break;
-		case PlayerType::Plant:			texNo = 23;	scale = 9.0f; offset = XMFLOAT3(0,0,0);
+		case PlayerType::Plant:			texNo = 21;	scale = 5.0f; ofs = XMFLOAT3(0, 0, 0);
 			SetDepthTest(false);
 			break;
-		//case PlayerType::Electricity:	texNo = 10;	scale = 1.0f; offset = XMFLOAT3(0,0,0); break;
 		default: break;
 		}
-		if (texNo >= 0) texNosFramesScales.emplace_back(texNo, g_effectAnim[playerIndex].specialFrame, scale, offset);
+		if (texNo >= 0) addEntry(texNo, g_PlayerEffectAnim[playerIndex].specialFrame, scale, ofs);
 	}
-	// æ¯’çŠ¶æ…‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
+	// “Åó‘ÔƒGƒtƒFƒNƒg
 	if (player.isPoisoned)
 	{
-		texNosFramesScales.emplace_back(11, g_effectAnim[playerIndex].poisonFrame, 0.7f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		addEntry(11, g_PlayerEffectAnim[playerIndex].poisonFrame, 2.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
-	// è¢«å¼¾ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
+	// ”í’eƒGƒtƒFƒNƒg
 	if (player.isAttacked)
 	{
-		texNosFramesScales.emplace_back(12, g_effectAnim[playerIndex].attackedFrame, 1.0f, XMFLOAT3(0.0f, 0.5f, 0.0f));
+		addEntry(12, g_PlayerEffectAnim[playerIndex].attackedFrame, 1.2f, XMFLOAT3(0.0f, 0.5f, 0.0f));
 	}
-	// å›å¾©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
-	if (player.isHealing)
+	// ƒXƒ^ƒ“ƒGƒtƒFƒNƒg
+	if (player.isStunning)
 	{
-		texNosFramesScales.emplace_back(8, g_effectAnim[playerIndex].healingFrame, 1.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		addEntry(12, g_PlayerEffectAnim[playerIndex].stunFrame, 2.2f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
-	// ãƒªã‚¹ãƒãƒ¼ãƒ³åµã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
-	if (player.duringRespawn)
+	// ƒŠƒXƒ|[ƒ“—‘ƒGƒtƒFƒNƒg
+	if (player.isEggBreaking)	// —‘Š„‚êƒGƒtƒFƒNƒg
 	{
-		texNosFramesScales.emplace_back(20, g_effectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-		//texNosFramesScales.emplace_back(21, g_effectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
-	//// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ èµ°è¡Œæ™‚ã®åŸƒã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
-	//if (player.isMoving)
-	//{
-	//	texNosFramesScales.emplace_back(22, g_effectAnim[playerIndex].runDustFrame, 2.0f, XMFLOAT3(0.0f, 0.3f, 0.0f));
-	//}
+	else if (player.duringRespawn)	// —‘ƒGƒtƒFƒNƒg
+	{
+		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		addEntry(11, 50, 1.0f, XMFLOAT3(1.5f, -0.75f, 0.0f));
+	}
+	// ’ÊíF‚ğİ’è
+	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
-	// é€šå¸¸è‰²ã‚’è¨­å®š
-	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // é€šå¸¸è‰²
-
-	// æ¡ä»¶ã«åˆè‡´ã—ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã™ã¹ã¦é‡ã­ã¦æç”»
-	for (const auto& texFrameScale : texNosFramesScales)
+	// ğŒ‚É‡’v‚µ‚½ƒeƒNƒXƒ`ƒƒ‚ğ‚·‚×‚Äd‚Ë‚Ä•`‰æ
+	for (int e = 0; e < entryCount; ++e)
 	{
-		int texNo;
-		int frame;
-		float scale;
-		XMFLOAT3 offset;
-		std::tie(texNo, frame, scale, offset) = texFrameScale;
-		if (texNo < 0 || texNo >= EFFECT_TEX_MAX) continue;
-		ID3D11ShaderResourceView* srv = g_Texture[texNo];
+		const EffectEntry& entry = entries[e];
+		if (entry.texNo < 0 || entry.texNo >= EFFECT_TEX_MAX) continue;
+		ID3D11ShaderResourceView* srv = g_Texture[entry.texNo];
 		if (!srv) continue;
 
-		if (texNo == 23) 
-		{
-			Shader_SetColor({ 1.0f, 1.0f, 1.0f, 0.5f }); // åŠé€æ˜
-		}
-		else 
-		{
-			Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // é€šå¸¸
-		}
+		Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
-		int col = frame % EFFECT_SPRITE_X;
-		int row = frame / EFFECT_SPRITE_X;
+		int col = entry.frame % EFFECT_SPRITE_X;
+		int row = entry.frame / EFFECT_SPRITE_X;
 		float u0 = (float)col / (float)EFFECT_SPRITE_X;
 		float v0 = (float)row / (float)EFFECT_SPRITE_Y;
 		float u1 = u0 + 1.0f / (float)EFFECT_SPRITE_X;
@@ -811,15 +904,13 @@ void Effect_DrawForPlayer(int playerIndex)
 		localV[2].tex = XMFLOAT2(u0, v1);
 		localV[3].tex = XMFLOAT2(u1, v1);
 
-		// ã‚µã‚¤ã‚ºã«å€ç‡ã‚’æ›ã‘ã‚‹
 		XMMATRIX ScalingMatrix = XMMatrixScaling(
-			player.scaling.x * spriteScale * scale,
-			player.scaling.y * spriteScale * scale,
-			player.scaling.z * spriteScale * scale
+			player.scaling.x * spriteScale * entry.scale,
+			player.scaling.y * spriteScale * entry.scale,
+			player.scaling.z * spriteScale * entry.scale
 		);
 
-		// ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’åæ˜ 
-		XMMATRIX offsetMatrix = XMMatrixTranslation(offset.x, offset.y, offset.z);
+		XMMATRIX offsetMatrix = XMMatrixTranslation(entry.offset.x, entry.offset.y, entry.offset.z);
 		XMMATRIX WorldMatrix = ScalingMatrix * offsetMatrix * vm;
 		Shader_SetWorldMatrix(WorldMatrix);
 
@@ -835,3 +926,364 @@ void Effect_DrawForPlayer(int playerIndex)
 		g_pContext->DrawIndexed(6, 0, 0);
 	}
 }
+
+// ==============================================
+// ƒvƒŒƒCƒ„[‚Ì‰eƒGƒtƒFƒNƒg•`‰æŠÖ”
+// ==============================================
+void EffectShadow_DrawForPlayer(int playerIndex)
+{
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
+	// ‰e‚ğ”ñ•\¦‚É‚·‚éğŒ
+	if (!player.duringRespawn && !player.isEggBreaking && !player.isShadowEnabled)	return;
+
+	// ‰e‚ÌYÀ•Wi’n–Ê‚Ì‚‚³j‚ğŒˆ‚ß‚é
+	float groundY = 0.0f;
+
+	// ‰e‚ÌˆÊ’u
+	XMFLOAT3 shadowPos(player.position.x, groundY + 0.5f, player.position.z - 0.3f);
+
+	// ‰e‚Ìƒ[ƒ‹ƒhs—ñiXZ•½–Ê‚É•½sA‰ñ“]‚È‚µj
+	XMMATRIX ScalingMatrix;
+
+	float shadowScaling_x = player.scaling.x;
+	float shadowScaling_z = player.scaling.z;
+
+	if (player.duringRespawn)	ScalingMatrix = XMMatrixScaling(shadowScaling_x += 2.0f, 1.0f, shadowScaling_z += 6.0f);
+	else						ScalingMatrix = XMMatrixScaling(shadowScaling_x += 1.5f, 1.0f, shadowScaling_z += 2.0f);
+
+	XMMATRIX TranslationMatrix = XMMatrixTranslation(shadowPos.x, shadowPos.y, shadowPos.z);
+	XMMATRIX WorldMatrix = ScalingMatrix * TranslationMatrix;
+
+	XMMATRIX view = GetViewMatrix();
+	XMMATRIX projection = GetProjectionMatrix();
+	XMMATRIX WVP = WorldMatrix * view * projection;
+
+	Shader_SetWorldMatrix(WorldMatrix);
+	Shader_SetMatrix(WVP);
+
+	// ’¸“_ƒoƒbƒtƒ@‚Éƒf[ƒ^ƒRƒs[
+	D3D11_MAPPED_SUBRESOURCE msr;
+	Vertex2 localV[PLAYER_VERTEX];
+	CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+
+	int frame = 51;
+	int col = frame % EFFECT_SPRITE_X;
+	int row = frame / EFFECT_SPRITE_X;
+	float u0 = (float)col / (float)EFFECT_SPRITE_X;
+	float v0 = (float)row / (float)EFFECT_SPRITE_Y;
+	float u1 = u0 + 1.0f / (float)EFFECT_SPRITE_X;
+	float v1 = v0 + 1.0f / (float)EFFECT_SPRITE_Y;
+
+	localV[0].tex = XMFLOAT2(u0, v0);
+	localV[1].tex = XMFLOAT2(u1, v0);
+	localV[2].tex = XMFLOAT2(u0, v1);
+	localV[3].tex = XMFLOAT2(u1, v1);
+
+	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	Vertex2* vertex = (Vertex2*)msr.pData;
+	CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
+	g_pContext->Unmap(g_VertexBuffer, 0);
+
+	UINT stride = sizeof(Vertex2);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// ‰eƒeƒNƒXƒ`ƒƒ
+	int texNo = 11;
+	ID3D11ShaderResourceView* srv = g_Texture[texNo];
+	if (!srv) return;
+
+	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+	g_pContext->PSSetShaderResources(0, 1, &srv);
+	g_pContext->DrawIndexed(6, 0, 0);
+}
+
+// ===============================================
+// Œš•¨•t‹ß‚É•\¦‚·‚éƒGƒtƒFƒNƒgXVŠÖ”
+// ===============================================
+void Effect_UpdateForBuilding(int buildingIndex)
+{
+	int buildingCount = GetBuildingCount();
+	Building** building = GetBuildings();
+	if (!building) return;
+	if (buildingIndex < 0 || buildingIndex >= buildingCount) return;
+	if (buildingIndex >= BUILDING_EFFECT_MAX) return; // g_BuildingEffectAnim ‚Ì”z—ñƒTƒCƒYƒK[ƒh
+
+	auto& anim = g_BuildingEffectAnim[buildingIndex];
+
+	if (building[buildingIndex]->isDestroyed)
+	{
+		// Ä¶Š®—¹Ï‚İ‚È‚ç‰½‚à‚µ‚È‚¢i1‰ñ‚¾‚¯Ä¶j
+		if (anim.hitFinished) return;
+
+		// ‰‰ñFŒš•¨ƒ^ƒCƒv‚É‰‚¶‚½ƒtƒŒ[ƒ€”ÍˆÍ‚ğİ’è‚µ‚ÄÄ¶ŠJn
+		if (!anim.hitPlaying)
+		{
+			switch (building[buildingIndex]->type)
+			{
+			case BuildingType::Concrete:	anim.hitStartFrame = 0;  anim.hitEndFrame = 19; break;	// ƒRƒ“ƒNƒŠ[ƒg 0`19
+			case BuildingType::Electricity:	anim.hitStartFrame = 0;  anim.hitEndFrame = 19; break;	// “d‹C         0`19
+			case BuildingType::Glass:		anim.hitStartFrame = 20; anim.hitEndFrame = 39; break;	// ƒKƒ‰ƒX       20`39
+			case BuildingType::Plant:		anim.hitStartFrame = 40; anim.hitEndFrame = 59; break;	// A•¨         40`59
+			default: return;
+			}
+			anim.hitFrame = anim.hitStartFrame;
+			anim.hitTimer = 0.0f;
+			anim.hitPlaying = true;
+		}
+
+		// ƒtƒŒ[ƒ€is
+		anim.hitTimer += DELTA_TIME;
+		if (anim.hitTimer >= 0.05f)
+		{
+			anim.hitTimer = 0.0f;
+			anim.hitFrame++;
+			if (anim.hitFrame > anim.hitEndFrame)
+			{
+				// ÅIƒtƒŒ[ƒ€‚Å’â~‚µAÄ¶Š®—¹
+				anim.hitFrame = anim.hitEndFrame;
+				anim.hitPlaying = false;
+				anim.hitFinished = true;
+			}
+		}
+	}
+	else
+	{
+		// ”j‰óó‘Ô‚ª‰ğœ‚³‚ê‚½‚çƒŠƒZƒbƒg
+		anim.hitFrame = 0;
+		anim.hitTimer = 0.0f;
+		anim.hitPlaying = false;
+		anim.hitFinished = false;
+		anim.hitStartFrame = 0;
+		anim.hitEndFrame = 0;
+	}
+}
+
+// ===============================================
+// Œš•¨•t‹ß‚É•\¦‚·‚éƒGƒtƒFƒNƒg•`‰æŠÖ”
+// ===============================================
+void Effect_DrawForBuilding(int buildingIndex)
+{
+	int buildingCount = GetBuildingCount();
+	Building** building = GetBuildings();
+	if (!building) return;
+	if (buildingIndex < 0 || buildingIndex >= buildingCount) return;
+	if (buildingIndex >= BUILDING_EFFECT_MAX) return; // g_BuildingEffectAnim ‚Ì”z—ñƒTƒCƒYƒK[ƒh
+
+	auto& anim = g_BuildingEffectAnim[buildingIndex];
+
+	// Ä¶’†‚Ì‚İ•`‰æ
+	if (!anim.hitPlaying) return;
+
+	int texNo = (building[buildingIndex]->type == BuildingType::Concrete) ? 12 : 13;
+
+	XMFLOAT3 pos = building[buildingIndex]->position;
+	float scale = 5.0f;
+
+	int col = anim.hitFrame % EFFECT_SPRITE_X;
+	int row = anim.hitFrame / EFFECT_SPRITE_X;
+	float u0 = (float)col / (float)EFFECT_SPRITE_X;
+	float v0 = (float)row / (float)EFFECT_SPRITE_Y;
+	float u1 = u0 + 1.0f / (float)EFFECT_SPRITE_X;
+	float v1 = v0 + 1.0f / (float)EFFECT_SPRITE_Y;
+
+	Vertex2 localV[PLAYER_VERTEX];
+	CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+	localV[0].tex = XMFLOAT2(u0, v0);
+	localV[1].tex = XMFLOAT2(u1, v0);
+	localV[2].tex = XMFLOAT2(u0, v1);
+	localV[3].tex = XMFLOAT2(u1, v1);
+
+	XMMATRIX ScalingMatrix = XMMatrixScaling(scale, scale, scale);
+
+	// š ƒrƒ‹ƒ{[ƒhˆ—iƒJƒƒ‰‚Éí‚É³‘Î‚³‚¹‚éj
+	XMMATRIX vm = GetViewMatrix();
+	vm.r[3].m128_f32[0] = 0.0f;
+	vm.r[3].m128_f32[1] = 0.0f;
+	vm.r[3].m128_f32[2] = 0.0f;
+	vm.r[3].m128_f32[3] = 1.0f;
+	vm = XMMatrixTranspose(vm);  // ƒrƒ…[s—ñ‚Ì‰ñ“]•”•ª‚ğ“]’u‹t‰ñ“]
+	vm.r[3].m128_f32[0] = pos.x;
+	vm.r[3].m128_f32[1] = pos.y + 2.0f;  // Œš•¨‚Ì­‚µã‚É”z’u
+	vm.r[3].m128_f32[2] = pos.z;
+	vm.r[3].m128_f32[3] = 1.0f;
+
+	XMMATRIX WorldMatrix = ScalingMatrix * vm;
+	Shader_SetWorldMatrix(WorldMatrix);
+
+	XMMATRIX view = GetViewMatrix();
+	XMMATRIX projection = GetProjectionMatrix();
+	XMMATRIX WVP = WorldMatrix * view * projection;
+	Shader_SetMatrix(WVP);
+
+	D3D11_MAPPED_SUBRESOURCE msr;
+	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	Vertex2* vertex = (Vertex2*)msr.pData;
+	CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
+	g_pContext->Unmap(g_VertexBuffer, 0);
+
+	UINT stride = sizeof(Vertex2);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNo]);
+	g_pContext->DrawIndexed(6, 0, 0);
+}
+
+//// ===============================================
+//// Œš•¨•t‹ß‚É•\¦‚·‚éƒGƒtƒFƒNƒgˆêŠ‡XVŠÖ”
+//// ===============================================
+//void Effect_UpdateAllBuildings()
+//{
+//	int buildingCount = GetBuildingCount();
+//	Building** building = GetBuildings();
+//	if (!building) return;
+//	if (buildingCount <= 0) return;
+//
+//	int loopCount = (buildingCount < BUILDING_EFFECT_MAX) ? buildingCount : BUILDING_EFFECT_MAX;
+//
+//	for (int i = 0; i < loopCount; ++i)
+//	{
+//		auto& anim = g_BuildingEffectAnim[i];
+//
+//		if (building[i]->isDestroyed)
+//		{
+//			// Ä¶Š®—¹Ï‚İ‚È‚çƒXƒLƒbƒv
+//			if (anim.hitFinished) continue;
+//
+//			// ‰‰ñFŒš•¨ƒ^ƒCƒv‚É‰‚¶‚½ƒtƒŒ[ƒ€”ÍˆÍ‚ğİ’è‚µ‚ÄÄ¶ŠJn
+//			if (!anim.hitPlaying)
+//			{
+//				switch (building[i]->type)
+//				{
+//				case BuildingType::Concrete:	anim.hitStartFrame = 0;  anim.hitEndFrame = 19; break;
+//				case BuildingType::Electricity:	anim.hitStartFrame = 0;  anim.hitEndFrame = 19; break;
+//				case BuildingType::Glass:		anim.hitStartFrame = 20; anim.hitEndFrame = 39; break;
+//				case BuildingType::Plant:		anim.hitStartFrame = 40; anim.hitEndFrame = 59; break;
+//				default: continue;
+//				}
+//				anim.hitFrame = anim.hitStartFrame;
+//				anim.hitTimer = 0.0f;
+//				anim.hitPlaying = true;
+//			}
+//
+//			// ƒtƒŒ[ƒ€is
+//			anim.hitTimer += DELTA_TIME;
+//			if (anim.hitTimer >= 0.05f)
+//			{
+//				anim.hitTimer = 0.0f;
+//				anim.hitFrame++;
+//				if (anim.hitFrame > anim.hitEndFrame)
+//				{
+//					anim.hitFrame = anim.hitEndFrame;
+//					anim.hitPlaying = false;
+//					anim.hitFinished = true;
+//				}
+//			}
+//		}
+//		else
+//		{
+//			// ”j‰óó‘Ô‚ª‰ğœ‚³‚ê‚½‚çƒŠƒZƒbƒg
+//			anim.hitFrame = 0;
+//			anim.hitTimer = 0.0f;
+//			anim.hitPlaying = false;
+//			anim.hitFinished = false;
+//			anim.hitStartFrame = 0;
+//			anim.hitEndFrame = 0;
+//		}
+//	}
+//}
+
+//// ===============================================
+//// Œš•¨ƒGƒtƒFƒNƒgˆêŠ‡•`‰æŠÖ”
+//// ===============================================
+//void Effect_DrawAllBuildings()
+//{
+//	int buildingCount = GetBuildingCount();
+//	Building** building = GetBuildings();
+//	if (!building) return;
+//	if (buildingCount <= 0) return;
+//
+//	int loopCount = (buildingCount < BUILDING_EFFECT_MAX) ? buildingCount : BUILDING_EFFECT_MAX;
+//
+//	// ƒrƒ…[EË‰es—ñ‚Íƒ‹[ƒvŠO‚Å1‰ñ‚¾‚¯æ“¾
+//	XMMATRIX view = GetViewMatrix();
+//	XMMATRIX projection = GetProjectionMatrix();
+//
+//	// ƒrƒ‹ƒ{[ƒh—p‚Ì‰ñ“]s—ñ‚àƒ‹[ƒvŠO‚Å1‰ñ‚¾‚¯ŒvZ
+//	XMMATRIX billboardRot = view;
+//	billboardRot.r[3].m128_f32[0] = 0.0f;
+//	billboardRot.r[3].m128_f32[1] = 0.0f;
+//	billboardRot.r[3].m128_f32[2] = 0.0f;
+//	billboardRot.r[3].m128_f32[3] = 1.0f;
+//	billboardRot = XMMatrixTranspose(billboardRot);
+//
+//	// ƒpƒCƒvƒ‰ƒCƒ“İ’è‚àƒ‹[ƒvŠO‚Å1‰ñ‚¾‚¯
+//	UINT stride = sizeof(Vertex2);
+//	UINT offset = 0;
+//	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+//	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+//	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+//	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+//
+//	for (int i = 0; i < loopCount; ++i)
+//	{
+//		auto& anim = g_BuildingEffectAnim[i];
+//
+//		// Ä¶’†‚Å‚È‚¯‚ê‚ÎƒXƒLƒbƒvi‘ŠúƒŠƒ^[ƒ“j
+//		if (!anim.hitPlaying) continue;
+//
+//		int texNo = (building[i]->type == BuildingType::Concrete) ? 12 : 13;
+//
+//		XMFLOAT3 pos = building[i]->position;
+//		float scale = 5.0f;
+//
+//		int col = anim.hitFrame % EFFECT_SPRITE_X;
+//		int row = anim.hitFrame / EFFECT_SPRITE_X;
+//		float u0 = (float)col / (float)EFFECT_SPRITE_X;
+//		float v0 = (float)row / (float)EFFECT_SPRITE_Y;
+//		float u1 = u0 + 1.0f / (float)EFFECT_SPRITE_X;
+//		float v1 = v0 + 1.0f / (float)EFFECT_SPRITE_Y;
+//
+//		Vertex2 localV[PLAYER_VERTEX];
+//		CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+//		localV[0].tex = XMFLOAT2(u0, v0);
+//		localV[1].tex = XMFLOAT2(u1, v0);
+//		localV[2].tex = XMFLOAT2(u0, v1);
+//		localV[3].tex = XMFLOAT2(u1, v1);
+//
+//		XMMATRIX ScalingMatrix = XMMatrixScaling(scale, scale, scale);
+//
+//		// ƒrƒ‹ƒ{[ƒhFƒ‹[ƒvŠO‚ÅŒvZÏ‚İ‚Ì‰ñ“]s—ñ‚ÉˆÊ’u‚¾‚¯İ’è
+//		XMMATRIX vm = billboardRot;
+//		vm.r[3].m128_f32[0] = pos.x;
+//		vm.r[3].m128_f32[1] = pos.y + 2.0f;
+//		vm.r[3].m128_f32[2] = pos.z;
+//		vm.r[3].m128_f32[3] = 1.0f;
+//
+//		XMMATRIX WorldMatrix = ScalingMatrix * vm;
+//		Shader_SetWorldMatrix(WorldMatrix);
+//
+//		XMMATRIX WVP = WorldMatrix * view * projection;
+//		Shader_SetMatrix(WVP);
+//
+//		D3D11_MAPPED_SUBRESOURCE msr;
+//		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+//		Vertex2* vertex = (Vertex2*)msr.pData;
+//		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
+//		g_pContext->Unmap(g_VertexBuffer, 0);
+//
+//		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNo]);
+//		g_pContext->DrawIndexed(6, 0, 0);
+//	}
+//}

@@ -34,9 +34,9 @@ enum FIELD
 //======================================================
 struct MAPDATA
 {
-	XMFLOAT3 pos{};			// 座標
-	AABB boundingBox{};		// 当たり判定
-	FIELD no;				// フィールド種別
+	XMFLOAT3 pos{};					// 座標
+	HexCollider boundingBox{};		// 当たり判定
+	FIELD no;						// フィールド種別
 
 	//==================================================
 	// ★超重要★
@@ -49,7 +49,7 @@ struct MAPDATA
 	bool isActive = true;
 
 	// 六角形当たり判定用
-	float radius = 3.0f;
+	float radius = 2.0f;
 	float height = 2.25f;
 
 	float respawnTimer;
