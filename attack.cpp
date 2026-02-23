@@ -334,31 +334,58 @@ void Attack_Update(int playerIndex)
 	// 当たり判定
 	// -------------------------------------------------------------
 	// AABBの更新
-	CalculateAABB(atttackObject.boundingBox, atttackObject.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
+	//CalculateAABB(atttackObject.boundingBox, atttackObject.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
 
 	int buildingCount = GetBuildingCount();			// 数を取得
 	Building** buildingObjects = GetBuildings();	// リストを取得
 
-	// 全てのフィールドオブジェクトと衝突判定を行う
+	//// 全てのフィールドオブジェクトと衝突判定を行う
+	//for (int i = 0; i < buildingCount; ++i)
+	//{
+	//	// 非アクティブなオブジェクトをスキップ（二重でゲージが加算されることを防ぐため）
+	//	if (!buildingObjects[i]->isActive) continue;
+
+	//	// i番目のフィールドオブジェクトのAABBを取得
+	//	// field.cppのInitializeで計算済みのため、そのまま参照
+	//	AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
+
+	//	// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
+	//	MTV collision = CalculateAABBMTV(atttackObject.boundingBox, pStaticObjectAABB);
+
+	//	Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V, KK_SPACE };
+
+	//	// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
+	//	if (collision.isColliding)
+	//	{
+	//		BuildingType type = buildingObjects[i]->type;
+
+	//		if (g_Input[playerIndex].A || Keyboard_IsKeyDown(confirmKey[playerIndex]))
+	//		{
+
+	// 1. 扇形のパラメータ設定
+	Sector attackSector;
+	attackSector.center = player.position;
+	float rad = XMConvertToRadians(player.rotation.y);
+	attackSector.forward = { sinf(rad), 0.0f, cosf(rad) };
+	attackSector.radius = 3.0f;       // 攻撃距離
+	attackSector.angleDegree = 120.0f; // 攻撃範囲（広めになぎ払うなら120度くらい！）
+
+	Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V, KK_SPACE };
+
+	// 2. 建物（Building）との判定を新しい関数で行う
 	for (int i = 0; i < buildingCount; ++i)
 	{
-		// 非アクティブなオブジェクトをスキップ（二重でゲージが加算されることを防ぐため）
 		if (!buildingObjects[i]->isActive) continue;
 
-		// i番目のフィールドオブジェクトのAABBを取得
-		// field.cppのInitializeで計算済みのため、そのまま参照
-		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
-
-		// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
-		MTV collision = CalculateAABBMTV(atttackObject.boundingBox, pStaticObjectAABB);
-
-		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V, KK_SPACE };
-
-		// 建物（FIELD_BUILDING）に衝突していて、かつ各々のプレイヤーのがぶがぶキーが押されていたら
-		if (collision.isColliding)
+		// AABB同士の代わりに、追加した関数を使う！
+		if (CheckAABBSectorCollision(buildingObjects[i]->boundingBox, attackSector))
 		{
+			// プレイヤーのAABBとフィールドオブジェクトのAABBでMTVを計算
+			//MTV collision = CalculateAABBMTV(atttackObject.boundingBox, pStaticObjectAABB);
+
 			BuildingType type = buildingObjects[i]->type;
 
+			// 攻撃キーが押されているかチェックして破壊処理へ
 			if (g_Input[playerIndex].A || Keyboard_IsKeyDown(confirmKey[playerIndex]))
 			{
 				// 各建物タイプごとの処理
@@ -412,9 +439,9 @@ void Attack_Update(int playerIndex)
 			}
 
 			// 衝突していたら、MTVの分だけ位置を戻す
-			atttackObject.position.x += collision.translation.x;
-			atttackObject.position.y += collision.translation.y;
-			atttackObject.position.z += collision.translation.z;
+			//atttackObject.position.x += collision.translation.x;
+			//atttackObject.position.y += collision.translation.y;
+			//atttackObject.position.z += collision.translation.z;
 
 			// 押し戻し後の新しいAABBを再計算
 			// これにより、同じフレーム内で次のフィールドオブジェクトとの判定に備えます。
