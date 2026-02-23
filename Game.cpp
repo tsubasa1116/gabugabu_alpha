@@ -11,7 +11,6 @@
 #include "makeText.h"
 #include "p.h"
 #include "field.h"
-#include "building.h"
 #include "Building.h"
 #include "Effect.h"
 #include "score.h"

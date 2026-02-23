@@ -872,12 +872,11 @@ void EffectFront_DrawForPlayer(int playerIndex)
 	// リスポーン卵エフェクト
 	if (player.isEggBreaking)	// 卵割れエフェクト
 	{
-		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 5.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
 	else if (player.duringRespawn)	// 卵エフェクト
 	{
-		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-		addEntry(11, 50, 1.0f, XMFLOAT3(1.5f, -0.75f, 0.0f));
+		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 5.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
 	// 通常色を設定
 	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });

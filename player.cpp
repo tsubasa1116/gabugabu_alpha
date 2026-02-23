@@ -734,6 +734,8 @@ void Player_Update()
 				{
 					if (g_Input[0].LStickX > 0.0f) { player[0].moveDir.x += 1.0f; player[0].isMoving = true; }
 					if (g_Input[0].LStickX < 0.0f) { player[0].moveDir.x -= 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickY > 0.0f) { player[0].moveDir.z -= 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickY < 0.0f) { player[0].moveDir.z += 1.0f; player[0].isMoving = true; }
 					if (Keyboard_IsKeyDown(KK_W)) { player[0].moveDir.z += 1.0f; player[0].isMoving = true; }
 					if (Keyboard_IsKeyDown(KK_S)) { player[0].moveDir.z -= 1.0f; player[0].isMoving = true; }
 					if (Keyboard_IsKeyDown(KK_A)) { player[0].moveDir.x -= 1.0f; player[0].isMoving = true; }
