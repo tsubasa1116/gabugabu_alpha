@@ -43,10 +43,10 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
-	L"Asset\\Texture\\texturefieldConcrete02_v1.png",  // 0
+	L"Asset\\Texture\\緑.png",  // 0
 	L"Asset\\Texture\\texturefieldTree02_v1.png",  // 1
 	L"Asset\\Texture\\texturefieldTree01_v1.png",  
-	L"Asset\\Texture\\texturefieldConcrete03_v1.png",
+	L"Asset\\Texture\\灰色.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
 
