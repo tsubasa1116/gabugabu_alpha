@@ -43,9 +43,9 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
-	L"Asset\\Texture\\灰色.png",  // 0
+	L"Asset\\Texture\\texturefieldConcrete02_v1.png",  // 0
 	L"Asset\\Texture\\texturefieldTree02_v1.png",  // 1
-	L"Asset\\Texture\\緑.png",  
+	L"Asset\\Texture\\texturefieldTree01_v1.png",  
 	L"Asset\\Texture\\texturefieldConcrete03_v1.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
@@ -73,19 +73,19 @@ MAPDATA Map[] =
 	// ===== 地面・特殊 =====			 
 	{ {},{}, FIELD::FIELD_Electricity,1}, // 1kaku
 	{ {},{}, FIELD::FIELD_Electricity,0}, // 2kaku
-	{ {},{}, FIELD::FIELD_Plant,2},           // 3kaku
+	{ {},{}, FIELD::FIELD_Plant,1},           // 3kaku
 	{ {},{}, FIELD::FIELD_Electricity,0},           // 4kaku
-	{ {},{}, FIELD::FIELD_Plant,2}, // 5kaku
+	{ {},{}, FIELD::FIELD_Plant,1}, // 5kaku
 	{ {},{}, FIELD::FIELD_Electricity,0},           // 6kaku
-	{ {},{}, FIELD::FIELD_Plant,2},           // 7kaku
+	{ {},{}, FIELD::FIELD_Plant,1},           // 7kaku
 	{ {},{}, FIELD::FIELD_Concrete,2},           // 8kaku
 	{ {},{}, FIELD::FIELD_Concrete,1},           // 9
 	{ {},{}, FIELD::FIELD_Glass},           // 10
 						  
 	// ===== BOX 10 ===== 
 	{ {},{}, FIELD::FIELD_Glass,}, // 11
-	{ {},{}, FIELD::FIELD_Plant,2}, // 12kaku
-	{ {},{}, FIELD::FIELD_Plant,2}, // 13kaku
+	{ {},{}, FIELD::FIELD_Plant,1}, // 12kaku
+	{ {},{}, FIELD::FIELD_Plant,1}, // 13kaku
 	{ {},{}, FIELD::FIELD_Concrete,1}, // 14kaku
 	{ {},{}, FIELD::FIELD_Glass}, // 15kaku
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 16
@@ -95,35 +95,35 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Concrete,1}, // 20kaku
 						  
 	// ===== BOX 20 ===== 
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 21
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 21
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 22
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 23
-	{ {},{}, FIELD::FIELD_Plant,2}, // 24
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 25
+	{ {},{}, FIELD::FIELD_Plant,0 }, // 23
+	{ {},{}, FIELD::FIELD_Plant,1}, // 24
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 25
 	{ {},{}, FIELD::FIELD_Electricity,0 }, // 26
 	{ {},{}, FIELD::FIELD_Concrete,2}, // 27
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 28
-	{ {},{}, FIELD::FIELD_Plant,3 }, // 29
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 28
+	{ {},{}, FIELD::FIELD_Plant,2 }, // 29
 	{ {},{}, FIELD::FIELD_Glass }, // 30
 						 
 	// ===== BOX 30 =====
 	{ {},{}, FIELD::FIELD_Electricity,0 }, // 31
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 32
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 33
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 32
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 33
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 34
 	{ {},{}, FIELD::FIELD_Glass }, // 35
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 36
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 37
-	{ {},{}, FIELD::FIELD_Glass,3 }, // 38
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 37
+	{ {},{}, FIELD::FIELD_Glass,2 }, // 38
 	{ {},{}, FIELD::FIELD_BOX }, // 39
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 40
 						 
 	// ===== BOX 40 =====
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 41
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 42
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 41
+	{ {},{}, FIELD::FIELD_Plant,1}, // 42
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 43
 	{ {},{}, FIELD::FIELD_Glass }, // 44
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 45
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 45
 	{ {},{}, FIELD::FIELD_Glass, }, // 46
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 47
 	{ {},{}, FIELD::FIELD_Glass,1 }, // 48  左上デカい建物
@@ -133,17 +133,17 @@ MAPDATA Map[] =
 	// ===== BOX 50 =====
 	{ {},{}, FIELD::FIELD_Electricity }, // 51
 	{ {},{}, FIELD::FIELD_Concrete }, // 52 右下デカい建物
-	{ {},{}, FIELD::FIELD_Plant,5}, // 53左下デカい
+	{ {},{}, FIELD::FIELD_Plant,3}, // 53左下デカい
 	{ {},{}, FIELD::FIELD_Electricity}, // 54
-	{ {},{}, FIELD::FIELD_Plant,2}, // 55
-	{ {},{}, FIELD::FIELD_Glass,3}, // 56
+	{ {},{}, FIELD::FIELD_Plant,1}, // 55
+	{ {},{}, FIELD::FIELD_Glass,2}, // 56
 	{ {},{}, FIELD::FIELD_Electricity}, // 57
-	{ {},{}, FIELD::FIELD_Plant,2}, // 58
+	{ {},{}, FIELD::FIELD_Plant,1}, // 58
 	{ {},{}, FIELD::FIELD_Concrete,1}, // 59
 	{ {},{}, FIELD::FIELD_Electricity,}, // 60
 						  
 	// ===== BOX 60 ===== 
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 61
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 61
 	{ {},{}, FIELD::FIELD_Glass }, // 62
 	{ {},{}, FIELD::FIELD_Electricity }, // 63
 	{ {},{}, FIELD::FIELD_Electricity }, // 64
@@ -155,43 +155,43 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Electricity }, // 70
 						 
 	// ===== BOX 70 =====
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 71
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 72
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 71
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 72
 	{ {},{}, FIELD::FIELD_Electricity }, // 73
 	{ {},{}, FIELD::FIELD_Electricity,3 },// 74
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 75
-	{ {},{}, FIELD::FIELD_Plant,3 }, // 76
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 77
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 78
+	{ {},{}, FIELD::FIELD_Plant,0 }, // 75
+	{ {},{}, FIELD::FIELD_Plant,2 }, // 76
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 77
+	{ {},{}, FIELD::FIELD_Plant,0 }, // 78
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 79
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 80
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 80
 						  
 	// ===== BOX 80 ===== 
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 81
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 82
-	{ {},{}, FIELD::FIELD_Plant,3 }, // 83
+	{ {},{}, FIELD::FIELD_Plant,0 }, // 81
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 82
+	{ {},{}, FIELD::FIELD_Plant,2 }, // 83
 	{ {},{}, FIELD::FIELD_Electricity ,4}, // 84
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 85
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 86
-	{ {},{}, FIELD::FIELD_Plant,3 }, // 87
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 85
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 86
+	{ {},{}, FIELD::FIELD_Plant,2 }, // 87
 	{ {},{}, FIELD::FIELD_Glass },   // 88
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 89
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 90
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 89
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 90
 	 					  
 	// ===== BOX 90 ===== 
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 91
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 91
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 92
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 93
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 93
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 94
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 95
 	{ {},{}, FIELD::FIELD_Concrete ,2}, // 96
-	{ {},{}, FIELD::FIELD_Plant,3 }, // 97
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 98
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 99
+	{ {},{}, FIELD::FIELD_Plant,2 }, // 97
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 98
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 99
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 100
 						  
 	// ===== BOX 100 =====
-	{ {},{}, FIELD::FIELD_Plant,2}, // 101
+	{ {},{}, FIELD::FIELD_Plant,1}, // 101
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 102  いまのままだとここまでしかモデルが置けない
 	{ {},{}, FIELD::FIELD_BOX }, // 103
 	{ {},{}, FIELD::FIELD_BOX }, // 104
