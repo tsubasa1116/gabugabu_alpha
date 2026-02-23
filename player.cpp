@@ -430,6 +430,7 @@ void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 
 		// 前進
 		float rad = XMConvertToRadians(player.moveAngle);
+
 		player.position.x += sinf(rad) * player.speed;
 		player.position.z += cosf(rad) * player.speed;
 	}
@@ -755,56 +756,52 @@ void Player_Update()
 			{
 				player[p].moveInput2D = { 0.0f, 0.0f };
 
-				float moveMultiplier;
-				if(player[p].isAttacked)	moveMultiplier = 0.75f;	// 攻撃を受けている間は移動速度を減少させる
-				else						moveMultiplier = 1.0f;
-
 				if (p == 0) // プレイヤー0 (WASD) 攻撃 Space
 				{
-					if (g_Input[0].LStickX > 0.0f) { moveInput.x += moveMultiplier; player[0].isMoving = true; }
-					if (g_Input[0].LStickX < 0.0f) { moveInput.x -= moveMultiplier; player[0].isMoving = true; }
-					if (g_Input[0].LStickY < 0.0f) { moveInput.y += moveMultiplier; player[0].isMoving = true; }
-					if (g_Input[0].LStickY > 0.0f) { moveInput.y -= moveMultiplier; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_W))  { moveInput.y += moveMultiplier; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S))  { moveInput.y -= moveMultiplier; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A))  { moveInput.x -= moveMultiplier; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D))  { moveInput.x += moveMultiplier; player[0].isMoving = true; }
+					if (g_Input[0].LStickX > 0.0f) { moveInput.x += 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickX < 0.0f) { moveInput.x -= 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickY < 0.0f) { moveInput.y += 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickY > 0.0f) { moveInput.y -= 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_W))  { moveInput.y += 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_S))  { moveInput.y -= 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_A))  { moveInput.x -= 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_D))  { moveInput.x += 1.0f; player[0].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[0].isMoving = false;
 				}
 				else if (p == 1) // プレイヤー1 (矢印キー) 攻撃 Enter
 				{
-					if (g_Input[1].LStickX > 0.0f)	  { moveInput.x += moveMultiplier; player[1].isMoving = true; }
-					if (g_Input[1].LStickX < 0.0f)	  { moveInput.x -= moveMultiplier; player[1].isMoving = true; }
-					if (g_Input[1].LStickY < 0.0f)	  { moveInput.y += moveMultiplier; player[1].isMoving = true; }
-					if (g_Input[1].LStickY > 0.0f)	  { moveInput.y -= moveMultiplier; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_UP))	  { moveInput.y += moveMultiplier; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_DOWN))  { moveInput.y -= moveMultiplier; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_LEFT))  { moveInput.x -= moveMultiplier; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_RIGHT)) { moveInput.x += moveMultiplier; player[1].isMoving = true; }
+					if (g_Input[1].LStickX > 0.0f)	  { moveInput.x += 1.0f; player[1].isMoving = true; }
+					if (g_Input[1].LStickX < 0.0f)	  { moveInput.x -= 1.0f; player[1].isMoving = true; }
+					if (g_Input[1].LStickY < 0.0f)	  { moveInput.y += 1.0f; player[1].isMoving = true; }
+					if (g_Input[1].LStickY > 0.0f)	  { moveInput.y -= 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_UP))	  { moveInput.y += 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_DOWN))  { moveInput.y -= 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_LEFT))  { moveInput.x -= 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_RIGHT)) { moveInput.x += 1.0f; player[1].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[1].isMoving = false;
 				}
 				else if (p == 2) // プレイヤー2 (TFGH) 攻撃 V
 				{
-					if (g_Input[2].LStickX > 0.0f) { moveInput.x += moveMultiplier; player[2].isMoving = true; }
-					if (g_Input[2].LStickX < 0.0f) { moveInput.x -= moveMultiplier; player[2].isMoving = true; }
-					if (g_Input[2].LStickY < 0.0f) { moveInput.y += moveMultiplier; player[2].isMoving = true; }
-					if (g_Input[2].LStickY > 0.0f) { moveInput.y -= moveMultiplier; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_T))  { moveInput.y += moveMultiplier; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_G))  { moveInput.y -= moveMultiplier; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_F))  { moveInput.x -= moveMultiplier; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_H))  { moveInput.x += moveMultiplier; player[2].isMoving = true; }
+					if (g_Input[2].LStickX > 0.0f) { moveInput.x += 1.0f; player[2].isMoving = true; }
+					if (g_Input[2].LStickX < 0.0f) { moveInput.x -= 1.0f; player[2].isMoving = true; }
+					if (g_Input[2].LStickY < 0.0f) { moveInput.y += 1.0f; player[2].isMoving = true; }
+					if (g_Input[2].LStickY > 0.0f) { moveInput.y -= 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_T))  { moveInput.y += 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_G))  { moveInput.y -= 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_F))  { moveInput.x -= 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_H))  { moveInput.x += 1.0f; player[2].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[2].isMoving = false;
 				}
 				if (p == 3) // プレイヤー3 (WASD) 攻撃 Space
 				{
-					if (g_Input[3].LStickX > 0.0f) { moveInput.x += moveMultiplier; player[3].isMoving = true; }
-					if (g_Input[3].LStickX < 0.0f) { moveInput.x -= moveMultiplier; player[3].isMoving = true; }
-					if (g_Input[3].LStickY > 0.0f) { moveInput.y += moveMultiplier; player[3].isMoving = true; }
-					if (g_Input[3].LStickY < 0.0f) { moveInput.y -= moveMultiplier; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_W))  { moveInput.y += moveMultiplier; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S))  { moveInput.y -= moveMultiplier; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A))  { moveInput.x -= moveMultiplier; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D))  { moveInput.x += moveMultiplier; player[3].isMoving = true; }
+					if (g_Input[3].LStickX > 0.0f) { moveInput.x += 1.0f; player[3].isMoving = true; }
+					if (g_Input[3].LStickX < 0.0f) { moveInput.x -= 1.0f; player[3].isMoving = true; }
+					if (g_Input[3].LStickY > 0.0f) { moveInput.y += 1.0f; player[3].isMoving = true; }
+					if (g_Input[3].LStickY < 0.0f) { moveInput.y -= 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_W))  { moveInput.y += 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_S))  { moveInput.y -= 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_A))  { moveInput.x -= 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_D))  { moveInput.x += 1.0f; player[3].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[3].isMoving = false;
 				}
 				// 入力を保存（プレイヤーの向き用）
