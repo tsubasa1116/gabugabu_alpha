@@ -17,26 +17,26 @@ using namespace DirectX;
 // ==============================================================================
 void CalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& scaling) // 新しい関数
 {
-	XMFLOAT3 s = scaling;	// オブジェクトのスケール
-	XMFLOAT3 p = position;	// オブジェクトの中心座標
+	//XMFLOAT3 s = scaling;	// オブジェクトのスケール
+	//XMFLOAT3 p = position;	// オブジェクトの中心座標
 	XMFLOAT3 half;	// 半分サイズ
 
-	// ワールド空間でのボックスの「半分のサイズ」を計算
-	half.x = 0.5f * s.x;
-	half.y = 0.5f * s.y;
-	half.z = 0.5f * s.z;
+	// スケールの半分を計算
+	half.x = 0.5f * scaling.x;
+	half.y = 0.5f * scaling.y;
+	half.z = 0.5f * scaling.z;
 
 	// AABBの最小点 (Min) は 中心座標 - 半分のサイズ
 	// pObject->boundingBox.Min.x = p.x - half.x; // 古い処理
-	boundingBox.Min.x = p.x - half.x; // 新しい処理 (引数で受け取ったAABBを更新)
-	boundingBox.Min.y = p.y - half.y;
-	boundingBox.Min.z = p.z - half.z;
+	boundingBox.Min.x = position.x - half.x; // 新しい処理 (引数で受け取ったAABBを更新)
+	boundingBox.Min.y = position.y - half.y;
+	boundingBox.Min.z = position.z - half.z;
 
 	// AABBの最大点 (Max) は 中心座標 + 半分のサイズ
 	// pObject->boundingBox.Max.x = p.x + half.x; // 古い処理
-	boundingBox.Max.x = p.x + half.x; // 新しい処理
-	boundingBox.Max.y = p.y + half.y;
-	boundingBox.Max.z = p.z + half.z;
+	boundingBox.Max.x = position.x + half.x; // 新しい処理
+	boundingBox.Max.y = position.y + half.y;
+	boundingBox.Max.z = position.z + half.z;
 }
 
 void FieldCalculateAABB(AABB& boundingBox, const XMFLOAT3& position, const XMFLOAT3& scaling) // 古いフィールドコライダー関数
