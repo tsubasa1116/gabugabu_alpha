@@ -1441,11 +1441,11 @@ static void Player_DrawSilhouette(int p)
 	XMFLOAT4 silhouetteColor;
 	switch (p)
 	{
-	case 0: silhouetteColor  = { 0.84f,  0.4f, 0.4f, 0.6f }; break; // ê‘
-	case 1: silhouetteColor  = {  0.0f, 0.65f, 0.9f, 0.6f }; break; // ê¬
-	case 2: silhouetteColor  = {  0.9f,  0.9f, 0.2f, 0.6f }; break; // â©
-	case 3: silhouetteColor  = {  0.0f,  0.9f, 0.0f, 0.6f }; break; // óŒ
-	default: silhouetteColor = {  1.0f,  1.0f, 1.0f, 0.4f }; break;
+	case 0: silhouetteColor  = { 0.64f,  0.2f, 0.2f, 0.8f }; break; // ê‘
+	case 1: silhouetteColor  = {  0.0f, 0.45f, 0.7f, 0.8f }; break; // ê¬
+	case 2: silhouetteColor  = {  0.7f,  0.7f, 0.0f, 0.8f }; break; // â©
+	case 3: silhouetteColor  = {  0.0f,  0.6f, 0.0f, 0.8f }; break; // óŒ
+	default: silhouetteColor = {  1.0f,  1.0f, 1.0f, 0.8f }; break;
 	}
 	Shader_SetColor(silhouetteColor);
 
