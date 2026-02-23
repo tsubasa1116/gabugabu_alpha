@@ -43,9 +43,9 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
-	L"Asset\\Texture\\緑.png",  // 0
+	L"Asset\\Texture\\uiMaterialConcrete_v3.png",  // 0
 	L"Asset\\Texture\\texturefieldTree02_v1.png",  // 1
-	L"Asset\\Texture\\texturefieldTree01_v1.png",  
+	L"Asset\\Texture\\緑2.png",  
 	L"Asset\\Texture\\灰色.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
@@ -462,7 +462,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		// ------------------------------
 		// ワールド行列作成
 		// ------------------------------
-		XMMATRIX ScalingMatrix = XMMatrixScaling(2.0f, 2.0f, 1.0f);
+		XMMATRIX ScalingMatrix = XMMatrixScaling(1.50f, 1.50f, 1.0f);
 
 		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			XMConvertToRadians(-90.0f),

@@ -28,6 +28,16 @@ struct MTV
 };
 
 //======================================================
+//	扇型の当たり判定用構造体
+//======================================================
+struct Sector {
+	XMFLOAT3 center;		// 扇の起点（プレイヤー足元）
+	XMFLOAT3 forward;		// プレイヤーの向いている方向（正規ベクトル）
+	float radius;			// 扇の半径（攻撃の届く距離）
+	float angleDegree;		// 扇の「全角」（例：90度なら左右に45度ずつ）
+};
+
+//======================================================
 //	当たり判定 計算関数
 //======================================================
 
@@ -85,3 +95,10 @@ struct Circle
  * @return 衝突していれば true
  */
 bool CheckCircleAABBCollision(const Circle& circle, const AABB& box);
+
+
+// ==============================================================================
+// 扇型コライダー (Sector Collider)
+// ==============================================================================
+bool CheckSectorCollision(const XMFLOAT3& targetPos, const Sector& sector);
+bool CheckAABBSectorCollision(const AABB& targetBox, const Sector& sector);

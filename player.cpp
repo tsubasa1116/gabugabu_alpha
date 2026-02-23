@@ -1173,8 +1173,8 @@ void Player_Update()
 		// --- プレイヤー用ヒットボックス比率（向きで長短を切り替える） ---
 		// 高さは固定、水平面は向きに応じて長短を切り替える
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
-		const float HITBOX_SHORT = 0.35f;	// 向きと直交する短辺
-		const float HITBOX_LONG  = 0.65f;	// 向きに沿った長辺
+		const float HITBOX_SHORT = 0.50f;	// 向きと直交する短辺
+		const float HITBOX_LONG  = 0.50f;	// 向きに沿った長辺
 
 		// 回転から前方ベクトルを算出して、どちらの軸が優勢か判定する
 		float radFacing = XMConvertToRadians(player[p].rotation.y);
@@ -1185,12 +1185,6 @@ void Player_Update()
 		float widthScale = facingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
 		float depthScale = facingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
 
-		// 第2形態 第3形態はXとZ同じにする
-		if (player[p].form == Form::Second || player[p].form == Form::Third)
-		{
-			widthScale = 0.25f;
-			depthScale = 0.25f;
-		}
 
 		XMFLOAT3 hitboxScaling = XMFLOAT3
 		(
