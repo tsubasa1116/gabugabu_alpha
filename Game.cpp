@@ -12,6 +12,7 @@
 #include "p.h"
 #include "field.h"
 #include "building.h"
+#include "Building.h"
 #include "Effect.h"
 #include "score.h"
 #include "Audio.h"
@@ -125,6 +126,7 @@ void Game_Update()
 
 	Player_Update();
 	Field_Update();
+	Building_UpdateAll();
 	Effect_Update();
 	Gauge_Update();
 	Camera_Update();	
