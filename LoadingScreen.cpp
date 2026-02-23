@@ -143,9 +143,6 @@ void LoadingScreen::Draw()
 {
     if (!m_IsLoading) return;
 
-    const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
-    const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
-
     // シェーダー設定
     Shader_Begin();
     Shader_SetColor(color::white);

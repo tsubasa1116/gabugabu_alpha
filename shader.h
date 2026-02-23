@@ -1,6 +1,6 @@
-Ôªø/*==============================================================================
+/*==============================================================================
 
-   „Ç∑„Çß„Éº„ÉÄ„Éº [shader.h]
+   ÉVÉFÅ[É_Å[ [shader.h]
 														 Author : Youhei Sato
 														 Date   : 2025/05/15
 --------------------------------------------------------------------------------
@@ -25,17 +25,25 @@ void Shader_Begin();
 void Shader_BeginUI();
 void Shader_BeginGauge();
 void Shader_BeginOutGauge();
+void Shader_BeginSkillGauge();
 void Shader_BeginHpber();
 
 void Shader_SetGaugeMulti(float glass, float concrete, float plant, float electric);
 void Shader_SetOutGauge(float value, XMFLOAT4 color);
+void Shader_SetSingleGauge(float fill);
 void Shader_SetHpber(XMFLOAT4 colA, XMFLOAT4 colB, float al, float speed);
 void Shader_SetColor(const XMFLOAT4& color);
+
+// ê¸å`ï‚ä‘ÉJÉâÅ[ê›íËÅ@mulColor=èÊéZêFÅAlerpColor=ï‚ä‘Ç∑ÇÈêFÅAlerpFactor=ï‚ä‘ÇÃìxçáÇ¢
+void Shader_SetColorLerp(const XMFLOAT4& mulColor, const XMFLOAT4& lerpColor, float lerpFactor);
 
 void Shader_BeginDebugColor();
 
 void Shader_SetGaugeTextures();
 void Shader_SetOutGaugeTextures();
+void Shader_SetSkillGaugeTextures(int typeIndex);
+void Shader_SetSkillCoolGaugeTextures(int typeIndex);
+void Shader_SetSkillTextTextures(int typeIndex);
 
 
 #endif // SHADER_H

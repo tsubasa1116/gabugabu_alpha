@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -7,22 +7,42 @@ using namespace DirectX;
 #include "sprite.h"
 #include "shader.h"
 
+#define HPBER_MAX (4)		// HPƒo[Å‘å”
+#define HPBAR_SPEED (3.0f)	// HPƒo[‚ÌƒXƒ€[ƒYŒ¸­‘¬“x
+
 struct hp {
-	XMFLOAT2 pos;		// ä½ç½®
-	XMFLOAT2 size;		// ã‚µã‚¤ã‚º
-	float current;		// ç¾åœ¨ã®HPãƒãƒ¼å¹…
-	float target;		// ç›®æ¨™HPãƒãƒ¼å¹…
-	bool use;			// ä½¿ç”¨ä¸­ã‹ã©ã†ã‹
-	XMFLOAT4 backColor;	// èƒŒæ™¯è‰²
-	XMFLOAT4 fillColor;	// æ®‹é‡è‰²
+	XMFLOAT2 pos;           // ˆÊ’u
+	XMFLOAT2 size;          // ƒTƒCƒY
+	float current;          // Œ»İ‚ÌHPƒo[•i‘¦À‚ÉŒ¸‚éj
+	float target;           // –Ú•WHPƒo[•
+	float damageCurrent;    // ƒ_ƒ[ƒW•\¦—pi’x‚ê‚ÄŒ¸‚éÔƒo[j
+	float damageDelay;      // Ôƒo[‚ªŒ¸‚èn‚ß‚é‚Ü‚Å‚Ì’x‰„ƒtƒŒ[ƒ€
+	float damageTimer;		// ƒ_ƒ[ƒW—pƒ^ƒCƒ}[
+	bool use;               // g—p’†‚©‚Ç‚¤‚©
+	XMFLOAT4 backColor;     // ”wŒiF
+	XMFLOAT4 fillColor;     // c—ÊF
+	XMFLOAT4 damageColor;   // ƒ_ƒ[ƒWFiÔj
+	
+	XMFLOAT2 shakeOffset;   // •`‰æ‚É‰Á‚¦‚éƒIƒtƒZƒbƒg
+	float shakeTimer;       // c‚èƒtƒŒ[ƒ€”
+	float shakeDuration;    // İ’è‚µ‚½ƒtƒŒ[ƒ€’·‚³
+	float shakeAmplitude;   // U•
+	float shakeSpeed;       // U“®‘¬“x
+	int gaugeIndex;
+	int shakeTexNum;        // ƒVƒFƒCƒN’†‚Ég‚¤ƒeƒNƒXƒ`ƒƒ”Ô†i-1‚Å–³Œøj
 };
 
 //=============================================
-// HPãƒãƒ¼ã‚’è¨­å®šã—ãŸã„cppã§å‘¼ã³å‡ºã™(å‚è€ƒ:p.cpp)
+// HPƒo[‚ğİ’è‚µ‚½‚¢cpp‚ÅŒÄ‚Ño‚·
 //=============================================
 void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar, XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 backColor, XMFLOAT4 fillColor);
 void UpdateHP(hp* bar);
 void DrawHP(const hp* bar, int texNum);
 void SetHPValue(hp* bar, int currentHP, int maxHP);
 void FinalizeHP(hp* bar);
+
+// ƒVƒFƒCƒN@ƒtƒŒ[ƒ€’PˆÊidurationj‚ÆƒsƒNƒZƒ‹iamplitudej
+// int shakeTexNum = -1 ‚ğ“n‚·‚ÆAƒVƒFƒCƒN’†‚É‚»‚ÌƒeƒNƒXƒ`ƒƒ‚ğg—p‚·‚é
+void SetHPShake(hp* bar, float amplitude = 8.0f, float duration = 15.0f, float speed = 1.5f, int shakeTexNum = -1);
+hp* GetHPBar(int HPIndex);
 

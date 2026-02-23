@@ -14,9 +14,9 @@
 #include "fade.h"
 #include "swipe.h"
 #include "shader.h"
-#include "LoadingScreen.h"  // ’Ç‰Á
+#include "LoadingScreen.h"  // è¿½åŠ 
 
-//ƒOƒ[ƒoƒ‹•Ï”
+//ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 static SCENE g_Scene = SCENE_NONE;
 static bool g_InitSettingOnce = false;
 static bool g_InitSoundOnce = false;
@@ -25,7 +25,7 @@ void Manager_Initialize()
 {
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
-	LoadingScreen_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());  // ’Ç‰Á
+	LoadingScreen_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());  // è¿½åŠ 
 
 #ifdef _DEBUG
 	//DEBUG:
@@ -38,7 +38,7 @@ void Manager_Initialize()
 
 void Manager_Finalize()
 {
-	LoadingScreen_Finalize();  // ’Ç‰Á
+	LoadingScreen_Finalize();  // è¿½åŠ 
 	Fade_Finalize();
 	Swipe_Finalize();
 	SetScene(SCENE_NONE);
@@ -46,7 +46,7 @@ void Manager_Finalize()
 
 void Manager_Update()
 {
-	// ƒ[ƒh’†‚Í’Êí‚ÌƒV[ƒ“XV‚ðƒXƒLƒbƒv
+	// ãƒ­ãƒ¼ãƒ‰ä¸­ã¯é€šå¸¸ã®ã‚·ãƒ¼ãƒ³æ›´æ–°ã‚’ã‚¹ã‚­ãƒƒãƒ—
 	if (IsLoading())
 	{
 		LoadingScreen_Update();
@@ -88,7 +88,7 @@ void Manager_Update()
 
 void Manager_Draw()
 {
-	// ƒ[ƒh’†‚Íƒ[ƒh‰æ–Ê‚Ì‚Ý•`‰æ
+	// ãƒ­ãƒ¼ãƒ‰ä¸­ã¯ãƒ­ãƒ¼ãƒ‰ç”»é¢ã®ã¿æç”»
 	if (IsLoading())
 	{
 		LoadingScreen_Draw();
@@ -130,7 +130,7 @@ void Manager_Draw()
 
 void SetScene(SCENE scene)
 {
-	// ŽÀs’†‚ÌƒV[ƒ“‚ðI—¹‚·‚é
+	// å®Ÿè¡Œä¸­ã®ã‚·ãƒ¼ãƒ³ã‚’çµ‚äº†ã™ã‚‹
 	switch (g_Scene)
 	{
 	case SCENE_NONE:
@@ -160,7 +160,7 @@ void SetScene(SCENE scene)
 
 	g_Scene = scene;
 
-	// ŽŸ‚ÌƒV[ƒ“‚ð‰Šú‰»‚·‚é
+	// æ¬¡ã®ã‚·ãƒ¼ãƒ³ã‚’åˆæœŸåŒ–ã™ã‚‹
 	switch (g_Scene)
 	{
 	case SCENE_NONE:
