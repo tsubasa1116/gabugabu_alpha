@@ -8,7 +8,7 @@
 // マクロ定義
 //#define SPECIAL_GLASS_TIME ミサイル全てのactiveがfalseになったら終了なので不要
 #define SPECIAL_CONCRETE_TIME		(1.5f)
-#define SPECIAL_PLANT_TIME			(10.0f)
+#define SPECIAL_PLANT_TIME			(5.0f)
 #define SPECIAL_ELECTRICITY_TIME	(5.0f)
 
 #define SPECIAL_GLASS_DAMAGE		(50.0f)	// ミサイル 1個あたりのダメージ量
@@ -17,7 +17,7 @@
 #define SPECIAL_ELECTRICITY_DAMAGE	(40.0f)	// 雷 1個あたりのダメージ量
 
 #define SPECIAL_GLASSBOX_QUANTITY		(3)	// ガラス 1プレイヤーに飛ばす箱の数
-#define SPECIAL_ELECTRICITY_QUANTITY	(4)	// 電気 落雷の数
+#define SPECIAL_ELECTRICITY_QUANTITY	(6)	// 電気 落雷の数
 
 // ガラススペシャル ミサイルオブジェクト
 struct GLASS_BOX
@@ -37,6 +37,12 @@ struct SPECIAL_OBJECT
 	XMFLOAT3 scaling;
 
 	AABB boundingBox;
+};
+
+struct PLANT_CIRCLE
+{
+	XMFLOAT3 position;
+	float radius;
 };
 
 void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
