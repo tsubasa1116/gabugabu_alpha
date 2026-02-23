@@ -169,4 +169,6 @@ void Player_DrawText();
 
 void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float speed);
 
+bool Player_CanUseSpecial(int playerIndex);
+
 

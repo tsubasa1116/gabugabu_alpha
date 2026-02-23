@@ -147,6 +147,8 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		effect[i].frameCnt = 0;
 		effect[i].texNo = 0;
 		effect[i].playerIndex = -1;
+		effect[i].scaleTimer = 0.0f;
+		effect[i].scaleGrowing = true;
 	}
 
 	// UI画面
@@ -257,6 +259,8 @@ void Effect_Finalize()
 //===============================================
 void Effect_Update()
 {
+	const float deltaTime = 1.0f / 60.0f; // フレーム時間
+
 	for (int i = 0; i < EFFECT_MAX; ++i)
 	{
 		if (!effect[i].enable) continue;
@@ -283,6 +287,18 @@ void Effect_Update()
 				effect[i].enable = false; // 再生終了
 			}
 		}
+
+		// スケーリングアニメーション
+		if (config.scaleSpeed > 0.0f)
+		{
+			// サイン波で滑らかに拡大縮小
+			effect[i].scaleTimer += deltaTime * config.scaleSpeed;
+			float t = (sinf(effect[i].scaleTimer) + 1.0f) * 0.5f; // 0.0～1.0
+			float scale = config.scaleMin + (config.scaleMax - config.scaleMin) * t;
+
+			effect[i].size.x = effect[i].baseSize.x * scale;
+			effect[i].size.y = effect[i].baseSize.y * scale;
+		}
 	}
 }
 
@@ -307,20 +323,35 @@ void Effect_Draw()
 		const EffectConfig& config = g_EffectConfigs[texNo];
 		int currentFrame = (int)effect[i].frameCnt;
 
-		int fx = currentFrame % EFFECT_SPRITE_X;
-		int fy = currentFrame / EFFECT_SPRITE_X;
+		if (config.spriteY == 1)
+		{
+			// UV座標全体を使用
+			XMFLOAT2 uvMin = { 0.0f, 0.0f };
+			XMFLOAT2 uvMax = { 1.0f, 1.0f };
 
-		float u = 1.0f / (float)EFFECT_SPRITE_X;
-		float v = 1.0f / (float)config.spriteY;
+			XMFLOAT2 pos = { effect[i].pos.x, effect[i].pos.y };
+			XMFLOAT2 size = effect[i].size;
 
-		XMFLOAT2 uvMin = { fx * u, fy * v };
-		XMFLOAT2 uvMax = { uvMin.x + u, uvMin.y + v };
+			g_pContext->PSSetShaderResources(0, 1, &tex);
+			DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
+		}
+		else
+		{
+			int fx = currentFrame % EFFECT_SPRITE_X;
+			int fy = currentFrame / EFFECT_SPRITE_X;
 
-		XMFLOAT2 pos = { effect[i].pos.x, effect[i].pos.y };
-		XMFLOAT2 size = effect[i].size;
+			float u = 1.0f / (float)EFFECT_SPRITE_X;
+			float v = 1.0f / (float)config.spriteY;
 
-		g_pContext->PSSetShaderResources(0, 1, &tex);
-		DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
+			XMFLOAT2 uvMin = { fx * u, fy * v };
+			XMFLOAT2 uvMax = { uvMin.x + u, uvMin.y + v };
+
+			XMFLOAT2 pos = { effect[i].pos.x, effect[i].pos.y };
+			XMFLOAT2 size = effect[i].size;
+
+			g_pContext->PSSetShaderResources(0, 1, &tex);
+			DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
+		}
 	}
 }
 
@@ -944,7 +975,7 @@ void EffectFront_DrawForPlayer(int playerIndex)
 	// 死亡エフェクト
 	if (player.isDown && player.stock <= 1)
 	{
-		texNosFramesScales.emplace_back(25, g_PlayerEffectAnim[playerIndex].explosionFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+		addEntry(25, g_PlayerEffectAnim[playerIndex].explosionFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
 	// 毒状態エフェクト
 	if (player.isPoisoned)
