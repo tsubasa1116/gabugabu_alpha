@@ -3,13 +3,14 @@
 
 enum SCENE
 {
-	SCENE_NONE = 0,		//�����Ȃ�
-	SCENE_TITLE,		//�^�C�g���V�[��
-	SCENE_START,		//�Q�[���X�^�[�g�V�[��
-	SCENE_SETTING,		//�ݒ�V�[��
-	SCENE_SOUND,		//�T�E���h�e�X�g�V�[��
-	SCENE_GAME,			//�Q�[���V�[��
-	SCENE_RESULT,		//���U���g���V�[��
+	SCENE_NONE = 0,		//菴輔ｂ縺ｪ縺
+	SCENE_TITLE,		//繧ｿ繧､繝医Ν繧ｷ繝ｼ繝ｳ
+	SCENE_START,		//繧ｲ繝ｼ繝繧ｹ繧ｿ繝ｼ繝医す繝ｼ繝ｳ
+	SCENE_SETTING,		//險ｭ螳壹す繝ｼ繝ｳ
+	SCENE_SOUND,		//繧ｵ繧ｦ繝ｳ繝峨ユ繧ｹ繝医す繝ｼ繝ｳ
+	SCENE_GAME,			//繧ｲ繝ｼ繝繧ｷ繝ｼ繝ｳ
+	SCENE_WIN,			//蜍晏茜繧ｷ繝ｼ繝ｳ
+	SCENE_RESULT,		//繝ｪ繧ｶ繝ｫ繝医Ν繧ｷ繝ｼ繝ｳ
 
 };
 
