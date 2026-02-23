@@ -35,7 +35,7 @@ LIGHTOBJECT Light;
 //======================================================
 //
 //======================================================
-static int g_BgmID = NULL;	
+static int g_BgmID = NULL;
 bool input2 = false;
 
 const int KONAMI_CODE[] = {
@@ -68,7 +68,7 @@ void CheckKonamiCode(int currentKeyCode)
 			s_IsKonamiCodeEntered = !s_IsKonamiCodeEntered;
 
 
-			s_KonamiCodeIndex = 0; 
+			s_KonamiCodeIndex = 0;
 		}
 	}
 	else
@@ -107,7 +107,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//Score_Initialize(pDevice, pContext);
 
 	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");
-	//PlayAudio(g_BgmID, true);	
+	//PlayAudio(g_BgmID, true);
 	//PlayAudio(g_BgmID);		
 	//PlayAudio(g_BgmID, false);
 
@@ -123,7 +123,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	para.x /= len;
 	para.y /= len;
 	para.z /= len;
-	Light.SetDirection(para);	
+	Light.SetDirection(para);
 }
 
 //======================================================
@@ -139,12 +139,12 @@ void Game_Finalize()
 	Skill_Finalize();
 	Special_Finalize();
 	SkyBall_Finalize();
-	
+
 	//BallFinalize();
 	//P_Finalize();
 	//Score_Finalize();
 
-	UnloadAudio(g_BgmID);
+	//UnloadAudio(g_BgmID);
 	DamageText_Finalize();
 }
 
@@ -156,7 +156,7 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
-		 if (Keyboard_IsKeyDownTrigger(KK_UP))		CheckKonamiCode(KK_UP);
+	if (Keyboard_IsKeyDownTrigger(KK_UP))			CheckKonamiCode(KK_UP);
 	else if (Keyboard_IsKeyDownTrigger(KK_DOWN))	CheckKonamiCode(KK_DOWN);
 	else if (Keyboard_IsKeyDownTrigger(KK_LEFT))	CheckKonamiCode(KK_LEFT);
 	else if (Keyboard_IsKeyDownTrigger(KK_RIGHT))	CheckKonamiCode(KK_RIGHT);
@@ -165,12 +165,17 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
-
 	Player_Update();
 	Field_Update();
+	Building_UpdateAll();
 	Effect_Update();
+
+	//// プレイヤーが近づいた時に建物テクスチャ差し替え
+	//Effect_UpdateAllBuildings();
+
 	Gauge_Update();
-	Camera_Update();	
+	Gauge_Update();
+	Camera_Update();
 	SkyBall_Update();
 	//BallUpdate();
 	//P_Update();
@@ -190,28 +195,37 @@ void Game_Update()
 //
 //======================================================
 void Game_Draw()
-{ 
+{
 
-	Light.SetEnable(FALSE);			
-	Shader_SetLight(Light.Light);	
+	Light.SetEnable(FALSE);
+	Shader_SetLight(Light.Light);
 	SkyBall_Draw();
 	SetDepthTest(FALSE);
-	Camera_Draw();	
+	Camera_Draw();
 
-	Light.SetEnable(TRUE);			
-	Shader_SetLight(Light.Light);	
+	Light.SetEnable(TRUE);
+	Shader_SetLight(Light.Light);
 	SetDepthTest(TRUE);
 
 	Field_Draw(s_IsKonamiCodeEntered);
+
+	// ★ 建物エフェクトの一括描画（3D空間）
+	{
+		Shader_Begin();
+		SetBlendState(BLENDSTATE_ALPHA);
+		SetDepthReadOnly();
+		Effect_DrawAllBuildings();
+		SetDepthTest(TRUE);
+	}
 	Player_Draw(s_IsKonamiCodeEntered);
 
-	Light.SetEnable(FALSE);			
-	Shader_SetLight(Light.Light);	
+	Light.SetEnable(FALSE);
+	Shader_SetLight(Light.Light);
 	SetDepthTest(FALSE);
-    
+
 	Effect_Draw();
 	Player_DrawHP();
-	
+
 	Player_DrawText();
 	DamageText_Draw();
 }
