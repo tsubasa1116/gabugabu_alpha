@@ -1667,15 +1667,6 @@ void Player_DrawHP()
 				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
 
-		if (Player_CanUseSpecial(i))
-		{
-			Effect_Set(26, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (100.0f * SCREEN_ADJUST_Y) }, { (162.0f * SCREEN_ADJUST_X), (60.0f * SCREEN_ADJUST_Y) }, i);
-		}
-		if (!Player_CanUseSpecial(i))
-		{
-			Effect_Clear(i);
-		}
-
 
 		// 通常ゲージ（内＋外）は常に描画
 		// スキルゲージは属性確定のときのみ描画

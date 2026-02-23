@@ -63,12 +63,6 @@ static const int FIELD_TEX_MAX = static_cast<int>(sizeof(g_TexturePaths) / sizeo
 // テクスチャ配列（要素数は FIELD_TEX_MAX に合わせる）
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX] = { nullptr };
 
-// 配列要素数から定数を作成（定義と実データの不一致を防ぐ）
-static const int FIELD_TEX_MAX = static_cast<int>(sizeof(g_TexturePaths) / sizeof(g_TexturePaths[0]));
-
-// テクスチャ配列（要素数は FIELD_TEX_MAX に合わせる）
-static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX] = { nullptr };
-
 //=========================================
 // モデル定義（複数対応）
 //=========================================

@@ -39,7 +39,7 @@ LIGHTOBJECT Light;
 static int g_BgmID = NULL;
 bool input2 = false;
 
-// ã‚³ãƒãƒ³ãƒ‰ãŒå…¥åŠ›ã•ã‚ŒãŸã¨ãã«ç«‹ã¤ãƒ•ãƒ©ã‚°
+// ƒRƒ}ƒ“ƒh‚ª“ü—Í‚³‚ê‚½‚Æ‚«‚É—§‚Âƒtƒ‰ƒO
 static bool s_IsKonamiCodeEntered = false;
 
 //======================================================
@@ -64,10 +64,10 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext);		
 	//Score_Initialize(pDevice, pContext);
 
-	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// ã‚µã‚¦ãƒ³ãƒ‰ãƒ­ãƒ¼ãƒ‰
-	//PlayAudio(g_BgmID, true);		// å†ç”Ÿé–‹å§‹(ãƒ«ãƒ¼ãƒ—ã‚ã‚Š)
-	//PlayAudio(g_BgmID);			// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼‰
-	//PlayAudio(g_BgmID, false);	// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼‰
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// ƒTƒEƒ“ƒhƒ[ƒh
+	//PlayAudio(g_BgmID, true);		// Ä¶ŠJn(ƒ‹[ƒv‚ ‚è)
+	//PlayAudio(g_BgmID);			// Ä¶ŠJniƒ‹[ƒv‚È‚µj
+	//PlayAudio(g_BgmID, false);	// Ä¶ŠJniƒ‹[ƒv‚È‚µj
 
 	XMFLOAT4 para;
 
@@ -114,7 +114,7 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
-	// ã‚³ãƒãƒ³ãƒ‰ã§ä½¿ç”¨ã™ã‚‹å…¨ã¦ã®ã‚­ãƒ¼ã®æŠ¼ä¸‹ãƒˆãƒªã‚¬ãƒ¼ã‚’ãƒã‚§ãƒƒã‚¯ã—ã€æ¤œå‡ºé–¢æ•°ã«æ¸¡ã™
+	// ƒRƒ}ƒ“ƒh‚Åg—p‚·‚é‘S‚Ä‚ÌƒL[‚Ì‰Ÿ‰ºƒgƒŠƒK[‚ğƒ`ƒFƒbƒN‚µAŒŸoŠÖ”‚É“n‚·
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
 		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
@@ -128,7 +128,7 @@ void Game_Update()
 	Building_UpdateAll();
 	Effect_Update();
 
-	// å»ºç‰©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°ï¼ˆ1æ£Ÿãšã¤ï¼‰
+	// Œš•¨ƒGƒtƒFƒNƒgXVi1“‚¸‚Âj
 	int buildingCount = GetBuildingCount();
 	for (int i = 0; i < buildingCount; i++)
 	{
@@ -171,7 +171,7 @@ void Game_Draw()
 
 	Field_Draw(s_IsKonamiCodeEntered);
 
-	// â˜… å»ºç‰©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ä¸€æ‹¬æç”»ï¼ˆ3Dç©ºé–“ï¼‰
+	// š Œš•¨ƒGƒtƒFƒNƒg‚ÌˆêŠ‡•`‰æi3D‹óŠÔj
 	{
 		Shader_Begin();
 		SetBlendState(BLENDSTATE_ALPHA);
