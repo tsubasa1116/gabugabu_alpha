@@ -18,6 +18,7 @@ hp HPBar[HPBER_MAX];
 #define SIZE_ADJUST	((1.88f *  (SCREEN_WIDTH / 1280.0f)))
 #define POS_ADJUST	((86.4f *  (SCREEN_WIDTH / 1280.0f)))
 
+
 // -------------------------------------------------------------
 // 初期化
 // -------------------------------------------------------------
@@ -44,6 +45,9 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	bar->gaugeIndex = -1;
 	bar->shakeTexNum = -1; // シェイク中の代替テクスチャなし
 	bar->deathTexNum = -1;
+
+	bar->currentType = PlayerType::None;
+	bar->isOutline = false;
 
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -92,6 +96,7 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	assert(g_Texture[9]);//読み込み失敗時にダイアログを表示
 
 }
+
 
 // -------------------------------------------------------------
 // 更新
@@ -218,6 +223,44 @@ void DrawHP(const hp* bar, int texNum, bool isDead)
 		backTexIndex = bar->shakeTexNum;
 	}
 
+	if (bar->isOutline && !isDead)
+	{
+		const float outerScale = 1.05f * (SCREEN_WIDTH / 1280.0f); 
+
+		XMFLOAT2 outerSize = { backSize.x * outerScale, backSize.y * outerScale };
+		XMFLOAT4 outerColor = color::black;
+
+		switch (bar->currentType)
+		{
+			switch (bar->currentType)
+			{
+			case PlayerType::Glass:
+				outerColor = color::sky;
+				break;
+			case PlayerType::Concrete:
+				outerColor = color::gray;
+				break;
+			case PlayerType::Plant:
+				outerColor = color::green;
+				break;
+			case PlayerType::Electricity:
+				outerColor = color::yellow;
+				break;
+			default:
+				outerColor = color::black;
+				break;
+			}
+		}
+
+		Shader_SetDrawMode(2);
+		Shader_SetColor(outerColor);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[backTexIndex]);
+		DrawSprite(backPos, outerSize, backDrawColor);
+
+		Shader_SetDrawMode(0);
+		Shader_SetColor(color::white);
+	}
+
 	// 背景を描画
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[backTexIndex]);
 	DrawSprite(backPos, backSize, backDrawColor);
@@ -284,7 +327,10 @@ void SetHPValue(hp* bar, int currentHP, int maxHP)
     bar->target = newTarget;
 }
 
-// シェイク
+
+// -------------------------------------------------------------
+// HPバーシェイク
+// -------------------------------------------------------------
 void SetHPShake(hp* bar, float amplitude, float duration, float speed, int shakeTexNum)
 {
 	if (!bar) return;
@@ -307,11 +353,16 @@ void SetHPShake(hp* bar, float amplitude, float duration, float speed, int shake
 	bar->shakeTexNum = shakeTexNum; // シェイク中に使うテクスチャ（-1で無効）
 }
 
+
+// -------------------------------------------------------------
+// 死んだポレイヤー用テクスチャセット
+// -------------------------------------------------------------
 void SetDeathHP(hp* bar, int deathTexNum)
 {
 	if (!bar) return;
 	bar->deathTexNum = deathTexNum;
 }
+
 
 // -------------------------------------------------------------
 // 終了
@@ -321,8 +372,23 @@ void FinalizeHP(hp* bar)
 	bar->use = false;
 }
 
+
+// -------------------------------------------------------------
+// ゲった～
+// -------------------------------------------------------------
 hp* GetHPBar(int HPIndex)
 {
 	if (HPIndex < 0 || HPIndex >= HPBER_MAX) return nullptr;
 	return &HPBar[HPIndex];
+}
+
+
+// -------------------------------------------------------------
+// 属性用のアウトライン用設定
+// -------------------------------------------------------------
+void SetHPOutline(hp* bar, PlayerType type)
+{
+	if (!bar) return;
+	bar->currentType = type;
+	bar->isOutline = (type != PlayerType::None);
 }

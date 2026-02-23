@@ -374,7 +374,7 @@ void Camera_UpdateAuto()
 	float maxSpread = (spreadX > spreadZ) ? spreadX : spreadZ;
 
 	// 平行投影での表示幅を計算して、この値が画面の横方向の幅になる
-	float margin = 10.0f;
+	float margin = 15.0f;
 	float targetWidth = maxSpread + margin;
 
 	// ズームの最小値

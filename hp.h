@@ -6,6 +6,7 @@ using namespace DirectX;
 #include "polygon.h"
 #include "sprite.h"
 #include "shader.h"
+#include "player.h"
 
 #define HPBER_MAX (4)		// HPバー最大数
 #define HPBAR_SPEED (3.0f)	// HPバーのスムーズ減少速度
@@ -31,6 +32,9 @@ struct hp {
 	int gaugeIndex;
 	int shakeTexNum;        // シェイク中に使うテクスチャ番号（-1で無効）
 	int deathTexNum;
+
+	PlayerType currentType;
+	bool isOutline;
 };
 
 //=============================================
@@ -47,4 +51,5 @@ void FinalizeHP(hp* bar);
 void SetHPShake(hp* bar, float amplitude = 8.0f, float duration = 15.0f, float speed = 1.5f, int shakeTexNum = -1);
 void SetDeathHP(hp* bar, int deathTexNum = -1);
 hp* GetHPBar(int HPIndex);
+void SetHPTypeOutline(hp* bar, PlayerType type);
 
