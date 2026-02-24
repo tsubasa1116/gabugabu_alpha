@@ -38,11 +38,11 @@ static float g_SlideOffsetTop = 0.0f;
 static float g_SlideOffsetBottom = 0.0f;
 const float SLIDE_SPEED = 2.0f;	
 
-static int g_AnimFrame = 0;
-static float g_AnimTimer = 0.0f;
 const int ANIM_START = 8;
 const int ANIM_END = 15;
 const float ANIM_SPEED = 0.12f; // 1フレームあたりの秒数（お好みで調整）
+static int g_AnimFrame = ANIM_START;
+static float g_AnimTimer = 0.0f;
 
 //======================================================
 //	初期化関数
@@ -157,10 +157,13 @@ void Win_Update()
 
 	// アニメーションフレーム更新
 	g_AnimTimer += 1.0f / 60.0f; // 60FPS前提
-	if (g_AnimTimer >= ANIM_SPEED) {
+	if (g_AnimTimer >= ANIM_SPEED)
+	{
 		g_AnimTimer = 0.0f;
-		g_AnimFrame++;
-		if (g_AnimFrame > ANIM_END) g_AnimFrame = ANIM_START;
+		if (g_AnimFrame < ANIM_END) {
+			g_AnimFrame++;
+		}
+		// g_AnimFrameがANIM_ENDになったら止まる（ループしない）
 	}
 }
 
@@ -237,14 +240,15 @@ void Win_Draw()
 		DrawSprite(pos, size, col);//1枚絵を表示
 	}
 
-	// アニメーションキャラ描画
 	if (g_Texture6)
 	{
-		SetBlendState(BLENDSTATE_ALPHA); // 必要に応じて
-		int frame = g_AnimFrame;
+		
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture6); 
+		
+		int frame = g_AnimFrame; // 8～15
 		int framesPerRow = 8;
-		int frameX = frame % framesPerRow;
-		int frameY = frame / framesPerRow;
+		int frameX = frame % framesPerRow; // 0～7
+		int frameY = frame / framesPerRow; // 1
 
 		float frameWidth = (float)g_TexMeta6.width / 8.0f;
 		float frameHeight = (float)g_TexMeta6.height / 8.0f;
@@ -254,9 +258,9 @@ void Win_Draw()
 		float u1 = (frameX + 1) * frameWidth / g_TexMeta6.width;
 		float v1 = (frameY + 1) * frameHeight / g_TexMeta6.height;
 
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
-		XMFLOAT2 size = { frameWidth * 1.0f, frameHeight * 1.0f };
-		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f }; // ←ここを必ず白に
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 300 };
+		XMFLOAT2 size = { frameWidth * 1.5f, frameHeight * 1.5f }; // 拡大例
+		XMFLOAT4 col = { 1, 1, 1, 1 };
 
 		DrawSpriteUV(pos, size, col, XMFLOAT2(u0, v0), XMFLOAT2(u1, v1));
 	}
