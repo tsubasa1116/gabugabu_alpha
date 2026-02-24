@@ -446,17 +446,10 @@ void Player_Update()
 		ImGui::Text("Player %d", p + 1);
 		ImGui::Indent();
 
-		ImGui::SliderFloat("poisonTimer", &player[p].poisonTimer, 0.0f, 5.0f);
 		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
 		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
-		ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
-		ImGui::BulletText("position.y        : %.2f", player[p].position.y);
-		ImGui::BulletText("isEggBreaking     : %d", player[p].isEggBreaking);
-		ImGui::BulletText("isShadowEnabled   : %d", player[p].isShadowEnabled);
-		ImGui::BulletText("isHealing         : %d", player[p].isHealing);
-		ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
-		ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
-		ImGui::BulletText("useSkill          : %d", player[p].useSkill);
+		ImGui::BulletText("form              : %d", player[p].form);
+		ImGui::BulletText("type              : %d", player[p].type);
 		ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
 		ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
 
@@ -1492,7 +1485,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 			{
 				// ‘æ1Œ`‘Ô
 			case Form::First:
-				if (idx == 0) { srv = g_Texture[0];	break; }
+					 if (idx == 0) { srv = g_Texture[0];	break; }
 				else if (idx == 1) { srv = g_Texture[1];	break; }
 				else if (idx == 2) { srv = g_Texture[2];	break; }
 				else if (idx == 3) { srv = g_Texture[3];	break; }

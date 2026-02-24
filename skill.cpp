@@ -395,7 +395,7 @@ void Skill_Glass_Update(int playerIndex)
 	const float RelativeAngles[5] = { 20.0f, 130.0f, 180.0f, 220.0f, 290.0f };
 
 	// 5つの箱のプレイヤーからの高さオフセット
-	const float High[5] = { 0.0f, 0.5f, -0.1f, 0.2f, 0.3f };
+	const float High[5] = { 0.0f, 0.5f, 0.1f, 0.2f, 0.3f };
 
 	// 5つの箱の回転角度 (度)
 	const float Rot[5] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
