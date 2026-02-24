@@ -480,7 +480,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		XMMATRIX WVP = World * VP;
 
 		Shader_SetWorldMatrix(World);
-		Shader_SetMatrix(World * VP);
+		Shader_SetMatrix(WVP);
 
 		// ------------------------------
 		// 種類ごとにテクスチャ切り替え
