@@ -16,6 +16,8 @@
 
 #define SKILL_GLASS_DAMAGE			(0.25f)
 
+#define SKILL_SE_COUNT				(4)	// ÉXÉLÉã SEÇÃêî
+
 struct SKILL_OBJECT
 {
 	XMFLOAT3 position;

@@ -31,6 +31,8 @@
 #define COORDINATE		(0.5f)	// デフォルト (0.5f)
 #define TEXCOORD		(1.0f)	// デフォルト (1.0f)
 
+#define PLAYER_SE_COUNT		(4)	// プレイヤー SEの数
+
 enum class PlayerDir
 {
 	Down = 0,

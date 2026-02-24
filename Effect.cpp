@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include "debug_render.h"
 #include "Building.h"
+#include "Audio.h"
 
 #define EFFECT_SPRITE_X		(8)
 #define EFFECT_SPRITE_Y		(8)
@@ -79,6 +80,8 @@ static const float ANIM_FRAME_TIME = 0.16f;	// 1フレームあたりの秒数
 
 PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
 BUILDING_EFFECT_ANIM g_BuildingEffectAnim[BUILDING_EFFECT_MAX];
+
+//static int g_SE_ID[10] = { NULL };
 
 // テクスチャ番号ごとの設定
 static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
@@ -245,6 +248,8 @@ void Effect_Finalize()
 		g_Texture[i] = nullptr;
 		g_ReleaseOwned[i] = false;
 	}
+
+	//for (int i = 0; i < 4; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 //===============================================

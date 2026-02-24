@@ -18,6 +18,7 @@ using namespace DirectX;
 #include "input.h"
 #include "hp.h"
 #include "color.h"
+#include "Audio.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -34,6 +35,8 @@ static ID3D11ShaderResourceView* g_Attack_Texture[PLAYER_MAX];
 
 // オブジェクト
 static ATTACK_OBJECT Attack[PLAYER_MAX];
+
+static int g_SE_ID[ATTACK_SE_COUNT] = { NULL };
 
 // マクロ定義
 #define ATTACK_VERTEX (24)
@@ -265,6 +268,9 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		CopyMemory(&index[0], &Attack_idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
+
+	// SEの初期化
+	g_SE_ID[0] = LoadAudio("asset\\Audio\\BuildingDestroy.wav");	// 建物 崩壊
 }
 
 void Attack_Finalize()
@@ -288,6 +294,8 @@ void Attack_Finalize()
 			g_Attack_Texture[i] = NULL;
 		}
 	}
+
+	for (int i = 0; i < ATTACK_SE_COUNT; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 void Attack_Update(int playerIndex)
@@ -386,6 +394,7 @@ void Attack_Update(int playerIndex)
 
 				buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 				buildingObjects[i]->isDestroyed = true;				// 建物破壊フラグを有効
+				PlayAudio(g_SE_ID[0]);								// 建物崩壊の効果音を再生
 				player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 				player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 

@@ -4,6 +4,7 @@
 #include "keyboard.h"
 #include "Effect.h"
 #include "player.h"
+#include "Audio.h"
 #include "debug_ostream.h"     // ← 追加: hal::dout を使うため
 #include <codecvt>            // ← 追加: ワイド→UTF-8 変換用
 #include <locale>
@@ -21,6 +22,8 @@ static Building* Buildings[300];
 
 // 現在の建物数
 static int BuildingCount = 0;
+
+//static int g_SE_ID[10] = { NULL };
 
 // ★テクスチャのパス用意
 static const wchar_t* g_TexturePaths[] =
@@ -189,8 +192,6 @@ Building::~Building()
 //=========================================
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Building_Finalize();
-
 	// ★デバイス＆コンテキスト保存
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -272,6 +273,8 @@ void Building_Finalize()
 			g_Texture[i] = nullptr;
 		}
 	}
+
+	//for (int i = 0; i < 4; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 //=========================================
