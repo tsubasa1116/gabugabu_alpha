@@ -1378,6 +1378,7 @@ void Player_Update()
 		SetHPValue(&HPBar[p], (int)player[p].hp, (int)PLAYER_MAX_HP);
 		UpdateHP(&HPBar[p]);
 	}
+	AttackPlayerCollisions();
 	ImGui::End();
 }
 
