@@ -267,6 +267,11 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	HPBar[2].gaugeIndex = 2;
 	HPBar[3].gaugeIndex = 3;
 
+	SetDeathHP(&HPBar[0], 6);
+	SetDeathHP(&HPBar[1], 7);
+	SetDeathHP(&HPBar[2], 8);
+	SetDeathHP(&HPBar[3], 9);
+
 	// アニメーションの初期化
 	for (int i = 0; i < PLAYER_MAX; ++i)
 	{
@@ -859,6 +864,7 @@ void Player_Update()
 			{
 				// 残機無しで完全に非アクティブ化
 				player[p].active = false;
+
 				// 順位登録
 				Ranking(p);
 				player[p].position.y = 0.0f;
@@ -1357,13 +1363,288 @@ void Player_Update()
 
 		SetHPValue(&HPBar[p], (int)player[p].hp, (int)PLAYER_MAX_HP);
 		UpdateHP(&HPBar[p]);
+
+		if (&HPBar[p])
+		{
+			SetHPOutline(&HPBar[p], player[p].type);
+		}
 	}
 
 	// プレイヤー同士の攻撃判定
 	AttackPlayerCollisions();
-
 	ImGui::End();
 }
+
+
+//======================================================
+//	シルエット用描画
+//======================================================
+static void Player_DrawSilhouette(int p)
+{
+	if (!player[p].active) return;
+
+	// プロジェクション・ビュー行列を取得
+	XMMATRIX proj = GetProjectionMatrix();
+	XMMATRIX view = GetViewMatrix();
+
+	const float scale = 3.5f; // 通常描画と同じ倍率をかける
+
+	// ワールド行列（ビルボード）
+	XMMATRIX scalingMatrix = XMMatrixScaling(
+		player[p].scaling.x * scale,
+		player[p].scaling.y * scale,
+		player[p].scaling.z * scale
+	);
+
+	XMMATRIX viewMatrix = GetViewMatrix();
+	viewMatrix.r[3].m128_f32[0] = 0.0f;
+	viewMatrix.r[3].m128_f32[1] = 0.0f;
+	viewMatrix.r[3].m128_f32[2] = 0.0f;
+	viewMatrix.r[3].m128_f32[3] = 1.0f;
+	viewMatrix = XMMatrixTranspose(viewMatrix);
+	viewMatrix.r[3].m128_f32[0] = player[p].position.x;
+	viewMatrix.r[3].m128_f32[1] = player[p].position.y;
+	viewMatrix.r[3].m128_f32[2] = player[p].position.z;
+	viewMatrix.r[3].m128_f32[3] = 1.0f;
+
+	XMMATRIX worldMatrix = scalingMatrix * viewMatrix;
+	Shader_SetWorldMatrix(worldMatrix);
+
+	XMMATRIX wvp = scalingMatrix * viewMatrix * view * proj;
+	Shader_SetMatrix(wvp);
+
+	Shader_Begin();
+	SetBlendState(BLENDSTATE_ALPHA);
+
+	// シルエット色を設定（プレイヤーごとに異なる色）
+	XMFLOAT4 silhouetteColor;
+	switch (p)
+	{
+	case 0: silhouetteColor  = { 0.64f,  0.2f, 0.2f, 1.0f }; break; // 赤
+	case 1: silhouetteColor  = {  0.0f, 0.45f, 0.7f, 1.0f }; break; // 青
+	case 2: silhouetteColor  = {  0.7f,  0.7f, 0.0f, 1.0f }; break; // 黄
+	case 3: silhouetteColor  = {  0.0f,  0.6f, 0.0f, 1.0f }; break; // 緑
+	default: silhouetteColor = {  1.0f,  1.0f, 1.0f, 1.0f }; break;
+	}
+	Shader_SetColor(silhouetteColor);
+
+	// 深度テスト 奥にある時だけ描画する（Greater）
+	ID3D11DeviceContext* context = Direct3D_GetDeviceContext();
+	ID3D11DepthStencilState* depthStateGreater = Direct3D_GetDepthStateGreater();
+	context->OMSetDepthStencilState(depthStateGreater, 0);
+
+	// シルエット用の描画モード設定
+	Shader_SetDrawMode(1);
+
+	// テクスチャ設定（通常描画と同じ）
+	ID3D11ShaderResourceView* srv = nullptr;
+	switch (player[p].form)
+	{
+	case Form::First:
+		if (p == 0)      srv = g_Texture[0];
+		else if (p == 1) srv = g_Texture[1];
+		else if (p == 2) srv = g_Texture[2];
+		else if (p == 3) srv = g_Texture[3];
+		break;
+	case Form::Second:
+		switch (player[p].type)
+		{
+		case PlayerType::Glass:       srv = g_Texture[4]; break;
+		case PlayerType::Concrete:    srv = g_Texture[5]; break;
+		case PlayerType::Plant:       srv = g_Texture[6]; break;
+		case PlayerType::Electricity: srv = g_Texture[7]; break;
+		default: break;
+		}
+		break;
+	case Form::Third:
+		switch (player[p].type)
+		{
+		case PlayerType::Glass:       srv = g_Texture[8];  break;
+		case PlayerType::Concrete:    srv = g_Texture[9];  break;
+		case PlayerType::Plant:       srv = g_Texture[10]; break;
+		case PlayerType::Electricity: srv = g_Texture[11]; break;
+		default: break;
+		}
+		break;
+	default: break;
+	}
+
+	if (player[p].useSpecial) srv = g_Texture[12];
+
+	// 頂点バッファにデータコピー（UV設定）
+	D3D11_MAPPED_SUBRESOURCE msr;
+	Vertex2 localVt[PLAYER_VERTEX];
+	CopyMemory(&localVt[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+
+	// 現在のアニメーションフレームからUV計算
+	int frame = g_animFrame[p];
+	int col = frame % SHEET_COLS;
+	int row = frame / SHEET_COLS;
+	float u0 = (float)col / (float)SHEET_COLS;
+	float v0 = (float)row / (float)SHEET_ROWS;
+	float u1 = u0 + 1.0f / (float)SHEET_COLS;
+	float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+	localVt[0].tex = XMFLOAT2(u0, v0);
+	localVt[1].tex = XMFLOAT2(u1, v0);
+	localVt[2].tex = XMFLOAT2(u0, v1);
+	localVt[3].tex = XMFLOAT2(u1, v1);
+
+	context->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	Vertex2* vertex = (Vertex2*)msr.pData;
+	CopyMemory(vertex, &localVt[0], sizeof(Vertex2) * PLAYER_VERTEX);
+	context->Unmap(g_VertexBuffer, 0);
+
+	context->PSSetShaderResources(0, 1, &srv);
+
+	// 描画
+	UINT stride = sizeof(Vertex2);
+	UINT offset = 0;
+	context->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	context->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	context->DrawIndexed(6, 0, 0);
+
+	// 深度ステートを戻す
+	ID3D11DepthStencilState* depthStateEnable = Direct3D_GetDepthStateEnable();
+	context->OMSetDepthStencilState(depthStateEnable, 0);
+
+	// 描画モードを通常に戻す
+	Shader_SetDrawMode(0);
+	Shader_SetColor(color::white);
+}
+
+
+//======================================================
+//	アウトライン用描画
+//======================================================
+static void Player_DrawOutline(int p)
+{
+	if (!player[p].active) return;
+
+	// プロジェクション・ビュー行列を取得
+	XMMATRIX proj = GetProjectionMatrix();
+	XMMATRIX view = GetViewMatrix();
+
+	const float scale = 3.6f; // 通常描画り少し大きめの倍率をかける
+
+	// ワールド行列（ビルボード）
+	XMMATRIX scalingMatrix = XMMatrixScaling(
+		player[p].scaling.x * scale,
+		player[p].scaling.y * scale,
+		player[p].scaling.z * scale
+	);
+
+	XMMATRIX viewMatrix = GetViewMatrix();
+	viewMatrix.r[3].m128_f32[0] = 0.0f;
+	viewMatrix.r[3].m128_f32[1] = 0.0f;
+	viewMatrix.r[3].m128_f32[2] = 0.0f;
+	viewMatrix.r[3].m128_f32[3] = 1.0f;
+	viewMatrix = XMMatrixTranspose(viewMatrix);
+	viewMatrix.r[3].m128_f32[0] = player[p].position.x;
+	viewMatrix.r[3].m128_f32[1] = player[p].position.y;
+	viewMatrix.r[3].m128_f32[2] = player[p].position.z;
+	viewMatrix.r[3].m128_f32[3] = 1.0f;
+
+	XMMATRIX worldMatrix = scalingMatrix * viewMatrix;
+	Shader_SetWorldMatrix(worldMatrix);
+
+	XMMATRIX wvp = scalingMatrix * viewMatrix * view * proj;
+	Shader_SetMatrix(wvp);
+
+	Shader_Begin();
+	SetBlendState(BLENDSTATE_ALPHA);
+
+	// シルエット色を設定（プレイヤーごとに異なる色）
+	XMFLOAT4 outerColor;
+	switch (p)
+	{
+	case 0: outerColor = { 0.94f,  0.5f, 0.5f, 1.0f }; break; // 赤
+	case 1: outerColor = {  0.0f, 0.75f, 1.0f, 1.0f }; break; // 青
+	case 2: outerColor = {  1.0f,  1.0f, 0.3f, 1.0f }; break; // 黄
+	case 3: outerColor = {  0.0f,  1.0f, 0.0f, 1.0f }; break; // 緑
+	default: outerColor = { 1.0f, 1.0f, 1.0f, 0.4f }; break;
+	}
+	Shader_SetColor(outerColor);
+
+	// アウトライン用の描画モード設定
+	Shader_SetDrawMode(2);
+
+
+	// テクスチャ設定（通常描画と同じ）
+	ID3D11ShaderResourceView* srv = nullptr;
+	switch (player[p].form)
+	{
+	case Form::First:
+		if (p == 0)      srv = g_Texture[0];
+		else if (p == 1) srv = g_Texture[1];
+		else if (p == 2) srv = g_Texture[2];
+		else if (p == 3) srv = g_Texture[3];
+		break;
+	case Form::Second:
+		switch (player[p].type)
+		{
+		case PlayerType::Glass:       srv = g_Texture[4]; break;
+		case PlayerType::Concrete:    srv = g_Texture[5]; break;
+		case PlayerType::Plant:       srv = g_Texture[6]; break;
+		case PlayerType::Electricity: srv = g_Texture[7]; break;
+		default: break;
+		}
+		break;
+	case Form::Third:
+		switch (player[p].type)
+		{
+		case PlayerType::Glass:       srv = g_Texture[8];  break;
+		case PlayerType::Concrete:    srv = g_Texture[9];  break;
+		case PlayerType::Plant:       srv = g_Texture[10]; break;
+		case PlayerType::Electricity: srv = g_Texture[11]; break;
+		default: break;
+		}
+		break;
+	default: break;
+	}
+
+	if (player[p].useSpecial) srv = g_Texture[12];
+	
+	// 頂点バッファにデータコピー（UV設定）
+	D3D11_MAPPED_SUBRESOURCE msr;
+	Vertex2 localVt[PLAYER_VERTEX];
+	
+	CopyMemory(&localVt[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+	// 現在のアニメーションフレームからUV計算
+	int frame = g_animFrame[p];
+	int col = frame % SHEET_COLS;
+	int row = frame / SHEET_COLS;
+	float u0 = (float)col / (float)SHEET_COLS;
+	float v0 = (float)row / (float)SHEET_ROWS;
+	float u1 = u0 + 1.0f / (float)SHEET_COLS;
+	float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+	localVt[0].tex = XMFLOAT2(u0, v0);
+	localVt[1].tex = XMFLOAT2(u1, v0);
+	localVt[2].tex = XMFLOAT2(u0, v1);
+	localVt[3].tex = XMFLOAT2(u1, v1);
+
+	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	Vertex2* vertex = (Vertex2*)msr.pData;
+	CopyMemory(vertex, &localVt[0], sizeof(Vertex2) * PLAYER_VERTEX);
+	g_pContext->Unmap(g_VertexBuffer, 0);
+
+	g_pContext->PSSetShaderResources(0, 1, &srv);
+
+	// 描画
+	UINT stride = sizeof(Vertex2);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	g_pContext->DrawIndexed(6, 0, 0);
+
+	// 描画モードを通常に戻す
+	Shader_SetDrawMode(0);
+	Shader_SetColor(color::white);
+}
+
 
 //======================================================
 //	描画関数
@@ -1413,71 +1694,71 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 
 	// プレイヤーを描画するラムダ（Projection, View をキャプチャ）
 	auto DrawPlayerInternal = [&](int idx)
-		{
-			if (!player[idx].active) return;
+	{
+		if (!player[idx].active) return;
 
-			// プレイヤーの影エフェクト描画
-			EffectShadow_DrawForPlayer(idx);
+		// プレイヤーの影エフェクト描画
+		EffectShadow_DrawForPlayer(idx);
 
-			const float spriteScale = 3.5f;	// 表示倍率
+		const float spriteScale = 3.5f;	// 表示倍率
 
-			// ワールド行列（ビルボード風の既存ロジックを踏襲）
-			XMMATRIX ScalingMatrix = XMMatrixScaling(
-				player[idx].scaling.x * spriteScale,
-				player[idx].scaling.y * spriteScale,
-				player[idx].scaling.z * spriteScale
-			);
+		// ワールド行列（ビルボード風の既存ロジックを踏襲）
+		XMMATRIX ScalingMatrix = XMMatrixScaling(
+			player[idx].scaling.x * spriteScale,
+			player[idx].scaling.y * spriteScale,
+			player[idx].scaling.z * spriteScale
+		);
 
-			XMMATRIX vm = GetViewMatrix();	// カメラの行列
-			vm.r[3].m128_f32[0] = 0.0f;
-			vm.r[3].m128_f32[1] = 0.0f;
-			vm.r[3].m128_f32[2] = 0.0f;
-			vm.r[3].m128_f32[3] = 1.0f;
-			vm = XMMatrixTranspose(vm);
-			vm.r[3].m128_f32[0] = player[idx].position.x;
-			vm.r[3].m128_f32[1] = player[idx].position.y;
-			vm.r[3].m128_f32[2] = player[idx].position.z;
-			vm.r[3].m128_f32[3] = 1.0f;
+		XMMATRIX vm = GetViewMatrix();	// カメラの行列
+		vm.r[3].m128_f32[0] = 0.0f;
+		vm.r[3].m128_f32[1] = 0.0f;
+		vm.r[3].m128_f32[2] = 0.0f;
+		vm.r[3].m128_f32[3] = 1.0f;
+		vm = XMMatrixTranspose(vm);
+		vm.r[3].m128_f32[0] = player[idx].position.x;
+		vm.r[3].m128_f32[1] = player[idx].position.y;
+		vm.r[3].m128_f32[2] = player[idx].position.z;
+		vm.r[3].m128_f32[3] = 1.0f;
 
-			// World 行列（ビルボード用）をシェーダーに渡す
-			XMMATRIX WorldMatrix = ScalingMatrix * vm;
-			Shader_SetWorldMatrix(WorldMatrix);
+		// World 行列（ビルボード用）をシェーダーに渡す
+		XMMATRIX WorldMatrix = ScalingMatrix * vm;
+		Shader_SetWorldMatrix(WorldMatrix);
 
-			XMMATRIX WVP = ScalingMatrix * vm * view * projection;
+		XMMATRIX WVP = ScalingMatrix * vm * view * projection;
 
-			Shader_SetMatrix(WVP);
-			Shader_Begin();
-			SetBlendState(BLENDSTATE_ALPHA);
+		Shader_SetMatrix(WVP);
+		Shader_Begin();
+		SetBlendState(BLENDSTATE_ALPHA);
 
-			// 頂点バッファにデータコピー（フレームに応じてUVを書き換える）
-			D3D11_MAPPED_SUBRESOURCE msr;
+		// 頂点バッファにデータコピー（フレームに応じてUVを書き換える）
+		D3D11_MAPPED_SUBRESOURCE msr;
 
-			// コピー元のvdata をローカル配列にコピーして UV を調整
-			Vertex2 localV[PLAYER_VERTEX];
-			CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+		// コピー元のvdata をローカル配列にコピーして UV を調整
+		Vertex2 localV[PLAYER_VERTEX];
+		CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
 
-			// 現在のフレームから UV を計算
-			int frame = g_animFrame[idx];
-			int col = frame % SHEET_COLS;
-			int row = frame / SHEET_COLS;
-			float u0 = (float)col / (float)SHEET_COLS;
-			float v0 = (float)row / (float)SHEET_ROWS;
-			float u1 = u0 + 1.0f / (float)SHEET_COLS;
-			float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+		// 現在のフレームから UV を計算
+		int frame = g_animFrame[idx];
+		int col = frame % SHEET_COLS;
+		int row = frame / SHEET_COLS;
+		float u0 = (float)col / (float)SHEET_COLS;
+		float v0 = (float)row / (float)SHEET_ROWS;
+		float u1 = u0 + 1.0f / (float)SHEET_COLS;
+		float v1 = v0 + 1.0f / (float)SHEET_ROWS;
 
-			// 頂点のテクスチャ座標を上書き
-			localV[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
-			localV[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
-			localV[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
-			localV[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
+		// 頂点のテクスチャ座標を上書き
+		localV[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+		localV[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+		localV[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+		localV[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 
-			// バッファへ書き込み
-			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-			Vertex2* vertex = (Vertex2*)msr.pData;
-			CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
-			g_pContext->Unmap(g_VertexBuffer, 0);
+		// バッファへ書き込み
+		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		Vertex2* vertex = (Vertex2*)msr.pData;
+		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
+		g_pContext->Unmap(g_VertexBuffer, 0);
 
-			ID3D11ShaderResourceView* srv = nullptr;
+		ID3D11ShaderResourceView* srv = nullptr;
 
 			// 形態とタイプに応じたテクスチャを設定
 			switch (player[idx].form)
@@ -1513,37 +1794,37 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 			default: break;
 			}
 
-			// スペシャル使用中は専用テクスチャ
-			if (player[idx].useSpecial)			srv = g_Texture[12];
+		// スペシャル使用中は専用テクスチャ
+		if (player[idx].useSpecial)			srv = g_Texture[12];
 
-			g_pContext->PSSetShaderResources(0, 1, &srv);
+		g_pContext->PSSetShaderResources(0, 1, &srv);
 
-			// プレイヤーごとに異なる色を設定
-			if (player[idx].isPoisoned)
+		// プレイヤーごとに異なる色を設定
+		if (player[idx].isPoisoned)
+		{
+			switch (idx)
 			{
-				switch (idx)
-				{
-					// Lerp = 1.乗算色 2.補間する色 3.補間の度合い
-				case 0:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
-				case 1:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
-				case 2:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
-				case 3:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
-				default:	Shader_SetColor(color::white); break;
-				}
+				// Lerp = 1.乗算色 2.補間する色 3.補間の度合い
+			case 0:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 1:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 2:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 3:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			default:	Shader_SetColor(color::white); break;
 			}
-			else			Shader_SetColor(color::white); // 通常色
+		}
+		else			Shader_SetColor(color::white); // 通常色
 
-			// バッファセット & 描画
-			UINT stride = sizeof(Vertex2);
-			UINT offset = 0;
-			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-			g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			g_pContext->DrawIndexed(6, 0, 0);
+		// バッファセット & 描画
+		UINT stride = sizeof(Vertex2);
+		UINT offset = 0;
+		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		g_pContext->DrawIndexed(6, 0, 0);
 
-			// エフェクト描画 （プレイヤーの手前）
-			EffectFront_DrawForPlayer(idx);
-		};
+		// エフェクト描画 （プレイヤーの手前）
+		EffectFront_DrawForPlayer(idx);
+	};
 
 	// -----------------------------------
 	// 透明描画のためのソート（遠い順）
@@ -1602,6 +1883,21 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 			Debug_DrawAABB(player[i].boundingBox, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
 		}
 	}
+
+	// カメラからの順番をソートしたもの(list)の順番で再度描画
+	// p.second → ソート済みのプレイヤーインデックス
+	for (auto& p : list)
+	{
+		Player_DrawOutline(p.second);
+
+		DrawPlayerInternal(p.second);
+	}
+
+	// シルエット描画を追加
+	for (auto& p : list) Player_DrawSilhouette(p.second);
+
+	// 3Dオブジェクトは深度テストを無効にして描画
+	SetDepthTest(false);
 }
 
 void Player_DrawHP()
@@ -1613,7 +1909,21 @@ void Player_DrawHP()
 	{
 		SetBlendState(BLENDSTATE_ALPHA);
 
-		DrawHP(&HPBar[i], i + 2);
+		// プレイヤーが死んでいるかどうかを判定
+		bool isDead = (!player[i].active && player[i].stock <= 0);
+
+		DrawHP(&HPBar[i], i + 2, isDead);
+		
+
+		if (isDead)
+		{// 死んだときは、灰色のHPバーを残して全てのUIを消す
+			if (!Player_CanUseSpecial(i))
+			{
+				Effect_Clear(i);
+			}
+			continue;
+		}
+
 		XMFLOAT2 hp = HPBar[i].pos;
 
 		// スキルゲージ表示用の値を計算する
@@ -1687,11 +1997,22 @@ void Player_DrawHP()
 				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
 
+		// スペシャル使用可能ならエフェクトを表示、そうでなければ消す
+		if (Player_CanUseSpecial(i))
+		{
+			Effect_Set(24, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (100.0f * SCREEN_ADJUST_Y) }, { (162.0f * SCREEN_ADJUST_X), (60.0f * SCREEN_ADJUST_Y) }, i);
+		}
+		if (!Player_CanUseSpecial(i))
+		{
+			Effect_Clear(i);
+		}
+
 
 		// 通常ゲージ（内＋外）は常に描画
 		// スキルゲージは属性確定のときのみ描画
 		Gauge_DrawBasic(i);
 
+		// 属性確定しているときはスキルUIも描画
 		if (player[i].isTypeFixed)
 		{
 			Gauge_DrawSkill(i);

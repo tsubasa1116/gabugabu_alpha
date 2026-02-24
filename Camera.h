@@ -50,3 +50,7 @@ void Camera_StartShake(float intensity, float duration);
 void Camera_UpdateAuto();
 
 DirectX::XMFLOAT3 GetCameraPosition();
+
+void Camera_FocusOnPlayer(int playerIndex, float duration);
+void Camera_ReturnToNormal();
+bool Camera_IsInDeathFocus();

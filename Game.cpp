@@ -1,7 +1,7 @@
 //======================================================
 //	Game.cpp[]
 // 
-//	
+//	制作者：前野翼			日付：2024//
 //======================================================
 
 #include "Manager.h"
@@ -28,7 +28,7 @@
 #include "direct3d.h"
 #include "SkyBall.h"
 //======================================================
-//	
+//	構造謡宣言
 //======================================================
 LIGHTOBJECT Light;
 
@@ -102,12 +102,12 @@ void Game_Finalize()
 	//P_Finalize();
 	//Score_Finalize();
 
-	UnloadAudio(g_BgmID);
+	UnloadAudio(g_BgmID);	// サウンドの解放
 	DamageText_Finalize();
 }
 
 //======================================================
-//
+//	更新処理
 //======================================================
 void Game_Update()
 {
@@ -145,10 +145,10 @@ void Game_Update()
 	//Score_Update();
 	DamageText_Update();
 
-
+	//ゲームシーンへ遷移
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-
+		// フェードアウトさせてシーンを切り替える
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_WIN);
 	}
@@ -188,8 +188,9 @@ void Game_Draw()
 	}
 	Player_Draw(s_IsKonamiCodeEntered);
 
-	Light.SetEnable(FALSE);
-	Shader_SetLight(Light.Light);
+	//2D描画
+	Light.SetEnable(FALSE);			// ライティングOFF
+	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
 
 	Effect_Draw();

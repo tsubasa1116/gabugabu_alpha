@@ -46,6 +46,8 @@ struct PLAYER_EFFECT_ANIM
 	float respawnTimer = 0.0f;
 	int shadowFrame = 0;
 	float shadowTimer = 0.0f;
+	int explosionFrame = 0;
+	float explosionTimer = 0.0f;
 };
 
 struct BUILDING_EFFECT_ANIM
@@ -74,6 +76,10 @@ struct EffectConfig {
 	bool isLoop;   // ループフラグ
 	float speed;   // 再生速度（1.0fが標準）
 	int spriteY;
+	float scaleMin;
+	float scaleMax;
+	float scaleSpeed;
+
 };
 
 // メイン処理関数

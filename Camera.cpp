@@ -29,6 +29,15 @@ static float    s_ShakeDuration = 0.0f;   // シェイクの残り時間
 static float    s_ShakeTimer = 0.0f;      // シェイクの経過時間
 static XMFLOAT3 s_ShakeOffset;            // シェイクによるオフセット
 
+static bool     s_IsDeathFocus = false;       // 死亡フォーカス中かどうか
+static int      s_FocusPlayerIndex = -1;      // フォーカス対象のインデックス
+static float    s_DeathFocusDuration = 0.0f;  // フォーカス持続時間
+static float    s_DeathFocusTimer = 0.0f;     // フォーカス経過時間
+static XMFLOAT3 s_BeforeFocusPos;             // フォーカス前のカメラ位置
+static XMFLOAT3 s_BeforeFocusAt;              // フォーカス前の注視点
+static float    s_BeforeFocusFov;             // フォーカス前のfov
+static CAMERAMODE s_BeforeFocusMode;          // フォーカス前のカメラモード
+
 CAMERAMODE cameraMode = CAMERAMODE_MANUAL;
 
 static inline XMFLOAT3 LerpFloat3(const XMFLOAT3& a, const XMFLOAT3& b, float t)
@@ -245,25 +254,29 @@ void Camera_Update()
 			Camera_Initialize();
 	}
 
-	// 毎フレームの補間（目標値へ追従する）
+	// フレームの補間
+	// 死亡フォーカス中の補間速度
+	float lerpFactor = s_IsDeathFocus ? 0.25f : SMOOTH_FACTOR;
+	float fovLerpFactor = s_IsDeathFocus ? 0.15f : FOV_SMOOTH_FACTOR;
+
 	// 位置と注視点の補間
-	CameraObject.position   = LerpFloat3(CameraObject.position, s_TargetPos, SMOOTH_FACTOR);
-	CameraObject.atPosition = LerpFloat3(CameraObject.atPosition, s_TargetAt, SMOOTH_FACTOR);
+	CameraObject.position = LerpFloat3(CameraObject.position, s_TargetPos, lerpFactor);
+	CameraObject.atPosition = LerpFloat3(CameraObject.atPosition, s_TargetAt, lerpFactor);
 
 	// fovの補間
-	CameraObject.fov = LerpFloat(CameraObject.fov, s_TargetFov, FOV_SMOOTH_FACTOR);
+	CameraObject.fov = LerpFloat(CameraObject.fov, s_TargetFov, fovLerpFactor);
 
 	// 目標とほぼ同じなら完全に一致させる判定
 	auto nearCheck = [](const XMFLOAT3& a, const XMFLOAT3& b)->bool
-	{
-		float dx = a.x - b.x;
-		float dy = a.y - b.y;
-		float dz = a.z - b.z;
-		return (dx*dx + dy*dy + dz*dz) <= (TARGET_EPSILON * TARGET_EPSILON);
-	};
+		{
+			float dx = a.x - b.x;
+			float dy = a.y - b.y;
+			float dz = a.z - b.z;
+			return (dx * dx + dy * dy + dz * dz) <= (TARGET_EPSILON * TARGET_EPSILON);
+		};
 
-	if (nearCheck(CameraObject.position, s_TargetPos) && 
-		nearCheck(CameraObject.atPosition, s_TargetAt) && 
+	if (nearCheck(CameraObject.position, s_TargetPos) &&
+		nearCheck(CameraObject.atPosition, s_TargetAt) &&
 		fabsf(CameraObject.fov - s_TargetFov) <= TARGET_EPSILON)
 	{
 		// 完全に一致させてフラグ解除
@@ -283,19 +296,66 @@ void Camera_Update()
 
 void Camera_UpdateAuto()
 {
+	// 死亡フォーカスモードの処理を最優先
+	if (s_IsDeathFocus)
+	{
+		s_DeathFocusTimer += 1.0f / 60.0f;
+
+		// フォーカス対象のプレイヤー位置を取得
+		PLAYEROBJECT* player = GetPlayer(s_FocusPlayerIndex);
+
+		if (player)
+		{
+			// プレイヤーの位置を注視点として設定
+			s_TargetAt = player->position;
+
+			// カメラを斜め上からフォーカス
+			s_TargetPos = XMFLOAT3(
+				player->position.x + 2.0f,
+				player->position.y + 5.3f,
+				player->position.z - 4.0f
+			);
+
+			// ズームイン
+			s_TargetFov = 8.0f;
+		}
+
+		// フォーカス時間終了したら元のモードに戻る
+		if (s_DeathFocusTimer >= s_DeathFocusDuration)
+		{
+			Camera_ReturnToNormal();
+		}
+
+		// 死亡フォーカス後はここで処理を終了
+		return;
+	}
+
+
+	// すべてのプレイヤーの位置を平均して中心を計算
 	XMFLOAT3 center = { 0.0f, 0.0f, 0.0f };
+
+	// プレイヤーの位置の範囲を計算
 	float minX = FLT_MAX, maxX = -FLT_MAX;
 	float minZ = FLT_MAX, maxZ = -FLT_MAX;
 
+	// プレイヤーの数をカウント
 	int playerCount = 0;
+
+	// 全プレイヤーの位置を取得して中心と範囲を計算
 	for (int i = 0; i < 4; i++) 
 	{
 		PLAYEROBJECT* player = GetPlayer(i);
 		if (!player) continue;
 
+		// 死んだプレイヤーは中心計算の対象外にする
+		bool isDead = (!player->active && player->stock <= 0);
+		if (isDead) continue;
+
+		// プレイヤーの位置を中心に加算
 		center.x += player->position.x;
 		center.z += player->position.z;
 
+		// プレイヤーの位置の範囲を更新
 		if (player->position.x < minX) minX = player->position.x;
 		if (player->position.x > maxX) maxX = player->position.x;
 		if (player->position.z < minZ) minZ = player->position.z;
@@ -303,15 +363,21 @@ void Camera_UpdateAuto()
 		playerCount++;
 	}
 
-	if (playerCount > 0) {
+	// プレイヤーの平均位置を中心とする
+	if (playerCount > 0) 
+	{
 		center.x /= (float)playerCount;
 		center.z /= (float)playerCount;
 	}
 
+	// カメラオフセットの初期値
 	static float camera_offset_x = 0.0f;
 	static float camera_offset_y = 10.0f;
 	static float camera_offset_z = -10.0f;
 
+	//=================================================================
+	// ImGuiでカメラオフセットの調整UI
+	//=================================================================
 	ImGui::Begin("CameraOffset");
 	ImGui::SliderFloat("X", &camera_offset_x, -20.0f, 20.0f, "%.1f");
 	ImGui::SliderFloat("Y", &camera_offset_y,  0.0f,  30.0f, "%.1f");
@@ -341,9 +407,11 @@ void Camera_UpdateAuto()
 	}
 
 	ImGui::End();
+	//=================================================================
 
 	// 注視点は中心（目標に設定する）
 	s_TargetAt = center;
+
 	// カメラの位置を調整（平行投影の立体感）
 	// 50度　(x,5 y,13.3 z,-10)
 	s_TargetPos = XMFLOAT3(center.x + 5.0f, center.y + 13.3f, center.z + -10.0f);
@@ -357,7 +425,7 @@ void Camera_UpdateAuto()
 	float maxSpread = (spreadX > spreadZ) ? spreadX : spreadZ;
 
 	// 平行投影での表示幅を計算して、この値が画面の横方向の幅になる
-	float margin = 10.0f;
+	float margin = 15.0f;
 	float targetWidth = maxSpread + margin;
 
 	// ズームの最小値
@@ -449,5 +517,37 @@ DirectX::XMFLOAT3 GetCameraPosition()
 	return DirectX::XMFLOAT3();
 }
 
+// 死亡時のカメラフォーカス開始
+void Camera_FocusOnPlayer(int playerIndex, float duration)
+{
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
+	// 現在の状態を保存
+	s_BeforeFocusPos = CameraObject.position;
+	s_BeforeFocusAt = CameraObject.atPosition;
+	s_BeforeFocusFov = CameraObject.fov;
+	s_BeforeFocusMode = cameraMode;
+
+	// フォーカスモードに切り替え（オートカメラのままのまま）
+	s_IsDeathFocus = true;
+	s_FocusPlayerIndex = playerIndex;
+	s_DeathFocusDuration = duration;
+	s_DeathFocusTimer = 0.0f;
+}
+
+// 通常モードに戻る
+void Camera_ReturnToNormal()
+{
+	if (!s_IsDeathFocus) return;
+
+	// 元の状態に戻す（通常のオートカメラ処理）
+	s_IsDeathFocus = false;
+	s_FocusPlayerIndex = -1;
+}
+
+// 死亡フォーカス中かどうか
+bool Camera_IsInDeathFocus()
+{
+	return s_IsDeathFocus;
+}
 
