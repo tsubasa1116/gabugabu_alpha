@@ -11,18 +11,14 @@ using namespace DirectX;
 #include "field.h"
 #include "building.h"
 #include "debug_ostream.h"
-#include "player.h"
+#include "Player.h"
 #include "keyboard.h"
 #include "DamageText.h"
 #include "Effect.h"
-#include "gamepad.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
-
-// ファイル先頭のグローバル変数部分に追加
-static bool g_plantInitialized[PLAYER_MAX] = { false };
 
 // 頂点バッファ
 static ID3D11Buffer* g_VertexBuffer;
@@ -35,6 +31,9 @@ static ID3D11ShaderResourceView* g_Special_Texture[10];
 
 // オブジェクト
 static SPECIAL_OBJECT Special[PLAYER_MAX];
+
+static bool g_plantInitialized[PLAYER_MAX] = { false };
+static PLANT_CIRCLE g_PlantCircle[PLAYER_MAX];
 
 // マクロ定義
 #define SPECIAL_VERTEX (24)
@@ -288,14 +287,10 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"Asset\\Texture\\effectSPConcrete02_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[6]);
 	assert(g_Special_Texture[6]);
-	//// 植物 毒霧 エフェクト
-	//LoadFromWICFile(L"Asset\\Texture\\effectlighting.png", WIC_FLAGS_NONE, &metadata, image);
-	//CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[7]);
-	//assert(g_Special_Texture[7]);
 	// 電気 雷 エフェクト
 	LoadFromWICFile(L"Asset\\Texture\\effectlighting.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[8]);
-	assert(g_Special_Texture[8]);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[7]);
+	assert(g_Special_Texture[7]);
 
 	// インデックスバッファ作成
 	{
@@ -374,13 +369,36 @@ void Special_Glass_Update(int playerIndex)
 			if (otherPlayerObject == nullptr || !otherPlayerObject->active) continue;
 			PLAYEROBJECT& otherPlayer = *otherPlayerObject;
 
+			// リスポーン中のプレイヤーには箱を飛ばさない
+			if (otherPlayer.duringRespawn) continue;
+
 			// 他のプレイヤーの周りに3つの箱を生成
 			XMFLOAT3 offsets[SPECIAL_GLASSBOX_QUANTITY];
 			for (int i = 0; i < SPECIAL_GLASSBOX_QUANTITY; ++i)
 			{
-				float randomX = -3.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (5.0f)));
-				float randomZ = -3.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (5.0f)));
-				offsets[i] = { randomX, 0.0f, randomZ };
+				bool validPosition = false;
+				int maxAttempts = 100; // 無限ループ防止
+				while (!validPosition && maxAttempts > 0)
+				{
+					float randomX = -3.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (5.0f)));
+					float randomZ = -3.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (5.0f)));
+					offsets[i] = { randomX, 0.0f, randomZ };
+
+					// 既に生成済みのオフセットとの距離をチェック
+					validPosition = true;
+					for (int j = 0; j < i; ++j)
+					{
+						float dx = offsets[i].x - offsets[j].x;
+						float dz = offsets[i].z - offsets[j].z;
+						float distSq = dx * dx + dz * dz;
+						if (distSq < 2.5f * 2.5f) // 2.5f未満なら再生成
+						{
+							validPosition = false;
+							break;
+						}
+					}
+					maxAttempts--;
+				}
 			}
 			for (int i = 0; i < SPECIAL_GLASSBOX_QUANTITY; ++i)
 			{
@@ -388,9 +406,10 @@ void Special_Glass_Update(int playerIndex)
 				box.position = player.position; // 箱をプレイヤーの位置に出現させる
 				box.rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 				box.scaling = XMFLOAT3(0.25f, 0.25f, 0.25f); // 箱のサイズ
-				box.targetPosition = {
+				box.targetPosition =
+				{
 					otherPlayer.position.x + offsets[i].x,
-					otherPlayer.position.y + offsets[i].y,
+					0.5f,
 					otherPlayer.position.z + offsets[i].z
 				};
 				box.dir = XMFLOAT3(0.0f, 1.0f, 0.0f);	// 初期は上昇方向
@@ -446,9 +465,7 @@ void Special_Glass_Update(int playerIndex)
 				{
 					box.position.y = box.targetPosition.y;	// 降下完了
 					box.active = false;	// 地面に着いたら非アクティブ化
-
 					Camera_StartShake(0.2f, 0.2f);
-					TriggerVibration(playerIndex, 0.2f, 0.2f, 200);
 
 					// 衝突判定
 					Circle boxCollider = { box.position, 0.3f };	// 半径0.3の円
@@ -503,6 +520,7 @@ void Special_Glass_Update(int playerIndex)
 		player.form = Form::First;			// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;		// タイプをリセット
 		player.useSkill = false;			// スキル解除
+		player.useSpecial = false;			// スペシャル解除
 		Effect_ClearUI(playerIndex);		// エフェクトクリア
 		player.isTypeFixed = false;			// タイプ固定解除
 	}
@@ -548,7 +566,6 @@ void Special_Concrete_Update(int playerIndex)
 
 			// 画面を揺らす
 			Camera_StartShake(0.8f, 0.6f);
-			TriggerVibration(playerIndex, 0.6f, 0.6f, 600);
 
 			for (int p = 0; p < PLAYER_MAX; ++p)
 			{
@@ -559,7 +576,6 @@ void Special_Concrete_Update(int playerIndex)
 				PLAYEROBJECT& otherPlayer = *otherPlayerObject;
 
 				if (otherPlayer.isInvincible) continue; // 無敵中は無視
-
 
 				// 円とAABBの衝突判定
 				if (CheckCircleAABBCollision(circle, otherPlayer.boundingBox))
@@ -594,8 +610,8 @@ void Special_Concrete_Update(int playerIndex)
 		player.type = PlayerType::None;
 		player.defense = 1.0f;
 		player.useSkill = false;
+		player.useSpecial = false;
 		Effect_Clear(playerIndex);
-		Effect_ClearUI(playerIndex);
 		player.isTypeFixed = false;
 
 		// 範囲表示終了フラグを立てる
@@ -617,13 +633,13 @@ void Special_Plant_Update(int playerIndex)
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
 
-	// 半径5.0fの円形当たり判定を作成
-	const float radius = 5.0f;
-	Circle circle = { player.position, radius }; // 円の中心と半径を設定
+	// 半径2.5fの円形当たり判定を作成
+	g_PlantCircle[playerIndex].radius = 2.5f;
+	Circle circle = { player.position, g_PlantCircle[playerIndex].radius }; // 円の中心と半径を設定
 
 	if (!g_plantInitialized[playerIndex])
 	{
-		Effect_Set(24, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
+		Effect_Set(22, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
 		g_plantInitialized[playerIndex] = true;
 	}
 
@@ -658,14 +674,14 @@ void Special_Plant_Update(int playerIndex)
 		player.specialTimer = 0.0f;
 		g_animFrame[playerIndex] = 0;
 		g_animTimer[playerIndex] = 0.0f;
-		player.form = Form::First;			// 変身形態を第1形態に戻す
-		player.type = PlayerType::None;		// タイプをリセット
-		player.useSkill = false;			// スキル解除
-		player.evolutionGaugeRate = 0.3f;
+		player.form = Form::First;									// 変身形態を第1形態に戻す
+		player.type = PlayerType::None;								// タイプをリセット
+		player.evolutionGaugeRate = PLAYER_EVOLUTION_GAUGE_RATE;	// スキルの進化ゲージバフもリセット
+		player.useSkill = false;									// スキル解除
+		Effect_Clear(playerIndex);									// エフェクトクリア
 		Effect_ClearUI(playerIndex);
 		player.isTypeFixed = false;
-		Effect_Clear(playerIndex);
-		g_plantInitialized[playerIndex] = false;  // ここでリセット
+		g_plantInitialized[playerIndex] = false;					// ここでリセット
 	}
 }
 
@@ -746,7 +762,6 @@ void Special_Electricity_Update(int playerIndex)
 	if (player.specialTimer >= SPECIAL_ELECTRICITY_TIME)
 	{
 		player.useSpecial = false;
-		player.useSkill = false;
 		player.specialTimer = 0.0f;
 		g_animFrame[playerIndex] = 0;		// アニメーションリセット
 		g_animTimer[playerIndex] = 0.0f;
@@ -754,6 +769,8 @@ void Special_Electricity_Update(int playerIndex)
 		player.form = Form::First;			// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;		// タイプをリセット
 		player.speed = 0.06f;				// スキルのスピードバフもリセット
+		player.useSkill = false;			// スキル解除
+		player.useSpecial = false;			// スペシャル解除
 		Effect_ClearUI(playerIndex);		// エフェクトクリア
 		player.isTypeFixed = false;			// タイプ固定解除
 	}
@@ -883,25 +900,25 @@ void Special_Glass_Draw(int playerIndex)
 // Concrete専用描画
 void Special_Concrete_Draw(int playerIndex)
 {
-    // 範囲チェック
-    if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+	// 範囲チェック
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-    PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
-    if (playerObject == nullptr) return;
-    PLAYEROBJECT& player = *playerObject;
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
 
-    // 攻撃範囲のワールド行列
-    XMMATRIX WorldMatrix =
-        XMMatrixScaling(10.0f, 1.0f, 10.0f) *
-        XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-        XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
+	// 攻撃範囲のワールド行列
+	XMMATRIX WorldMatrix =
+		XMMatrixScaling(10.0f, 1.0f, 10.0f) *
+		XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+		XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
 
-    XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-    Shader_SetMatrix(WVP);
+	XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+	Shader_SetMatrix(WVP);
 
-    SetBlendState(BLENDSTATE_ALPHA);
+	SetBlendState(BLENDSTATE_ALPHA);
 
-    // 範囲表示フェーズ
+	// 範囲表示フェーズ
 	if (!g_concreteRangeFinished[playerIndex])
 	{
 		// テクスチャ番号0～3をplayerIndexで表示
@@ -909,7 +926,7 @@ void Special_Concrete_Draw(int playerIndex)
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		g_pContext->Draw(4, 16); // +Y面
 	}
-    // 衝撃波アニメーションフェーズ
+	// 衝撃波アニメーションフェーズ
 	else if (g_concreteFrame[playerIndex] < 32 + 40) // 32+40=72フレーム分
 	{
 		int frame = g_concreteFrame[playerIndex];
@@ -917,13 +934,13 @@ void Special_Concrete_Draw(int playerIndex)
 		int uvFrame;
 		int uvMaxCols = 8, uvMaxRows = 8;
 
-		if (frame < 32) 
+		if (frame < 32)
 		{
 			texIndex = 5;		// effectSPConcrete01_v2
 			uvFrame = frame;	// 0～31
 			// 8x8分割
 		}
-		else 
+		else
 		{
 			texIndex = 6;			// effectSPConcrete02_v2
 			uvFrame = frame - 32;	// 0～39
@@ -990,9 +1007,9 @@ void Special_Plant_Draw(int playerIndex)
 
 	// 攻撃範囲の描画
 	XMMATRIX rangeWorldMatrix =
-		XMMatrixScaling(10.0f, 1.0f, 10.0f) * // 半径5の円を表現するためにスケールを10倍に設定
+		XMMatrixScaling(5.0f, 1.0f, 5.0f) * // 半径2.5の円を表現するためにスケールを5倍に設定
 		XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-		XMMatrixTranslation(player.position.x, 0.1f, player.position.z); // Y座標を少し上げて地面と重ならないようにする
+		XMMatrixTranslation(player.position.x + 0.2f, 0.1f, player.position.z - 0.5f); // Y座標を少し上げて地面と重ならないようにする
 
 	XMMATRIX rangeWVP = rangeWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 	Shader_SetMatrix(rangeWVP);
@@ -1038,6 +1055,14 @@ void Special_Electricity_Draw(int playerIndex)
 			vertex[19].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 			g_pContext->Unmap(g_VertexBuffer, 0);
 		}
+
+		// --- 範囲円描画前にライトを親関数と同じ明るさに設定 ---
+		LIGHT rangeLight{};
+		rangeLight.Enable = TRUE;
+		rangeLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+		rangeLight.Diffuse = XMFLOAT4(2.5f, 2.5f, 2.5f, 1.0f);
+		rangeLight.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+		Shader_SetLight(rangeLight);
 
 		// 範囲円（+Y面）を描画
 		XMMATRIX circleWorldMatrix =
@@ -1090,26 +1115,26 @@ void Special_Electricity_Draw(int playerIndex)
 		XMMATRIX lightningWorldMatrix =
 			XMMatrixScaling(2.0f, length * 1.0f, 2.0f) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			XMMatrixTranslation(target.x, 4.0f, target.z);
+			XMMatrixTranslation(target.x + 0.5f, 4.0f, target.z + 0.1f);
 		//XMMatrixTranslation(target.x, (lightningTopY + lightningBottomY) / 2.0f, target.z);
 
 		XMMATRIX lightningWVP = lightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 		Shader_SetMatrix(lightningWVP);
 
-		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[8]);
+		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[7]);
 		SetBlendState(BLENDSTATE_ALPHA);
 
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		g_pContext->Draw(4, 0);	// -Z面の4頂点 (0, 1, 2, 3)
-
-		// --- 描画後にライトを元に戻す ---
-		LIGHT normalLight{};
-		normalLight.Enable = TRUE;
-		normalLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-		normalLight.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
-		normalLight.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-		Shader_SetLight(normalLight);
 	}
+
+	// --- ループ終了後にライトを元に戻す ---
+	LIGHT normalLight{};
+	normalLight.Enable = TRUE;
+	normalLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	normalLight.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+	normalLight.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	Shader_SetLight(normalLight);
 }
 
 void Special_Draw(int playerIndex)
@@ -1187,11 +1212,11 @@ void Special_Draw(int playerIndex)
 	// プレイヤーのタイプに応じた描画処理
 	switch (player.type)
 	{
-		case PlayerType::Glass:			Special_Glass_Draw(playerIndex);		break;
-		case PlayerType::Concrete:		Special_Concrete_Draw(playerIndex);		break;
-		case PlayerType::Plant:			Special_Plant_Draw(playerIndex);		break;
-		case PlayerType::Electricity:	Special_Electricity_Draw(playerIndex);	break;
-		default: break;
+	case PlayerType::Glass:			Special_Glass_Draw(playerIndex);		break;
+	case PlayerType::Concrete:		Special_Concrete_Draw(playerIndex);		break;
+	case PlayerType::Plant:			Special_Plant_Draw(playerIndex);		break;
+	case PlayerType::Electricity:	Special_Electricity_Draw(playerIndex);	break;
+	default: break;
 	}
 }
 

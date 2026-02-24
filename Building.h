@@ -62,8 +62,11 @@ public:
 
 	bool isActive;		// 有効フラグ
 	bool isDestroyed;	// 建物破壊フラグ
+
+	// プレイヤー接近時のテクスチャオフセット
 	int m_TexOffset;
 	bool m_IsPlayerNear;
+
 	//=================================
 	// コンストラクタ
 	//=================================
@@ -94,8 +97,5 @@ void Building_Finalize();
 void Building_DrawAll(bool s_IsKonamiCodeEntered);
 void Building_UpdateAll();
 
-
 int GetBuildingCount();
 Building** GetBuildings();
-
-

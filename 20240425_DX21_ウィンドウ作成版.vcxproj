@@ -211,6 +211,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="swipe.cpp" />
     <ClCompile Include="Title.cpp" />
     <ClCompile Include="VideoTexture.cpp" />
+    <ClCompile Include="Win.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attack.h" />
@@ -262,6 +263,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="swipe.h" />
     <ClInclude Include="Title.h" />
     <ClInclude Include="VideoTexture.h" />
+    <ClInclude Include="Win.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ps_hpber.hlsl">

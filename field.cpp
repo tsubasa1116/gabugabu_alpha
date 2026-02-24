@@ -23,24 +23,24 @@
 #define FIELD_TEX_MAX	(4)
 
 //======================================================
-//	ƒOƒ[ƒoƒ‹•Ï”
+//	ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 //======================================================
-MODEL* Test = NULL;//ƒfƒoƒbƒO
+MODEL* Test = NULL;//ãƒ‡ãƒãƒƒã‚°
 
-////ƒOƒ[ƒoƒ‹•Ï”
+////ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 static	ID3D11Device* g_pDevice = NULL;
 static	ID3D11DeviceContext* g_pContext = NULL;
-////’¸“_ƒoƒbƒtƒ@
+////é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
 //static	ID3D11Buffer* g_VertexBuffer = NULL;
-////ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
+////ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
 //static	ID3D11Buffer* g_IndexBuffer = NULL;
-//ƒeƒNƒXƒ`ƒƒ•Ï”
+//ãƒ†ã‚¯ã‚¹ãƒãƒ£å¤‰æ•°
 //static ID3D11ShaderResourceView* g_Texture;
 
-// FIELD enum (FIELD_BUILDING, FIELD_BOX) ‚Ì”‚¾‚¯ƒeƒNƒXƒ`ƒƒ‚ğŠÇ—
+// FIELD enum (FIELD_BUILDING, FIELD_BOX) ã®æ•°ã ã‘ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ç®¡ç†
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 #define FIELD_TEX_MAX (4)
-// FIELD::no ‚Ì’l‚É‘Î‰‚·‚éƒeƒNƒXƒ`ƒƒƒtƒ@ƒCƒ‹–¼
+// FIELD::no ã®å€¤ã«å¯¾å¿œã™ã‚‹ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ•ã‚¡ã‚¤ãƒ«å
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
 	L"Asset\\Texture\\texturefieldTree01_v2.png",  // 0
@@ -54,23 +54,23 @@ static const char* g_ModelName[] = {
 	"field",
 	"field_v2",
 	"field_v3",
-	"propsConcreteMain_v2",		// 3ƒ}ƒX‘åŒš•¨
-	"propsConcreteSub_v2",		// ƒ}ƒ“ƒVƒ‡ƒ“
-	"propsElectricitySub_v2",	// Ô‚ÆM†
-	"propsGlassSub_v2",			// ƒrƒ‹
-	"propsTreeSub_v2",			// L—t÷
-	"build_glass_new"			// •Ï‚ÈŒš•¨
-	"propsTowerMain_v3"			//“Œ‹ƒ^ƒ-
+	"propsConcreteMain_v2",		// 3ãƒã‚¹å¤§å»ºç‰©
+	"propsConcreteSub_v2",		// ãƒãƒ³ã‚·ãƒ§ãƒ³
+	"propsElectricitySub_v2",	// è»Šã¨ä¿¡å·
+	"propsGlassSub_v2",			// ãƒ“ãƒ«
+	"propsTreeSub_v2",			// åºƒè‘‰æ¨¹
+	"build_glass_new"			// å¤‰ãªå»ºç‰©
+	"propsTowerMain_v3"			//æ±äº¬ã‚¿ãƒ¯-
 };
 static const char* g_ModelName1[] = {
 	"raibu",
 	"kitosaku"
 };
  
-//ƒ}ƒbƒvƒf[ƒ^”z—ñ
+//ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿é…åˆ—
 MAPDATA Map[] =
 {
-	// ===== ’n–ÊE“Áê =====			 
+	// ===== åœ°é¢ãƒ»ç‰¹æ®Š =====			 
 	{ {},{}, FIELD::FIELD_Electricity,1}, // 1kaku
 	{ {},{}, FIELD::FIELD_Electricity,0}, // 2kaku
 	{ {},{}, FIELD::FIELD_Plant,1},           // 3kaku
@@ -81,7 +81,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Concrete,2},           // 8kaku
 	{ {},{}, FIELD::FIELD_Concrete,1},           // 9
 	{ {},{}, FIELD::FIELD_Glass},           // 10
-						  
+
 	// ===== BOX 10 ===== 
 	{ {},{}, FIELD::FIELD_Glass,}, // 11
 	{ {},{}, FIELD::FIELD_Plant,1}, // 12kaku
@@ -93,7 +93,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Concrete,2}, // 18
 	{ {},{}, FIELD::FIELD_Electricity,0}, // 19kaku
 	{ {},{}, FIELD::FIELD_Concrete,1}, // 20kaku
-						  
+
 	// ===== BOX 20 ===== 
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 21
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 22
@@ -105,7 +105,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 28
 	{ {},{}, FIELD::FIELD_Plant,2 }, // 29
 	{ {},{}, FIELD::FIELD_Glass }, // 30
-						 
+
 	// ===== BOX 30 =====
 	{ {},{}, FIELD::FIELD_Electricity,0 }, // 31
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 32
@@ -117,7 +117,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Glass,2 }, // 38
 	{ {},{}, FIELD::FIELD_BOX }, // 39
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 40
-						 
+
 	// ===== BOX 40 =====
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 41
 	{ {},{}, FIELD::FIELD_Plant,1}, // 42
@@ -126,14 +126,14 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 45
 	{ {},{}, FIELD::FIELD_Glass, }, // 46
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 47
-	{ {},{}, FIELD::FIELD_Glass,1 }, // 48  ¶ãƒfƒJ‚¢Œš•¨
-	{ {},{}, FIELD::FIELD_Electricity,2 }, // 49   ‰EãƒfƒJ‚¢Œš•¨
+	{ {},{}, FIELD::FIELD_Glass,1 }, // 48  å·¦ä¸Šãƒ‡ã‚«ã„å»ºç‰©
+	{ {},{}, FIELD::FIELD_Electricity,2 }, // 49   å³ä¸Šãƒ‡ã‚«ã„å»ºç‰©
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 50
-						 
+
 	// ===== BOX 50 =====
 	{ {},{}, FIELD::FIELD_Electricity }, // 51
-	{ {},{}, FIELD::FIELD_Concrete }, // 52 ‰E‰ºƒfƒJ‚¢Œš•¨
-	{ {},{}, FIELD::FIELD_Plant,3}, // 53¶‰ºƒfƒJ‚¢
+	{ {},{}, FIELD::FIELD_Concrete }, // 52 å³ä¸‹ãƒ‡ã‚«ã„å»ºç‰©
+	{ {},{}, FIELD::FIELD_Plant,3}, // 53å·¦ä¸‹ãƒ‡ã‚«ã„
 	{ {},{}, FIELD::FIELD_Electricity}, // 54
 	{ {},{}, FIELD::FIELD_Plant,1}, // 55
 	{ {},{}, FIELD::FIELD_Glass,2}, // 56
@@ -141,7 +141,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Plant,1}, // 58
 	{ {},{}, FIELD::FIELD_Concrete,1}, // 59
 	{ {},{}, FIELD::FIELD_Electricity,}, // 60
-						  
+
 	// ===== BOX 60 ===== 
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 61
 	{ {},{}, FIELD::FIELD_Glass }, // 62
@@ -153,7 +153,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX }, // 68
 	{ {},{}, FIELD::FIELD_Electricity }, // 69
 	{ {},{}, FIELD::FIELD_Electricity }, // 70
-						 
+
 	// ===== BOX 70 =====
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 71
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 72
@@ -165,7 +165,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Plant,0 }, // 78
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 79
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 80
-						  
+
 	// ===== BOX 80 ===== 
 	{ {},{}, FIELD::FIELD_Plant,0 }, // 81
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 82
@@ -189,10 +189,10 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 98
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 99
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 100
-						  
+
 	// ===== BOX 100 =====
 	{ {},{}, FIELD::FIELD_Plant,1}, // 101
-	{ {},{}, FIELD::FIELD_Concrete,2 }, // 102  ‚¢‚Ü‚Ì‚Ü‚Ü‚¾‚Æ‚±‚±‚Ü‚Å‚µ‚©ƒ‚ƒfƒ‹‚ª’u‚¯‚È‚¢
+	{ {},{}, FIELD::FIELD_Concrete,2 }, // 102  ã„ã¾ã®ã¾ã¾ã ã¨ã“ã“ã¾ã§ã—ã‹ãƒ¢ãƒ‡ãƒ«ãŒç½®ã‘ãªã„
 	{ {},{}, FIELD::FIELD_BOX }, // 103
 	{ {},{}, FIELD::FIELD_BOX }, // 104
 	{ {},{}, FIELD::FIELD_BOX }, // 105
@@ -201,7 +201,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX }, // 108
 	{ {},{}, FIELD::FIELD_BOX }, // 109
 	{ {},{}, FIELD::FIELD_BOX }, // 110
-						  
+
 	// ===== BOX 110 ==== BOX
 	{ {},{}, FIELD::FIELD_BOX }, // 111
 	{ {},{}, FIELD::FIELD_BOX }, // 112
@@ -214,22 +214,22 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX }, // 119
 	{ {},{}, FIELD::FIELD_BOX }, // 120
 
-	// ===== I—¹ƒ}[ƒJ[iƒJƒEƒ“ƒg‚µ‚È‚¢j=====
+	// ===== çµ‚äº†ãƒãƒ¼ã‚«ãƒ¼ï¼ˆã‚«ã‚¦ãƒ³ãƒˆã—ãªã„ï¼‰=====
 	{ XMFLOAT3(2.0f,-1.0f,5.0f), {}, FIELD::FIELD_MAX }
 };
 
 
 //======================================================
-//	‰Šú‰»ŠÖ”
+//	åˆæœŸåŒ–é–¢æ•°
 //======================================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	char modelPath[256];
 	snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[1]);
 
-	Test = ModelLoad(modelPath);//ƒfƒoƒbƒO
+	Test = ModelLoad(modelPath);//ãƒ‡ãƒãƒƒã‚°
 
-	// ”z—ñ—v‘f”iI—¹ƒ}[ƒJ[ FIELD_MAX ‚ğŠÜ‚Ü‚È‚¢j
+	// é…åˆ—è¦ç´ æ•°ï¼ˆçµ‚äº†ãƒãƒ¼ã‚«ãƒ¼ FIELD_MAX ã‚’å«ã¾ãªã„ï¼‰
 	int count = GetFieldObjectCount();
 	if (count <= 1)
 	{
@@ -239,31 +239,31 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		return;
 	}
 
-	// ====== ˜ZŠpŠiqŒó•â‚ğ‘½”¶¬‚µA’†S‚É‹ß‚¢‚à‚Ì‚©‚ç N ŒÂ‘I‚ñ‚Åu‚æ‚è‰~Œ`v‚É”z’u ======
-	// MAPDATA::radius ‚ğ hex sizeicenter->cornerj‚ÆŒ©‚È‚·iflat-topj
+	// ====== å…­è§’æ ¼å­å€™è£œã‚’å¤šæ•°ç”Ÿæˆã—ã€ä¸­å¿ƒã«è¿‘ã„ã‚‚ã®ã‹ã‚‰ N å€‹é¸ã‚“ã§ã€Œã‚ˆã‚Šå††å½¢ã€ã«é…ç½® ======
+	// MAPDATA::radius ã‚’ hex sizeï¼ˆcenter->cornerï¼‰ã¨è¦‹ãªã™ï¼ˆflat-topï¼‰
 	const float size = Map->radius;
 	const float sqrt3 = sqrtf(3.0f);
 
-	// ‰¡•ûŒüƒXƒP[ƒ‹i•K—v‚È‚ç’²®j
+	// æ¨ªæ–¹å‘ã‚¹ã‚±ãƒ¼ãƒ«ï¼ˆå¿…è¦ãªã‚‰èª¿æ•´ï¼‰
 	const float horizontalScale = 1.0f;
 
-	// Œó•â‚ğ¶¬‚·‚é‚½‚ß‚ÌƒŠƒ“ƒO”i—]—T‚ğ‚½‚¹‚éj
-	// count ŒÂ‚ğŠÛ‚­‘I‚Ô‚½‚ßAŒó•â‚Í‘½­‘½‚ß‚É¶¬‚·‚éimarginFactorj
-	const float marginFactor =5.0f; // 1.0 = Å’áŒÀ, 1.25 = —]—T 25%
+	// å€™è£œã‚’ç”Ÿæˆã™ã‚‹ãŸã‚ã®ãƒªãƒ³ã‚°æ•°ï¼ˆä½™è£•ã‚’æŒãŸã›ã‚‹ï¼‰
+	// count å€‹ã‚’ä¸¸ãé¸ã¶ãŸã‚ã€å€™è£œã¯å¤šå°‘å¤šã‚ã«ç”Ÿæˆã™ã‚‹ï¼ˆmarginFactorï¼‰
+	const float marginFactor = 5.0f; // 1.0 = æœ€ä½é™, 1.25 = ä½™è£• 25%
 	int rings = 1;
 	while (1 + 3 * rings * (rings + 1) < static_cast<int>(count * marginFactor))
 		++rings;
 
-	// ²À•W(q,r)‚ğ“¯SƒŠƒ“ƒO‚Å¶¬itotalCandidates >= countj
+	// è»¸åº§æ¨™(q,r)ã‚’åŒå¿ƒãƒªãƒ³ã‚°ã§ç”Ÿæˆï¼ˆtotalCandidates >= countï¼‰
 	int totalCandidates = 1 + 3 * rings * (rings + 1);
 
-	// ƒwƒ‹ƒp[\‘¢‘Ìiƒ[ƒJƒ‹j
+	// ãƒ˜ãƒ«ãƒ‘ãƒ¼æ§‹é€ ä½“ï¼ˆãƒ­ãƒ¼ã‚«ãƒ«ï¼‰
 	struct Candidate { int q; int r; float wx; float wz; float dist; };
 
-	// “®“IŠm•Ûiƒ[ƒJƒ‹‚É vector ‚ğg‚í‚È‚¢Œ`‚É‚µ‚ÄƒCƒ“ƒNƒ‹[ƒh•s—v‚Éj
+	// å‹•çš„ç¢ºä¿ï¼ˆãƒ­ãƒ¼ã‚«ãƒ«ã« vector ã‚’ä½¿ã‚ãªã„å½¢ã«ã—ã¦ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ä¸è¦ã«ï¼‰
 	Candidate* candidates = new Candidate[totalCandidates];
 
-	// ’†S
+	// ä¸­å¿ƒ
 	int idx = 0;
 	candidates[idx].q = 0;
 	candidates[idx].r = 0;
@@ -272,7 +272,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	candidates[idx].dist = 0.0f;
 	++idx;
 
-	// 6•ûŒüƒxƒNƒgƒ‹iaxial coordsj
+	// 6æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ï¼ˆaxial coordsï¼‰
 	const int dirQ[6] = { 1, 1, 0, -1, -1, 0 };
 	const int dirR[6] = { 0, -1, -1, 0, 1, 1 };
 
@@ -301,18 +301,18 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 	}
 
-	// ’†S‚É‹ß‚¢‡‚É count ŒÂ‚ğ‘I‚ÔiŠÈˆÕ‘I‘ğƒ\[ƒgƒ‰ƒCƒNj
-	// ‘I‘ğ” N = countiMap ”z—ñ‚Ì—v‘f”j
+	// ä¸­å¿ƒã«è¿‘ã„é †ã« count å€‹ã‚’é¸ã¶ï¼ˆç°¡æ˜“é¸æŠã‚½ãƒ¼ãƒˆãƒ©ã‚¤ã‚¯ï¼‰
+	// é¸æŠæ•° N = countï¼ˆMap é…åˆ—ã®è¦ç´ æ•°ï¼‰
 	int N = count;
-	// ˆÀ‘Sô: N ‚ªŒó•â”‚ğ’´‚¦‚È‚¢‚æ‚¤‚É
+	// å®‰å…¨ç­–: N ãŒå€™è£œæ•°ã‚’è¶…ãˆãªã„ã‚ˆã†ã«
 	if (N > totalCandidates) N = totalCandidates;
 
-	// •”•ª‘I‘ğFæ“ª N Œ‚ğ‰Šú‘I‘ğ‚µCc‚è‚ğ‘–¸‚µ‚Ä‚æ‚è‹ß‚¯‚ê‚Î“ü‚ê‘Ö‚¦‚éiO(M*N)‚¾‚ªŒó•â‚Í‚»‚±‚Ü‚Å‘å‚«‚­‚È‚¢j
-	// ‚Ü‚¸æ“ª N ‚ğ selected ‚Æ‚·‚éi”z—ñ“à‘€ìj
+	// éƒ¨åˆ†é¸æŠï¼šå…ˆé ­ N ä»¶ã‚’åˆæœŸé¸æŠã—ï¼Œæ®‹ã‚Šã‚’èµ°æŸ»ã—ã¦ã‚ˆã‚Šè¿‘ã‘ã‚Œã°å…¥ã‚Œæ›¿ãˆã‚‹ï¼ˆO(M*N)ã ãŒå€™è£œã¯ãã“ã¾ã§å¤§ãããªã„ï¼‰
+	// ã¾ãšå…ˆé ­ N ã‚’ selected ã¨ã™ã‚‹ï¼ˆé…åˆ—å†…æ“ä½œï¼‰
 	Candidate* selected = new Candidate[N];
 	for (int i = 0; i < N; ++i) selected[i] = candidates[i];
 
-	// Œ»İ‚ÌÅ‰“ƒCƒ“ƒfƒbƒNƒX‚ğ‹‚ß‚éŠÖ”
+	// ç¾åœ¨ã®æœ€é ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’æ±‚ã‚ã‚‹é–¢æ•°
 	auto findWorstIndex = [&](int limit) -> int {
 		int worst = 0;
 		float maxd = selected[0].dist;
@@ -330,20 +330,20 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	int worstIdx = findWorstIndex(N);
 
-	// c‚èŒó•â‚ğŒŸ¸
+	// æ®‹ã‚Šå€™è£œã‚’æ¤œæŸ»
 	for (int i = N; i < totalCandidates; ++i)
 	{
 		if (candidates[i].dist < selected[worstIdx].dist)
 		{
-			// ’uŠ·
+			// ç½®æ›
 			selected[worstIdx] = candidates[i];
-			// worstIndex ‚ğÄŒvZ
+			// worstIndex ã‚’å†è¨ˆç®—
 			worstIdx = findWorstIndex(N);
 		}
 	}
 
-	// ‚±‚±‚Å selected[] ‚Í’†S‚É‹ß‚¢ N ŒÂ‚ÌŒó•âi‚½‚¾‚µ‡˜‚Í”CˆÓj‚È‚Ì‚ÅA’†S‚É‹ß‚¢‡‚É•À‚×‘Ö‚¦‚é‚±‚Æ‚ÅŒ©‚½–Ú‚ª‚æ‚è©‘R‚É
-	// ŠÈˆÕ“I‚Éƒoƒuƒ‹ƒ\[ƒgiN ‚ª¬‚³‚¢‚Ì‚Å\•ªj
+	// ã“ã“ã§ selected[] ã¯ä¸­å¿ƒã«è¿‘ã„ N å€‹ã®å€™è£œï¼ˆãŸã ã—é †åºã¯ä»»æ„ï¼‰ãªã®ã§ã€ä¸­å¿ƒã«è¿‘ã„é †ã«ä¸¦ã¹æ›¿ãˆã‚‹ã“ã¨ã§è¦‹ãŸç›®ãŒã‚ˆã‚Šè‡ªç„¶ã«
+	// ç°¡æ˜“çš„ã«ãƒãƒ–ãƒ«ã‚½ãƒ¼ãƒˆï¼ˆN ãŒå°ã•ã„ã®ã§ååˆ†ï¼‰
 	for (int a = 0; a < N - 1; ++a)
 	{
 		for (int b = 0; b < N - 1 - a; ++b)
@@ -357,7 +357,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 	}
 
-	// Map ”z—ñ‚ÖŠ„‚è“–‚ÄF’†S‚É‹ß‚¢‡‚É”z’u‚µ‚Ä‚¢‚­
+	// Map é…åˆ—ã¸å‰²ã‚Šå½“ã¦ï¼šä¸­å¿ƒã«è¿‘ã„é †ã«é…ç½®ã—ã¦ã„ã
 	int assign = 0;
 	for (int i = 0; i < count; ++i)
 	{
@@ -373,12 +373,12 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 		else
 		{
-			// Š„‚è“–‚Ä‚ç‚ê‚È‚©‚Á‚½c‚è‚Í”ñ•\¦
+			// å‰²ã‚Šå½“ã¦ã‚‰ã‚Œãªã‹ã£ãŸæ®‹ã‚Šã¯éè¡¨ç¤º
 			Map[i].isActive = false;
 		}
 	}
 
-	// ‰ğ•ú
+	// è§£æ”¾
 	delete[] candidates;
 	delete[] selected;
 
@@ -388,13 +388,13 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pContext = pContext;
 
 	// --------------------------------------------------------------------
-	// •¡”‚ÌƒeƒNƒXƒ`ƒƒ‚ğ“Ç‚İ‚İ
+	// è¤‡æ•°ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’èª­ã¿è¾¼ã¿
 	// --------------------------------------------------------------------
-	for (int i = 0; i < FIELD_TEX_MAX; ++i) // ’è‹`‚µ‚½ƒeƒNƒXƒ`ƒƒ‚Ì”‚¾‚¯ƒ‹[ƒv
+	for (int i = 0; i < FIELD_TEX_MAX; ++i) // å®šç¾©ã—ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ã®æ•°ã ã‘ãƒ«ãƒ¼ãƒ—
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		// ”z—ñ‚É’è‹`‚µ‚½ƒpƒX‚©‚çƒeƒNƒXƒ`ƒƒ‚ğ“Ç‚İ‚Ş
+		// é…åˆ—ã«å®šç¾©ã—ãŸãƒ‘ã‚¹ã‹ã‚‰ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’èª­ã¿è¾¼ã‚€
 		LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(g_pDevice, image.GetImages(),
 			image.GetImageCount(), metadata, &g_Texture[i]);
@@ -407,7 +407,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 
 //======================================================
-//	I—¹ˆ—ŠÖ”
+//	çµ‚äº†å‡¦ç†é–¢æ•°
 //======================================================
 void Field_Finalize(void)
 {
@@ -422,13 +422,13 @@ void Field_Finalize(void)
 
 
 //======================================================
-//	•`‰æŠÖ”
+//	æç”»é–¢æ•°
 //======================================================
 void Field_Draw(bool s_IsKonamiCodeEntered)
 {
 	static bool input2 = false;
 
-	// ƒfƒoƒbƒOƒL[
+	// ãƒ‡ãƒãƒƒã‚°ã‚­ãƒ¼
 	if (s_IsKonamiCodeEntered)
 	{
 		if (Keyboard_IsKeyDownTrigger(KK_D2))
@@ -437,11 +437,11 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		}
 	}
 
-	// ƒVƒF[ƒ_[ŠJn
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼é–‹å§‹
 	Shader_Begin();
 	Shader_SetColor(color::white);
 
-	// s—ñæ“¾
+	// è¡Œåˆ—å–å¾—
 	XMMATRIX projection = GetProjectionMatrix();
 	XMMATRIX view = GetViewMatrix();
 	XMMATRIX VP = view * projection;
@@ -449,7 +449,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	int i = 0;
 
 	// ======================================================
-	// ƒtƒB[ƒ‹ƒh•`‰æ
+	// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰æç”»
 	// ======================================================
 	while (Map[i].no != FIELD_MAX)
 	{
@@ -460,9 +460,9 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		}
 
 		// ------------------------------
-		// ƒ[ƒ‹ƒhs—ñì¬
+		// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ä½œæˆ
 		// ------------------------------
-		XMMATRIX ScalingMatrix = XMMatrixScaling(2.0f, 2.0f, 1.0f);
+		XMMATRIX ScalingMatrix = XMMatrixScaling(1.1f, 1.1f, 1.1f);
 
 		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			XMConvertToRadians(-90.0f),
@@ -483,9 +483,9 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		Shader_SetMatrix(World * VP);
 
 		// ------------------------------
-		// í—Ş‚²‚Æ‚ÉƒeƒNƒXƒ`ƒƒØ‚è‘Ö‚¦
+		// ç¨®é¡ã”ã¨ã«ãƒ†ã‚¯ã‚¹ãƒãƒ£åˆ‡ã‚Šæ›¿ãˆ
 		// ------------------------------
-		int texIndex = 0; // ƒfƒtƒHƒ‹ƒg
+		int texIndex = 0; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
 
 		switch (Map[i].no)
 		{
@@ -517,14 +517,14 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
 
 		// ------------------------------
-		// ’n–Êƒ‚ƒfƒ‹•`‰æ
+		// åœ°é¢ãƒ¢ãƒ‡ãƒ«æç”»
 		// ------------------------------
 		if (!s_IsKonamiCodeEntered || input2)
 		{
 			ModelDraw(Test);
 		}
 
-		//// ƒeƒNƒXƒ`ƒƒ‚ğƒpƒCƒvƒ‰ƒCƒ“‚©‚ç‰ğœ
+		//// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‹ã‚‰è§£é™¤
 		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
 		//------------------------------------------------
@@ -532,20 +532,20 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	}
 
 	///////////////////////////////////////
-	// TODO:boundingBox‚ğQÆ‚µ‚½‚¢
+	// TODO:boundingBoxã‚’å‚ç…§ã—ãŸã„
 	// ======================================================
-	// Œš•¨•`‰æ
+	// å»ºç‰©æç”»
 	// ======================================================
 	Building_DrawAll(s_IsKonamiCodeEntered);
-	
-	// --- 3. ƒfƒoƒbƒO•`‰æ‚Í‘S•”‚Ìƒ}ƒbƒv‚ğ•`‚«I‚í‚Á‚½Œã‚Éu1‰ñ‚¾‚¯v‚â‚é ---
+
+	// --- 3. ãƒ‡ãƒãƒƒã‚°æç”»ã¯å…¨éƒ¨ã®ãƒãƒƒãƒ—ã‚’æãçµ‚ã‚ã£ãŸå¾Œã«ã€Œ1å›ã ã‘ã€ã‚„ã‚‹ ---
 	if (s_IsKonamiCodeEntered)
 	{
 		SetBlendState(BLENDSTATE_NONE);
-		SetDepthTest(false); // d‚È‚è‚ğ–³‹‚µ‚ÄŒ©‚¦‚é‚æ‚¤‚É
-		Shader_SetMatrix(VP); // ƒ[ƒ‹ƒhs—ñ‚ÍIdentity‚É‚·‚é‚Ì‚ÅVP‚¾‚¯‚ÅOK
+		SetDepthTest(false); // é‡ãªã‚Šã‚’ç„¡è¦–ã—ã¦è¦‹ãˆã‚‹ã‚ˆã†ã«
+		Shader_SetMatrix(VP); // ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã¯Identityã«ã™ã‚‹ã®ã§VPã ã‘ã§OK
 
-		// ƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚Ì˜ZŠp’Œ
+		// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å…­è§’æŸ±
 		int fieldCount = GetFieldObjectCount();
 		MAPDATA* fieldObjects = GetFieldObjects();
 		for (int j = 0; j < fieldCount; ++j)
@@ -601,18 +601,17 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 }
 
 //======================================================
-//	XVˆ—
+//	æ›´æ–°å‡¦ç†
 //======================================================
 void Field_Update(void)
 {
 	int i = 0;
 	while (Map[i].no != FIELD_MAX)
 	{
-		// ã‚‚ã—ã‚¢ã‚¯ãƒE‚£ãƒ–ã˜ã‚Eªã‹ã£ãŸã‚‰ã€æç”»ã—ãªãE§æ¬¡ã¸
 		if (!Map[i].isActive)
 		{
-			i++; // i ã‚’é€²ã‚ã‚‹ã®ã‚’å¿˜ã‚ŒãªãE§EE
-			continue; // ã“ãEå…ˆãEæç”»å‡¦çE‚’ã‚¹ã‚­ãƒEE
+			i++;
+			continue;
 		}
 
 		Map[i].boundingBox.center = Map[i].pos;			// -1
@@ -626,20 +625,20 @@ void Field_Update(void)
 }
 
 // ======================================================
-//	ƒQƒbƒ^[
+//	ã‚²ãƒƒã‚¿ãƒ¼
 // ------------------------------------------------------
-//	ƒtƒB[ƒ‹ƒh‚Ì”z—ñ‚Ìæ“ªƒ|ƒCƒ“ƒ^‚ğ•Ô‚·
+//	ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®é…åˆ—ã®å…ˆé ­ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™
 // ======================================================
 MAPDATA* GetFieldObjects()
 {
 	return Map;
 }
 
-// ƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚Ì‘”‚ğ•Ô‚·
+// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç·æ•°ã‚’è¿”ã™
 int GetFieldObjectCount()
 {
 	int count = 0;
-	// map”z—ñ‚ÍFIELD_MAX‚ğI—¹ƒ}[ƒJ[‚Æ‚µ‚Ä‚¢‚é
+	// mapé…åˆ—ã¯FIELD_MAXã‚’çµ‚äº†ãƒãƒ¼ã‚«ãƒ¼ã¨ã—ã¦ã„ã‚‹
 	while (Map[count].no != FIELD_MAX)
 	{
 		count++;

@@ -7,8 +7,7 @@
 #include <SDKDDKVer.h>		// 利用できる最も上位の Windows プラットフォームが定義される
 #define WIN32_LEAN_AND_MEAN	// 32bitアプリには不要な情報を抑止してコンパイル時間を短縮
 #include <windows.h>
-#include "debug_ostream.h"	//デバッグ表示
-
+#include "debug_ostream.h"	// デバッグ表示
 #include <chrono>
 #include <algorithm>
 #include "direct3d.h"
@@ -33,10 +32,10 @@
 #include <SDL3/SDL.h>
 #include "gamepad.h"
 
-//#define		SCREEN_WIDTH	(1280)
-//#define		SCREEN_HEIGHT	(720)
-#define		SCREEN_WIDTH	(1920)
-#define		SCREEN_HEIGHT	(1080)
+#define		SCREEN_WIDTH	(1280)
+#define		SCREEN_HEIGHT	(720)
+//#define		SCREEN_WIDTH	(1920)
+//#define		SCREEN_HEIGHT	(1080)
 
 //==================================
 //グローバル変数

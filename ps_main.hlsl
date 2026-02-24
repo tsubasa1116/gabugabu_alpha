@@ -12,7 +12,13 @@ cbuffer cbColor : register(b1)
     float4 setColor; // 乗算用カラー
     float4 lerpColor; // 線形補間用カラー
     float lerpFactor; // 補間係数 (0.0 = 元の色, 1.0 = lerpColor)
-    float3 pad; 
+    float pad[3]; 
+};
+
+cbuffer cbDrawMode : register(b2)
+{
+    int drawMode;
+    float pads[3];
 };
 
 struct PS_INPUT
@@ -27,6 +33,25 @@ float4 main(PS_INPUT ps_in) : SV_TARGET
     float4 col;
     col = g_Texture.Sample(g_SamplerState, ps_in.texcoord);
 	
+    // シルエットモード
+    if (drawMode == 1)
+    {
+        // テクスチャのアルファ値を使用してシルエット色を適用
+        float alpha = col.a * setColor.a;
+        return float4(setColor.rgb, alpha);
+    }
+    
+    // アウトラインモード
+    if (drawMode == 2)
+    {
+        // 透明部分は描画しない
+        if (col.a < 0.1f)
+        {
+            discard;
+        }
+        return float4(setColor.rgb, col.a * setColor.a);
+    }
+    
 	// 乗算カラー
     col *= ps_in.color * setColor;
 	

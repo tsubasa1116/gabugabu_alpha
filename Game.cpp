@@ -1,7 +1,7 @@
 //======================================================
 //	Game.cpp[]
 // 
-//	
+//	制作者：前野翼			日付：2024//
 //======================================================
 
 #include "Manager.h"
@@ -11,7 +11,6 @@
 #include "makeText.h"
 #include "p.h"
 #include "field.h"
-#include "building.h"
 #include "Building.h"
 #include "Effect.h"
 #include "score.h"
@@ -29,17 +28,17 @@
 #include "direct3d.h"
 #include "SkyBall.h"
 //======================================================
-//	
+//	構造謡宣言
 //======================================================
 LIGHTOBJECT Light;
 
 //======================================================
 //
 //======================================================
-static int g_BgmID = NULL;	
+static int g_BgmID = NULL;
 bool input2 = false;
 
-// �R�}���h�����͂��ꂽ�Ƃ��ɗ��t���O
+// コマンドが入力されたときに立つフラグ
 static bool s_IsKonamiCodeEntered = false;
 
 //======================================================
@@ -64,10 +63,10 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext);		
 	//Score_Initialize(pDevice, pContext);
 
-	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// �T�E���h���[�h
-	//PlayAudio(g_BgmID, true);		// �Đ��J�n(���[�v����)
-	//PlayAudio(g_BgmID);			// �Đ��J�n�i���[�v�Ȃ��j
-	//PlayAudio(g_BgmID, false);	// �Đ��J�n�i���[�v�Ȃ��j
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// サウンドロード
+	//PlayAudio(g_BgmID, true);		// 再生開始(ループあり)
+	//PlayAudio(g_BgmID);			// 再生開始（ループなし）
+	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし）
 
 	XMFLOAT4 para;
 
@@ -81,7 +80,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	para.x /= len;
 	para.y /= len;
 	para.z /= len;
-	Light.SetDirection(para);	
+	Light.SetDirection(para);
 }
 
 //======================================================
@@ -97,24 +96,24 @@ void Game_Finalize()
 	Skill_Finalize();
 	Special_Finalize();
 	SkyBall_Finalize();
-	
+
 	//BallFinalize();
 	//P_Finalize();
 	//Score_Finalize();
 
-	UnloadAudio(g_BgmID);
+	UnloadAudio(g_BgmID);	// サウンドの解放
 	DamageText_Finalize();
 }
 
 //======================================================
-//
+//	更新処理
 //======================================================
 void Game_Update()
 {
 	// ------------------------------------
 	// 
 	// ------------------------------------
-	// �R�}���h�Ŏg�p����S�ẴL�[�̉����g���K�[���`�F�b�N���A���o�֐��ɓn��
+	// コマンドで使用する全てのキーの押下トリガーをチェックし、検出関数に渡す
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
 		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
@@ -123,25 +122,34 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
-
 	Player_Update();
 	Field_Update();
 	Building_UpdateAll();
 	Effect_Update();
+
+	// 建物エフェクト更新（1棟ずつ）
+	int buildingCount = GetBuildingCount();
+	for (int i = 0; i < buildingCount; i++)
+	{
+		Effect_UpdateForBuilding(i);
+		//Effect_UpdateAllBuildings();
+	}
+
 	Gauge_Update();
-	Camera_Update();	
+	Gauge_Update();
+	Camera_Update();
 	SkyBall_Update();
 	//BallUpdate();
 	//P_Update();
 	//Score_Update();
 	DamageText_Update();
 
-
+	//ゲームシーンへ遷移
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-
+		// フェードアウトさせてシーンを切り替える
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
+		SetFade(40.0f, color, FADE_OUT, SCENE_WIN);
 	}
 }
 
@@ -149,29 +157,44 @@ void Game_Update()
 //
 //======================================================
 void Game_Draw()
-{ 
-
-	Light.SetEnable(FALSE);			
-	Shader_SetLight(Light.Light);	
+{
+	Light.SetEnable(FALSE);
+	Shader_SetLight(Light.Light);
 	SkyBall_Draw();
 	SetDepthTest(FALSE);
-	Camera_Draw();	
+	Camera_Draw();
 
-	Light.SetEnable(TRUE);			
-	Shader_SetLight(Light.Light);	
+	Light.SetEnable(TRUE);
+	Shader_SetLight(Light.Light);
 	SetDepthTest(TRUE);
 
-	Camera_Draw();	// Draw�̍ŏ��ŌĂԁI
-	Field_Draw	(s_IsKonamiCodeEntered);
-	Player_Draw	(s_IsKonamiCodeEntered);
+	Field_Draw(s_IsKonamiCodeEntered);
 
-	Light.SetEnable(FALSE);			
-	Shader_SetLight(Light.Light);	
+	// ★ 建物エフェクトの一括描画（3D空間）
+	{
+		Shader_Begin();
+		SetBlendState(BLENDSTATE_ALPHA);
+		SetDepthReadOnly();
+		//Effect_DrawAllBuildings();
+
+		int buildingCount = GetBuildingCount();
+		for (int i = 0; i < buildingCount; i++)
+		{
+			Effect_DrawForBuilding(i);
+		}
+
+		SetDepthTest(TRUE);
+	}
+	Player_Draw(s_IsKonamiCodeEntered);
+
+	//2D描画
+	Light.SetEnable(FALSE);			// ライティングOFF
+	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
-    
+
 	Effect_Draw();
 	Player_DrawHP();
-	
+
 	Player_DrawText();
 	DamageText_Draw();
 }
