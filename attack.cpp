@@ -584,6 +584,12 @@ void Attack_Draw(int playerIndex)
 	ATTACK_OBJECT& attackObject = Attack[playerIndex];
 	ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
 
+
+	// 1. プレイヤー情報を取得（向きや座標を使うため）
+	PLAYEROBJECT* playerPtr = GetPlayer(playerIndex);
+	if (!playerPtr) return;
+	PLAYEROBJECT& player = *playerPtr;
+
 	// =====================
 	// ワールド行列の作成
 	// =====================
@@ -669,6 +675,29 @@ void Attack_Draw(int playerIndex)
 
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
+	SetBlendState(BLENDSTATE_ALPHA);
+
+
+	// 2. デバッグ描画：攻撃中だけ扇形を表示する
+	if (player.isAttacking)
+	{
+		// 判定で使っているのと「全く同じ」設定で扇を作る
+		Sector debugSector;
+		debugSector.center = player.position;
+
+		// プレイヤーの向きから前方ベクトルを計算
+		float rad = XMConvertToRadians(player.rotation.y);
+		debugSector.forward = { sinf(rad), 0.0f, cosf(rad) };
+
+		// Attack_Update で設定した値と合わせるのがコツ！
+		debugSector.radius = 3.0f;
+		debugSector.angleDegree = 120.0f;
+
+		// 扇形を描画！
+		DrawDebugSector(debugSector);
+	}
+
+	// 最後に念のためブレンド状態などを戻す
 	SetBlendState(BLENDSTATE_ALPHA);
 }
 
