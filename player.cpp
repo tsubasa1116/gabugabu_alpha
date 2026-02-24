@@ -1351,6 +1351,9 @@ void Player_Update()
 			SetHPOutline(&HPBar[p], player[p].type);
 		}
 	}
+
+	// ƒvƒŒƒCƒ„[“¯m‚ÌUŒ‚”»’è
+	AttackPlayerCollisions();
 	ImGui::End();
 }
 
