@@ -144,7 +144,7 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 	m_IsPlayerNear(false)
 {
 	// 初期トランスフォーム
-	scaling = { 1.0f, 1.0f, 1.0f };
+	scaling = { 1.0f, 1.0f, 1.2f };
 	rotation = { 0.0f, 0.0f, 0.0f };
 
 	// モデル番号の範囲チェック
