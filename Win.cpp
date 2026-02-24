@@ -11,7 +11,7 @@
 #include "fade.h"
 #include "swipe.h"
 #include "shader.h"
-
+#include "player.h"
 #include "model.h"
 
 static ID3D11ShaderResourceView* g_Texture = NULL;		// 背景
@@ -155,16 +155,24 @@ void Win_Update()
 		if (g_SlideOffsetBottom < 0) g_SlideOffsetBottom += (float)g_TexMeta2.width;
 	}
 
-	// アニメーションフレーム更新
-	g_AnimTimer += 1.0f / 60.0f; // 60FPS前提
+	static bool WinFrameInitialized = false;
+
+	//// アニメーションフレーム更新
+	//if (!WinFrameInitialized)
+	//{
+	//	g_AnimFrame = 8; // 8からスタート
+	//	WinFrameInitialized = true;
+	//}
+
+	g_AnimTimer += DELTA_TIME; // 60FPS前提
 	if (g_AnimTimer >= ANIM_SPEED)
 	{
 		g_AnimTimer = 0.0f;
-		if (g_AnimFrame < ANIM_END) {
-			g_AnimFrame++;
-		}
+		if (g_AnimFrame < ANIM_END)	g_AnimFrame++;
 		// g_AnimFrameがANIM_ENDになったら止まる（ループしない）
 	}
+
+	//else    WinFrameInitialized = false;
 }
 
 //======================================================
@@ -258,7 +266,7 @@ void Win_Draw()
 		float u1 = (frameX + 1) * frameWidth / g_TexMeta6.width;
 		float v1 = (frameY + 1) * frameHeight / g_TexMeta6.height;
 
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 300 };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 160 };
 		XMFLOAT2 size = { frameWidth * 1.5f, frameHeight * 1.5f }; // 拡大例
 		XMFLOAT4 col = { 1, 1, 1, 1 };
 
