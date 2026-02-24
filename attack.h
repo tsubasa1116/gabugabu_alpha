@@ -18,5 +18,6 @@ void Attack_Update(int playerIndex);
 void Attack_Draw(int playerIndex);
 
 void AttackPlayerCollisions();
+void DrawDebugSector(const Sector& sector);
 
 ATTACK_OBJECT* GetAttack(int playerIndex);
