@@ -12,7 +12,7 @@
 #define	PLAYER_MAX			(4)		// プレイヤー最大数
 #define	DELTA_TIME	 (1.0f / 60.0f)	// デルタタイム（秒）
 
-#define	PLAYER_MAX_HP				(50.0f)// プレイヤー 最大HP
+#define	PLAYER_MAX_HP				(150.0f)// プレイヤー 最大HP
 #define	PLAYER_MAX_SATIETY			(7.0f)	// プレイヤー 最大満腹度
 #define	PLAYER_EVOLUTION_GAUGE_RATE	(0.5f)	// プレイヤー 進化ゲージ増加率
 
