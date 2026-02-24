@@ -333,7 +333,7 @@ void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// SEの初期化
 	g_SE_ID[0] = LoadAudio("asset\\Audio\\Skill_Glass_Expansion.wav");		// スキル ガラス 展開音
 	g_SE_ID[1] = LoadAudio("asset\\Audio\\Skill_Concrete_Expansion.wav");	// スキル コンクリート 展開音
-	//g_SE_ID[2] = LoadAudio("asset\\Audio\\Skill_Electricity.wav");			// スキル 植物
+	g_SE_ID[2] = LoadAudio("asset\\Audio\\Skill_Plant.wav");				// スキル 植物
 	g_SE_ID[3] = LoadAudio("asset\\Audio\\Skill_Electricity.wav");			// スキル 電気
 }
 
@@ -551,11 +551,11 @@ void Skill_Plant_Update(int playerIndex)
 		return;
 	}
 
-	//// スキル発動の最初のフレームだけSEを再生
-	//if (player.skillTimer == 0.0f)
-	//{
-	//	PlayAudio(g_SE_ID[2], false);
-	//}
+	// スキル発動の最初のフレームだけSEを再生
+	if (player.skillTimer == 0.0f)
+	{
+		PlayAudio(g_SE_ID[2], false);
+	}
 
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;

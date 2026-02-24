@@ -278,10 +278,9 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_deathOrder.clear();
 
 	// SEの初期化
-	g_SE_ID[0] = LoadAudio("asset\\Audio\\gabugabu01.wav");			// がぶがぶ 
-	g_SE_ID[1] = LoadAudio("asset\\Audio\\Roar_Form_Second.wav");	// 進化後の咆哮 第2形態
-	g_SE_ID[2] = LoadAudio("asset\\Audio\\Roar_Form_Third.wav");	// 進化後の咆哮 第3形態
-	g_SE_ID[3] = LoadAudio("asset\\Audio\\Transform.wav");			// 変身
+	g_SE_ID[0] = LoadAudio("asset\\Audio\\Roar_Form_Second.wav");	// 進化後の咆哮 第2形態
+	g_SE_ID[1] = LoadAudio("asset\\Audio\\Roar_Form_Third.wav");	// 進化後の咆哮 第3形態
+	g_SE_ID[2] = LoadAudio("asset\\Audio\\Transform.wav");			// 変身
 }
 
 static void LoadTextureList(ID3D11Device* pDevice)
@@ -722,7 +721,7 @@ void Player_Update()
 			if (player[p].isAttacking)	// 攻撃
 			{
 				Attack_Update(p);
-				PlayAudio(g_SE_ID[0], false);	// がぶがぶ音(ループなし)
+				//PlayAudio(g_SE_ID[0], false);	// がぶがぶ音(ループなし)
 			}
 			if (player[p].useSkill)		Skill_Update(p);	// スキル
 			if (player[p].useSpecial)	Special_Update(p);	// スペシャル

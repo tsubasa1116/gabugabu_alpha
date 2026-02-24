@@ -4,7 +4,7 @@
 #include "collider.h"
 
 // ƒ}ƒNƒ’è‹`
-#define ATTACK_SE_COUNT	(1)	// UŒ‚ SE‚Ì”
+#define ATTACK_SE_COUNT	(2)	// UŒ‚ SE‚Ì”
 
 struct ATTACK_OBJECT
 {
