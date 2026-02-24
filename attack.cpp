@@ -295,8 +295,9 @@ void Attack_Update(int playerIndex)
 	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
+	// プレイヤー情報取得
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
-	if (playerObject == nullptr) return;
+	if (playerObject == nullptr) return;	// プレイヤーが存在しない場合は Updateをスキップ
 	PLAYEROBJECT& player = *playerObject;
 
 	ATTACK_OBJECT& atttackObject = Attack[playerIndex];
@@ -849,77 +850,64 @@ void AttackPlayerCollisions()
 
 void DrawDebugSector(const Sector& sector)
 {
-	// --- 1. 頂点データの作成 ---
 	const int CIRCLE_SEGMENTS = 16;
-	// 扇の形：中心 -> 円弧の点(16個) -> 中心 と繋いで閉じる
 	std::vector<Vertex2> vdata;
 
-	// 起点（プレイヤーの足元）
+	// --- 1. 頂点作成（扇の骨組み） ---
 	Vertex2 centerV;
-	centerV.position = sector.center; // ここは構造体の定義に合わせて「pos」か「position」にしてね
-	centerV.position.y += 0.2f;       // 地面に埋まらないよう少し浮かせる
+	centerV.position = sector.center;
+	centerV.position.y += 0.2f; // 地面より少し浮かせる
 	centerV.normal = { 0, 1, 0 };
 	centerV.color = { 1.0f, 0.0f, 0.0f, 1.0f }; // 赤色
 	centerV.tex = { 0, 0 };
 
-	vdata.push_back(centerV);
+	vdata.push_back(centerV); // 中心点
 
-	// 扇の角度計算
 	float baseAngle = atan2f(sector.forward.x, sector.forward.z);
 	float halfAngle = XMConvertToRadians(sector.angleDegree * 0.5f);
 
-	// 円弧の頂点
-	for (int i = 0; i <= CIRCLE_SEGMENTS; i++)
-	{
+	for (int i = 0; i <= CIRCLE_SEGMENTS; i++) {
 		float currentAngle = (baseAngle - halfAngle) + (halfAngle * 2.0f * (float)i / CIRCLE_SEGMENTS);
 		Vertex2 v = centerV;
 		v.position.x = sector.center.x + sinf(currentAngle) * sector.radius;
 		v.position.z = sector.center.z + cosf(currentAngle) * sector.radius;
 		vdata.push_back(v);
 	}
+	vdata.push_back(centerV); // 最後に中心に戻って閉じる
 
-	// 最後に中心に戻る（これで扇が閉じる）
-	vdata.push_back(centerV);
-
-	// --- 2. GPUに送る準備 ---
-	// 行列の設定（カメラのビュー・プロジェクション行列を適用）
+	// --- 2. GPUへ転送 ---
 	XMMATRIX world = XMMatrixIdentity();
-	XMMATRIX view = GetViewMatrix();
-	XMMATRIX proj = GetProjectionMatrix();
-	Shader_SetMatrix(world * view * proj);
+	XMMATRIX WVP = world * GetViewMatrix() * GetProjectionMatrix();
+	Shader_SetMatrix(WVP);
 
-	// ライティングをオフにする（デバッグ線なので光らせない）
 	LIGHT light{};
-	light.Enable = FALSE;
+	light.Enable = FALSE; // 線なのでライティング無効
 	Shader_SetLight(light);
 
 	Shader_Begin();
 	Shader_SetColor(color::white);
 
-	// 頂点バッファを一時的に書き換えて描画（動的バッファを利用）
 	D3D11_MAPPED_SUBRESOURCE msr;
-	if (SUCCEEDED(g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr)))
-	{
-		// 作成した頂点リストをコピー
-		size_t copySize = sizeof(Vertex2) * vdata.size();
-		// バッファサイズを越えないように注意
-		if (copySize <= sizeof(Vertex2) * ATTACK_VERTEX) {
-			CopyMemory(msr.pData, vdata.data(), copySize);
-		}
+	if (SUCCEEDED(g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) {
+		// ※vdata.size() が ATTACK_VERTEX (24) を超えないかチェック
+		size_t count = min(vdata.size(), (size_t)ATTACK_VERTEX);
+		CopyMemory(msr.pData, vdata.data(), sizeof(Vertex2) * count);
 		g_pContext->Unmap(g_VertexBuffer, 0);
+
+		// --- 3. 描画 ---
+		UINT stride = sizeof(Vertex2);
+		UINT offset = 0;
+		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP); // 線でつなぐ
+		g_pContext->Draw((UINT)count, 0);
 	}
 
-	// --- 3. 描画の実行 ---
-	UINT stride = sizeof(Vertex2);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-
-	// 重要：線のリストとして描画する設定
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-
-	// インデックスバッファを使わずに直接描画
-	g_pContext->Draw((UINT)vdata.size(), 0);
-
-	// 描き終わったらトポロジーを元に戻しておく（他の描画が壊れないように）
+	// トポロジーを元に戻す（重要！）
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+ATTACK_OBJECT* GetAttack(int playerIndex)
+{
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return nullptr;
+	return &Attack[playerIndex];
 }

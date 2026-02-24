@@ -21,3 +21,5 @@ void AttackPlayerCollisions();
 void DrawDebugSector(const Sector& sector);
 
 ATTACK_OBJECT* GetAttack(int playerIndex);
+
+
