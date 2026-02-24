@@ -45,7 +45,7 @@ static const wchar_t* g_TexturePaths[] =
 	L"Asset\\Texture\\木と遊具エフェクト.png",
 	L"Asset\\Texture\\木といえ.png",
 	L"Asset\\Texture\\木といえエフェクト.png",
-	L"Asset\\Texture\\togegarasu.png",
+	L"Asset\\Texture\\togegarasu2.png",
 	L"Asset\\Texture\\togegarasuエフェクト.png",
 	L"Asset\\Texture\\3kabe.png",
 	L"Asset\\Texture\\3kabeエフェクト.png",
@@ -72,7 +72,7 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX] = { nullptr };
 static const char* g_GlassModels[] = {
 	"3birugarsu",
 	"2marugarasu",
-	"togegarasu"
+	"togegarasu2"
 
 };
 
@@ -97,8 +97,8 @@ static const char* g_ElectricModels[] = {
 	"singou",
 	"taw-",
 	"raibu",
-	"denki1kaba-",
-	"denki3kaba-"
+	"propsElectricitySub03_v9",
+	"propsElectricitySub02_v9"
 
 };
 
@@ -372,7 +372,7 @@ void Building::Update()
 		float dz = player->position.z - position.z;
 		float distSq = dx * dx + dy * dy + dz * dz;
 
-		if (distSq <= 2.0f * 2.0f)
+		if (distSq <= 3.0f * 3.0f)
 		{
 			anyPlayerNear = true;
 			break;
@@ -454,12 +454,12 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 		baseTexIndex = 13;//ok
 	}
 	else if (type == BuildingType::Electricity &&
-		strcmp(g_ElectricModels[m_ModelIndex], "denki3kaba-") == 0)
+		strcmp(g_ElectricModels[m_ModelIndex], "propsElectricitySub02_v9") == 0)
 	{
 		baseTexIndex = 23;//ok
 	}
 	else if (type == BuildingType::Electricity &&
-		strcmp(g_ElectricModels[m_ModelIndex], "denki1kaba-") == 0)
+		strcmp(g_ElectricModels[m_ModelIndex], "propsElectricitySub03_v9") == 0)
 	{
 		baseTexIndex = 25;//ok
 	}
@@ -498,7 +498,7 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 		baseTexIndex = 15;//ok
 	}
 	else if (type == BuildingType::Glass &&
-		strcmp(g_GlassModels[m_ModelIndex], "togegarasu") == 0)
+		strcmp(g_GlassModels[m_ModelIndex], "togegarasu2") == 0)
 	{
 		baseTexIndex = 21;//ok
 	}
