@@ -1,4 +1,4 @@
-﻿//======================================================
+//======================================================
 //	start.cpp
 // 
 //	制作者：田中佑奈			日付：2026//
@@ -100,12 +100,10 @@ void Start_Update()
 	//キー入力チェック
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
-		// �L�[���̓`�F�b�N�i���[�h���͎󂯕t���Ȃ��j
 		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
-			// ���[�h��ʕt���t�F�[�h�ŃQ�[���V�[���֑J��
 			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\uiRored.mp4");
 		}
 	}

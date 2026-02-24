@@ -1,4 +1,4 @@
-ï»¿// score.h
+// score.h
 
 #pragma once
 
@@ -12,8 +12,8 @@ void Score_Finalize(void);
 void Score_Update();
 void Score_Draw(void);
 
-void	AddScore(int sc);	//ã‚¹ã‚³ã‚¢ã«åŠ ç®—ã™ã‚‹
-float	GetScore();			//ã‚¹ã‚³ã‚¢å€¤å–å¾—
+void	AddScore(int sc);	//ƒXƒRƒA‚É‰ÁZ‚·‚é
+float	GetScore();			//ƒXƒRƒA’læ“¾
 
 
 

@@ -1,35 +1,35 @@
-ï»¿//======================================================
+//======================================================
 //	debug_render.h[]
 // 
-//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2025//
+//	§ìÒF‘O–ì—ƒ			“ú•tF2025//
 //======================================================
 #pragma once
 
 #include <d3d11.h>
 #include <DirectXMath.h>
-#include "collider.h" // AABBã¨HexColliderã®å®šç¾©ãŒå¿…è¦
+#include "collider.h" // AABB‚ÆHexCollider‚Ì’è‹`‚ª•K—v
 
-// æç”»ã§ä½¿ç”¨ã™ã‚‹é ‚ç‚¹æ§‹é€ ä½“
+// •`‰æ‚Åg—p‚·‚é’¸“_\‘¢‘Ì
 struct DebugVertex
 {
 	XMFLOAT3 pos;
 	XMFLOAT4 color;
-	XMFLOAT2 uv; // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãŒUVã‚’è¦æ±‚ã™ã‚‹å ´åˆã¯ãƒ€ãƒŸãƒ¼ã‚’å…¥ã‚Œã‚‹
+	XMFLOAT2 uv; // ƒVƒF[ƒ_[‚ªUV‚ğ—v‹‚·‚éê‡‚Íƒ_ƒ~[‚ğ“ü‚ê‚é
 };
 
-// åˆæœŸåŒ–
+// ‰Šú‰»
 void Debug_Initialize(ID3D11Device* device, ID3D11DeviceContext* context);
 
-// çµ‚äº†å‡¦ç†
+// I—¹ˆ—
 void Debug_Finalize();
 
-// AABBï¼ˆå››è§’ã„ç®±ï¼‰ã®ãƒ¯ã‚¤ãƒ¤ãƒ¼ãƒ•ãƒ¬ãƒ¼ãƒ æç”»
+// AABBilŠp‚¢” j‚ÌƒƒCƒ„[ƒtƒŒ[ƒ€•`‰æ
 void Debug_DrawAABB(const AABB& aabb, DirectX::XMFLOAT4 color);
 
-// å…­è§’æŸ±ã®ãƒ¯ã‚¤ãƒ¤ãƒ¼ãƒ•ãƒ¬ãƒ¼ãƒ æç”»
+// ˜ZŠp’Œ‚ÌƒƒCƒ„[ƒtƒŒ[ƒ€•`‰æ
 void Debug_DrawHex(const HexCollider& hex, DirectX::XMFLOAT4 color);
 
-// å††ã®ãƒ¯ã‚¤ãƒ¤ãƒ¼ãƒ•ãƒ¬ãƒ¼ãƒ æç”»
+// ‰~‚ÌƒƒCƒ„[ƒtƒŒ[ƒ€•`‰æ
 void Debug_DrawCircle(const XMFLOAT3& center, float radius, const XMFLOAT4& color);
 
 void Debug_DrawLine(const XMFLOAT3& start, const XMFLOAT3& end, const XMFLOAT4& color);

@@ -1,4 +1,4 @@
-ï»¿// Ball.h
+// Ball.h
 
 #pragma once
 
@@ -15,26 +15,26 @@ void BallDraw();
 
 XMFLOAT3 GetBallPosition();
 
-//ãƒœãƒ¼ãƒ«ã®çŠ¶æ…‹
+//ƒ{[ƒ‹‚Ìó‘Ô
 enum BALL_STATE
 {
-	BALL_STATE_IDLE = 0,	//ä½•ã‚‚ã—ãªã„
-	BALL_STATE_MOVE,		//ç§»å‹•
-	BALL_STATE_DIRECTION,	//æ–¹å‘æŒ‡ç¤º
-	BALL_STATE_POWER,		//å¨åŠ›æŒ‡ç¤º
+	BALL_STATE_IDLE = 0,	//‰½‚à‚µ‚È‚¢
+	BALL_STATE_MOVE,		//ˆÚ“®
+	BALL_STATE_DIRECTION,	//•ûŒüŽwŽ¦
+	BALL_STATE_POWER,		//ˆÐ—ÍŽwŽ¦
 };
 
-//ãƒœãƒ¼ãƒ«æ§‹é€ ä½“
+//ƒ{[ƒ‹\‘¢‘Ì
 class BALL
 {
 public:
-	XMFLOAT3	position;	//è¡¨ç¤ºåº§æ¨™
-	XMFLOAT3	Rotation;	//å›žè»¢è§’
-	XMFLOAT3	Scaling;	//æ‹¡å¤§çŽ‡
-	XMFLOAT3	Velocity;	//é€Ÿåº¦
+	XMFLOAT3	position;	//•\Ž¦À•W
+	XMFLOAT3	Rotation;	//‰ñ“]Šp
+	XMFLOAT3	Scaling;	//Šg‘å—¦
+	XMFLOAT3	Velocity;	//‘¬“x
 
-	BALL_STATE	State;		//çŠ¶æ…‹
-	MODEL*		Model;		//ãƒ¢ãƒ‡ãƒ«ãƒ‡ãƒ¼ã‚¿
+	BALL_STATE	State;		//ó‘Ô
+	MODEL*		Model;		//ƒ‚ƒfƒ‹ƒf[ƒ^
 };
 
 

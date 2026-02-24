@@ -1,6 +1,6 @@
-ï»¿/*==============================================================================
+/*==============================================================================
 
-   ãƒãƒªã‚´ãƒ³æç”» [gauge.cpp]
+   ƒ|ƒŠƒSƒ“•`‰æ [gauge.cpp]
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -11,26 +11,32 @@
 #include "color.h"
 #include "shader.h"
 
+#define GAUGE_IN_SIZE   (XMFLOAT2(55.0f * SCREEN_ADJUST_X, 55.0f * SCREEN_ADJUST_Y))
+#define GAUGE_OUT_SIZE  (XMFLOAT2(62.0f * SCREEN_ADJUST_X, 62.0f * SCREEN_ADJUST_Y))
+#define SKILL_COOL_SIZE (XMFLOAT2(45.0f * SCREEN_ADJUST_X, 45.0f * SCREEN_ADJUST_Y))
+#define SKILL_SIZE      (XMFLOAT2(75.0f * SCREEN_ADJUST_X, 75.0f * SCREEN_ADJUST_Y))
+#define SKILL_TEXT_SIZE (XMFLOAT2(50.0f * SCREEN_ADJUST_X, 15.0f * SCREEN_ADJUST_Y))
+
 static GaugeData g_Gauge[GAUGE_PLAYER_MAX];
 
 static ID3D11ShaderResourceView* g_Texture = NULL;
 
-// æ³¨æ„ï¼åˆæœŸåŒ–ã§å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚Œã‚‹ã‚‚ã®ã€‚Releaseä¸è¦ã€‚
+// ’ˆÓI‰Šú‰»‚ÅŠO•”‚©‚çİ’è‚³‚ê‚é‚à‚ÌBRelease•s—vB
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 //====================================================================================
-// åˆæœŸåŒ–
+// ‰Šú‰»
 //====================================================================================
 void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ãƒã‚§ãƒƒã‚¯
+	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìƒ`ƒFƒbƒN
 	if (!pDevice || !pContext) {
-		hal::dout << "Gauge_Initialize() : ä¸ãˆã‚‰ã‚ŒãŸãƒ‡ãƒã‚¤ã‚¹ã‹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãŒä¸æ­£ã§ã™" << std::endl;
+		hal::dout << "Gauge_Initialize() : —^‚¦‚ç‚ê‚½ƒfƒoƒCƒX‚©ƒRƒ“ƒeƒLƒXƒg‚ª•s³‚Å‚·" << std::endl;
 		return;
 	}
 
-	// ãƒ‡ãƒã‚¤ã‚¹ã¨ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ä¿å­˜
+	// ƒfƒoƒCƒX‚ÆƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ì•Û‘¶
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
@@ -41,7 +47,10 @@ void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Gauge[i].wind  = 1;
 		g_Gauge[i].earth = 1;
 		g_Gauge[i].outer = 1;
+		g_Gauge[i].skill = 1;
 		g_Gauge[i].pos   = { 0,0 };
+		g_Gauge[i].shakeOffset = { 0.0f, 0.0f };  // ƒVƒFƒCƒNƒIƒtƒZƒbƒg‰Šú‰»
+		g_Gauge[i].type = PlayerType::None;
 	}
 
 
@@ -49,7 +58,7 @@ void Gauge_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 
 //====================================================================================
-// çµ‚äº†
+// I—¹
 //====================================================================================
 void Gauge_Finalize(void)
 {
@@ -58,7 +67,7 @@ void Gauge_Finalize(void)
 
 
 //====================================================================================
-// æ›´æ–°
+// XV
 //====================================================================================
 void Gauge_Update(void)
 {
@@ -67,9 +76,9 @@ void Gauge_Update(void)
 
 
 //====================================================================================
-// ä»–ã®ãƒ•ã‚¡ã‚¤ãƒ«ã§ã‚²ãƒ¼ã‚¸ã‚’ã‚»ãƒƒãƒˆã™ã‚‹é–¢æ•°
+// ‘¼‚Ìƒtƒ@ƒCƒ‹‚ÅƒQ[ƒW‚ğƒZƒbƒg‚·‚éŠÖ”
 //====================================================================================
-void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricity, float outer, const XMFLOAT2& pos)
+void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricity, float outer, float skill, const XMFLOAT2& pos, PlayerType type)
 {
 	if (i < 0 || i >= GAUGE_PLAYER_MAX) return;
 
@@ -78,37 +87,97 @@ void Gauge_Set(int i, float Glass, float Plant, float Concrete, float Electricit
 	g_Gauge[i].wind  = Concrete;
 	g_Gauge[i].earth = Electricity;
 	g_Gauge[i].outer = outer;
+	g_Gauge[i].skill = skill;
 	g_Gauge[i].pos   = pos;
+	g_Gauge[i].type = type;
 }
 
 //====================================================================================
-// æç”»
+// ’ÊíƒQ[ƒW•`‰æi“àƒQ[ƒW{ŠOƒQ[ƒWj
 //====================================================================================
-void Gauge_Draw(int i)
+void Gauge_DrawBasic(int i)
 {
 	const GaugeData& g = g_Gauge[i];
 
-	// UIç”¨ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼è¨­å®š
+	// ƒVƒFƒCƒNƒIƒtƒZƒbƒg‚ğ“K—p‚µ‚½•`‰æˆÊ’u
+	XMFLOAT2 drawPos = { g.pos.x + g.shakeOffset.x, g.pos.y + g.shakeOffset.y };
+
+	// UI—pƒVƒF[ƒ_[İ’è
 	Shader_BeginUI();
 
-	// å†…ã‚²ãƒ¼ã‚¸æç”»
+	// “àƒQ[ƒW•`‰æ
 	Shader_BeginGauge();
 	Shader_SetGaugeMulti(g.fire, g.water, g.wind, g.earth);
 	Shader_SetGaugeTextures();
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	DrawSprite(g.pos, { 55,55 }, color::white);
+	DrawSprite(drawPos, GAUGE_IN_SIZE, color::white);
 
-	// å¤–ã‚²ãƒ¼ã‚¸æç”»
+	// ŠOƒQ[ƒW•`‰æ
 	Shader_BeginOutGauge();
 	Shader_SetOutGauge(g.outer, color::white);
 	Shader_SetOutGaugeTextures();
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	DrawSprite(g.pos, { 62,62 }, color::white);
-
-	/*SetBlendState(BLENDSTATE_ALFA);
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
-	DrawSprite({ 10, 10 }, { 10, 10 }, color::white);*/
+	DrawSprite(drawPos, GAUGE_OUT_SIZE, color::white);
 }
 
+//====================================================================================
+// ƒXƒLƒ‹ƒQ[ƒW•`‰æi‰º–Ê^ƒeƒLƒXƒg^ã–Êj
+//====================================================================================
+void Gauge_DrawSkill(int i)
+{
+	const GaugeData& g = g_Gauge[i];
+
+	// ƒXƒLƒ‹ƒQ[ƒW•`‰æ
+	int typeIndex = 0;
+	if (g.type != PlayerType::None)
+	{
+		typeIndex = static_cast<int>(g.type) - 1;  // None‚ª0‚È‚Ì‚Å-1
+	}
+
+	// ƒXƒLƒ‹ƒQ[ƒW(‰º–Ê)•`‰æ
+	Shader_Begin();
+	Shader_BeginUI();
+	Shader_SetSkillCoolGaugeTextures(typeIndex);
+	SetBlendState(BLENDSTATE_ALPHA);
+
+	DrawSprite({ g.pos.x + (170 * SCREEN_ADJUST_X), g.pos.y - (45 * SCREEN_ADJUST_Y) }, SKILL_COOL_SIZE, color::white);
+
+	// ƒXƒLƒ‹ƒQ[ƒW(ã–Ê)•`‰æ
+	Shader_BeginSkillGauge();
+	Shader_SetSingleGauge(g.skill);
+	Shader_SetSkillGaugeTextures(typeIndex);
+	SetBlendState(BLENDSTATE_ALPHA);
+
+	DrawSprite({ g.pos.x + (170 * SCREEN_ADJUST_X), g.pos.y - (45 * SCREEN_ADJUST_Y) }, SKILL_SIZE, color::white);
+
+	// ƒXƒLƒ‹ƒeƒLƒXƒg•`‰æ
+	Shader_Begin();
+	Shader_BeginUI();
+	Shader_SetSkillTextTextures(typeIndex);
+
+	DrawSprite({ g.pos.x + (170 * SCREEN_ADJUST_X), g.pos.y - (10 * SCREEN_ADJUST_Y) }, SKILL_TEXT_SIZE, color::white);
+
+
+}
+
+//====================================================================================
+// —¼•û•`‰æ
+//====================================================================================
+void Gauge_Draw(int i)
+{
+	// ’ÊíƒQ[ƒW•`‰æ
+	Gauge_DrawBasic(i);
+	// ƒXƒLƒ‹ƒQ[ƒW•`‰æ
+	Gauge_DrawSkill(i);
+}
+
+//====================================================================================
+// ƒVƒFƒCƒNƒIƒtƒZƒbƒgİ’è
+//====================================================================================
+void Gauge_SetShakeOffset(int i, const XMFLOAT2& offset)
+{
+	if (i < 0 || i >= GAUGE_PLAYER_MAX) return;
+	g_Gauge[i].shakeOffset = offset;
+}

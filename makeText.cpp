@@ -1,4 +1,4 @@
-ï»¿#include "makeText.h"
+#include "makeText.h"
 #include "direct3d.h"
 #include "debug_ostream.h"
 
@@ -24,7 +24,7 @@ static ComPtr<IDWriteTextFormat> g_textFormat;
 
 bool Initialize_MakeText()
 {
-	// D2Dãƒ•ã‚¡ã‚¯ãƒˆãƒªã®ä½œæˆ
+	// D2Dƒtƒ@ƒNƒgƒŠ‚Ìì¬
 	D2D1CreateFactory(
 		D2D1_FACTORY_TYPE_SINGLE_THREADED,
 		__uuidof(ID2D1Factory1),
@@ -32,21 +32,21 @@ bool Initialize_MakeText()
 		(void**)&g_d2dFactory
 	);
 
-	// DWriteãƒ•ã‚¡ã‚¯ãƒˆãƒªã®ä½œæˆ
+	// DWriteƒtƒ@ƒNƒgƒŠ‚Ìì¬
 	DWriteCreateFactory(
 		DWRITE_FACTORY_TYPE_SHARED,
 		__uuidof(IDWriteFactory),
 		(IUnknown**)&g_dwriteFactory
 	);
 	
-	// DXGIãƒ‡ãƒã‚¤ã‚¹ã®å–å¾—
+	// DXGIƒfƒoƒCƒX‚Ìæ“¾
 	ComPtr<IDXGIDevice> dxgiDevice;
 	Direct3D_GetDevice()->QueryInterface(__uuidof(IDXGIDevice), &dxgiDevice);
 	
-	// D2Dãƒ‡ãƒã‚¤ã‚¹ã®ä½œæˆ
+	// D2DƒfƒoƒCƒX‚Ìì¬
 	g_d2dFactory->CreateDevice(dxgiDevice.Get(), &g_d2dDevice);
 	
-	// D2Dãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ä½œæˆ
+	// D2DƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìì¬
 	g_d2dDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &g_d2dContext);
 	
 	return true;
@@ -105,7 +105,7 @@ void DrawTextEx(
 	TextColor color
 )
 {
-	// ãƒ•ã‚©ãƒ³ãƒˆä½œæˆ
+	// ƒtƒHƒ“ƒgì¬
 	ComPtr<IDWriteTextFormat> format;
 	g_dwriteFactory->CreateTextFormat(
 		fontName,
@@ -120,20 +120,20 @@ void DrawTextEx(
 
 	BeginDraw_MakeText();
 
-	// ãƒ–ãƒ©ã‚·ä½œæˆ
+	// ƒuƒ‰ƒVì¬
 	ComPtr<ID2D1SolidColorBrush> brush;
 	g_d2dContext->CreateSolidColorBrush(D2DColor(color), &brush);
 
-	// ã‚¢ã‚¦ãƒˆãƒ©ã‚¤ãƒ³ç”¨ãƒ–ãƒ©ã‚·ä½œæˆ
+	// ƒAƒEƒgƒ‰ƒCƒ“—pƒuƒ‰ƒVì¬
 	ComPtr<ID2D1SolidColorBrush> outlineBrush;
 	g_d2dContext->CreateSolidColorBrush(D2DColor(TextColor::White), &outlineBrush);
 
-	// æç”»çŸ©å½¢
+	// •`‰æ‹éŒ`
 	D2D1_RECT_F rect = D2D1::RectF(x, y, x + 2000, y + 300);
 	const D2D1_RECT_F baseRect = rect;
 
 #undef max
-	// ã‚¢ã‚¦ãƒˆãƒ©ã‚¤ãƒ³ã®å¤ªã•
+	// ƒAƒEƒgƒ‰ƒCƒ“‚Ì‘¾‚³
 	float outlineThickness = std::max(1.0f, fontSize * 0.03f);
 
 	const float ox = outlineThickness;
