@@ -15,6 +15,7 @@ using namespace DirectX;
 #include "keyboard.h"
 #include "DamageText.h"
 #include "Effect.h"
+#include "gamepad.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -466,11 +467,14 @@ void Special_Glass_Update(int playerIndex)
 					box.position.y = box.targetPosition.y;	// 降下完了
 					box.active = false;	// 地面に着いたら非アクティブ化
 					Camera_StartShake(0.2f, 0.2f);
+					
 
 					// 衝突判定
 					Circle boxCollider = { box.position, 0.3f };	// 半径0.3の円
 					for (int p = 0; p < PLAYER_MAX; ++p)
 					{
+						TriggerVibration(p, 0.2f, 0.2f, 200);
+						
 						if (p == playerIndex) continue; // 自分自身は無視
 
 						PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
@@ -485,6 +489,8 @@ void Special_Glass_Update(int playerIndex)
 							float rawDamage = SPECIAL_GLASS_DAMAGE * otherPlayer.defense;;
 							// 衝突している場合、ダメージを与える
 							otherPlayer.hp -= rawDamage;
+
+							TriggerbyHPShake(p, 8.0f, 20.0f, 1.5f);
 
 							// ダメージ数字を表示（頭上にオフセット）
 							int dmgInt = static_cast<int>(rawDamage + 0.5f);
@@ -569,6 +575,8 @@ void Special_Concrete_Update(int playerIndex)
 
 			for (int p = 0; p < PLAYER_MAX; ++p)
 			{
+				TriggerVibration(p, 0.5f, 0.5f, 600);
+
 				if (p == playerIndex) continue; // 自分自身は無視
 
 				PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
@@ -583,6 +591,8 @@ void Special_Concrete_Update(int playerIndex)
 					float rawDamage = SPECIAL_CONCRETE_DAMAGE * otherPlayer.defense;
 					// 衝突している場合、ダメージを与える
 					otherPlayer.hp -= rawDamage;
+
+					TriggerbyHPShake(p, 8.0f, 20.0f, 1.5f);
 
 					// ダメージ数字を表示（頭上にオフセット）
 					int dmgInt = static_cast<int>(rawDamage + 0.5f);

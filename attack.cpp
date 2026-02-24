@@ -18,6 +18,7 @@ using namespace DirectX;
 #include "input.h"
 #include "hp.h"
 #include "color.h"
+#include "gamepad.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -769,6 +770,7 @@ void AttackPlayerCollisions()
 				if (defender.hp < 0.0f) defender.hp = 0.0f;
 
 				TriggerbyHPShake(def, 8.0f,20.0f,1.5f);
+				TriggerVibration(def, 0.1f, 0.1f, 50);
 
 				// スタンゲージ増加
 				defender.stunGauge += 0.5f;
