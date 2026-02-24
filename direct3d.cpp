@@ -60,7 +60,8 @@ bool Direct3D_Initialize(HWND hWnd)
 	*/
 
 	// UINT device_flags = 0; // 旧バージョン
-	UINT device_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT; // Direct2D-3D連携用フラグ
+	//UINT device_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT; // Direct2D-3D連携用フラグ
+	UINT device_flags = D3D11_CREATE_DEVICE_DEBUG; // Direct2D-3D連携用フラグ
 
 #if defined(DEBUG) || defined(_DEBUG)
 	//device_flags |= D3D11_CREATE_DEVICE_DEBUG;
