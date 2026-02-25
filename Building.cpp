@@ -7,6 +7,8 @@
 #include "debug_ostream.h"     // ← 追加: hal::dout を使うため
 #include <codecvt>            // ← 追加: ワイド→UTF-8 変換用
 #include <locale>
+#include "color.h"
+#include "loadThread.h"
 
 
 //=========================================
@@ -62,6 +64,7 @@ static const int FIELD_TEX_MAX = static_cast<int>(sizeof(g_TexturePaths) / sizeo
 
 // テクスチャ配列（要素数は FIELD_TEX_MAX に合わせる）
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX] = { nullptr };
+
 
 //=========================================
 // モデル定義（複数対応）
@@ -200,9 +203,11 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	// ★複数のテクスチャを読み込み
 	int texToLoad = FIELD_TEX_MAX;
+	Loader::AddTask([pDevice, map, count]()
+{
 	// 変換ユーティリティを用意
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
-	for (int i = 0; i < texToLoad; ++i) // 定義したテクスチャの数だけループ
+	for (int i = 0; i < FIELD_TEX_MAX; ++i) // 定義したテクスチャの数だけループ
 	{
 		TexMetadata metadata;
 		ScratchImage image;
@@ -249,6 +254,7 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 		if (BuildingCount >= 100) break;
 	}
+		});
 }
 
 //=========================================
@@ -395,6 +401,7 @@ void Building::Update()
 //=========================================
 void Building::Draw(bool s_IsKonamiCodeEntered)
 {
+	if (!Loader::IsFinished) return;
 	if (!m_Model) return;
 
 	Shader_Begin();

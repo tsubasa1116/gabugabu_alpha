@@ -21,7 +21,16 @@ MODEL* ModelLoad( const char *FileName )
 	const std::string modelPath( FileName );
 
 	model->AiScene = aiImportFile(FileName, aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded);
-	assert(model->AiScene);
+	
+	// ← ここでnullptrチェックを追加
+	if (!model->AiScene)
+	{
+		OutputDebugStringA("ModelLoad: aiImportFile失敗: ");
+		OutputDebugStringA(FileName);
+		OutputDebugStringA("\n");
+		delete model;
+		return nullptr;
+	}
 
 	model->VertexBuffer = new ID3D11Buffer*[model->AiScene->mNumMeshes];	// 頂点データポインター
 	model->IndexBuffer = new ID3D11Buffer*[model->AiScene->mNumMeshes];		// インデックスデータポインター
@@ -113,6 +122,16 @@ MODEL* ModelLoad( const char *FileName )
 //======================================================
 void ModelRelease(MODEL* model)
 {
+	// nullptrチェック
+	if (!model) return;
+
+	// AiSceneがnullptrの場合は早期リターン
+	if (!model->AiScene)
+	{
+		delete model;
+		return;
+	}
+
 	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++)
 	{
 		model->VertexBuffer[m]->Release();
@@ -128,6 +147,7 @@ void ModelRelease(MODEL* model)
 	}
 
 	aiReleaseImport(model->AiScene);
+	model->AiScene = nullptr;
 
 	delete model;
 }
@@ -137,6 +157,9 @@ void ModelRelease(MODEL* model)
 //======================================================
 void ModelDraw(MODEL* model)
 {
+	if (model == nullptr || model->AiScene == nullptr)
+		return;
+
 	Shader_Begin();
 
 	// プリミティブトポロジ設定

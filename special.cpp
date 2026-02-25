@@ -16,6 +16,7 @@ using namespace DirectX;
 #include "DamageText.h"
 #include "Effect.h"
 #include "gamepad.h"
+#include "loadThread.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -58,6 +59,7 @@ static int  g_concreteFrame[PLAYER_MAX] = { 0 };
 static float g_concreteTimer[PLAYER_MAX] = { 0.0f };
 static const int   CONCRETE_FRAME_MAX = 72;	// 0～72
 static const float CONCRETE_ANIM_FRAME_TIME = 0.15f;
+
 
 static Vertex2 Special_vdata[SPECIAL_VERTEX] =
 {
@@ -259,6 +261,8 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
 
+	Loader::AddTask([pDevice]()
+	{
 	// テクスチャ読み込み
 	TexMetadata metadata;
 	ScratchImage image;
@@ -292,6 +296,9 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"Asset\\Texture\\effectlighting.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[7]);
 	assert(g_Special_Texture[7]);
+
+
+	});
 
 	// インデックスバッファ作成
 	{
@@ -1149,6 +1156,7 @@ void Special_Electricity_Draw(int playerIndex)
 
 void Special_Draw(int playerIndex)
 {
+	if (!Loader::IsFinished) return;
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 

@@ -33,6 +33,7 @@ void SkyBall_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void SkyBall_Finalize()
 {
 	ModelRelease(g_SkyBall.Model);
+	g_SkyBall.Model = nullptr;
 }
 
 void SkyBall_Update()

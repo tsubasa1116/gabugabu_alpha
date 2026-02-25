@@ -15,6 +15,7 @@
 #include "imgui_impl_dx11.h"
 
 #include "color.h"
+#include "loadThread.h"
 
 //======================================================
 //	マクロ定義
@@ -36,6 +37,7 @@ static	ID3D11DeviceContext* g_pContext = NULL;
 //static	ID3D11Buffer* g_IndexBuffer = NULL;
 //テクスチャ変数
 //static ID3D11ShaderResourceView* g_Texture;
+
 
 // FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
@@ -224,11 +226,6 @@ MAPDATA Map[] =
 //======================================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	char modelPath[256];
-	snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[1]);
-
-	Test = ModelLoad(modelPath);//デバッグ
-
 	// 配列要素数（終了マーカー FIELD_MAX を含まない）
 	int count = GetFieldObjectCount();
 	if (count <= 1)
@@ -390,17 +387,33 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// --------------------------------------------------------------------
 	// 複数のテクスチャを読み込み
 	// --------------------------------------------------------------------
-	for (int i = 0; i < FIELD_TEX_MAX; ++i) // 定義したテクスチャの数だけループ
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		// 配列に定義したパスからテクスチャを読み込む
-		LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(g_pDevice, image.GetImages(),
-			image.GetImageCount(), metadata, &g_Texture[i]);
-		assert(g_Texture[i]);
-	}
-	// --------------------------------------------------------------------
+	Loader::AddTask([pDevice]()
+		{
+			for (int i = 0; i < FIELD_TEX_MAX; ++i)
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				HRESULT hr = LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
+				if (FAILED(hr))
+				{
+					g_Texture[i] = nullptr;
+					continue;
+				}
+
+				hr = CreateShaderResourceView(g_pDevice, image.GetImages(),
+					image.GetImageCount(), metadata, &g_Texture[i]);
+				if (FAILED(hr))
+				{
+					g_Texture[i] = nullptr;
+					continue;
+				}
+			}
+
+			char modelPath[256];
+			snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[1]);
+			Test = ModelLoad(modelPath);
+		}); 
+	//------------------------------------------------------------------
 
 	Building_Initialize(pDevice, pContext);
 }
@@ -412,6 +425,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void Field_Finalize(void)
 {
 	ModelRelease(Test);
+	Test = nullptr;
 
 	//SAFE_RELEASE(g_VertexBuffer);
 	//SAFE_RELEASE(g_IndexBuffer);
@@ -426,6 +440,8 @@ void Field_Finalize(void)
 //======================================================
 void Field_Draw(bool s_IsKonamiCodeEntered)
 {
+	if (!Loader::IsFinished) return;
+
 	static bool input2 = false;
 
 	// デバッグキー

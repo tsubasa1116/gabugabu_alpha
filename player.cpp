@@ -34,6 +34,8 @@ using namespace DirectX;
 #include <codecvt>
 #include <vector>
 #include <algorithm>
+#include "loadThread.h"
+
 
 //======================================================
 //	マクロ定義
@@ -112,6 +114,8 @@ static UINT idxdata[6]
 };
 
 static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
+
+static std::atomic<int> g_loadedCount(0);                   // 何枚終わったか（進捗用）
 
 //======================================================
 //	初期化関数
@@ -204,18 +208,26 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	g_pDevice = pDevice;
 	g_pContext = pContext;
+	g_loadedCount = 0;
 
-#ifdef _DEBUG_
-	// テクスチャロード時間計測
-	auto tex_start = std::chrono::high_resolution_clock::now();
-	LoadTextureList(pDevice);
-	auto tex_end = std::chrono::high_resolution_clock::now();
-	auto tex_ms = std::chrono::duration_cast<std::chrono::milliseconds>(tex_end - tex_start).count();
-	hal::dout << "テクスチャロード時間: " << tex_ms << " ms" << std::endl;
-#else
-	// テクスチャ読み込み
-	LoadTextureList(pDevice);
-#endif
+	// ロードを別スレッドで開始
+	// pDeviceを渡し、終了したらフラグを立てる
+	Loader::AddTask([pDevice]()
+	{
+		LoadTextureList(pDevice);
+		});
+
+//#ifdef _DEBUG_
+//	// テクスチャロード時間計測
+//	auto tex_start = std::chrono::high_resolution_clock::now();
+//	LoadTextureList(pDevice);
+//	auto tex_end = std::chrono::high_resolution_clock::now();
+//	auto tex_ms = std::chrono::duration_cast<std::chrono::milliseconds>(tex_end - tex_start).count();
+//	hal::dout << "テクスチャロード時間: " << tex_ms << " ms" << std::endl;
+//#else
+//	// テクスチャ読み込み
+//	LoadTextureList(pDevice);
+//#endif
 
 	// ===== GPU テクスチャ ウォームアップ =====
 	{
@@ -324,6 +336,7 @@ static void LoadTextureList(ID3D11Device* pDevice)
 				// 作成失敗時は nullptr を代入して続行
 				g_Texture[e.idx] = nullptr;
 			}
+			g_loadedCount++;
 		}
 		// 読み込み失敗は nullptr を代入して続行
 		else	g_Texture[e.idx] = nullptr;
@@ -334,6 +347,8 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		// std::wstring を std::string に変換して出力
 		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
 		hal::dout << "テクスチャロード: " << conv.to_bytes(e.path) << " " << ms << " ms" << std::endl;
+
+
 	}
 }
 
@@ -1419,6 +1434,7 @@ void Player_Update()
 //======================================================
 static void Player_DrawSilhouette(int p)
 {
+	if (!Loader::IsFinished && g_loadedCount == 0) return;
 	if (!player[p].active) return;
 
 	// プロジェクション・ビュー行列を取得
@@ -1558,6 +1574,7 @@ static void Player_DrawSilhouette(int p)
 //======================================================
 static void Player_DrawOutline(int p)
 {
+	if (!Loader::IsFinished && g_loadedCount == 0) return;
 	if (!player[p].active) return;
 
 	// プロジェクション・ビュー行列を取得
@@ -1689,6 +1706,8 @@ static void Player_DrawOutline(int p)
 //======================================================
 void Player_Draw(bool s_IsKonamiCodeEntered)
 {
+	if (!Loader::IsFinished && g_loadedCount == 0) return;
+
 	// 攻撃・スキル・スペシャル描画
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{

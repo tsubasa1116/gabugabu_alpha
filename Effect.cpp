@@ -9,6 +9,7 @@
 #include "debug_render.h"
 #include "Building.h"
 #include "imgui.h"
+#include "loadThread.h"
 
 #define EFFECT_SPRITE_X		(8)
 #define EFFECT_SPRITE_Y		(8)
@@ -113,6 +114,7 @@ static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
 	 { 1,      0,     0,   true,  0.0f,       1,     0.9f,     1.0f,       2.5f }
 };
 
+
 //===============================================
 //　テクスチャセット用関数
 //===============================================
@@ -151,35 +153,43 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		effect[i].scaleGrowing = true;
 	}
 
+	Loader::AddTask([pDevice]()
+	{
 	// UI画面
-	Effect_LoadTexture(0, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// 第2形態 ガラス
-	Effect_LoadTexture(1, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// 第2形態 コンクリート
-	Effect_LoadTexture(2, L"Asset\\Texture\\uiLightBigTree_v1.png");			// 第2形態 植物
-	Effect_LoadTexture(3, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// 第2形態 電気
-	Effect_LoadTexture(4, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// 第3形態 ガラス
-	Effect_LoadTexture(5, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// 第3形態 コンクリート
-	Effect_LoadTexture(6, L"Asset\\Texture\\uiLightBigTree_v1.png");			// 第3形態 植物
-	Effect_LoadTexture(7, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// 第3形態 電気
-	// ゲーム内
-	Effect_LoadTexture(8, L"Asset\\Texture\\effectSkillGlassConcrete_v4.png");	// スキル ガラス・コンクリート 回復
-	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v2.png");			// スキル 植物
-	Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// スキル 電気
-	Effect_LoadTexture(11, L"Asset\\Texture\\effectPoison_v3.png");				// 毒・Aボタン・プレイヤーの影
-	Effect_LoadTexture(12, L"Asset\\Texture\\effectHit01_v4.png");				// ヒット コンクリート 建物・プレイヤーを攻撃した時 スタン
-	Effect_LoadTexture(13, L"Asset\\Texture\\effectHit02_v2.png");				// ヒット 電気・ガラス・植物 建物を攻撃した時
-	Effect_LoadTexture(14, L"Asset\\Texture\\effectShockwave_v1.png");			// 
-	Effect_LoadTexture(15, L"Asset\\Texture\\effectSmoke_20per.png");			// 建物 煙 20%破壊
-	Effect_LoadTexture(16, L"Asset\\Texture\\effectSmoke_50per.png");			// 建物 煙 50%破壊
-	Effect_LoadTexture(17, L"Asset\\Texture\\effectEvolution01_v1.png");		// 進化1
-	Effect_LoadTexture(18, L"Asset\\Texture\\effectEvolution02_v1.png");		// 進化2 進化1の直後に使用
-	Effect_LoadTexture(19, L"Asset\\Texture\\effectWin_v1.png");				// 撃墜
-	Effect_LoadTexture(20, L"Asset\\Texture\\effectEgg_v3.png");				// リスポーン 卵
-	Effect_LoadTexture(21, L"Asset\\Texture\\effectVenomExplosion_v2.png");		// スペシャル 植物 毒煙
+		Effect_LoadTexture(0, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// 第2形態 ガラス
+		Effect_LoadTexture(1, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// 第2形態 コンクリート
+		Effect_LoadTexture(2, L"Asset\\Texture\\uiLightBigTree_v1.png");			// 第2形態 植物
+		Effect_LoadTexture(3, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// 第2形態 電気
+		Effect_LoadTexture(4, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// 第3形態 ガラス
+		Effect_LoadTexture(5, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// 第3形態 コンクリート
+		Effect_LoadTexture(6, L"Asset\\Texture\\uiLightBigTree_v1.png");			// 第3形態 植物
+		Effect_LoadTexture(7, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// 第3形態 電気
+		// ゲーム内
+		Effect_LoadTexture(8, L"Asset\\Texture\\effectSkillGlassConcrete_v4.png");	// スキル ガラス・コンクリート 回復
+		Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v2.png");			// スキル 植物
+		Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// スキル 電気
+		Effect_LoadTexture(11, L"Asset\\Texture\\effectPoison_v3.png");				// 毒・Aボタン・プレイヤーの影
+		Effect_LoadTexture(12, L"Asset\\Texture\\effectHit01_v4.png");				// ヒット コンクリート 建物・プレイヤーを攻撃した時 スタン
+		Effect_LoadTexture(13, L"Asset\\Texture\\effectHit02_v2.png");				// ヒット 電気・ガラス・植物 建物を攻撃した時
+		Effect_LoadTexture(14, L"Asset\\Texture\\effectShockwave_v1.png");			// 
+		Effect_LoadTexture(15, L"Asset\\Texture\\effectSmoke_20per.png");			// 建物 煙 20%破壊
+		Effect_LoadTexture(16, L"Asset\\Texture\\effectSmoke_50per.png");			// 建物 煙 50%破壊
+		Effect_LoadTexture(17, L"Asset\\Texture\\effectEvolution01_v1.png");		// 進化1
+		Effect_LoadTexture(18, L"Asset\\Texture\\effectEvolution02_v1.png");		// 進化2 進化1の直後に使用
+		Effect_LoadTexture(19, L"Asset\\Texture\\effectWin_v1.png");				// 撃墜
+		Effect_LoadTexture(20, L"Asset\\Texture\\effectEgg_v3.png");				// リスポーン 卵
+		Effect_LoadTexture(21, L"Asset\\Texture\\effectVenomExplosion_v2.png");		// スペシャル 植物 毒煙
 
-	Effect_LoadTexture(22, L"Asset\\Texture\\uiPoison_vx.png");
-	Effect_LoadTexture(23, L"Asset\\Texture\\uiOrbit_v1.png");
-	Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
-	Effect_LoadTexture(25, L"Asset\\Texture\\effectSmork02_v1.png");
+		Effect_LoadTexture(22, L"Asset\\Texture\\uiPoison_vx.png");
+		Effect_LoadTexture(23, L"Asset\\Texture\\uiOrbit_v1.png");
+		Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
+		Effect_LoadTexture(25, L"Asset\\Texture\\effectSmork02_v1.png");
+
+		 
+
+	});
+
+	//if (!g_isPlayerLoadingFinished && g_loadedCount == 0) return;
 	
 
 	// 頂点バッファ作成
@@ -222,6 +232,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_animFrame[i] = 0;
 		g_animTimer[i] = 0.0f;
 	}
+
 
 	// ===== GPU テクスチャ ウォームアップ =====
 	{
@@ -307,6 +318,8 @@ void Effect_Update()
 //===============================================
 void Effect_Draw()
 {
+	if (!Loader::IsFinished) return;
+
 	Shader_Begin();
 	Shader_BeginUI();
 	SetBlendState(BLENDSTATE_ALPHA);

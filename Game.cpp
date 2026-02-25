@@ -27,6 +27,8 @@
 #include "DamageText.h"
 #include "direct3d.h"
 #include "SkyBall.h"
+#include "loadThread.h"
+
 //======================================================
 //	構造謡宣言
 //======================================================
@@ -40,12 +42,14 @@ bool input2 = false;
 
 // コマンドが入力されたときに立つフラグ
 static bool s_IsKonamiCodeEntered = false;
-
+static bool g_GameInitialized = false;
 //======================================================
 //	
 //======================================================
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
+	if (g_GameInitialized) return;
+
 	Initialize_MakeText();
 	CreateRenderTarget_MakeText();
 
@@ -81,6 +85,9 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	para.y /= len;
 	para.z /= len;
 	Light.SetDirection(para);
+
+	Loader::StartTaskLoad();
+	g_GameInitialized = true;
 }
 
 //======================================================
@@ -103,6 +110,7 @@ void Game_Finalize()
 
 	UnloadAudio(g_BgmID);	// サウンドの解放
 	DamageText_Finalize();
+	g_GameInitialized = false;
 }
 
 //======================================================
@@ -158,6 +166,8 @@ void Game_Update()
 //======================================================
 void Game_Draw()
 {
+	if (!Loader::IsFinished()) return;
+
 	Light.SetEnable(FALSE);
 	Shader_SetLight(Light.Light);
 	SkyBall_Draw();

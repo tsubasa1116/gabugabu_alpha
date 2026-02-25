@@ -8,6 +8,9 @@
 #include "sprite.h"
 #include "fade.h"
 #include "color.h"
+#include "loadThread.h"
+#include "game.h"
+#include "title.h"
 
 using namespace DirectX;
 
@@ -88,16 +91,28 @@ void LoadingScreen::StartLoading(SCENE nextScene, std::function<void()> loadTask
 
     // 別スレッドでロード処理を実行
     m_LoadThread = std::thread([this, loadTask]()
-    {
-        // ロード処理を実行
-        if (loadTask)
         {
-            loadTask();
-        }
+            // COMの初期化
+            CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
-        // ロード完了フラグを立てる
-        m_LoadComplete = true;
-    });
+            if (loadTask)
+            {
+                loadTask(); // ここでGame_Initialize -> AddTask -> StartTaskLoadが呼ばれる
+            }
+
+            // Loaderが終わるのを待つ
+            while (!Loader::IsFinished())
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(30));
+            }
+
+            // DirectXの生成処理はスレッドセーフではない場合がある？から、
+            // ここで一旦スリープを入れてスレッドの実行タイミングをずらすと安定することがあるらしい。。。
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+            m_LoadComplete = true;
+            CoUninitialize();
+        });
 }
 
 bool LoadingScreen::Update()
@@ -263,6 +278,7 @@ SCENE GetLoadingNextScene()
 
 void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath)
 {
+
     // 既存のロード画面があれば解放
     LoadingScreen_Finalize();
 
@@ -281,20 +297,18 @@ void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath)
     // ロード処理を定義
     std::function<void()> loadTask = [nextScene]()
     {
-        switch (nextScene)
-        {
-        case SCENE_GAME:
-            std::this_thread::sleep_for(std::chrono::seconds(5));
-            break;
+            switch (nextScene)
+            {
+            case SCENE_GAME:
+                // Direct3D_GetDevice()などは適切に書き換えてください
+                Game_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+                break;
+            case SCENE_TITLE:
+                Title_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+                break;
+            }
 
-        case SCENE_TITLE:
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            break;
-
-        default:
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
-            break;
-        }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
     };
 
     g_pLoadingScreen->StartLoading(nextScene, loadTask, true);

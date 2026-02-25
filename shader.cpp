@@ -15,6 +15,7 @@ using namespace DirectX;
 #include "imgui.h"
 
 #include "color.h"
+#include "loadThread.h"
 
 //======================================================
 //	グローバル変数
@@ -358,63 +359,68 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//======================================================
 	//	ゲージ用テクスチャ読み込み
 	//======================================================
-	const wchar_t* files[4] =
+	Loader::AddTask([pDevice]()
 	{
-		L"asset/texture/uiMaterialGlass_v3.png",
-		L"asset/texture/uiMaterialConcrete_v3.png",
-		L"asset/texture/uiMaterialTree_v3.png",
-		L"asset/texture/uiMaterialElectricity_v3.png"
-	};
+		const wchar_t* files[4] =
+		{
+			L"asset/texture/uiMaterialGlass_v3.png",
+			L"asset/texture/uiMaterialConcrete_v3.png",
+			L"asset/texture/uiMaterialTree_v3.png",
+			L"asset/texture/uiMaterialElectricity_v3.png"
+		};
 
-	const wchar_t* skillOver[4] =
-	{
-		L"asset/texture/icon_thorn.png",
-		L"asset/texture/icon_barrier.png",
-		L"asset/texture/icon_growth.png",
-		L"asset/texture/icon_speed.png"
-	};
+		const wchar_t* skillOver[4] =
+		{
+			L"asset/texture/icon_thorn.png",
+			L"asset/texture/icon_barrier.png",
+			L"asset/texture/icon_growth.png",
+			L"asset/texture/icon_speed.png"
+		};
 
-	const wchar_t* skillUnder[4] =
-	{
-		L"asset/texture/cool_thorn.png",
-		L"asset/texture/cool_barrier.png",
-		L"asset/texture/cool_growth.png",
-		L"asset/texture/cool_speed.png"
-	};
+		const wchar_t* skillUnder[4] =
+		{
+			L"asset/texture/cool_thorn.png",
+			L"asset/texture/cool_barrier.png",
+			L"asset/texture/cool_growth.png",
+			L"asset/texture/cool_speed.png"
+		};
 
-	const wchar_t* skillText[4] =
-	{
-		L"asset/texture/text_thorn.png",
-		L"asset/texture/text_barrier.png",
-		L"asset/texture/text_growth.png",
-		L"asset/texture/text_speed.png"
-	};
+		const wchar_t* skillText[4] =
+		{
+			L"asset/texture/text_thorn.png",
+			L"asset/texture/text_barrier.png",
+			L"asset/texture/text_growth.png",
+			L"asset/texture/text_speed.png"
+		};
 
-	TexMetadata metadata;
-	ScratchImage image;
+	
+		TexMetadata metadata;
+		ScratchImage image;
 
-	for (int i = 0; i < 4; i++)
-	{
-		LoadFromWICFile(files[i], WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_GaugeTex[i]);
-		assert(g_GaugeTex[i]);
+		for (int i = 0; i < 4; i++)
+		{
+			LoadFromWICFile(files[i], WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_GaugeTex[i]);
+			assert(g_GaugeTex[i]);
 
-		LoadFromWICFile(skillOver[i], WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillGaugeTex[i]);
-		assert(g_SkillGaugeTex[i]);
+			LoadFromWICFile(skillOver[i], WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillGaugeTex[i]);
+			assert(g_SkillGaugeTex[i]);
 
-		LoadFromWICFile(skillUnder[i], WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillCoolGaugeTex[i]);
-		assert(g_SkillCoolGaugeTex[i]);
+			LoadFromWICFile(skillUnder[i], WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillCoolGaugeTex[i]);
+			assert(g_SkillCoolGaugeTex[i]);
 
-		LoadFromWICFile(skillText[i], WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillTextTex[i]);
-		assert(g_SkillTextTex[i]);
-	}
+			LoadFromWICFile(skillText[i], WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_SkillTextTex[i]);
+			assert(g_SkillTextTex[i]);
+		}
 
-	LoadFromWICFile(L"Asset\\Texture\\uiEvolutionGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_OutGaugeTex);
-	assert(g_OutGaugeTex);
+		LoadFromWICFile(L"Asset\\Texture\\uiEvolutionGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_OutGaugeTex);
+		assert(g_OutGaugeTex);
+
+	});
 
 
 	//======================================================
@@ -465,6 +471,8 @@ void Shader_Finalize()
 //======================================================
 void Shader_SetGaugeTextures()
 {
+	if (!Loader::IsFinished) return;
+
 	// t0-t3
 	g_pContext->PSSetShaderResources(0, 4, g_GaugeTex);  // glass, concrete, plant, electric の順
 	
@@ -477,6 +485,8 @@ void Shader_SetGaugeTextures()
 //======================================================
 void Shader_SetOutGaugeTextures()
 {
+	if (!Loader::IsFinished) return;
+
 	// t0
 	g_pContext->PSSetShaderResources(0, 1, &g_OutGaugeTex); 
 
@@ -489,6 +499,8 @@ void Shader_SetOutGaugeTextures()
 //======================================================
 void Shader_SetSkillGaugeTextures(int typeIndex)
 {
+	if (!Loader::IsFinished) return;
+
 	// タイプチェック
 	if (typeIndex < 0 || typeIndex >= 4)
 	{
@@ -504,6 +516,8 @@ void Shader_SetSkillGaugeTextures(int typeIndex)
 //======================================================
 void Shader_SetSkillCoolGaugeTextures(int typeIndex)
 {
+	if (!Loader::IsFinished) return;
+
 	// タイプチェック
 	if (typeIndex < 0 || typeIndex >= 4)
 	{
@@ -519,6 +533,8 @@ void Shader_SetSkillCoolGaugeTextures(int typeIndex)
 //======================================================
 void Shader_SetSkillTextTextures(int typeIndex)
 {
+	if (!Loader::IsFinished) return;
+
 	// タイプチェック
 	if (typeIndex < 0 || typeIndex >= 4)
 	{
