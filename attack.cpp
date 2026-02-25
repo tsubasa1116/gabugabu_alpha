@@ -666,7 +666,6 @@ void Attack_Draw(int playerIndex)
 
 	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 	SetBlendState(BLENDSTATE_ALPHA);

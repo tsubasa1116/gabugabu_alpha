@@ -632,6 +632,7 @@ void Skill_Glass_Draw(int playerIndex)
 		Shader_SetMatrix(WVP);
 
 		// •`‰æŽÀs
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6 * 6, 0, 0);
 	}
 }
@@ -655,6 +656,7 @@ void Skill_Concrete_Draw(int playerIndex)
 	Shader_SetMatrix(WVP);
 
 	// •`‰æŽÀs
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 }
 
@@ -677,6 +679,7 @@ void Skill_Plant_Draw(int playerIndex)
 	Shader_SetMatrix(WVP);
 
 	// •`‰æŽÀs
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 }
 
@@ -699,6 +702,7 @@ void Skill_Electricity_Draw(int playerIndex)
 	Shader_SetMatrix(WVP);
 
 	// •`‰æŽÀs
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 }
