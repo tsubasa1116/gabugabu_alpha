@@ -1,7 +1,7 @@
 //======================================================
 //	title.cpp
 // 
-//	制作者：田中佑奈			日付：2026//
+//	制作者：田中佑奈			日付：2026/02/26
 //======================================================
 #include "Manager.h"
 #include "sprite.h"
@@ -53,7 +53,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
-		LoadFromWICFile(L"asset\\texture\\title.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(L"asset\\texture\\uiStart_v2.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 		assert(g_Texture);//読み込み失敗時にダイアログを表示
 	}
@@ -62,7 +62,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata2;
 		ScratchImage	image2;
-		LoadFromWICFile(L"asset\\texture\\titleLogo.png", WIC_FLAGS_NONE, &metadata2, image2);
+		LoadFromWICFile(L"asset\\texture\\titleLogo_v2.png", WIC_FLAGS_NONE, &metadata2, image2);
 		CreateShaderResourceView(pDevice, image2.GetImages(), image2.GetImageCount(), metadata2, &g_Texture2);
 		assert(g_Texture2);//読み込み失敗時にダイアログを表示
 	}
@@ -71,7 +71,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata3;
 		ScratchImage	image3;
-		LoadFromWICFile(L"asset\\texture\\startButton.png", WIC_FLAGS_NONE, &metadata3, image3);
+		LoadFromWICFile(L"asset\\texture\\startON.png", WIC_FLAGS_NONE, &metadata3, image3);
 		CreateShaderResourceView(pDevice, image3.GetImages(), image3.GetImageCount(), metadata3, &g_Texture3);
 		assert(g_Texture3);//読み込み失敗時にダイアログを表示
 
@@ -166,7 +166,7 @@ void Title_Draw()
 
 		XMFLOAT2 baseLogoSize = { SCREEN_WIDTH * 0.55f, SCREEN_HEIGHT * 0.55f };
 		XMFLOAT2 logoSize = { baseLogoSize.x * logoScale, baseLogoSize.y * logoScale };
-		XMFLOAT2 logoPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.3f };
+		XMFLOAT2 logoPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.4f };
 
 		// DrawSprite は中心位置基準を想定しているのでそのまま渡す
 		XMFLOAT4 logoCol = { 1.0f, 1.0f, 1.0f, logoAlpha };
@@ -187,21 +187,28 @@ void Title_Draw()
 		float buttonScale = 0.5f + 0.5f * eButton; // 0.5->1.0
 		float buttonAlpha = eButton;
 
+		// 明度設定（1.0f = 元の色、1.5f = 明るめ、0.5f = 暗め）
+		float brightness = 1.3f;
+		Shader_SetColor(XMFLOAT4(brightness, brightness, brightness, 1.0f));
+
 		// 描画サイズ（アスペクト比を維持）
 		float texW = (g_Metadata3.width > 0) ? (float)g_Metadata3.width : 100.0f;
 		float texH = (g_Metadata3.height > 0) ? (float)g_Metadata3.height : 50.0f;
 		float desiredWidth = SCREEN_WIDTH * 0.40f;
 		float scale = desiredWidth / texW;
 		XMFLOAT2 baseButtonSize = { texW * scale, texH * scale };
-		XMFLOAT2 buttonSize = { baseButtonSize.x * buttonScale, baseButtonSize.y * buttonScale };
+		XMFLOAT2 buttonSize = { baseButtonSize.x * buttonScale * 0.8f, baseButtonSize.y * buttonScale * 0.8f };
 
-		XMFLOAT2 buttonPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.65f };
+		XMFLOAT2 buttonPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.8f };
 		XMFLOAT4 buttonCol = { 1.0f, 1.0f, 1.0f, buttonAlpha };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture3);
 		SetBlendState(BLENDSTATE_ALPHA);
 		DrawSprite(buttonPos, buttonSize, buttonCol);
 		SetBlendState(BLENDSTATE_NONE);
+
+		// 他の描画に影響しないよう元に戻す
+		Shader_SetColor(color::white);
 	}
 
 	//// 動画をテクスチャとして描画
