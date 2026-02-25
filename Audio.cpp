@@ -25,14 +25,6 @@ void UninitAudio()
 	g_Xaudio->Release();
 }
 
-
-
-
-
-
-
-
-
 struct AUDIO
 {
 	IXAudio2SourceVoice*	SourceVoice{};
@@ -42,10 +34,8 @@ struct AUDIO
 	int						PlayLength{};
 };
 
-#define AUDIO_MAX 100
+#define AUDIO_MAX (100)
 static AUDIO g_Audio[AUDIO_MAX]{};
-
-
 
 int LoadAudio(const char *FileName)
 {
@@ -63,9 +53,6 @@ int LoadAudio(const char *FileName)
 	if (index == -1)
 		return -1;
 
-
-
-
 	// サウンドデータ読込
 	WAVEFORMATEX wfx = { 0 };
 
@@ -77,7 +64,6 @@ int LoadAudio(const char *FileName)
 		MMCKINFO mmckinfo = { 0 };
 		UINT32 buflen;
 		LONG readlen;
-
 
 		hmmio = mmioOpen((LPSTR)FileName, &mmioinfo, MMIO_READ);
 		assert(hmmio);
@@ -105,50 +91,43 @@ int LoadAudio(const char *FileName)
 		datachunkinfo.ckid = mmioFOURCC('d', 'a', 't', 'a');
 		mmioDescend(hmmio, &datachunkinfo, &riffchunkinfo, MMIO_FINDCHUNK);
 
-
-
 		buflen = datachunkinfo.cksize;
 		g_Audio[index].SoundData = new unsigned char[buflen];
 		readlen = mmioRead(hmmio, (HPSTR)g_Audio[index].SoundData, buflen);
 
-
 		g_Audio[index].Length = readlen;
 		g_Audio[index].PlayLength = readlen / wfx.nBlockAlign;
 
-
 		mmioClose(hmmio, 0);
 	}
-
 
 	// サウンドソース生成
 	g_Xaudio->CreateSourceVoice(&g_Audio[index].SourceVoice, &wfx);
 	assert(g_Audio[index].SourceVoice);
 
-
 	return index;
 }
 
-
-
-
 void UnloadAudio(int Index)
 {
+	if (Index < 0 || Index >= AUDIO_MAX) return;
+	if (g_Audio[Index].SourceVoice == nullptr) return;
+
 	g_Audio[Index].SourceVoice->Stop();
 	g_Audio[Index].SourceVoice->DestroyVoice();
+	g_Audio[Index].SourceVoice = nullptr;
 
 	delete[] g_Audio[Index].SoundData;
 	g_Audio[Index].SoundData = nullptr;
 }
 
-
-
-
-
 void PlayAudio(int Index, bool Loop)
 {
+	if (Index < 0 || Index >= AUDIO_MAX) return;
+	if (g_Audio[Index].SourceVoice == nullptr) return;
+
 	g_Audio[Index].SourceVoice->Stop();
 	g_Audio[Index].SourceVoice->FlushSourceBuffers();
-
 
 	// バッファ設定
 	XAUDIO2_BUFFER bufinfo;
@@ -168,7 +147,6 @@ void PlayAudio(int Index, bool Loop)
 	}
 
 	g_Audio[Index].SourceVoice->SubmitSourceBuffer(&bufinfo, NULL);
-
 
 	// 再生
 	g_Audio[Index].SourceVoice->Start();

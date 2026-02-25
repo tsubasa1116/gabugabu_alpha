@@ -37,6 +37,7 @@ static ID3D11Buffer* g_pOutGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pSkillGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pHpberBuffer = nullptr;
 static ID3D11Buffer* g_pColorBuffer = nullptr;
+static ID3D11Buffer* g_pDrawModeBuffer = nullptr;
 
 static ID3D11PixelShader* g_pDebugColorShader = nullptr; // コライダー可視化
 
@@ -55,6 +56,7 @@ static ID3D11ShaderResourceView* g_SkillTextTex[4] = {};
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
+
 
 struct GAUGEBUFFER
 {
@@ -91,6 +93,12 @@ struct HPBERBUFFER
 	XMFLOAT4 palam;
 	XMFLOAT4 colorA;
 	XMFLOAT4 colorB;
+};
+
+struct DRAWMODEBUFFER
+{
+	int drawMode;
+	float pad[3];
 };
 
 //======================================================
@@ -158,6 +166,16 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&cbd, NULL, &g_pHpberBuffer);
+	}
+
+	//DrawModeBuffer
+	{
+		D3D11_BUFFER_DESC cbd{};
+		cbd.Usage = D3D11_USAGE_DYNAMIC;
+		cbd.ByteWidth = sizeof(DRAWMODEBUFFER);
+		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		pDevice->CreateBuffer(&cbd, NULL, &g_pDrawModeBuffer);
 	}
 
 
@@ -350,25 +368,25 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	const wchar_t* skillOver[4] =
 	{
-		L"asset/texture/icon_growth.png",
-		L"asset/texture/icon_barrier.png",
 		L"asset/texture/icon_thorn.png",
+		L"asset/texture/icon_barrier.png",
+		L"asset/texture/icon_growth.png",
 		L"asset/texture/icon_speed.png"
 	};
 
 	const wchar_t* skillUnder[4] =
 	{
-		L"asset/texture/cool_growth.png",
-		L"asset/texture/cool_barrier.png",
 		L"asset/texture/cool_thorn.png",
+		L"asset/texture/cool_barrier.png",
+		L"asset/texture/cool_growth.png",
 		L"asset/texture/cool_speed.png"
 	};
 
 	const wchar_t* skillText[4] =
 	{
-		L"asset/texture/text_growth.png",
-		L"asset/texture/text_barrier.png",
 		L"asset/texture/text_thorn.png",
+		L"asset/texture/text_barrier.png",
+		L"asset/texture/text_growth.png",
 		L"asset/texture/text_speed.png"
 	};
 
@@ -432,7 +450,12 @@ void Shader_Finalize()
 
 	SAFE_RELEASE(g_pWorldConstantBuffer);
 	SAFE_RELEASE(g_pLightConstantBuffer);
-
+	SAFE_RELEASE(g_pGaugeBuffer);
+	SAFE_RELEASE(g_pOutGaugeBuffer);
+	SAFE_RELEASE(g_pSkillGaugeBuffer);
+	SAFE_RELEASE(g_pHpberBuffer);
+	SAFE_RELEASE(g_pColorBuffer);
+	SAFE_RELEASE(g_pDrawModeBuffer);
 }
 
 
@@ -766,7 +789,10 @@ void Shader_BeginDebugColor()
 
 }
 
-// 線形補間カラー設定
+
+//======================================================
+//	線形補間カラー設定
+//======================================================
 void Shader_SetColorLerp(const XMFLOAT4& mulColor, const XMFLOAT4& lerpColor, float lerpFactor)
 {
 	if (!g_pColorBuffer) return;
@@ -782,4 +808,26 @@ void Shader_SetColorLerp(const XMFLOAT4& mulColor, const XMFLOAT4& lerpColor, fl
 
 	g_pContext->Unmap(g_pColorBuffer, 0);
 	g_pContext->PSSetConstantBuffers(1, 1, &g_pColorBuffer);
+}
+
+
+//======================================================
+//	シルエット描画用設定
+//======================================================
+void Shader_SetDrawMode(int mode)
+{
+	if (!g_pDrawModeBuffer) return;
+
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	g_pContext->Map(g_pDrawModeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+
+	DRAWMODEBUFFER dm{};
+	dm.drawMode = mode;
+	dm.pad[0] = dm.pad[1] = dm.pad[2] = 0.0f;
+	memcpy(mapped.pData, &dm, sizeof(dm));
+
+	g_pContext->Unmap(g_pColorBuffer, 0);
+
+	// register(b2)に送る
+	g_pContext->PSSetConstantBuffers(2, 1, &g_pDrawModeBuffer);
 }
