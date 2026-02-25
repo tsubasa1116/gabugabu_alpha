@@ -383,6 +383,7 @@ void Skill_Glass_Update(int playerIndex)
 	if (player.skillTimer == 0.0f)
 	{
 		PlayAudio(g_SE_ID[0], false);
+		player.skillAnimation = true;
 	}
 
 	// スキルタイマー更新
@@ -516,6 +517,7 @@ void Skill_Concrete_Update(int playerIndex)
 	if (player.skillTimer == 0.0f)
 	{
 		PlayAudio(g_SE_ID[1], false);
+		player.skillAnimation = true;
 	}
 
 	// スキルタイマー更新
@@ -555,6 +557,7 @@ void Skill_Plant_Update(int playerIndex)
 	if (player.skillTimer == 0.0f)
 	{
 		PlayAudio(g_SE_ID[2], false);
+		player.skillAnimation = true;
 	}
 
 	// スキルタイマー更新
@@ -598,6 +601,7 @@ void Skill_Electricity_Update(int playerIndex)
 	if (player.skillTimer == 0.0f)
 	{
 		PlayAudio(g_SE_ID[3], false);
+		player.skillAnimation = true;
 	}
 
 	// スキルタイマー更新

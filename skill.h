@@ -4,15 +4,15 @@
 #include "collider.h"
 
 // É}ÉNÉçíËã`
-#define SKILL_GLASS_TIME		(10.0f)
-#define SKILL_CONCRETE_TIME		(10.0f)
-#define SKILL_PLANT_TIME		(10.0f)
-#define SKILL_ELECTRICITY_TIME	(10.0f)
+#define SKILL_GLASS_TIME		(1.0f)
+#define SKILL_CONCRETE_TIME		(1.0f)
+#define SKILL_PLANT_TIME		(1.0f)
+#define SKILL_ELECTRICITY_TIME	(1.0f)
 
-#define SKILL_GLASS_COOLTIME		(3.0f)
-#define SKILL_CONCRETE_COOLTIME		(3.0f)
-#define SKILL_PLANT_COOLTIME		(3.0f)
-#define SKILL_ELECTRICITY_COOLTIME	(3.0f)
+#define SKILL_GLASS_COOLTIME		(0.3f)
+#define SKILL_CONCRETE_COOLTIME		(0.3f)
+#define SKILL_PLANT_COOLTIME		(0.3f)
+#define SKILL_ELECTRICITY_COOLTIME	(0.3f)
 
 #define SKILL_GLASS_DAMAGE			(0.25f)
 

@@ -61,6 +61,11 @@ static const float CONCRETE_ANIM_FRAME_TIME = 0.15f;
 
 static int g_SE_ID[SPECIAL_SE_COUNT] = { NULL };
 
+// ガラスSE用：複数同時再生対応
+#define GLASS_SE_SLOT_MAX (9)  // 同時再生可能なスロット数（箱の最大数に合わせる）
+static int g_GlassSE_IDs[GLASS_SE_SLOT_MAX] = { 0 };
+static int g_GlassSE_NextSlot = 0;
+
 static Vertex2 Special_vdata[SPECIAL_VERTEX] =
 {
 	// -Z面 (法線: 0,0,-1)
@@ -322,10 +327,16 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Special_Electricity_Initialize(pDevice, pContext);
 
 	// SEの初期化
-	//g_SE_ID[0] = LoadAudio("asset\\Audio\\Special_Concrete.wav");		// スペシャル ガラス
-	g_SE_ID[1] = LoadAudio("asset\\Audio\\Special_Concrete.wav");		// スペシャル コンクリート
-	g_SE_ID[2] = LoadAudio("asset\\Audio\\Special_Plant.wav");			// スペシャル 植物
-	g_SE_ID[3] = LoadAudio("asset\\Audio\\Special_Electricity.wav");	// スペシャル 電気
+	g_SE_ID[0] = LoadAudio("asset\\Audio\\Special_Concrete.wav");		// スペシャル コンクリート
+	g_SE_ID[1] = LoadAudio("asset\\Audio\\Special_Plant.wav");			// スペシャル 植物
+	g_SE_ID[2] = LoadAudio("asset\\Audio\\Special_Electricity.wav");	// スペシャル 電気
+
+	// ガラスSE：複数同時再生用スロットをロード
+	for (int i = 0; i < GLASS_SE_SLOT_MAX; ++i)
+	{
+		g_GlassSE_IDs[i] = LoadAudio("asset\\Audio\\Special_Glass.wav");
+	}
+	g_GlassSE_NextSlot = 0;
 }
 
 void Special_Finalize()
@@ -351,6 +362,9 @@ void Special_Finalize()
 	}
 
 	for (int i = 0; i < SPECIAL_SE_COUNT; ++i)	UnloadAudio(g_SE_ID[i]);
+
+	// ガラスSEスロット解放
+	for (int i = 0; i < GLASS_SE_SLOT_MAX; ++i)	UnloadAudio(g_GlassSE_IDs[i]);
 }
 
 void Special_Glass_Update(int playerIndex)
@@ -361,12 +375,6 @@ void Special_Glass_Update(int playerIndex)
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
-
-	//// スペシャル発動の最初のフレームだけSEを再生
-	//if (player.specialTimer == 0.0f)
-	//{
-	//	PlayAudio(g_SE_ID[0], false);
-	//}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
@@ -422,7 +430,7 @@ void Special_Glass_Update(int playerIndex)
 				GLASS_BOX box;
 				box.position = player.position; // 箱をプレイヤーの位置に出現させる
 				box.rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				box.scaling = XMFLOAT3(0.25f, 0.25f, 0.25f); // 箱のサイズ
+				box.scaling = XMFLOAT3(0.4f, 0.4f, 0.4f); // 箱のサイズ
 				box.targetPosition =
 				{
 					otherPlayer.position.x + offsets[i].x,
@@ -482,6 +490,11 @@ void Special_Glass_Update(int playerIndex)
 				{
 					box.position.y = box.targetPosition.y;	// 降下完了
 					box.active = false;	// 地面に着いたら非アクティブ化
+
+					// ガラスSE再生（ラウンドロビンで別スロットを使い、前の音を途切れさせない）
+					PlayAudio(g_GlassSE_IDs[g_GlassSE_NextSlot], false);
+					g_GlassSE_NextSlot = (g_GlassSE_NextSlot + 1) % GLASS_SE_SLOT_MAX;
+
 					Camera_StartShake(0.2f, 0.2f);
 
 					// 衝突判定
@@ -882,7 +895,7 @@ void Special_Glass_Draw(int playerIndex)
 		XMMATRIX WorldMatrix =
 			XMMatrixScaling(box.scaling.x, box.scaling.y, box.scaling.z) *
 			XMMatrixRotationRollPitchYaw(XMConvertToRadians(box.rotation.x), XMConvertToRadians(box.rotation.y), XMConvertToRadians(box.rotation.z)) *
-			XMMatrixTranslation(box.position.x, box.position.y, box.position.z);
+			XMMatrixTranslation(box.position.x - 0.2f, box.position.y, box.position.z);
 
 		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 		Shader_SetMatrix(WVP);
