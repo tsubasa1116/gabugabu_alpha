@@ -459,7 +459,7 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 		baseTexIndex = 23;//ok
 	}
 	else if (type == BuildingType::Electricity &&
-		strcmp(g_ElectricModels[m_ModelIndex], "propsElectricitySub03_v9") == 0)
+		strcmp(g_ElectricModels[m_ModelIndex], "propsElectricitySub03_v9]") == 0)
 	{
 		baseTexIndex = 25;//ok
 	}

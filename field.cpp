@@ -46,7 +46,7 @@ static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 	L"Asset\\Texture\\texturefieldTree01_v2.png",  // 0
 	L"Asset\\Texture\\murasaki.png",  // 1
 	L"Asset\\Texture\\texturefieldTree01_v1.png",  
-	L"Asset\\Texture\\texturefieldConcrete02_v3.png",
+	L"Asset\\Texture\\texturefieldConcrete02_v4.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
 
