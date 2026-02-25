@@ -463,7 +463,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		// ------------------------------
 		// ÉèÅ[ÉãÉhçsóÒçÏê¨
 		// ------------------------------
-		XMMATRIX ScalingMatrix = XMMatrixScaling(1.1f, 1.1f, 1.1f);
+		XMMATRIX ScalingMatrix = XMMatrixScaling(1.1f, 1.1f, 1.0f);
 
 		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			XMConvertToRadians(-90.0f),
