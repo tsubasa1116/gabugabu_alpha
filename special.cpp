@@ -662,7 +662,6 @@ void Special_Plant_Update(int playerIndex)
 		// SEçƒê∂
 		PlayAudio(g_SE_ID[2], false);
 
-		Effect_Set(24, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
 		Effect_Set(22, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
 		g_plantInitialized[playerIndex] = true;
 	}
