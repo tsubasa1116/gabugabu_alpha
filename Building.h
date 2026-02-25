@@ -41,7 +41,7 @@ private:
 
 	// 種類・フェーズに応じて
 	// モデルとテクスチャを読み込む
-	void LoadModelForPhase();
+	//void LoadModelForPhase();
 
 public:
 
@@ -58,7 +58,7 @@ public:
 	AABB boundingBox;
 
 	// モデル
-	MODEL* m_Model;
+	//MODEL* m_Model;
 
 	bool isActive;		// 有効フラグ
 	bool isDestroyed;	// 建物破壊フラグ
@@ -82,11 +82,13 @@ public:
 	void Draw(bool s_IsKonamiCodeEntered);
 
 	// 状態変更
-	void SetPhase(BuildingPhase phase);
+	//void SetPhase(BuildingPhase phase);
 
 	// ゲッター
 	BuildingType  GetType()  const { return type; }
 	BuildingPhase GetPhase() const { return Phase; }
+
+	const AABB& GetAABB() const { return boundingBox; }
 };
 
 //=========================================

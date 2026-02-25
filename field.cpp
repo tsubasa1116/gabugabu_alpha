@@ -606,6 +606,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 //======================================================
 void Field_Update(void)
 {
+	// フィールドコライダーの更新
 	int i = 0;
 	while (Map[i].no != FIELD_MAX)
 	{

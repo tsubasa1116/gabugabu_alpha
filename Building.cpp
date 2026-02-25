@@ -105,6 +105,42 @@ static const char* g_ElectricModels[] = {
 // 配列数取得マクロ
 #define COUNT(arr) (sizeof(arr) / sizeof(arr[0]))
 
+// --- モデルカタログ --------------------------------------------------------------
+static MODEL* g_pGlassModels		[COUNT(g_GlassModels)]		= { nullptr };
+static MODEL* g_pConcreteModels		[COUNT(g_ConcreteModels)]	= { nullptr };
+static MODEL* g_pPlantModels		[COUNT(g_PlantModels)]		= { nullptr };
+static MODEL* g_pElectricModels		[COUNT(g_ElectricModels)]	= { nullptr };
+
+
+struct ModelBaseSize { float x, y, z; };
+
+static ModelBaseSize g_GlassModelSizes[COUNT(g_GlassModels)] = {
+	{1.0f, 2.0f, 1.0f},		// 3birugarsuのサイズ
+	{0.8f, 1.5f, 0.8f},		// 2marugarasu
+	{0.8f, 1.5f, 0.8f}		// togegarasu2
+};
+
+static ModelBaseSize g_ConcreteModelSizes[COUNT(g_ConcreteModels)] = {
+	{1.5f, 3.0f, 1.5f},		// bizyutukan
+	{1.2f, 2.5f, 1.2f},		// biru3dannkonkuri
+	{1.5f, 3.5f, 1.5f}		// 3biltateconkuri
+};
+
+static ModelBaseSize g_PlantModelSizes[COUNT(g_PlantModels)] = {
+	{1.0f, 2.5f, 1.0f},		// kitoyugu
+	{1.5f, 3.0f, 1.5f},		// togoki
+	{1.2f, 2.8f, 1.2f},		// kitoie
+	{1.5f, 3.5f, 1.5f}		// propsTreeMain_v12
+};
+
+static ModelBaseSize g_ElectricModelSizes[COUNT(g_ElectricModels)] = {
+	{1.0f, 2.0f, 1.0f},		// singou
+	{1.5f, 3.0f, 1.5f},		// taw-
+	{1.2f, 2.5f, 1.2f},		// raibu
+	{1.5f, 3.5f, 1.5f},		// propsElectricitySub03_v9
+	{1.2f, 2.8f, 1.2f}		// propsElectricitySub02_v9
+};
+
 //=========================================
 // 全建物更新
 //=========================================
@@ -139,7 +175,8 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 	: type(type),
 	position(pos),
 	Phase(BuildingPhase::New),
-	m_Model(nullptr),
+	boundingBox({}),
+	//m_Model(nullptr),
 	isActive(true),
 	isDestroyed(false),
 	m_ModelIndex(modelIndex),
@@ -171,7 +208,7 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 	}
 
 	// モデル読み込み
-	LoadModelForPhase();
+	//LoadModelForPhase();
 }
 
 
@@ -180,21 +217,44 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 //=========================================
 Building::~Building()
 {
-	if (m_Model)
-	{
-		ModelRelease(m_Model);
-		m_Model = nullptr;
-	}
 }
 
 //=========================================
 // 初期化（Field から建物生成）
+// モデル、テクスチャのロード
+// fieldのマップデータから建物を生成
 //=========================================
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	// ★デバイス＆コンテキスト保存
 	g_pDevice = pDevice;
 	g_pContext = pContext;
+
+	// --- 1.fbxのロード ---
+	char path[256];
+
+	// ガラス
+	for (int i = 0; i < COUNT(g_GlassModels); i++) {
+		snprintf(path, sizeof(path), "asset/model/%s.fbx", g_GlassModels[i]);
+		g_pGlassModels[i] = ModelLoad(path);
+	}
+	// コンクリート
+	for (int i = 0; i < COUNT(g_ConcreteModels); i++) {
+		snprintf(path, sizeof(path), "asset/model/%s.fbx", g_ConcreteModels[i]);
+		g_pConcreteModels[i] = ModelLoad(path);
+	}
+	// 植物
+	for (int i = 0; i < COUNT(g_PlantModels); i++) {
+		snprintf(path, sizeof(path), "asset/model/%s.fbx", g_PlantModels[i]);
+		g_pPlantModels[i] = ModelLoad(path);
+	}
+	// 電気
+	for (int i = 0; i < COUNT(g_ElectricModels); i++) {
+		snprintf(path, sizeof(path), "asset/model/%s.fbx", g_ElectricModels[i]);
+		g_pElectricModels[i] = ModelLoad(path);
+	}
+
+	// --- 2.テクスチャのロード ---
 
 	MAPDATA* map = GetFieldObjects();
 	int count = GetFieldObjectCount();
@@ -226,6 +286,7 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 	}
 
+	// --- 3.Field のマップデータから建物生成 ---
 	for (int i = 0; i < count; i++)
 	{
 		BuildingType type = BuildingType::None;
@@ -244,7 +305,7 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		// Field側で指定したモデル番号を使用
 		int modelIndex = map[i].variant;
 
-		// 建物生成
+		// 建物生成（buildingsに追加していく）
 		Buildings[BuildingCount++] =
 			new Building(type, map[i].pos, modelIndex);
 
@@ -257,14 +318,20 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 //=========================================
 void Building_Finalize()
 {
-	for (int i = 0; i < BuildingCount; i++)
-	{
-		delete Buildings[i];
+	// 建物インスタンスの削除
+	for (int i = 0; i < BuildingCount; i++) {
+		delete Buildings[i];	// インスタンスの削除
 		Buildings[i] = nullptr;
 	}
-	BuildingCount = 0;
+	BuildingCount = 0;	// 安全のためカウンタリセット
 
-	// テクスチャ解放（安全のためここに追加）
+	// --- モデルカタログの解放 ---
+	for (int i = 0; i < COUNT(g_GlassModels); i++)    if (g_pGlassModels[i])    ModelRelease(g_pGlassModels[i]);
+	for (int i = 0; i < COUNT(g_ConcreteModels); i++) if (g_pConcreteModels[i]) ModelRelease(g_pConcreteModels[i]);
+	for (int i = 0; i < COUNT(g_PlantModels); i++)    if (g_pPlantModels[i])    ModelRelease(g_pPlantModels[i]);
+	for (int i = 0; i < COUNT(g_ElectricModels); i++) if (g_pElectricModels[i]) ModelRelease(g_pElectricModels[i]);
+
+	// --- テクスチャの解放 ---
 	for (int i = 0; i < FIELD_TEX_MAX; ++i)
 	{
 		if (g_Texture[i])
@@ -273,86 +340,84 @@ void Building_Finalize()
 			g_Texture[i] = nullptr;
 		}
 	}
-
-	//for (int i = 0; i < 4; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
-//=========================================
-// モデル読み込み処理
-//=========================================
-void Building::LoadModelForPhase()
-{
-	// 既存モデル解放
-	if (m_Model)
-	{
-		ModelRelease(m_Model);
-		m_Model = nullptr;
-	}
-
-	const char* modelName = nullptr;
-
-	// 建物タイプごとにモデル決定
-	switch (type)
-	{
-	case BuildingType::Glass:		modelName = g_GlassModels[m_ModelIndex];	break;
-	case BuildingType::Concrete:	modelName = g_ConcreteModels[m_ModelIndex];	break;
-	case BuildingType::Plant:		modelName = g_PlantModels[m_ModelIndex];	break;
-	case BuildingType::Electricity:	modelName = g_ElectricModels[m_ModelIndex];	break;
-	default:
-		//path = "asset/build_default.fbx"; // デフォルトモデル
-		break;
-	}
-
-	if (modelName == nullptr)
-	{
-		hal::dout << "Building::LoadModelForPhase: modelName==nullptr for type=" << (int)type << " index=" << m_ModelIndex << std::endl;
-		m_Model = nullptr;
-		isActive = false; // モデル無ければ描画しない
-		return;
-	}
-
-	// パス組み立て
-	char path[256];
-	snprintf(path, sizeof(path), "asset/model/%s.fbx", modelName);
-
-	// モデルロード（例外発生の可能性のある実装ならここでキャッチ）
-	try
-	{
-		m_Model = ModelLoad(path);
-	}
-	catch (const std::exception& ex)
-	{
-		hal::dout << "Building::LoadModelForPhase: ModelLoad threw exception for " << path << " : " << ex.what() << std::endl;
-		m_Model = nullptr;
-		isActive = false;
-		return;
-	}
-	catch (...)
-	{
-		hal::dout << "Building::LoadModelForPhase: ModelLoad threw unknown exception for " << path << std::endl;
-		m_Model = nullptr;
-		isActive = false;
-		return;
-	}
-
-	if (!m_Model)
-	{
-		hal::dout << "Building::LoadModelForPhase: ModelLoad returned nullptr for " << path << std::endl;
-		isActive = false;
-	}
-}
-
-//=========================================
-// フェーズ変更（将来拡張用）
-//=========================================
-void Building::SetPhase(BuildingPhase phase)
-{
-	if (Phase != phase)
-	{
-		Phase = phase;
-		LoadModelForPhase();
-	}
-}
+////=========================================
+//// モデル読み込み処理
+////=========================================
+//void Building::LoadModelForPhase()
+//{
+//	// 既存モデル解放
+//	if (m_Model)
+//	{
+//		ModelRelease(m_Model);
+//		m_Model = nullptr;
+//	}
+//
+//	const char* modelName = nullptr;
+//
+//	// 建物タイプごとにモデル決定
+//	switch (type)
+//	{
+//	case BuildingType::Glass:		modelName = g_GlassModels[m_ModelIndex];	break;
+//	case BuildingType::Concrete:	modelName = g_ConcreteModels[m_ModelIndex];	break;
+//	case BuildingType::Plant:		modelName = g_PlantModels[m_ModelIndex];	break;
+//	case BuildingType::Electricity:	modelName = g_ElectricModels[m_ModelIndex];	break;
+//	default:
+//		//path = "asset/build_default.fbx"; // デフォルトモデル
+//		break;
+//	}
+//
+//	if (modelName == nullptr)
+//	{
+//		hal::dout << "Building::LoadModelForPhase: modelName==nullptr for type=" << (int)type << " index=" << m_ModelIndex << std::endl;
+//		m_Model = nullptr;
+//		isActive = false; // モデル無ければ描画しない
+//		return;
+//	}
+//
+//	// パス組み立て
+//	char path[256];
+//	snprintf(path, sizeof(path), "asset/model/%s.fbx", modelName);
+//
+//	// モデルロード（例外発生の可能性のある実装ならここでキャッチ）
+//	try
+//	{
+//		m_Model = ModelLoad(path);
+//	}
+//	catch (const std::exception& ex)
+//	{
+//		hal::dout << "Building::LoadModelForPhase: ModelLoad threw exception for " << path << " : " << ex.what() << std::endl;
+//		m_Model = nullptr;
+//		isActive = false;
+//		return;
+//	}
+//	catch (...)
+//	{
+//		hal::dout << "Building::LoadModelForPhase: ModelLoad threw unknown exception for " << path << std::endl;
+//		m_Model = nullptr;
+//		isActive = false;
+//		return;
+//	}
+//
+//	if (!m_Model)
+//	{
+//		hal::dout << "Building::LoadModelForPhase: ModelLoad returned nullptr for " << path << std::endl;
+//		isActive = false;
+//	}
+//}
+//
+////=========================================
+//// フェーズ変更（将来拡張用）
+////=========================================
+//void Building::SetPhase(BuildingPhase phase)
+//{
+//	if (Phase != phase)
+//	{
+//		Phase = phase;
+//		LoadModelForPhase();
+//	}
+//}
 
 //=========================================
 // 更新
@@ -391,6 +456,31 @@ void Building::Update()
 	}
 
 	m_IsPlayerNear = anyPlayerNear;
+
+	// ======================================================================
+
+	// 1.カタログから自分のモデルサイズを特定
+	ModelBaseSize base;
+		 if(type == BuildingType::Glass)		base = g_GlassModelSizes[m_ModelIndex];
+	else if(type == BuildingType::Concrete)		base = g_ConcreteModelSizes[m_ModelIndex];
+	else if(type == BuildingType::Plant)		base = g_PlantModelSizes[m_ModelIndex];
+	else if(type == BuildingType::Electricity)	base = g_ElectricModelSizes[m_ModelIndex];
+	else return; // タイプ不明なら終わり
+
+	// --- 2. 実際の当たり判定サイズを計算 ---
+	// 「モデルの素のサイズ」×「今のスケール設定」
+	XMFLOAT3 actualSize;
+	actualSize.x = base.x * scaling.x;
+	actualSize.y = base.y * scaling.y;
+	actualSize.z = base.z * scaling.z;
+
+	// 2. 今の位置とスケールを反映して世界座標のAABBを作る
+	// 描画と同じように Y + 1.0f する
+	XMFLOAT3 currentPos = position;
+	currentPos.y += 1.0f;
+
+	// CalculateAABBをここで呼ぶ（インスタンスごとの計算）
+	CalculateAABB(this->boundingBox, currentPos, this->scaling);
 }
 
 //=========================================
@@ -398,7 +488,19 @@ void Building::Update()
 //=========================================
 void Building::Draw(bool s_IsKonamiCodeEntered)
 {
-	if (!m_Model) return;
+	// カタログから対象のモデルを取得
+	MODEL* pTarget = nullptr;
+	switch (type)
+	{
+	case BuildingType::Glass:       pTarget = g_pGlassModels[m_ModelIndex];     break;
+	case BuildingType::Concrete:    pTarget = g_pConcreteModels[m_ModelIndex];  break;
+	case BuildingType::Plant:       pTarget = g_pPlantModels[m_ModelIndex];     break;
+	case BuildingType::Electricity: pTarget = g_pElectricModels[m_ModelIndex];  break;
+	}
+
+	if (!pTarget) return; // モデルがなければ終わり
+
+
 
 	Shader_Begin();
 
@@ -516,7 +618,7 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->PSSetShaderResources(0, 1, nullSRV);
 	}
 
-	if (!s_IsKonamiCodeEntered) ModelDraw(m_Model);
+	if (!s_IsKonamiCodeEntered) ModelDraw(pTarget);
 }
 
 //=========================================
