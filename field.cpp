@@ -18,7 +18,7 @@
 
 
 //======================================================
-//	繝槭け繝ｭ螳夂ｾｩ
+//	マクロ定義
 //======================================================
 #define BOX_NUM_VERTEX	(24)
 #define FIELD_TEX_MAX	(4)
@@ -46,7 +46,7 @@ static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
 	L"Asset\\Texture\\texturefieldTree01_v2.png",  // 0
 	L"Asset\\Texture\\murasaki.png",  // 1
-	L"Asset\\Texture\\texturefieldTree01_v1.png",  
+	L"Asset\\Texture\\texturefieldTree01_v1.png",
 	L"Asset\\Texture\\texturefieldConcrete02_v4.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
@@ -82,7 +82,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Concrete,2},           // 8kaku
 	{ {},{}, FIELD::FIELD_Concrete,1},           // 9
 	{ {},{}, FIELD::FIELD_Glass},           // 10
-						  
+
 	// ===== BOX 10 ===== 
 	{ {},{}, FIELD::FIELD_Glass,}, // 11
 	{ {},{}, FIELD::FIELD_Glass}, // 12kaku
@@ -94,7 +94,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Concrete,2}, // 18
 	{ {},{}, FIELD::FIELD_Electricity,0}, // 19kaku
 	{ {},{}, FIELD::FIELD_Concrete,1}, // 20kaku
-						  
+
 	// ===== BOX 20 ===== 
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 21
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 22
@@ -106,7 +106,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX}, // 28
 	{ {},{}, FIELD::FIELD_Plant,1}, // 29
 	{ {},{}, FIELD::FIELD_Glass }, // 30
-						 
+
 	// ===== BOX 30 =====
 	{ {},{}, FIELD::FIELD_Electricity,0 }, // 31
 	{ {},{}, FIELD::FIELD_BOX }, // 32
@@ -118,7 +118,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Glass,2 }, // 38
 	{ {},{}, FIELD::FIELD_BOX }, // 39
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 40
-						 
+
 	// ===== BOX 40 =====
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 41
 	{ {},{}, FIELD::FIELD_Plant,1}, // 42
@@ -130,7 +130,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Glass,1 }, // 48  左上デカい建物
 	{ {},{}, FIELD::FIELD_Electricity,2 }, // 49   右上デカい建物
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 50
-						 
+
 	// ===== BOX 50 =====
 	{ {},{}, FIELD::FIELD_Electricity }, // 51
 	{ {},{}, FIELD::FIELD_Concrete }, // 52 右下デカい建物
@@ -142,7 +142,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Plant,1}, // 58
 	{ {},{}, FIELD::FIELD_Concrete,1}, // 59
 	{ {},{}, FIELD::FIELD_Electricity,}, // 60
-						  
+
 	// ===== BOX 60 ===== 
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 61
 	{ {},{}, FIELD::FIELD_Glass }, // 62
@@ -154,7 +154,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX }, // 68
 	{ {},{}, FIELD::FIELD_Electricity }, // 69
 	{ {},{}, FIELD::FIELD_Electricity }, // 70
-						 
+
 	// ===== BOX 70 =====
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 71
 	{ {},{}, FIELD::FIELD_BOX }, // 72
@@ -190,7 +190,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX }, // 98
 	{ {},{}, FIELD::FIELD_BOX }, // 99
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 100
-						  
+
 	// ===== BOX 100 =====
 	{ {},{}, FIELD::FIELD_BOX}, // 101
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 102  いまのままだとここまでしかモデルが置けない
@@ -202,7 +202,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX }, // 108
 	{ {},{}, FIELD::FIELD_BOX }, // 109
 	{ {},{}, FIELD::FIELD_BOX }, // 110
-						  
+
 	// ===== BOX 110 ==== BOX
 	{ {},{}, FIELD::FIELD_BOX }, // 111
 	{ {},{}, FIELD::FIELD_BOX }, // 112
@@ -250,7 +250,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	// 候補を生成するためのリング数（余裕を持たせる）
 	// count 個を丸く選ぶため、候補は多少多めに生成する（marginFactor）
-	const float marginFactor =5.0f; // 1.0 = 最低限, 1.25 = 余裕 25%
+	const float marginFactor = 5.0f; // 1.0 = 最低限, 1.25 = 余裕 25%
 	int rings = 1;
 	while (1 + 3 * rings * (rings + 1) < static_cast<int>(count * marginFactor))
 		++rings;
@@ -463,7 +463,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		// ------------------------------
 		// ワールド行列作成
 		// ------------------------------
-		XMMATRIX ScalingMatrix = XMMatrixScaling(2.0f, 2.0f, 1.0f);
+		XMMATRIX ScalingMatrix = XMMatrixScaling(1.1f, 1.1f, 1.0f);
 
 		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			XMConvertToRadians(-90.0f),
@@ -481,7 +481,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		XMMATRIX WVP = World * VP;
 
 		Shader_SetWorldMatrix(World);
-		Shader_SetMatrix(World * VP);
+		Shader_SetMatrix(WVP);
 
 		// ------------------------------
 		// 種類ごとにテクスチャ切り替え
@@ -538,7 +538,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 	// 建物描画
 	// ======================================================
 	Building_DrawAll(s_IsKonamiCodeEntered);
-	
+
 	// --- 3. デバッグ描画は全部のマップを描き終わった後に「1回だけ」やる ---
 	if (s_IsKonamiCodeEntered)
 	{
@@ -609,11 +609,10 @@ void Field_Update(void)
 	int i = 0;
 	while (Map[i].no != FIELD_MAX)
 	{
-		// 繧ゅ＠繧｢繧ｯ繝・ぅ繝悶§繧・↑縺九▲縺溘ｉ縲∵緒逕ｻ縺励↑縺・〒谺｡縺ｸ
 		if (!Map[i].isActive)
 		{
-			i++; // i 繧帝ｲ繧√ｋ縺ｮ繧貞ｿ倥ｌ縺ｪ縺・〒・・
-			continue; // 縺薙・蜈医・謠冗判蜃ｦ逅・ｒ繧ｹ繧ｭ繝・・
+			i++;
+			continue;
 		}
 
 		Map[i].boundingBox.center = Map[i].pos;			// -1

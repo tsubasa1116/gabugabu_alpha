@@ -124,7 +124,7 @@ void ModelRelease(MODEL* model)
 
 	for (std::pair<const std::string, ID3D11ShaderResourceView*> pair : model->Texture)
 	{
-		pair.second->Release();
+		if (pair.second)	pair.second->Release();
 	}
 
 	aiReleaseImport(model->AiScene);

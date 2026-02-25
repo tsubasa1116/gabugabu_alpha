@@ -9,6 +9,7 @@
 #include "Start.h"
 #include "Setting.h"
 #include "Sound.h"
+#include "Win.h"
 #include "Result.h"
 #include "fade.h"
 #include "swipe.h"
@@ -28,8 +29,8 @@ void Manager_Initialize()
 
 #ifdef _DEBUG
 	//DEBUG:
-	//SetScene(SCENE_TITLE);
 	SetScene(SCENE_GAME);
+	//SetScene(SCENE_GAME);
 #else
 	SetScene(SCENE_TITLE);
 #endif
@@ -71,6 +72,9 @@ void Manager_Update()
 	case SCENE_GAME:
 		Game_Update();
 		break;
+	case SCENE_WIN:
+		Win_Update();
+		break;
 	case SCENE_RESULT:
 		Result_Update();
 		break;
@@ -110,6 +114,9 @@ void Manager_Draw()
 	case SCENE_GAME:
 		Game_Draw();
 		break;
+	case SCENE_WIN:
+		Win_Draw();
+		break;
 	case SCENE_RESULT:
 		Result_Draw();
 		break;
@@ -140,6 +147,9 @@ void SetScene(SCENE scene)
 		break;
 	case SCENE_GAME:
 		Game_Finalize();
+		break;
+	case SCENE_WIN:
+		Win_Finalize();
 		break;
 	case SCENE_RESULT:
 		Result_Finalize();
@@ -177,6 +187,9 @@ void SetScene(SCENE scene)
 		break;
 	case SCENE_GAME:
 		Game_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+		break;
+	case SCENE_WIN:
+		Win_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 		break;
 	case SCENE_RESULT:
 		Result_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());

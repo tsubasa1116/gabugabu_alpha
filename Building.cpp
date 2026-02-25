@@ -4,6 +4,7 @@
 #include "keyboard.h"
 #include "Effect.h"
 #include "player.h"
+#include "Audio.h"
 #include "debug_ostream.h"     // ← 追加: hal::dout を使うため
 #include <codecvt>            // ← 追加: ワイド→UTF-8 変換用
 #include <locale>
@@ -21,6 +22,8 @@ static Building* Buildings[300];
 
 // 現在の建物数
 static int BuildingCount = 0;
+
+//static int g_SE_ID[10] = { NULL };
 
 // ★テクスチャのパス用意
 static const wchar_t* g_TexturePaths[] =
@@ -63,7 +66,6 @@ static const int FIELD_TEX_MAX = static_cast<int>(sizeof(g_TexturePaths) / sizeo
 // テクスチャ配列（要素数は FIELD_TEX_MAX に合わせる）
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX] = { nullptr };
 
-
 //=========================================
 // モデル定義（複数対応）
 //=========================================
@@ -81,7 +83,6 @@ static const char* g_ConcreteModels[] = {
 	"bizyutukan",
 	"biru3dannkonkuri",
 	"3biltateconkuri",
-
 };
 
 // 植物建物
@@ -99,7 +100,6 @@ static const char* g_ElectricModels[] = {
 	"raibu",
 	"propsElectricitySub03_v9",
 	"propsElectricitySub02_v9"
-
 };
 
 // 配列数取得マクロ
@@ -192,8 +192,6 @@ Building::~Building()
 //=========================================
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Building_Finalize();
-
 	// ★デバイス＆コンテキスト保存
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -275,6 +273,8 @@ void Building_Finalize()
 			g_Texture[i] = nullptr;
 		}
 	}
+
+	//for (int i = 0; i < 4; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 //=========================================
@@ -421,11 +421,11 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 	//===========================
 	int baseTexIndex = 0; // デフォルト
 
-	// Plant 
+	// Plant
 	if (type == BuildingType::Plant &&
 		strcmp(g_PlantModels[m_ModelIndex], "togeki") == 0)
 	{
-		baseTexIndex=1; // ok
+		baseTexIndex = 1; // とんがり木
 	}
 	if (type == BuildingType::Plant &&
 		strcmp(g_PlantModels[m_ModelIndex], "kitoyugu") == 0)
@@ -468,7 +468,6 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 	{
 		baseTexIndex =29;//ok
 	}
-
 
 	// Concrete 
 	else if (type == BuildingType::Concrete &&

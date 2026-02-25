@@ -7,8 +7,7 @@
 #include <SDKDDKVer.h>		// 利用できる最も上位の Windows プラットフォームが定義される
 #define WIN32_LEAN_AND_MEAN	// 32bitアプリには不要な情報を抑止してコンパイル時間を短縮
 #include <windows.h>
-#include "debug_ostream.h"	//デバッグ表示
-
+#include "debug_ostream.h"	// デバッグ表示
 #include <chrono>
 #include <algorithm>
 #include "direct3d.h"

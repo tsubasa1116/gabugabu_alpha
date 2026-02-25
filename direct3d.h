@@ -41,6 +41,9 @@ unsigned int Direct3D_GetBackBufferHeight();	// バックバッファの高さを取得
 void SetDepthTest(bool flg);	// 深度テスト切り替え
 void SetDepthReadOnly();		// 深度テストは有効だが深度バッファへの書き込みを無効にする
 
+ID3D11DepthStencilState* Direct3D_GetDepthStateGreater();
+ID3D11DepthStencilState* Direct3D_GetDepthStateEnable();
+
 enum	BLENDSTATE
 {
 	BLENDSTATE_NONE = 0,	//ブレンドしない

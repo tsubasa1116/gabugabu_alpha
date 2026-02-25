@@ -31,6 +31,7 @@ static ID3D11BlendState* bState[BLENDSTATE_MAX];
 static ID3D11DepthStencilState* g_DepthStateEnable;
 static ID3D11DepthStencilState* g_DepthStateDisable;
 static ID3D11DepthStencilState* g_DepthStateReadOnly; // 深度テスト有効・書き込み無効
+static ID3D11DepthStencilState* g_DepthStateGreater;
 
 bool Direct3D_Initialize(HWND hWnd)
 {
@@ -168,19 +169,30 @@ bool Direct3D_Initialize(HWND hWnd)
 
 	g_pDeviceContext->OMSetDepthStencilState(g_DepthStateDisable, NULL); //デフォルト　深度無効
 
-	//// 深度ステンシルステート設定
-	//D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-	//ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-	//depthStencilDesc.DepthEnable = TRUE;
-	//depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	//depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	//depthStencilDesc.StencilEnable = FALSE;
-	//g_pDevice->CreateDepthStencilState(&depthStencilDesc, &g_DepthStateEnable);//深度有効ステート
+	// 深度ステンシルステート設定
+	D3D11_DEPTH_STENCIL_DESC depthStencilDescEnable;
+	ZeroMemory(&depthStencilDescEnable, sizeof(depthStencilDescEnable));
+	depthStencilDescEnable.DepthEnable = TRUE;
+	depthStencilDescEnable.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDescEnable.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStencilDescEnable.StencilEnable = FALSE;
+	g_pDevice->CreateDepthStencilState(&depthStencilDescEnable, &g_DepthStateEnable);//深度有効ステート
+
 	//depthStencilDesc.DepthEnable = FALSE;
 	//depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	//g_pDevice->CreateDepthStencilState(&depthStencilDesc, &g_DepthStateDisable);//深度無効ステート
 
 	//g_pDeviceContext->OMSetDepthStencilState(g_DepthStateDisable, NULL); //デフォルト　深度無効
+
+
+	D3D11_DEPTH_STENCIL_DESC depthStencilDescGreater;
+	ZeroMemory(&depthStencilDescGreater, sizeof(depthStencilDescGreater));
+	depthStencilDescGreater.DepthEnable = TRUE;
+	depthStencilDescGreater.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // 深度バッファに書き込まない
+	depthStencilDescGreater.DepthFunc = D3D11_COMPARISON_GREATER; // 深度値が大きい（奥）もののみ通す
+	depthStencilDescGreater.StencilEnable = FALSE;
+	g_pDevice->CreateDepthStencilState(&depthStencilDescGreater, &g_DepthStateGreater);
+
 
 	return true;
 }
@@ -217,6 +229,8 @@ void Direct3D_Finalize()
 	}
 
 	SAFE_RELEASE(g_DepthStateReadOnly);
+	SAFE_RELEASE(g_DepthStateGreater);
+	SAFE_RELEASE(g_DepthStateEnable);
 }
 
 void Direct3D_Clear()
@@ -373,4 +387,16 @@ void SetBlendState(BLENDSTATE blend)
 void SetDepthReadOnly()
 {
 	g_pDeviceContext->OMSetDepthStencilState(g_DepthStateReadOnly, NULL);
+}
+
+// Greaterステートを取得する関数
+ID3D11DepthStencilState* Direct3D_GetDepthStateGreater()
+{
+	return g_DepthStateGreater;
+}
+
+// Enableステートを取得する関数
+ID3D11DepthStencilState* Direct3D_GetDepthStateEnable()
+{
+	return g_DepthStateEnable;
 }
