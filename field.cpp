@@ -16,6 +16,7 @@
 
 #include "color.h"
 
+
 //======================================================
 //	マクロ定義
 //======================================================
@@ -43,10 +44,10 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
-	L"Asset\\Texture\\灰色.png",  // 0
-	L"Asset\\Texture\\texturefieldTree02_v1.png",  // 1
-	L"Asset\\Texture\\texturefieldTree01_v1.png",  
-	L"Asset\\Texture\\灰色.png",
+	L"Asset\\Texture\\texturefieldTree01_v2.png",  // 0
+	L"Asset\\Texture\\murasaki.png",  // 1
+	L"Asset\\Texture\\texturefieldTree01_v1.png",
+	L"Asset\\Texture\\texturefieldConcrete02_v4.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
 
@@ -480,7 +481,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		XMMATRIX WVP = World * VP;
 
 		Shader_SetWorldMatrix(World);
-		Shader_SetMatrix(World * VP);
+		Shader_SetMatrix(WVP);
 
 		// ------------------------------
 		// 種類ごとにテクスチャ切り替え
@@ -490,23 +491,23 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		switch (Map[i].no)
 		{
 		case FIELD::FIELD_Plant:
-			texIndex = 2;
+			texIndex = 0;
 			break;
 
 		case FIELD::FIELD_Concrete:
-			texIndex = 0;
+			texIndex = 3;
 			break;
 
 		case FIELD::FIELD_Glass:
-			texIndex = 0;
+			texIndex = 3;
 			break;
 
 		case FIELD::FIELD_Electricity:
-			texIndex = 0;
+			texIndex = 3;
 			break;
 
 		case FIELD::FIELD_BOX:
-			texIndex = 3;
+			texIndex = 1;
 			break;
 
 		default:

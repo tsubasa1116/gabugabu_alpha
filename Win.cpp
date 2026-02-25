@@ -1,7 +1,7 @@
 //======================================================
 //	Win.cpp[]
 // 
-//	§ìÒF“c’†—C“Ş			“ú•tF2026//
+//	åˆ¶ä½œè€…ï¼šç”°ä¸­ä½‘å¥ˆ			æ—¥ä»˜ï¼š2026//
 //======================================================
 
 #include "Manager.h"
@@ -14,22 +14,22 @@
 #include "player.h"
 #include "model.h"
 
-static ID3D11ShaderResourceView* g_Texture = NULL;		// ”wŒi
-static ID3D11ShaderResourceView* g_Texture2 = NULL;		// ƒXƒgƒ‰ƒCƒv
+static ID3D11ShaderResourceView* g_Texture = NULL;		// èƒŒæ™¯
+static ID3D11ShaderResourceView* g_Texture2 = NULL;		// ã‚¹ãƒˆãƒ©ã‚¤ãƒ—
 static ID3D11ShaderResourceView* g_Texture3 = NULL;		// PLAYER WIN
-static ID3D11ShaderResourceView* g_Texture4 = NULL;		// Ÿ‚Ö
-static ID3D11ShaderResourceView* g_WinTex = nullptr;    // Šù‘¶ƒ‚ƒfƒ‹—pƒeƒNƒXƒ`ƒƒ
-static ID3D11ShaderResourceView* g_Texture5 = NULL;		// ‰¤Š¥
-static ID3D11ShaderResourceView* g_Texture6 = NULL;		// ƒAƒjƒ[‚µ‚¡‚ñ
+static ID3D11ShaderResourceView* g_Texture4 = NULL;		// æ¬¡ã¸
+static ID3D11ShaderResourceView* g_WinTex = nullptr;    // æ—¢å­˜ãƒ¢ãƒ‡ãƒ«ç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£
+static ID3D11ShaderResourceView* g_Texture5 = NULL;		// ç‹å† 
+static ID3D11ShaderResourceView* g_Texture6 = NULL;		// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã—ãƒã‚“
 
 static TexMetadata g_WinTexMeta{};
-static TexMetadata g_TexMeta2{}; // ƒXƒgƒ‰ƒCƒv
+static TexMetadata g_TexMeta2{}; // ã‚¹ãƒˆãƒ©ã‚¤ãƒ—
 static TexMetadata g_TexMeta3{}; // PLAYER WIN
-static TexMetadata g_TexMeta4{}; // Ÿ‚Ö
-static TexMetadata g_TexMeta5{}; // ‰¤Š¥
-static TexMetadata g_TexMeta6{}; // ƒAƒjƒ[‚µ‚¡‚ñ
+static TexMetadata g_TexMeta4{}; // æ¬¡ã¸
+static TexMetadata g_TexMeta5{}; // ç‹å† 
+static TexMetadata g_TexMeta6{}; // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã—ãƒã‚“
 
-static MODEL* g_WinModel = nullptr;						// Šù‘¶ƒ‚ƒfƒ‹
+static MODEL* g_WinModel = nullptr;						// æ—¢å­˜ãƒ¢ãƒ‡ãƒ«
 
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
@@ -40,28 +40,28 @@ const float SLIDE_SPEED = 2.0f;
 
 const int ANIM_START = 8;
 const int ANIM_END = 15;
-const float ANIM_SPEED = 0.12f; // 1ƒtƒŒ[ƒ€‚ ‚½‚è‚Ì•b”i‚¨D‚İ‚Å’²®j
+const float ANIM_SPEED = 0.12f; // 1ãƒ•ãƒ¬ãƒ¼ãƒ ã‚ãŸã‚Šã®ç§’æ•°ï¼ˆãŠå¥½ã¿ã§èª¿æ•´ï¼‰
 static int g_AnimFrame = ANIM_START;
 static float g_AnimTimer = 0.0f;
 
 //======================================================
-//	‰Šú‰»ŠÖ”
+//	åˆæœŸåŒ–é–¢æ•°
 //======================================================
 void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// ”wŒiƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// èƒŒæ™¯ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
 		LoadFromWICFile(L"asset\\texture\\uiWinRord_v1.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-		assert(g_Texture);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+		assert(g_Texture);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 	}
 
-	// ƒXƒgƒ‰ƒCƒvƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// ã‚¹ãƒˆãƒ©ã‚¤ãƒ—ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata metadata;
 		ScratchImage image;
@@ -71,7 +71,7 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		assert(g_Texture2);
 	}
 
-	// PLAYER WINƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// PLAYER WINãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata metadata;
 		ScratchImage image;
@@ -81,17 +81,17 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		assert(g_Texture3);
 	}
 
-	// Ÿ‚ÖƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// æ¬¡ã¸ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
 		LoadFromWICFile(L"asset\\texture\\next.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture4);
 		g_TexMeta4 = metadata;
-		assert(g_Texture4);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+		assert(g_Texture4);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 	}
 
-	// ‰¤Š¥ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// ç‹å† ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata metadata;
 		ScratchImage image;
@@ -101,27 +101,27 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		assert(g_Texture5);
 	}
 
-	// ƒAƒjƒ\‚µ‚¡‚ñ
+	// ã‚¢ãƒ‹ãƒ¡â€•ã—ãƒã‚“
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\characterWin01_v1.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(L"asset\\texture\\characterWin01_v2.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture6);
 		g_TexMeta6 = metadata;
 		assert(g_Texture6);
 	}
 
-	// ƒtƒF[ƒhƒCƒ“‚ÌƒZƒbƒg
+	// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã®ã‚»ãƒƒãƒˆ
 	XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	SetFade(60.0f, color, FADE_IN, SCENE_GAME);
 }
 
 //======================================================
-//	I—¹ˆ—ŠÖ”
+//	çµ‚äº†å‡¦ç†é–¢æ•°
 //======================================================
 void Win_Finalize()
 {
-	// ƒeƒNƒXƒ`ƒƒ‚Ì‰ğ•ú‚È‚Ç
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®è§£æ”¾ãªã©
 	SAFE_RELEASE(g_Texture);
 	SAFE_RELEASE(g_Texture2);
 	SAFE_RELEASE(g_Texture3);
@@ -131,22 +131,22 @@ void Win_Finalize()
 }
 
 //======================================================
-//	XVˆ—
+//	æ›´æ–°å‡¦ç†
 //======================================================
 void Win_Update()
 {
-	// ƒL[“ü—Íƒ`ƒFƒbƒN
+	// ã‚­ãƒ¼å…¥åŠ›ãƒã‚§ãƒƒã‚¯
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
 	}
 
-	// ƒXƒ‰ƒCƒhƒIƒtƒZƒbƒgXV
+	// ã‚¹ãƒ©ã‚¤ãƒ‰ã‚ªãƒ•ã‚»ãƒƒãƒˆæ›´æ–°
 	g_SlideOffsetTop += SLIDE_SPEED;
 	g_SlideOffsetBottom -= SLIDE_SPEED;
 
-	// fmodf‚Åí‚É0`width–¢–‚É³‹K‰»i•‰’l‚à³‚µ‚­ˆµ‚¤j
+	// fmodfã§å¸¸ã«0ï½widthæœªæº€ã«æ­£è¦åŒ–ï¼ˆè² å€¤ã‚‚æ­£ã—ãæ‰±ã†ï¼‰
 	if (g_TexMeta2.width > 0) {
 		g_SlideOffsetTop = fmodf(g_SlideOffsetTop, (float)g_TexMeta2.width);
 		if (g_SlideOffsetTop < 0) g_SlideOffsetTop += (float)g_TexMeta2.width;
@@ -157,37 +157,37 @@ void Win_Update()
 
 	static bool WinFrameInitialized = false;
 
-	//// ƒAƒjƒ[ƒVƒ‡ƒ“ƒtƒŒ[ƒ€XV
+	//// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°
 	//if (!WinFrameInitialized)
 	//{
-	//	g_AnimFrame = 8; // 8‚©‚çƒXƒ^[ƒg
+	//	g_AnimFrame = 8; // 8ã‹ã‚‰ã‚¹ã‚¿ãƒ¼ãƒˆ
 	//	WinFrameInitialized = true;
 	//}
 
-	g_AnimTimer += DELTA_TIME; // 60FPS‘O’ñ
+	g_AnimTimer += DELTA_TIME; // 60FPSå‰æ
 	if (g_AnimTimer >= ANIM_SPEED)
 	{
 		g_AnimTimer = 0.0f;
 		if (g_AnimFrame < ANIM_END)	g_AnimFrame++;
-		// g_AnimFrame‚ªANIM_END‚É‚È‚Á‚½‚ç~‚Ü‚éiƒ‹[ƒv‚µ‚È‚¢j
+		// g_AnimFrameãŒANIM_ENDã«ãªã£ãŸã‚‰æ­¢ã¾ã‚‹ï¼ˆãƒ«ãƒ¼ãƒ—ã—ãªã„ï¼‰
 	}
 
 	//else    WinFrameInitialized = false;
 }
 
 //======================================================
-//	•`‰æŠÖ”
+//	æç”»é–¢æ•°
 //======================================================
 void Win_Draw()
 {
-	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 	Shader_Begin();
 
-	// ‰æ–ÊƒTƒCƒYæ“¾
+	// ç”»é¢ã‚µã‚¤ã‚ºå–å¾—
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
-	// ’¸“_ƒVƒF[ƒ_[‚É•ÏŠ·s—ñ‚ğİ’èiUI—pF’¼Œğ“Š‰ej
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«å¤‰æ›è¡Œåˆ—ã‚’è¨­å®šï¼ˆUIç”¨ï¼šç›´äº¤æŠ•å½±ï¼‰
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
 		0.0f,
 		SCREEN_WIDTH,
@@ -196,56 +196,56 @@ void Win_Draw()
 		0.0f,
 		1.0f));
 
-	// ”wŒi•`‰æ
+	// èƒŒæ™¯æç”»
 	if (g_Texture)
 	{
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Texture‚ğg‚¤‚æ‚¤‚Éİ’è‚·‚é
-		SetBlendState(BLENDSTATE_NONE);//ƒuƒŒƒ“ƒh–³‚µ
-		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ƒXƒvƒ‰ƒCƒg‚ÌF
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Textureã‚’ä½¿ã†ã‚ˆã†ã«è¨­å®šã™ã‚‹
+		SetBlendState(BLENDSTATE_NONE);//ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—
+		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®è‰²
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 		XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
-		DrawSprite(pos, size, col);//1–‡ŠG‚ğ•\¦
+		DrawSprite(pos, size, col);//1æšçµµã‚’è¡¨ç¤º
 	}
 
-	// ƒXƒgƒ‰ƒCƒv•`‰æ
+	// ã‚¹ãƒˆãƒ©ã‚¤ãƒ—æç”»
 	if (g_Texture2)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture2);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
 		XMFLOAT2 size = { (float)g_TexMeta2.width, (float)g_TexMeta2.height };
 		DrawSprite(pos, size, col);
 	}
 
-	// ƒoƒi[k¬—¦
+	// ãƒãƒŠãƒ¼ç¸®å°ç‡
 	const float BANNER_SCALE = 0.7f;
 
-	// ƒoƒi[‚Ì‚‚³EˆÊ’u
+	// ãƒãƒŠãƒ¼ã®é«˜ã•ãƒ»ä½ç½®
 	float bannerYTop = (float)g_TexMeta2.height * BANNER_SCALE / 2.0f;
 	float bannerYBottom = SCREEN_HEIGHT - (float)g_TexMeta2.height * BANNER_SCALE / 2.0f;
 
-	// ãƒoƒi[i‰EƒXƒ‰ƒCƒhj
+	// ä¸ŠãƒãƒŠãƒ¼ï¼ˆå³ã‚¹ãƒ©ã‚¤ãƒ‰ï¼‰
 	if (g_Texture2)
 		DrawSlidingBanner(g_Texture2, bannerYTop, g_SlideOffsetTop, (float)g_TexMeta2.width * BANNER_SCALE, (float)g_TexMeta2.height * BANNER_SCALE);
 	if (g_Texture3 && g_Texture5)
 		DrawPlayerWinCrownBanner(g_Texture3, g_TexMeta3, g_Texture5, g_TexMeta5, bannerYTop, g_SlideOffsetTop, BANNER_SCALE);
 
-	// ‰ºƒoƒi[i¶ƒXƒ‰ƒCƒhj
+	// ä¸‹ãƒãƒŠãƒ¼ï¼ˆå·¦ã‚¹ãƒ©ã‚¤ãƒ‰ï¼‰
 	if (g_Texture2)
 		DrawSlidingBanner(g_Texture2, bannerYBottom, g_SlideOffsetBottom, (float)g_TexMeta2.width * BANNER_SCALE, (float)g_TexMeta2.height * BANNER_SCALE);
 	if (g_Texture3 && g_Texture5)
 		DrawPlayerWinCrownBanner(g_Texture3, g_TexMeta3, g_Texture5, g_TexMeta5, bannerYBottom, g_SlideOffsetBottom, BANNER_SCALE);
 
-	// Ÿ‚Ö•`‰æ
+	// æ¬¡ã¸æç”»
 	if (g_Texture4)
 	{
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture4);//g_Texture‚ğg‚¤‚æ‚¤‚Éİ’è‚·‚é
-		SetBlendState(BLENDSTATE_ALPHA);//ƒuƒŒƒ“ƒh–³‚µ
-		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ƒXƒvƒ‰ƒCƒg‚ÌF
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture4);//g_Textureã‚’ä½¿ã†ã‚ˆã†ã«è¨­å®šã™ã‚‹
+		SetBlendState(BLENDSTATE_ALPHA);//ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—
+		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®è‰²
 		XMFLOAT2 pos = { SCREEN_WIDTH - 80, SCREEN_HEIGHT  - 180 };
 		XMFLOAT2 size = { (float)g_TexMeta4.width, (float)g_TexMeta4.height };
-		DrawSprite(pos, size, col);//1–‡ŠG‚ğ•\¦
+		DrawSprite(pos, size, col);//1æšçµµã‚’è¡¨ç¤º
 	}
 
 	if (g_Texture6)
@@ -253,9 +253,9 @@ void Win_Draw()
 		
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture6); 
 		
-		int frame = g_AnimFrame; // 8`15
+		int frame = g_AnimFrame; // 8ï½15
 		int framesPerRow = 8;
-		int frameX = frame % framesPerRow; // 0`7
+		int frameX = frame % framesPerRow; // 0ï½7
 		int frameY = frame / framesPerRow; // 1
 
 		float frameWidth = (float)g_TexMeta6.width / 8.0f;
@@ -267,13 +267,13 @@ void Win_Draw()
 		float v1 = (frameY + 1) * frameHeight / g_TexMeta6.height;
 
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 130 };
-		XMFLOAT2 size = { frameWidth * 1.5f, frameHeight * 1.5f }; // Šg‘å—á
+		XMFLOAT2 size = { frameWidth * 0.75f, frameHeight * 0.75f }; // æ‹¡å¤§ä¾‹
 		XMFLOAT4 col = { 1, 1, 1, 1 };
 
 		DrawSpriteUV(pos, size, col, XMFLOAT2(u0, v0), XMFLOAT2(u1, v1));
 	}
 
-	// ƒXƒvƒ‰ƒCƒg‚Ì•`‰æ‚Í‘æ1Œ`‘ÔƒuƒŒƒ“ƒh–³‚µ‚©ƒAƒ‹ƒtƒ@‚É‚·‚éiŠù‘¶ƒXƒ^ƒCƒ‹‚É‡‚í‚¹‚éj
+	// ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®æç”»ã¯ç¬¬1å½¢æ…‹ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—ã‹ã‚¢ãƒ«ãƒ•ã‚¡ã«ã™ã‚‹ï¼ˆæ—¢å­˜ã‚¹ã‚¿ã‚¤ãƒ«ã«åˆã‚ã›ã‚‹ï¼‰
 	SetBlendState(BLENDSTATE_NONE);
 }
 
@@ -283,14 +283,14 @@ void DrawSlidingBanner(ID3D11ShaderResourceView* tex, float y, float offset, flo
 	XMFLOAT4 col = { 1, 1, 1, 1 };
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// ‰æ–Ê•æ“¾
+	// ç”»é¢å¹…å–å¾—
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 
-	// Å‰‚Ì•`‰æŠJnˆÊ’u‚ğŒvZ
+	// æœ€åˆã®æç”»é–‹å§‹ä½ç½®ã‚’è¨ˆç®—
 	float startX = fmodf(offset, width);
 	if (startX > 0) startX -= width;
 
-	// ‰æ–Ê‘S‘Ì‚ğƒJƒo[‚·‚é‚Ü‚ÅŒJ‚è•Ô‚µ•`‰æ
+	// ç”»é¢å…¨ä½“ã‚’ã‚«ãƒãƒ¼ã™ã‚‹ã¾ã§ç¹°ã‚Šè¿”ã—æç”»
 	for (float x = startX; x < SCREEN_WIDTH; x += width)
 	{
 		XMFLOAT2 pos = { x + width / 2, y };
@@ -308,16 +308,16 @@ void DrawPlayerWinCrownBanner(
 	float widthCrown = (float)metaCrown.width * scale / 10;
 	float heightCrown = (float)metaCrown.height * scale / 10;
 
-	// ŠÔŠu
+	// é–“éš”
 	float spacing = 50.0f;
 
-	// 1ƒZƒbƒg‚Ì•iPLAYER WIN + spacing + ‰¤Š¥ + spacingj
+	// 1ã‚»ãƒƒãƒˆã®å¹…ï¼ˆPLAYER WIN + spacing + ç‹å†  + spacingï¼‰
 	float setWidth = widthPlayerWin + spacing + widthCrown + spacing;
 	float setHeight = max(heightPlayerWin, heightCrown);
 
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 
-	// ƒIƒtƒZƒbƒg³‹K‰»
+	// ã‚ªãƒ•ã‚»ãƒƒãƒˆæ­£è¦åŒ–
 	float startX = fmodf(offset, setWidth);
 	if (startX > 0) startX -= setWidth;
 
@@ -330,7 +330,7 @@ void DrawPlayerWinCrownBanner(
 		XMFLOAT4 col = { 1, 1, 1, 1 };
 		DrawSprite(posPW, sizePW, col);
 
-		// ‰¤Š¥
+		// ç‹å† 
 		g_pContext->PSSetShaderResources(0, 1, &texCrown);
 		XMFLOAT2 posCrown = { x + widthPlayerWin + spacing + widthCrown / 2, y };
 		XMFLOAT2 sizeCrown = { widthCrown, heightCrown };

@@ -27,6 +27,7 @@ using namespace DirectX;
 #include "attack.h" 
 #include "DamageText.h"
 #include "makeText.h"
+#include "Audio.h"
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
@@ -75,6 +76,8 @@ static bool g_specialAnimStarted[PLAYER_MAX] = { false, false, false, false };
 
 // 順位・死亡順の管理
 static std::vector<int> g_deathOrder;	// 死亡したプレイヤーのインデックス（先に死んだ者が先頭）
+
+static int g_SE_ID[PLAYER_SE_COUNT] = { NULL };
 
 // 頂点配列
 static Vertex2 vdata[PLAYER_VERTEX] =
@@ -152,7 +155,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].power = 0.0f;
 		player[p].speed = 0.0f;
 		player[p].defense = 1.0f;
-		player[p].stock = 1;
+		player[p].stock = 3;
 		player[p].rank = 0;
 		player[p].active = true;
 		player[p].satiety = 0.0f;
@@ -281,6 +284,11 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	// 順位情報を初期化
 	g_deathOrder.clear();
+
+	// SEの初期化
+	g_SE_ID[0] = LoadAudio("asset\\Audio\\Roar_Form_Second.wav");	// 進化後の咆哮 第2形態
+	g_SE_ID[1] = LoadAudio("asset\\Audio\\Roar_Form_Third.wav");	// 進化後の咆哮 第3形態
+	g_SE_ID[2] = LoadAudio("asset\\Audio\\Transform.wav");			// 変身
 }
 
 static void LoadTextureList(ID3D11Device* pDevice)
@@ -380,6 +388,8 @@ void Player_Finalize()
 
 	// デバッグレンダラーの終了処理
 	Debug_Finalize();
+
+	for (int i = 0; i < PLAYER_SE_COUNT; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 // ======================================================
@@ -477,17 +487,10 @@ void Player_Update()
 		ImGui::Text("Player %d", p + 1);
 		ImGui::Indent();
 
-		ImGui::SliderFloat("poisonTimer", &player[p].poisonTimer, 0.0f, 5.0f);
 		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
 		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
-		ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
-		ImGui::BulletText("position.y        : %.2f", player[p].position.y);
-		ImGui::BulletText("isEggBreaking     : %d", player[p].isEggBreaking);
-		ImGui::BulletText("isShadowEnabled   : %d", player[p].isShadowEnabled);
-		ImGui::BulletText("isHealing         : %d", player[p].isHealing);
-		ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
-		ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
-		ImGui::BulletText("useSkill          : %d", player[p].useSkill);
+		ImGui::BulletText("form              : %d", player[p].form);
+		ImGui::BulletText("type              : %d", player[p].type);
 		ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
 		ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
 
@@ -625,6 +628,8 @@ void Player_Update()
 		// 進化フラグの更新
 		if (player[p].isEvolving)
 		{
+			if (player[p].evolvingTimer == 0.0f)	PlayAudio(g_SE_ID[3], false);	// 変身SEを再生
+
 			player[p].evolvingTimer += DELTA_TIME;	// 進化タイマーを更新
 
 			if (player[p].evolvingTimer >= EVOLVING_TIME)
@@ -678,7 +683,6 @@ void Player_Update()
 			}
 		}
 
-		// 毒の処理
 		if (player[p].poisonTimer > 0.0f)
 		{
 			// 毒状態の間、ダメージを与える
@@ -756,7 +760,11 @@ void Player_Update()
 			if (player[p].form == Form::Third && g_Input[p].ZR)	player[p].useSpecial = true;
 
 			// フラグが立ったら更新処理を呼び出す
-			if (player[p].isAttacking)	Attack_Update(p);	// 攻撃
+			if (player[p].isAttacking)	// 攻撃
+			{
+				Attack_Update(p);
+				//PlayAudio(g_SE_ID[0], false);	// がぶがぶ音(ループなし)
+			}
 			if (player[p].useSkill)		Skill_Update(p);	// スキル
 			if (player[p].useSpecial)	Special_Update(p);	// スペシャル
 
@@ -949,6 +957,16 @@ void Player_Update()
 			{
 				player[p].isInvincible = false;
 				player[p].invincibleTimer = 0.0f;
+
+				// 進化時の咆哮SE再生
+				if (player[p].form == Form::Second)
+				{
+					PlayAudio(g_SE_ID[1], false);	// 咆哮 第2形態
+				}
+				else if (player[p].form == Form::Third)
+				{
+					PlayAudio(g_SE_ID[2], false);	// 咆哮 第3形態
+				}
 			}
 		}
 
@@ -962,7 +980,7 @@ void Player_Update()
 			else if (player[p].type == PlayerType::Plant)		type = 3;
 
 			int start = type * 64;
-			if (player[p].lastDir == PlayerDir::Down)		start += 0;
+				 if (player[p].lastDir == PlayerDir::Down)		start += 0;
 			else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
 			else if (player[p].lastDir == PlayerDir::Left)		start += 16;
 			else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
@@ -1166,7 +1184,7 @@ void Player_Update()
 			// 待機 6コマ
 			else if (player[p].isMoving == false)
 			{
-				if (player[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p], 0, 6, advance);	//  下    0～5
+					 if (player[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p], 0, 6, advance);	//  下    0～5
 				else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p], 26, 6, advance);	// 左下  26～31
 				else if (player[p].lastDir == PlayerDir::Left)		LoopRange(g_animFrame[p], 52, 6, advance);	//  左   52～57
 				else if (player[p].lastDir == PlayerDir::Up_Left)	LoopRange(g_animFrame[p], 78, 6, advance);	// 左上  78～83 
@@ -1798,39 +1816,39 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 
 		ID3D11ShaderResourceView* srv = nullptr;
 
-		// 形態とタイプに応じたテクスチャを設定
-		switch (player[idx].form)
-		{
-			// 第1形態
-		case Form::First:
-			if (idx == 0) { srv = g_Texture[0];	break; }
-			else if (idx == 1) { srv = g_Texture[1];	break; }
-			else if (idx == 2) { srv = g_Texture[2];	break; }
-			else if (idx == 3) { srv = g_Texture[3];	break; }
-			// 第2形態
-		case Form::Second:
-			switch (player[idx].type)
+			// 形態とタイプに応じたテクスチャを設定
+			switch (player[idx].form)
 			{
-			case PlayerType::Glass:			srv = g_Texture[4];	break;
-			case PlayerType::Concrete:		srv = g_Texture[5];	break;
-			case PlayerType::Plant:			srv = g_Texture[6];	break;
-			case PlayerType::Electricity:	srv = g_Texture[7];	break;
+				// 第1形態
+			case Form::First:
+					 if (idx == 0) { srv = g_Texture[0];	break; }
+				else if (idx == 1) { srv = g_Texture[1];	break; }
+				else if (idx == 2) { srv = g_Texture[2];	break; }
+				else if (idx == 3) { srv = g_Texture[3];	break; }
+				// 第2形態
+			case Form::Second:
+				switch (player[idx].type)
+				{
+				case PlayerType::Glass:			srv = g_Texture[4];	break;
+				case PlayerType::Concrete:		srv = g_Texture[5];	break;
+				case PlayerType::Plant:			srv = g_Texture[6];	break;
+				case PlayerType::Electricity:	srv = g_Texture[7];	break;
+				default: break;
+				}
+				break;
+				// 第3形態
+			case Form::Third:
+				switch (player[idx].type)
+				{
+				case PlayerType::Glass:			srv = g_Texture[8];		break;
+				case PlayerType::Concrete:		srv = g_Texture[9];		break;
+				case PlayerType::Plant:			srv = g_Texture[10];	break;
+				case PlayerType::Electricity:	srv = g_Texture[11];	break;
+				default: break;
+				}
+				break;
 			default: break;
 			}
-			break;
-			// 第3形態
-		case Form::Third:
-			switch (player[idx].type)
-			{
-			case PlayerType::Glass:			srv = g_Texture[8];		break;
-			case PlayerType::Concrete:		srv = g_Texture[9];		break;
-			case PlayerType::Plant:			srv = g_Texture[10];	break;
-			case PlayerType::Electricity:	srv = g_Texture[11];	break;
-			default: break;
-			}
-			break;
-		default: break;
-		}
 
 		// スペシャル使用中は専用テクスチャ
 		if (player[idx].useSpecial)			srv = g_Texture[12];

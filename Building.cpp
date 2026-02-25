@@ -4,6 +4,7 @@
 #include "keyboard.h"
 #include "Effect.h"
 #include "player.h"
+#include "Audio.h"
 #include "debug_ostream.h"     // ← 追加: hal::dout を使うため
 #include <codecvt>            // ← 追加: ワイド→UTF-8 変換用
 #include <locale>
@@ -21,6 +22,8 @@ static Building* Buildings[300];
 
 // 現在の建物数
 static int BuildingCount = 0;
+
+//static int g_SE_ID[10] = { NULL };
 
 // ★テクスチャのパス用意
 static const wchar_t* g_TexturePaths[] =
@@ -45,7 +48,7 @@ static const wchar_t* g_TexturePaths[] =
 	L"Asset\\Texture\\木と遊具エフェクト.png",
 	L"Asset\\Texture\\木といえ.png",
 	L"Asset\\Texture\\木といえエフェクト.png",
-	L"Asset\\Texture\\togegarasu.png",
+	L"Asset\\Texture\\togegarasu2.png",
 	L"Asset\\Texture\\togegarasuエフェクト.png",
 	L"Asset\\Texture\\3kabe.png",
 	L"Asset\\Texture\\3kabeエフェクト.png",
@@ -71,7 +74,7 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX] = { nullptr };
 static const char* g_GlassModels[] = {
 	"3birugarsu",
 	"2marugarasu",
-	"togegarasu"
+	"togegarasu2"
 
 };
 
@@ -95,8 +98,8 @@ static const char* g_ElectricModels[] = {
 	"singou",
 	"taw-",
 	"raibu",
-	"denki1kaba-",
-	"denki3kaba-"
+	"propsElectricitySub03_v9",
+	"propsElectricitySub02_v9"
 };
 
 // 配列数取得マクロ
@@ -189,8 +192,6 @@ Building::~Building()
 //=========================================
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Building_Finalize();
-
 	// ★デバイス＆コンテキスト保存
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -272,6 +273,8 @@ void Building_Finalize()
 			g_Texture[i] = nullptr;
 		}
 	}
+
+	//for (int i = 0; i < 4; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 //=========================================
@@ -451,12 +454,12 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 		baseTexIndex = 13;//ok
 	}
 	else if (type == BuildingType::Electricity &&
-		strcmp(g_ElectricModels[m_ModelIndex], "denki3kaba-") == 0)
+		strcmp(g_ElectricModels[m_ModelIndex], "propsElectricitySub02_v9") == 0)
 	{
 		baseTexIndex = 23;//ok
 	}
 	else if (type == BuildingType::Electricity &&
-		strcmp(g_ElectricModels[m_ModelIndex], "denki1kaba-") == 0)
+		strcmp(g_ElectricModels[m_ModelIndex], "propsElectricitySub03_v9]") == 0)
 	{
 		baseTexIndex = 25;//ok
 	}
@@ -494,7 +497,7 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 		baseTexIndex = 15;//ok
 	}
 	else if (type == BuildingType::Glass &&
-		strcmp(g_GlassModels[m_ModelIndex], "togegarasu") == 0)
+		strcmp(g_GlassModels[m_ModelIndex], "togegarasu2") == 0)
 	{
 		baseTexIndex = 21;//ok
 	}
