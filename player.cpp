@@ -1407,7 +1407,8 @@ void Player_Update()
 			SetHPOutline(&HPBar[p], player[p].type);
 		}
 	}
-	
+
+	// プレイヤー同士の攻撃判定
 	AttackPlayerCollisions();
 	ImGui::End();
 }
@@ -1731,137 +1732,137 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 
 	// プレイヤーを描画するラムダ（Projection, View をキャプチャ）
 	auto DrawPlayerInternal = [&](int idx)
+	{
+		if (!player[idx].active) return;
+
+		// プレイヤーの影エフェクト描画
+		EffectShadow_DrawForPlayer(idx);
+
+		const float spriteScale = 3.5f;	// 表示倍率
+
+		// ワールド行列（ビルボード風の既存ロジックを踏襲）
+		XMMATRIX ScalingMatrix = XMMatrixScaling(
+			player[idx].scaling.x * spriteScale,
+			player[idx].scaling.y * spriteScale,
+			player[idx].scaling.z * spriteScale
+		);
+
+		XMMATRIX vm = GetViewMatrix();	// カメラの行列
+		vm.r[3].m128_f32[0] = 0.0f;
+		vm.r[3].m128_f32[1] = 0.0f;
+		vm.r[3].m128_f32[2] = 0.0f;
+		vm.r[3].m128_f32[3] = 1.0f;
+		vm = XMMatrixTranspose(vm);
+		vm.r[3].m128_f32[0] = player[idx].position.x;
+		vm.r[3].m128_f32[1] = player[idx].position.y;
+		vm.r[3].m128_f32[2] = player[idx].position.z;
+		vm.r[3].m128_f32[3] = 1.0f;
+
+		// World 行列（ビルボード用）をシェーダーに渡す
+		XMMATRIX WorldMatrix = ScalingMatrix * vm;
+		Shader_SetWorldMatrix(WorldMatrix);
+
+		XMMATRIX WVP = ScalingMatrix * vm * view * projection;
+
+		Shader_SetMatrix(WVP);
+		Shader_Begin();
+		SetBlendState(BLENDSTATE_ALPHA);
+
+		// 頂点バッファにデータコピー（フレームに応じてUVを書き換える）
+		D3D11_MAPPED_SUBRESOURCE msr;
+
+		// コピー元のvdata をローカル配列にコピーして UV を調整
+		Vertex2 localV[PLAYER_VERTEX];
+		CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+
+		// 現在のフレームから UV を計算
+		int frame = g_animFrame[idx];
+		int col = frame % SHEET_COLS;
+		int row = frame / SHEET_COLS;
+		float u0 = (float)col / (float)SHEET_COLS;
+		float v0 = (float)row / (float)SHEET_ROWS;
+		float u1 = u0 + 1.0f / (float)SHEET_COLS;
+		float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+		// 頂点のテクスチャ座標を上書き
+		localV[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+		localV[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+		localV[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+		localV[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
+
+		// バッファへ書き込み
+		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		Vertex2* vertex = (Vertex2*)msr.pData;
+		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
+		g_pContext->Unmap(g_VertexBuffer, 0);
+
+		ID3D11ShaderResourceView* srv = nullptr;
+
+		// 形態とタイプに応じたテクスチャを設定
+		switch (player[idx].form)
 		{
-			if (!player[idx].active) return;
-
-			// プレイヤーの影エフェクト描画
-			EffectShadow_DrawForPlayer(idx);
-
-			const float spriteScale = 3.5f;	// 表示倍率
-
-			// ワールド行列（ビルボード風の既存ロジックを踏襲）
-			XMMATRIX ScalingMatrix = XMMatrixScaling(
-				player[idx].scaling.x * spriteScale,
-				player[idx].scaling.y * spriteScale,
-				player[idx].scaling.z * spriteScale
-			);
-
-			XMMATRIX vm = GetViewMatrix();	// カメラの行列
-			vm.r[3].m128_f32[0] = 0.0f;
-			vm.r[3].m128_f32[1] = 0.0f;
-			vm.r[3].m128_f32[2] = 0.0f;
-			vm.r[3].m128_f32[3] = 1.0f;
-			vm = XMMatrixTranspose(vm);
-			vm.r[3].m128_f32[0] = player[idx].position.x;
-			vm.r[3].m128_f32[1] = player[idx].position.y;
-			vm.r[3].m128_f32[2] = player[idx].position.z;
-			vm.r[3].m128_f32[3] = 1.0f;
-
-			// World 行列（ビルボード用）をシェーダーに渡す
-			XMMATRIX WorldMatrix = ScalingMatrix * vm;
-			Shader_SetWorldMatrix(WorldMatrix);
-
-			XMMATRIX WVP = ScalingMatrix * vm * view * projection;
-
-			Shader_SetMatrix(WVP);
-			Shader_Begin();
-			SetBlendState(BLENDSTATE_ALPHA);
-
-			// 頂点バッファにデータコピー（フレームに応じてUVを書き換える）
-			D3D11_MAPPED_SUBRESOURCE msr;
-
-			// コピー元のvdata をローカル配列にコピーして UV を調整
-			Vertex2 localV[PLAYER_VERTEX];
-			CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
-
-			// 現在のフレームから UV を計算
-			int frame = g_animFrame[idx];
-			int col = frame % SHEET_COLS;
-			int row = frame / SHEET_COLS;
-			float u0 = (float)col / (float)SHEET_COLS;
-			float v0 = (float)row / (float)SHEET_ROWS;
-			float u1 = u0 + 1.0f / (float)SHEET_COLS;
-			float v1 = v0 + 1.0f / (float)SHEET_ROWS;
-
-			// 頂点のテクスチャ座標を上書き
-			localV[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
-			localV[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
-			localV[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
-			localV[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
-
-			// バッファへ書き込み
-			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-			Vertex2* vertex = (Vertex2*)msr.pData;
-			CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
-			g_pContext->Unmap(g_VertexBuffer, 0);
-
-			ID3D11ShaderResourceView* srv = nullptr;
-
-			// 形態とタイプに応じたテクスチャを設定
-			switch (player[idx].form)
+			// 第1形態
+		case Form::First:
+			if (idx == 0) { srv = g_Texture[0];	break; }
+			else if (idx == 1) { srv = g_Texture[1];	break; }
+			else if (idx == 2) { srv = g_Texture[2];	break; }
+			else if (idx == 3) { srv = g_Texture[3];	break; }
+			// 第2形態
+		case Form::Second:
+			switch (player[idx].type)
 			{
-				// 第1形態
-			case Form::First:
-				if (idx == 0) { srv = g_Texture[0];	break; }
-				else if (idx == 1) { srv = g_Texture[1];	break; }
-				else if (idx == 2) { srv = g_Texture[2];	break; }
-				else if (idx == 3) { srv = g_Texture[3];	break; }
-				// 第2形態
-			case Form::Second:
-				switch (player[idx].type)
-				{
-				case PlayerType::Glass:			srv = g_Texture[4];	break;
-				case PlayerType::Concrete:		srv = g_Texture[5];	break;
-				case PlayerType::Plant:			srv = g_Texture[6];	break;
-				case PlayerType::Electricity:	srv = g_Texture[7];	break;
-				default: break;
-				}
-				break;
-				// 第3形態
-			case Form::Third:
-				switch (player[idx].type)
-				{
-				case PlayerType::Glass:			srv = g_Texture[8];		break;
-				case PlayerType::Concrete:		srv = g_Texture[9];		break;
-				case PlayerType::Plant:			srv = g_Texture[10];	break;
-				case PlayerType::Electricity:	srv = g_Texture[11];	break;
-				default: break;
-				}
-				break;
+			case PlayerType::Glass:			srv = g_Texture[4];	break;
+			case PlayerType::Concrete:		srv = g_Texture[5];	break;
+			case PlayerType::Plant:			srv = g_Texture[6];	break;
+			case PlayerType::Electricity:	srv = g_Texture[7];	break;
 			default: break;
 			}
-
-			// スペシャル使用中は専用テクスチャ
-			if (player[idx].useSpecial)			srv = g_Texture[12];
-
-			g_pContext->PSSetShaderResources(0, 1, &srv);
-
-			// プレイヤーごとに異なる色を設定
-			if (player[idx].isPoisoned)
+			break;
+			// 第3形態
+		case Form::Third:
+			switch (player[idx].type)
 			{
-				switch (idx)
-				{
-					// Lerp = 1.乗算色 2.補間する色 3.補間の度合い
-				case 0:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
-				case 1:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
-				case 2:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
-				case 3:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
-				default:	Shader_SetColor(color::white); break;
-				}
+			case PlayerType::Glass:			srv = g_Texture[8];		break;
+			case PlayerType::Concrete:		srv = g_Texture[9];		break;
+			case PlayerType::Plant:			srv = g_Texture[10];	break;
+			case PlayerType::Electricity:	srv = g_Texture[11];	break;
+			default: break;
 			}
-			else			Shader_SetColor(color::white); // 通常色
+			break;
+		default: break;
+		}
 
-			// バッファセット & 描画
-			UINT stride = sizeof(Vertex2);
-			UINT offset = 0;
-			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
-			g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			g_pContext->DrawIndexed(6, 0, 0);
+		// スペシャル使用中は専用テクスチャ
+		if (player[idx].useSpecial)			srv = g_Texture[12];
 
-			// エフェクト描画 （プレイヤーの手前）
-			EffectFront_DrawForPlayer(idx);
-		};
+		g_pContext->PSSetShaderResources(0, 1, &srv);
+
+		// プレイヤーごとに異なる色を設定
+		if (player[idx].isPoisoned)
+		{
+			switch (idx)
+			{
+				// Lerp = 1.乗算色 2.補間する色 3.補間の度合い
+			case 0:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 1:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 2:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			case 3:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
+			default:	Shader_SetColor(color::white); break;
+			}
+		}
+		else			Shader_SetColor(color::white); // 通常色
+
+		// バッファセット & 描画
+		UINT stride = sizeof(Vertex2);
+		UINT offset = 0;
+		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		g_pContext->DrawIndexed(6, 0, 0);
+
+		// エフェクト描画 （プレイヤーの手前）
+		EffectFront_DrawForPlayer(idx);
+	};
 
 	// -----------------------------------
 	// 透明描画のためのソート（遠い順）
