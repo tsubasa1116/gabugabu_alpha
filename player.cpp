@@ -290,6 +290,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_SE_ID[0] = LoadAudio("asset\\Audio\\Roar_Form_Second.wav");	// 進化後の咆哮 第2形態
 	g_SE_ID[1] = LoadAudio("asset\\Audio\\Roar_Form_Third.wav");	// 進化後の咆哮 第3形態
 	g_SE_ID[2] = LoadAudio("asset\\Audio\\Transform.wav");			// 変身
+	g_SE_ID[3] = LoadAudio("asset\\Audio\\EggBreaking.wav");		// 卵割れる
 }
 
 static void LoadTextureList(ID3D11Device* pDevice)
@@ -643,6 +644,7 @@ void Player_Update()
 		// 卵エフェクトが割れる時間
 		if (player[p].isEggBreaking)
 		{
+			if(player[p].eggBreakingTimer == 0.0f)	PlayAudio(g_SE_ID[3], false);
 			player[p].eggBreakingTimer += DELTA_TIME;
 
 			if (player[p].eggBreakingTimer >= EGG_BREAKING_TIME)
