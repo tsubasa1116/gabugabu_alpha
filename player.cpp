@@ -1155,6 +1155,30 @@ void Player_Update()
 					}
 				}
 			}
+			// スペシャル 8コマ
+			else if (player[p].useSpecial)
+			{
+				int type = -1;
+					 if (player[p].type == PlayerType::Concrete)		type = 0;
+				else if (player[p].type == PlayerType::Electricity)	type = 1;
+				else if (player[p].type == PlayerType::Glass)		type = 2;
+				else if (player[p].type == PlayerType::Plant)		type = 3;
+
+				// 向きに応じた開始フレームを決定
+				int start = type * 64;
+					 if (player[p].lastDir == PlayerDir::Down)		start += 0;
+				else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
+				else if (player[p].lastDir == PlayerDir::Left)		start += 16;
+				else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
+				else if (player[p].lastDir == PlayerDir::Up)		start += 32;
+				else if (player[p].lastDir == PlayerDir::Up_Right)	start += 40;
+				else if (player[p].lastDir == PlayerDir::Right)		start += 48;
+				else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
+
+				const int count = 8;
+
+				LoopRange(g_animFrame[p], start, count, advance);
+			}
 			// ダメージ 3コマ
 			else if (player[p].isAttacked || player[p].isStunning)
 			{

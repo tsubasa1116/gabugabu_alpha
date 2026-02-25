@@ -19,7 +19,7 @@
 #define SPECIAL_GLASSBOX_QUANTITY		(3)	// ガラス 1プレイヤーに飛ばす箱の数
 #define SPECIAL_ELECTRICITY_QUANTITY	(6)	// 電気 落雷の数
 
-#define SPECIAL_SE_COUNT				(3)	// スペシャル SEの数
+#define SPECIAL_SE_COUNT				(3)	// スペシャル SEの数 ガラスを除く
 
 // ガラススペシャル ミサイルオブジェクト
 struct GLASS_BOX
