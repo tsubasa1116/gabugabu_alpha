@@ -8,186 +8,191 @@
 #include "debug_render.h"
 #include "model.h"
 #include "Building.h"
-#include "Player.h"
+#include "player.h"
 #include "special.h"
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 
+#include "color.h"
+
 //======================================================
-//	ãƒã‚¯ãƒ­å®šç¾©
+//	ƒ}ƒNƒ’è‹`
 //======================================================
 #define BOX_NUM_VERTEX	(24)
-#define FIELD_TEX_MAX	(2)
+#define FIELD_TEX_MAX	(4)
 
 //======================================================
-//	ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+//	ƒOƒ[ƒoƒ‹•Ï”
 //======================================================
-MODEL* Test = NULL;//ãƒ‡ãƒãƒƒã‚°
+MODEL* Test = NULL;//ƒfƒoƒbƒO
 
-////ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+////ƒOƒ[ƒoƒ‹•Ï”
 static	ID3D11Device* g_pDevice = NULL;
 static	ID3D11DeviceContext* g_pContext = NULL;
-////é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
+////’¸“_ƒoƒbƒtƒ@
 //static	ID3D11Buffer* g_VertexBuffer = NULL;
-////ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
+////ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
 //static	ID3D11Buffer* g_IndexBuffer = NULL;
-//ãƒ†ã‚¯ã‚¹ãƒãƒ£å¤‰æ•°
+//ƒeƒNƒXƒ`ƒƒ•Ï”
 //static ID3D11ShaderResourceView* g_Texture;
 
-// FIELD enum (FIELD_BUILDING, FIELD_BOX) ã®æ•°ã ã‘ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ç®¡ç†
+// FIELD enum (FIELD_BUILDING, FIELD_BOX) ‚Ì”‚¾‚¯ƒeƒNƒXƒ`ƒƒ‚ğŠÇ—
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
-
-// FIELD::no ã®å€¤ã«å¯¾å¿œã™ã‚‹ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ•ã‚¡ã‚¤ãƒ«å
-static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] = {
-	L"Asset\\Texture\\gure.jpg",
-	L"Asset\\Texture\\fade.bmp"
+#define FIELD_TEX_MAX (4)
+// FIELD::no ‚Ì’l‚É‘Î‰‚·‚éƒeƒNƒXƒ`ƒƒƒtƒ@ƒCƒ‹–¼
+static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
+{
+	L"Asset\\Texture\\ŠDF.png",  // 0
+	L"Asset\\Texture\\texturefieldTree02_v1.png",  // 1
+	L"Asset\\Texture\\texturefieldTree01_v1.png",  
+	L"Asset\\Texture\\ŠDF.png",
+	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
-
 
 static const char* g_ModelName[] = {
 	"field",
 	"field_v2",
 	"field_v3",
-	"propsConcreteMain_v2",		// 3ãƒã‚¹å¤§å»ºç‰©
-	"propsConcreteSub_v2",		// ãƒãƒ³ã‚·ãƒ§ãƒ³
-	"propsElectricitySub_v2",	// è»Šã¨ä¿¡å·
-	"propsGlassSub_v2",			// ãƒ“ãƒ«
-	"propsTreeSub_v2",			// åºƒè‘‰æ¨¹
-	"build_glass_new"			// å¤‰ãªå»ºç‰©
-	"propsTowerMain_v3"			//æ±äº¬ã‚¿ãƒ¯-
+	"propsConcreteMain_v2",		// 3ƒ}ƒX‘åŒš•¨
+	"propsConcreteSub_v2",		// ƒ}ƒ“ƒVƒ‡ƒ“
+	"propsElectricitySub_v2",	// Ô‚ÆM†
+	"propsGlassSub_v2",			// ƒrƒ‹
+	"propsTreeSub_v2",			// L—t÷
+	"build_glass_new"			// •Ï‚ÈŒš•¨
+	"propsTowerMain_v3"			//“Œ‹ƒ^ƒ-
 };
 static const char* g_ModelName1[] = {
 	"raibu",
 	"kitosaku"
 };
-
-//ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿é…åˆ—
+ 
+//ƒ}ƒbƒvƒf[ƒ^”z—ñ
 MAPDATA Map[] =
 {
-	// ===== åœ°é¢ãƒ»ç‰¹æ®Š =====			 
-	{ {},{}, FIELD::FIELD_Electricity,1}, // 1
-	{ {},{}, FIELD::FIELD_Electricity,0}, // 2
-	{ {},{}, FIELD::FIELD_Electricity,0},           // 3
-	{ {},{}, FIELD::FIELD_Electricity,0},           // 4
-	{ {},{}, FIELD::FIELD_Electricity,0}, // 5
-	{ {},{}, FIELD::FIELD_Electricity,0},           // 6
-	{ {},{}, FIELD::FIELD_Electricity,0},           // 7
-	{ {},{}, FIELD::FIELD_Electricity,0},           // 8
-	{ {},{}, FIELD::FIELD_Electricity,0},           // 9
-	{ {},{}, FIELD::FIELD_Electricity,0},           // 10
-						  
+	// ===== ’n–ÊE“Áê =====			 
+	{ {},{}, FIELD::FIELD_Electricity,1}, // 1kaku
+	{ {},{}, FIELD::FIELD_Electricity,0}, // 2kaku
+	{ {},{}, FIELD::FIELD_Plant,1},           // 3kaku
+	{ {},{}, FIELD::FIELD_Electricity,0},           // 4kaku
+	{ {},{}, FIELD::FIELD_Plant,1}, // 5kaku
+	{ {},{}, FIELD::FIELD_Electricity,0},           // 6kaku
+	{ {},{}, FIELD::FIELD_Plant,1},           // 7kaku
+	{ {},{}, FIELD::FIELD_Concrete,2},           // 8kaku
+	{ {},{}, FIELD::FIELD_Concrete,1},           // 9
+	{ {},{}, FIELD::FIELD_Glass},           // 10
+
 	// ===== BOX 10 ===== 
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 11
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 12
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 13
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 14
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 15
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 16
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 17
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 18
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 19
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 20
-						  
+	{ {},{}, FIELD::FIELD_Glass,}, // 11
+	{ {},{}, FIELD::FIELD_Plant,1}, // 12kaku
+	{ {},{}, FIELD::FIELD_Plant,1}, // 13kaku
+	{ {},{}, FIELD::FIELD_Concrete,1}, // 14kaku
+	{ {},{}, FIELD::FIELD_Glass}, // 15kaku
+	{ {},{}, FIELD::FIELD_Electricity,4}, // 16
+	{ {},{}, FIELD::FIELD_Electricity,0}, // 17kaku
+	{ {},{}, FIELD::FIELD_Concrete,2}, // 18
+	{ {},{}, FIELD::FIELD_Electricity,0}, // 19kaku
+	{ {},{}, FIELD::FIELD_Concrete,1}, // 20kaku
+
 	// ===== BOX 20 ===== 
-	{ {},{}, FIELD::FIELD_Concrete,1 }, // 21
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 21
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 22
-	{ {},{}, FIELD::FIELD_Concrete,1 }, // 23
-	{ {},{}, FIELD::FIELD_Concrete,1 }, // 24
-	{ {},{}, FIELD::FIELD_Concrete,1 }, // 25
-	{ {},{}, FIELD::FIELD_Concrete,1 }, // 26
-	{ {},{}, FIELD::FIELD_Concrete,1 }, // 27
-	{ {},{}, FIELD::FIELD_Concrete,1 }, // 28
-	{ {},{}, FIELD::FIELD_Concrete,1 }, // 29
-	{ {},{}, FIELD::FIELD_Concrete,1 }, // 30
-						 
+	{ {},{}, FIELD::FIELD_Plant,0 }, // 23
+	{ {},{}, FIELD::FIELD_Plant,1}, // 24
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 25
+	{ {},{}, FIELD::FIELD_Electricity,0 }, // 26
+	{ {},{}, FIELD::FIELD_Concrete,2}, // 27
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 28
+	{ {},{}, FIELD::FIELD_Plant,2 }, // 29
+	{ {},{}, FIELD::FIELD_Glass }, // 30
+
 	// ===== BOX 30 =====
 	{ {},{}, FIELD::FIELD_Electricity,0 }, // 31
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 32
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 33
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 34
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 35
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 36
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 37
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 38
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 39
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 40
-						 
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 32
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 33
+	{ {},{}, FIELD::FIELD_Electricity,4}, // 34
+	{ {},{}, FIELD::FIELD_Glass }, // 35
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 36
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 37
+	{ {},{}, FIELD::FIELD_Glass,2 }, // 38
+	{ {},{}, FIELD::FIELD_BOX }, // 39
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 40
+
 	// ===== BOX 40 =====
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 41
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 42
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 43
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 44
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 45
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 46
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 47
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 48
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 49
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 50
-						 
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 41
+	{ {},{}, FIELD::FIELD_Plant,1}, // 42
+	{ {},{}, FIELD::FIELD_Concrete,2 }, // 43
+	{ {},{}, FIELD::FIELD_Glass }, // 44
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 45
+	{ {},{}, FIELD::FIELD_Glass, }, // 46
+	{ {},{}, FIELD::FIELD_Electricity,4}, // 47
+	{ {},{}, FIELD::FIELD_Glass,1 }, // 48  ¶ãƒfƒJ‚¢Œš•¨
+	{ {},{}, FIELD::FIELD_Electricity,2 }, // 49   ‰EãƒfƒJ‚¢Œš•¨
+	{ {},{}, FIELD::FIELD_Electricity,4}, // 50
+
 	// ===== BOX 50 =====
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 51
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 52
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 53
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 54
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 55
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 56
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 57
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 58
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 59
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 60
-						  
+	{ {},{}, FIELD::FIELD_Electricity }, // 51
+	{ {},{}, FIELD::FIELD_Concrete }, // 52 ‰E‰ºƒfƒJ‚¢Œš•¨
+	{ {},{}, FIELD::FIELD_Plant,3}, // 53¶‰ºƒfƒJ‚¢
+	{ {},{}, FIELD::FIELD_Electricity}, // 54
+	{ {},{}, FIELD::FIELD_Plant,1}, // 55
+	{ {},{}, FIELD::FIELD_Glass,2}, // 56
+	{ {},{}, FIELD::FIELD_Electricity}, // 57
+	{ {},{}, FIELD::FIELD_Plant,1}, // 58
+	{ {},{}, FIELD::FIELD_Concrete,1}, // 59
+	{ {},{}, FIELD::FIELD_Electricity,}, // 60
+
 	// ===== BOX 60 ===== 
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 61
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 62
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 63
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 64
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 65
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 66
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 67
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 68
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 69
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 70
-						 
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 61
+	{ {},{}, FIELD::FIELD_Glass }, // 62
+	{ {},{}, FIELD::FIELD_Electricity }, // 63
+	{ {},{}, FIELD::FIELD_Electricity }, // 64
+	{ {},{}, FIELD::FIELD_Electricity,3 }, // 65
+	{ {},{}, FIELD::FIELD_Electricity }, // 66
+	{ {},{}, FIELD::FIELD_Glass }, // 67
+	{ {},{}, FIELD::FIELD_BOX }, // 68
+	{ {},{}, FIELD::FIELD_Electricity }, // 69
+	{ {},{}, FIELD::FIELD_Electricity }, // 70
+
 	// ===== BOX 70 =====
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 71
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 72
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 73
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 74
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 75
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 76
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 77
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 78
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 79
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 80
-						  
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 71
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 72
+	{ {},{}, FIELD::FIELD_Electricity }, // 73
+	{ {},{}, FIELD::FIELD_Electricity,3 },// 74
+	{ {},{}, FIELD::FIELD_Plant,0 }, // 75
+	{ {},{}, FIELD::FIELD_Plant,2 }, // 76
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 77
+	{ {},{}, FIELD::FIELD_Plant,0 }, // 78
+	{ {},{}, FIELD::FIELD_Concrete,2 }, // 79
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 80
+
 	// ===== BOX 80 ===== 
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 81
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 82
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 83
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 84
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 85
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 86
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 87
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 88
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 89
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 90
-						  
+	{ {},{}, FIELD::FIELD_Plant,0 }, // 81
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 82
+	{ {},{}, FIELD::FIELD_Plant,2 }, // 83
+	{ {},{}, FIELD::FIELD_Electricity ,4}, // 84
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 85
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 86
+	{ {},{}, FIELD::FIELD_Plant,2 }, // 87
+	{ {},{}, FIELD::FIELD_Glass },   // 88
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 89
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 90
+	 					  
 	// ===== BOX 90 ===== 
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 91
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 92
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 93
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 94
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 95
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 96
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 97
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 98
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 99
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 100
-						  
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 91
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 92
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 93
+	{ {},{}, FIELD::FIELD_Concrete,2 }, // 94
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 95
+	{ {},{}, FIELD::FIELD_Concrete ,2}, // 96
+	{ {},{}, FIELD::FIELD_Plant,2 }, // 97
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 98
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 99
+	{ {},{}, FIELD::FIELD_Concrete,1 }, // 100
+
 	// ===== BOX 100 =====
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 101
-	{ {},{}, FIELD::FIELD_Electricity,0 }, // 102  ã„ã¾ã®ã¾ã¾ã ã¨ã“ã“ã¾ã§ã—ã‹ãƒ¢ãƒ‡ãƒ«ãŒç½®ã‘ãªã„
+	{ {},{}, FIELD::FIELD_Plant,1}, // 101
+	{ {},{}, FIELD::FIELD_Concrete,2 }, // 102  ‚¢‚Ü‚Ì‚Ü‚Ü‚¾‚Æ‚±‚±‚Ü‚Å‚µ‚©ƒ‚ƒfƒ‹‚ª’u‚¯‚È‚¢
 	{ {},{}, FIELD::FIELD_BOX }, // 103
 	{ {},{}, FIELD::FIELD_BOX }, // 104
 	{ {},{}, FIELD::FIELD_BOX }, // 105
@@ -196,7 +201,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX }, // 108
 	{ {},{}, FIELD::FIELD_BOX }, // 109
 	{ {},{}, FIELD::FIELD_BOX }, // 110
-						  
+
 	// ===== BOX 110 ==== BOX
 	{ {},{}, FIELD::FIELD_BOX }, // 111
 	{ {},{}, FIELD::FIELD_BOX }, // 112
@@ -209,26 +214,22 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_BOX }, // 119
 	{ {},{}, FIELD::FIELD_BOX }, // 120
 
-
-
-	
-
-	// ===== çµ‚äº†ãƒãƒ¼ã‚«ãƒ¼ï¼ˆã‚«ã‚¦ãƒ³ãƒˆã—ãªã„ï¼‰=====
+	// ===== I—¹ƒ}[ƒJ[iƒJƒEƒ“ƒg‚µ‚È‚¢j=====
 	{ XMFLOAT3(2.0f,-1.0f,5.0f), {}, FIELD::FIELD_MAX }
 };
 
 
 //======================================================
-//	åˆæœŸåŒ–é–¢æ•°
+//	‰Šú‰»ŠÖ”
 //======================================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	char modelPath[256];
 	snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[1]);
 
-	Test = ModelLoad(modelPath);//ãƒ‡ãƒãƒƒã‚°
+	Test = ModelLoad(modelPath);//ƒfƒoƒbƒO
 
-	// é…åˆ—è¦ç´ æ•°ï¼ˆçµ‚äº†ãƒãƒ¼ã‚«ãƒ¼ FIELD_MAX ã‚’å«ã¾ãªã„ï¼‰
+	// ”z—ñ—v‘f”iI—¹ƒ}[ƒJ[ FIELD_MAX ‚ğŠÜ‚Ü‚È‚¢j
 	int count = GetFieldObjectCount();
 	if (count <= 1)
 	{
@@ -238,31 +239,31 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		return;
 	}
 
-	// ====== å…­è§’æ ¼å­å€™è£œã‚’å¤šæ•°ç”Ÿæˆã—ã€ä¸­å¿ƒã«è¿‘ã„ã‚‚ã®ã‹ã‚‰ N å€‹é¸ã‚“ã§ã€Œã‚ˆã‚Šå††å½¢ã€ã«é…ç½® ======
-	// MAPDATA::radius ã‚’ hex sizeï¼ˆcenter->cornerï¼‰ã¨è¦‹ãªã™ï¼ˆflat-topï¼‰
+	// ====== ˜ZŠpŠiqŒó•â‚ğ‘½”¶¬‚µA’†S‚É‹ß‚¢‚à‚Ì‚©‚ç N ŒÂ‘I‚ñ‚Åu‚æ‚è‰~Œ`v‚É”z’u ======
+	// MAPDATA::radius ‚ğ hex sizeicenter->cornerj‚ÆŒ©‚È‚·iflat-topj
 	const float size = Map->radius;
 	const float sqrt3 = sqrtf(3.0f);
 
-	// æ¨ªæ–¹å‘ã‚¹ã‚±ãƒ¼ãƒ«ï¼ˆå¿…è¦ãªã‚‰èª¿æ•´ï¼‰
+	// ‰¡•ûŒüƒXƒP[ƒ‹i•K—v‚È‚ç’²®j
 	const float horizontalScale = 1.0f;
 
-	// å€™è£œã‚’ç”Ÿæˆã™ã‚‹ãŸã‚ã®ãƒªãƒ³ã‚°æ•°ï¼ˆä½™è£•ã‚’æŒãŸã›ã‚‹ï¼‰
-	// count å€‹ã‚’ä¸¸ãé¸ã¶ãŸã‚ã€å€™è£œã¯å¤šå°‘å¤šã‚ã«ç”Ÿæˆã™ã‚‹ï¼ˆmarginFactorï¼‰
-	const float marginFactor =5.0f; // 1.0 = æœ€ä½é™, 1.25 = ä½™è£• 25%
+	// Œó•â‚ğ¶¬‚·‚é‚½‚ß‚ÌƒŠƒ“ƒO”i—]—T‚ğ‚½‚¹‚éj
+	// count ŒÂ‚ğŠÛ‚­‘I‚Ô‚½‚ßAŒó•â‚Í‘½­‘½‚ß‚É¶¬‚·‚éimarginFactorj
+	const float marginFactor = 5.0f; // 1.0 = Å’áŒÀ, 1.25 = —]—T 25%
 	int rings = 1;
 	while (1 + 3 * rings * (rings + 1) < static_cast<int>(count * marginFactor))
 		++rings;
 
-	// è»¸åº§æ¨™(q,r)ã‚’åŒå¿ƒãƒªãƒ³ã‚°ã§ç”Ÿæˆï¼ˆtotalCandidates >= countï¼‰
+	// ²À•W(q,r)‚ğ“¯SƒŠƒ“ƒO‚Å¶¬itotalCandidates >= countj
 	int totalCandidates = 1 + 3 * rings * (rings + 1);
 
-	// ãƒ˜ãƒ«ãƒ‘ãƒ¼æ§‹é€ ä½“ï¼ˆãƒ­ãƒ¼ã‚«ãƒ«ï¼‰
+	// ƒwƒ‹ƒp[\‘¢‘Ìiƒ[ƒJƒ‹j
 	struct Candidate { int q; int r; float wx; float wz; float dist; };
 
-	// å‹•çš„ç¢ºä¿ï¼ˆãƒ­ãƒ¼ã‚«ãƒ«ã« vector ã‚’ä½¿ã‚ãªã„å½¢ã«ã—ã¦ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ä¸è¦ã«ï¼‰
+	// “®“IŠm•Ûiƒ[ƒJƒ‹‚É vector ‚ğg‚í‚È‚¢Œ`‚É‚µ‚ÄƒCƒ“ƒNƒ‹[ƒh•s—v‚Éj
 	Candidate* candidates = new Candidate[totalCandidates];
 
-	// ä¸­å¿ƒ
+	// ’†S
 	int idx = 0;
 	candidates[idx].q = 0;
 	candidates[idx].r = 0;
@@ -271,7 +272,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	candidates[idx].dist = 0.0f;
 	++idx;
 
-	// 6æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ï¼ˆaxial coordsï¼‰
+	// 6•ûŒüƒxƒNƒgƒ‹iaxial coordsj
 	const int dirQ[6] = { 1, 1, 0, -1, -1, 0 };
 	const int dirR[6] = { 0, -1, -1, 0, 1, 1 };
 
@@ -300,18 +301,18 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 	}
 
-	// ä¸­å¿ƒã«è¿‘ã„é †ã« count å€‹ã‚’é¸ã¶ï¼ˆç°¡æ˜“é¸æŠã‚½ãƒ¼ãƒˆãƒ©ã‚¤ã‚¯ï¼‰
-	// é¸æŠæ•° N = countï¼ˆMap é…åˆ—ã®è¦ç´ æ•°ï¼‰
+	// ’†S‚É‹ß‚¢‡‚É count ŒÂ‚ğ‘I‚ÔiŠÈˆÕ‘I‘ğƒ\[ƒgƒ‰ƒCƒNj
+	// ‘I‘ğ” N = countiMap ”z—ñ‚Ì—v‘f”j
 	int N = count;
-	// å®‰å…¨ç­–: N ãŒå€™è£œæ•°ã‚’è¶…ãˆãªã„ã‚ˆã†ã«
+	// ˆÀ‘Sô: N ‚ªŒó•â”‚ğ’´‚¦‚È‚¢‚æ‚¤‚É
 	if (N > totalCandidates) N = totalCandidates;
 
-	// éƒ¨åˆ†é¸æŠï¼šå…ˆé ­ N ä»¶ã‚’åˆæœŸé¸æŠã—ï¼Œæ®‹ã‚Šã‚’èµ°æŸ»ã—ã¦ã‚ˆã‚Šè¿‘ã‘ã‚Œã°å…¥ã‚Œæ›¿ãˆã‚‹ï¼ˆO(M*N)ã ãŒå€™è£œã¯ãã“ã¾ã§å¤§ãããªã„ï¼‰
-	// ã¾ãšå…ˆé ­ N ã‚’ selected ã¨ã™ã‚‹ï¼ˆé…åˆ—å†…æ“ä½œï¼‰
+	// •”•ª‘I‘ğFæ“ª N Œ‚ğ‰Šú‘I‘ğ‚µCc‚è‚ğ‘–¸‚µ‚Ä‚æ‚è‹ß‚¯‚ê‚Î“ü‚ê‘Ö‚¦‚éiO(M*N)‚¾‚ªŒó•â‚Í‚»‚±‚Ü‚Å‘å‚«‚­‚È‚¢j
+	// ‚Ü‚¸æ“ª N ‚ğ selected ‚Æ‚·‚éi”z—ñ“à‘€ìj
 	Candidate* selected = new Candidate[N];
 	for (int i = 0; i < N; ++i) selected[i] = candidates[i];
 
-	// ç¾åœ¨ã®æœ€é ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’æ±‚ã‚ã‚‹é–¢æ•°
+	// Œ»İ‚ÌÅ‰“ƒCƒ“ƒfƒbƒNƒX‚ğ‹‚ß‚éŠÖ”
 	auto findWorstIndex = [&](int limit) -> int {
 		int worst = 0;
 		float maxd = selected[0].dist;
@@ -319,6 +320,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		{
 			if (selected[j].dist > maxd)
 			{
+
 				maxd = selected[j].dist;
 				worst = j;
 			}
@@ -328,20 +330,20 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	int worstIdx = findWorstIndex(N);
 
-	// æ®‹ã‚Šå€™è£œã‚’æ¤œæŸ»
+	// c‚èŒó•â‚ğŒŸ¸
 	for (int i = N; i < totalCandidates; ++i)
 	{
 		if (candidates[i].dist < selected[worstIdx].dist)
 		{
-			// ç½®æ›
+			// ’uŠ·
 			selected[worstIdx] = candidates[i];
-			// worstIndex ã‚’å†è¨ˆç®—
+			// worstIndex ‚ğÄŒvZ
 			worstIdx = findWorstIndex(N);
 		}
 	}
 
-	// ã“ã“ã§ selected[] ã¯ä¸­å¿ƒã«è¿‘ã„ N å€‹ã®å€™è£œï¼ˆãŸã ã—é †åºã¯ä»»æ„ï¼‰ãªã®ã§ã€ä¸­å¿ƒã«è¿‘ã„é †ã«ä¸¦ã¹æ›¿ãˆã‚‹ã“ã¨ã§è¦‹ãŸç›®ãŒã‚ˆã‚Šè‡ªç„¶ã«
-	// ç°¡æ˜“çš„ã«ãƒãƒ–ãƒ«ã‚½ãƒ¼ãƒˆï¼ˆN ãŒå°ã•ã„ã®ã§ååˆ†ï¼‰
+	// ‚±‚±‚Å selected[] ‚Í’†S‚É‹ß‚¢ N ŒÂ‚ÌŒó•âi‚½‚¾‚µ‡˜‚Í”CˆÓj‚È‚Ì‚ÅA’†S‚É‹ß‚¢‡‚É•À‚×‘Ö‚¦‚é‚±‚Æ‚ÅŒ©‚½–Ú‚ª‚æ‚è©‘R‚É
+	// ŠÈˆÕ“I‚Éƒoƒuƒ‹ƒ\[ƒgiN ‚ª¬‚³‚¢‚Ì‚Å\•ªj
 	for (int a = 0; a < N - 1; ++a)
 	{
 		for (int b = 0; b < N - 1 - a; ++b)
@@ -355,7 +357,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 	}
 
-	// Map é…åˆ—ã¸å‰²ã‚Šå½“ã¦ï¼šä¸­å¿ƒã«è¿‘ã„é †ã«é…ç½®ã—ã¦ã„ã
+	// Map ”z—ñ‚ÖŠ„‚è“–‚ÄF’†S‚É‹ß‚¢‡‚É”z’u‚µ‚Ä‚¢‚­
 	int assign = 0;
 	for (int i = 0; i < count; ++i)
 	{
@@ -371,12 +373,12 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}
 		else
 		{
-			// å‰²ã‚Šå½“ã¦ã‚‰ã‚Œãªã‹ã£ãŸæ®‹ã‚Šã¯éè¡¨ç¤º
+			// Š„‚è“–‚Ä‚ç‚ê‚È‚©‚Á‚½c‚è‚Í”ñ•\¦
 			Map[i].isActive = false;
 		}
 	}
 
-	// è§£æ”¾
+	// ‰ğ•ú
 	delete[] candidates;
 	delete[] selected;
 
@@ -386,13 +388,13 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pContext = pContext;
 
 	// --------------------------------------------------------------------
-	// è¤‡æ•°ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’èª­ã¿è¾¼ã¿
+	// •¡”‚ÌƒeƒNƒXƒ`ƒƒ‚ğ“Ç‚İ‚İ
 	// --------------------------------------------------------------------
-	for (int i = 0; i < FIELD_TEX_MAX; ++i) // å®šç¾©ã—ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ã®æ•°ã ã‘ãƒ«ãƒ¼ãƒ—
+	for (int i = 0; i < FIELD_TEX_MAX; ++i) // ’è‹`‚µ‚½ƒeƒNƒXƒ`ƒƒ‚Ì”‚¾‚¯ƒ‹[ƒv
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		// é…åˆ—ã«å®šç¾©ã—ãŸãƒ‘ã‚¹ã‹ã‚‰ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’èª­ã¿è¾¼ã‚€
+		// ”z—ñ‚É’è‹`‚µ‚½ƒpƒX‚©‚çƒeƒNƒXƒ`ƒƒ‚ğ“Ç‚İ‚Ş
 		LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(g_pDevice, image.GetImages(),
 			image.GetImageCount(), metadata, &g_Texture[i]);
@@ -400,25 +402,12 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	}
 	// --------------------------------------------------------------------
 
-	// åˆæœŸãƒ–ãƒ­ãƒƒã‚¯ã®ç”Ÿæˆã¨AABBã®è¨ˆç®—
-	int i = 0;
-
-	while (Map[i].no != FIELD::FIELD_MAX && Map[i].isActive) {
-		if (i == 0) {
-			//CreateBox();
-		}
-
-		// å…¨ã¦ã®ãƒãƒƒãƒ—ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã«å¯¾ã—ã¦AABBã‚’è¨ˆç®—ã™ã‚‹
-		// Player_CalculateAABB(&map[i]); // å¤ã„å‘¼ã³å‡ºã—
-		//CalculateAABB(Map[i].boundingBox, Map[i].pos, XMFLOAT3{ 1.0f, 1.0f, 1.0f }); // â˜…æ–°ã—ã„å‘¼ã³å‡ºã—
-
-		i++;
-	}
-
 	Building_Initialize(pDevice, pContext);
 }
+
+
 //======================================================
-//	çµ‚äº†å‡¦ç†é–¢æ•°
+//	I—¹ˆ—ŠÖ”
 //======================================================
 void Field_Finalize(void)
 {
@@ -431,207 +420,180 @@ void Field_Finalize(void)
 	Building_Finalize();
 }
 
+
 //======================================================
-//	æç”»é–¢æ•°
+//	•`‰æŠÖ”
 //======================================================
 void Field_Draw(bool s_IsKonamiCodeEntered)
 {
 	static bool input2 = false;
-	// ãƒ‡ãƒãƒƒã‚°ãƒ¢ãƒ¼ãƒ‰ä¸­ã®ã¿ã‚­ãƒ¼å…¥åŠ›ã‚’å—ã‘ä»˜ã‘ã‚‹
+
+	// ƒfƒoƒbƒOƒL[
 	if (s_IsKonamiCodeEntered)
 	{
 		if (Keyboard_IsKeyDownTrigger(KK_D2))
 		{
-			input2 = !input2;	// ãƒ•ãƒ©ã‚°åè»¢
+			input2 = !input2;
 		}
 	}
-	//ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã¸è¨­å®š
-	Shader_Begin();
-	Shader_SetColor({ 1.0f,1.0f,1.0f,1.0f });
 
-	//ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³è¡Œåˆ—ä½œæˆ
-	XMMATRIX	projection = GetProjectionMatrix();
-	//ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ä½œæˆ
-	XMMATRIX	view = GetViewMatrix();
-	//å…ˆã«VPå¤‰æ›è¡Œåˆ—ã‚’ä½œã£ã¦ãŠã
+	// ƒVƒF[ƒ_[ŠJn
+	Shader_Begin();
+	Shader_SetColor(color::white);
+
+	// s—ñæ“¾
+	XMMATRIX projection = GetProjectionMatrix();
+	XMMATRIX view = GetViewMatrix();
 	XMMATRIX VP = view * projection;
 
-	//MAPã®è¡¨ç¤º
 	int i = 0;
-	static float rot = 0.0f;
-	rot -= 0.5f;
+
+	// ======================================================
+	// ƒtƒB[ƒ‹ƒh•`‰æ
+	// ======================================================
 	while (Map[i].no != FIELD_MAX)
 	{
-		// ã‚‚ã—ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã˜ã‚ƒãªã‹ã£ãŸã‚‰ã€æç”»ã—ãªã„ã§æ¬¡ã¸
 		if (!Map[i].isActive)
 		{
-			i++; // i ã‚’é€²ã‚ã‚‹ã®ã‚’å¿˜ã‚Œãªã„ã§ï¼
-			continue; // ã“ã®å…ˆã®æç”»å‡¦ç†ã‚’ã‚¹ã‚­ãƒƒãƒ—
+			i++;
+			continue;
 		}
 
-		///////////////////////////////////////////////debug
-		//ImGui::Begin("Player Debug");
+		// ------------------------------
+		// ƒ[ƒ‹ƒhs—ñì¬
+		// ------------------------------
+		XMMATRIX ScalingMatrix = XMMatrixScaling(1.1f, 1.1f, 1.1f);
 
-		//// åº§æ¨™èª¿æ•´
-		//ImGui::Text("Position");
-		//ImGui::DragFloat3("pos", (float*)&Map[i].pos, 0.1f);
-		//if (i % 10 == 0)
-		//{
-		//	ImGui::Text("/");
-		//}
-
-		//ImGui::End();
-		///////////////////////////////////////////////
-
-		//ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°è¡Œåˆ—ã®ä½œæˆ
-		XMMATRIX	ScalingMatrix = XMMatrixScaling
-		(
-			1.0f, 1.0f, 1.0f
-		);
-		//å¹³è¡Œç§»å‹•è¡Œåˆ—ã®ä½œæˆ
-		XMMATRIX	TranslationMatrix = XMMatrixTranslation
-		(
-			Map[i].pos.x, Map[i].pos.y, Map[i].pos.z
-		);
-		//å›è»¢è¡Œåˆ—ã®ä½œæˆ
-		XMMATRIX	RotationMatrix = XMMatrixRotationRollPitchYaw
-		(
-			//-3.141592 / 2,
+		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			XMConvertToRadians(-90.0f),
-			XMConvertToRadians(0.0f),
-			XMConvertToRadians(0.0f)
+			0.0f,
+			0.0f
 		);
-		//ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã®ä½œæˆ
-		XMMATRIX	World = ScalingMatrix * RotationMatrix * TranslationMatrix;
-		//æœ€çµ‚çš„ãªå¤‰æ›è¡Œåˆ—ã‚’ä½œæˆ
-		XMMATRIX	WVP = World * VP;	//(VP = View * Projection)
 
-		//DirectXã¸è¡Œåˆ—ã‚’ã‚»ãƒƒãƒˆ
+		XMMATRIX TranslationMatrix = XMMatrixTranslation(
+			Map[i].pos.x,
+			Map[i].pos.y,
+			Map[i].pos.z
+		);
+
+		XMMATRIX World = ScalingMatrix * RotationMatrix * TranslationMatrix;
+		XMMATRIX WVP = World * VP;
+
 		Shader_SetWorldMatrix(World);
 		Shader_SetMatrix(WVP);
 
-		// --------------------------------------------------------
-		// map[i].no ã®å€¤ (intã«ã‚­ãƒ£ã‚¹ãƒˆ) ã«å¯¾å¿œã™ã‚‹ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã‚»ãƒƒãƒˆ
-		// --------------------------------------------------------
-		int texIndex = (int)Map[i].no; // FIELD_BUILDING, FIELD_BOXãŒ 0, 1 ã«å¯¾å¿œã—ã¦ã„ã‚‹ã“ã¨ã‚’åˆ©ç”¨
-		if (texIndex >= 0 && texIndex < FIELD_TEX_MAX)
+		// ------------------------------
+		// í—Ş‚²‚Æ‚ÉƒeƒNƒXƒ`ƒƒØ‚è‘Ö‚¦
+		// ------------------------------
+		int texIndex = 0; // ƒfƒtƒHƒ‹ƒg
+
+		switch (Map[i].no)
 		{
-			g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
+		case FIELD::FIELD_Plant:
+			texIndex = 2;
+			break;
+
+		case FIELD::FIELD_Concrete:
+			texIndex = 0;
+			break;
+
+		case FIELD::FIELD_Glass:
+			texIndex = 0;
+			break;
+
+		case FIELD::FIELD_Electricity:
+			texIndex = 0;
+			break;
+
+		case FIELD::FIELD_BOX:
+			texIndex = 3;
+			break;
+
+		default:
+			texIndex = 0;
+			break;
 		}
 
-		////é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ã‚»ãƒƒãƒˆ
-		//UINT	stride = sizeof(Vertex3D);	//é ‚ç‚¹ï¼‘å€‹ã®ãƒ‡ãƒ¼ã‚¿ã‚µã‚¤ã‚º
-		//UINT	offset = 0;
-		//g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
 
-		////ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ã‚»ãƒƒãƒˆ
-		//g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-		////æç”»ã™ã‚‹ãƒãƒªã‚´ãƒ³ã®ç¨®é¡ã‚’ã‚»ãƒƒãƒˆ 3é ‚ç‚¹ã§ãƒãƒªã‚´ãƒ³ï¼‘æšã¨ã—ã¦è¡¨ç¤º
-		//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		//////æç”»ãƒªã‚¯ã‚¨ã‚¹ãƒˆ
-		//g_pContext->DrawIndexed(6 * 6, 0, 0);
-
+		// ------------------------------
+		// ’n–Êƒ‚ƒfƒ‹•`‰æ
+		// ------------------------------
 		if (!s_IsKonamiCodeEntered || input2)
 		{
-			ModelDraw(Test);//ãƒ‡ãƒãƒƒã‚°
+			ModelDraw(Test);
 		}
 
-		//// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‹ã‚‰è§£é™¤
+		//// ƒeƒNƒXƒ`ƒƒ‚ğƒpƒCƒvƒ‰ƒCƒ“‚©‚ç‰ğœ
 		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
-		////------------------------------------------------
-
-		if (s_IsKonamiCodeEntered)
-		{
-			// ------------------------------------
-			// ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ãƒ•ãƒ¬ãƒ¼ãƒ ï¼ˆå…­è§’æŸ±ï¼‰ã®æç”»
-			// ------------------------------------
-			{
-				//// 1. ãƒ‡ãƒãƒƒã‚°æç”»ãŒå‰ã®æç”»ã«å¼•ããšã‚‰ã‚Œãªã„ã‚ˆã†ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’å¼·åˆ¶è§£é™¤
-				//ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-				//g_pContext->PSSetShaderResources(0, 1, nullSRV);
-
-				// ãƒ‡ãƒãƒƒã‚°æç”»å‰ã«ã€è¡Œåˆ—ã‚’ãƒªã‚»ãƒƒãƒˆã—ãŸçŠ¶æ…‹ã®ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼è¨­å®šã‚’ç¢ºå®šã•ã›ã‚‹
-				// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æç”»ã«ä½¿ã‚ã‚ŒãŸè¡Œåˆ—ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹
-				XMMATRIX world = XMMatrixIdentity();
-				Shader_SetMatrix(world * GetViewMatrix() * GetProjectionMatrix()); // WVPè¡Œåˆ—ã‚’Identity * View * Projectionã«è¨­å®š
-				//Shader_Begin(); // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’å†è¨­å®š
-
-				int fieldCount = GetFieldObjectCount();
-				MAPDATA* fieldObjects = GetFieldObjects();
-
-				for (int j = 0; j < fieldCount; ++j)
-				{
-					if (!fieldObjects[j].isActive) continue;
-
-					// HexCollideræƒ…å ±ã‚’æ§‹ç¯‰
-					HexCollider hex;
-					hex.center = fieldObjects[j].pos;
-					hex.radius = fieldObjects[j].radius;
-					hex.height = fieldObjects[j].height;
-
-					// å…­è§’æŸ±ã‚’æç”»
-					Debug_DrawHex(hex, XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
-				}
-
-				// Shader_End() ãŒã‚ã‚Œã°ã“ã“ã§å‘¼ã¶ (ãªã‘ã‚Œã°æ¬¡ã®æç”»ã§ä¸Šæ›¸ãã•ã‚Œã‚‹)
-			}
-		}
+		//------------------------------------------------
 		i++;
 	}
 
-	///////////////////////////////////////////////////////
-	// å–ã‚Šã‚ãˆãšã®ãƒ†ã‚¯ã‚¹ãƒãƒ£å†ã‚»ãƒƒãƒˆ
-	// å»ºç‰©ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¯åˆ¥ã§è¨­å®šã™ã‚‹
-	//g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
-	///////////////////////////////////////////////////////
+	///////////////////////////////////////
+	// TODO:boundingBox‚ğQÆ‚µ‚½‚¢
+	// ======================================================
+	// Œš•¨•`‰æ
+	// ======================================================
 	Building_DrawAll(s_IsKonamiCodeEntered);
 
+	// --- 3. ƒfƒoƒbƒO•`‰æ‚Í‘S•”‚Ìƒ}ƒbƒv‚ğ•`‚«I‚í‚Á‚½Œã‚Éu1‰ñ‚¾‚¯v‚â‚é ---
 	if (s_IsKonamiCodeEntered)
 	{
-		// æ¤ç‰©ãƒ»ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆã®ã‚¹ãƒšã‚·ãƒ£ãƒ«ãŒä½¿ç”¨ã•ã‚Œã¦ã„ã‚‹å ´åˆã€å††ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’èµ¤è‰²ã§è¡¨ç¤º
+		SetBlendState(BLENDSTATE_NONE);
+		SetDepthTest(false); // d‚È‚è‚ğ–³‹‚µ‚ÄŒ©‚¦‚é‚æ‚¤‚É
+		Shader_SetMatrix(VP); // ƒ[ƒ‹ƒhs—ñ‚ÍIdentity‚É‚·‚é‚Ì‚ÅVP‚¾‚¯‚ÅOK
+
+		// ƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚Ì˜ZŠp’Œ
+		int fieldCount = GetFieldObjectCount();
+		MAPDATA* fieldObjects = GetFieldObjects();
+		for (int j = 0; j < fieldCount; ++j)
+		{
+			if (!fieldObjects[j].isActive) continue;
+			Debug_DrawHex(Map[j].boundingBox, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		}
+
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
 			PLAYEROBJECT* playerObject = GetPlayer(p);
-			PLAYEROBJECT& player = *playerObject;
-			if (!player.useSpecial) continue;
+			if (!playerObject) continue;
+			if (!playerObject->useSpecial) continue;
 
-			// æ¤ç‰©ãƒ»ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆã®ã‚¹ãƒšã‚·ãƒ£ãƒ«
-			if (player.type == PlayerType::Plant || player.type == PlayerType::Concrete)
+			// Plant / Concrete
+			if (playerObject->type == PlayerType::Plant ||
+				playerObject->type == PlayerType::Concrete)
 			{
-				// å††ã®ä¸­å¿ƒã¨åŠå¾„ã‚’è¨­å®š
-				XMFLOAT3 center = playerObject->position;
-				float radius = 5.0f;
-
-				// èµ¤è‰²ã§å††ã‚’æç”»
-				Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+				Debug_DrawCircle(
+					playerObject->position,
+					5.0f,
+					XMFLOAT4(1, 0, 0, 1)
+				);
 			}
-			// é›»æ°—ã®ã‚¹ãƒšã‚·ãƒ£ãƒ«
-			if (player.type == PlayerType::Electricity)
-			{
-				for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
-				{
-					// é›»æ°—ã®å††ã®ä¸­å¿ƒã¨åŠå¾„ã‚’å–å¾—
-					XMFLOAT3 center = player.electricityCircles[i].center;
-					float radius = player.electricityCircles[i].radius;
 
-					// èµ¤è‰²ã§å††ã‚’æç”»
-					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+			// Electricity
+			if (playerObject->type == PlayerType::Electricity)
+			{
+				for (int e = 0; e < SPECIAL_ELECTRICITY_QUANTITY; ++e)
+				{
+					Debug_DrawCircle(
+						playerObject->electricityCircles[e].center,
+						playerObject->electricityCircles[e].radius,
+						XMFLOAT4(1, 0, 0, 1)
+					);
 				}
 			}
-			// ã‚¬ãƒ©ã‚¹ã®ã‚¹ãƒšã‚·ãƒ£ãƒ«
-			if (player.type == PlayerType::Glass)
-			{
-				for (const auto& box : player.glassBoxes)
-				{
-					// ã‚¬ãƒ©ã‚¹ã®å††ã®ä¸­å¿ƒã¨åŠå¾„ã‚’è¨­å®š
-					XMFLOAT3 center = box.position;
-					float radius = 0.3f; // åŠå¾„0.3ã®å††
 
-					// èµ¤è‰²ã§å††ã‚’æç”»
-					Debug_DrawCircle(center, radius, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+			// Glass
+			if (playerObject->type == PlayerType::Glass)
+			{
+				for (const auto& box : playerObject->glassBoxes)
+				{
+					Debug_DrawCircle(
+						box.position,
+						0.3f,
+						XMFLOAT4(1, 0, 0, 1)
+					);
 				}
 			}
 		}
@@ -639,29 +601,44 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 }
 
 //======================================================
-//	æ›´æ–°å‡¦ç†
+//	XVˆ—
 //======================================================
 void Field_Update(void)
 {
+	int i = 0;
+	while (Map[i].no != FIELD_MAX)
+	{
+		if (!Map[i].isActive)
+		{
+			i++;
+			continue;
+		}
 
+		Map[i].boundingBox.center = Map[i].pos;			// -1
+		Map[i].boundingBox.radius = Map[i].radius;		// 1
+		Map[i].boundingBox.height = Map[i].height;		// 3.0
+
+
+
+		i++;
+	}
 }
 
 // ======================================================
-//	ã‚²ãƒƒã‚¿ãƒ¼
+//	ƒQƒbƒ^[
 // ------------------------------------------------------
-//	ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®é…åˆ—ã®å…ˆé ­ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™
+//	ƒtƒB[ƒ‹ƒh‚Ì”z—ñ‚Ìæ“ªƒ|ƒCƒ“ƒ^‚ğ•Ô‚·
 // ======================================================
 MAPDATA* GetFieldObjects()
 {
 	return Map;
 }
 
-// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç·æ•°ã‚’è¿”ã™
+// ƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚Ì‘”‚ğ•Ô‚·
 int GetFieldObjectCount()
 {
-
 	int count = 0;
-	// mapé…åˆ—ã¯FIELD_MAXã‚’çµ‚äº†ãƒãƒ¼ã‚«ãƒ¼ã¨ã—ã¦ã„ã‚‹
+	// map”z—ñ‚ÍFIELD_MAX‚ğI—¹ƒ}[ƒJ[‚Æ‚µ‚Ä‚¢‚é
 	while (Map[count].no != FIELD_MAX)
 	{
 		count++;

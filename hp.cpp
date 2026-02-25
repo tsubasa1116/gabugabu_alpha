@@ -1,18 +1,27 @@
-Ôªø#include "color.h"
+#include "color.h"
 #include "hp.h"
+#include <cmath> 
+#include "gauge.h"
 
-// Ê≥®ÊÑèÔºÅÂàùÊúüÂåñ„ÅßÂ§ñÈÉ®„Åã„ÇâË®≠ÂÆö„Åï„Çå„Çã„ÇÇ„ÅÆ„ÄÇRelease‰∏çË¶Å„ÄÇ
+
+// íçà”ÅIèâä˙âªÇ≈äOïîÇ©ÇÁê›íËÇ≥ÇÍÇÈÇ‡ÇÃÅBReleaseïsóvÅB
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
-//„Éó„É¨„Ç§„É§„ÉºÈñ¢ÈÄ£Â§âÊï∞
-static	ID3D11ShaderResourceView* g_Texture[6];
+//ÉvÉåÉCÉÑÅ[ä÷òAïœêî
+static	ID3D11ShaderResourceView* g_Texture[10];
 
-// HP„Éê„Éº„ÅÆ„Çπ„É†„Éº„Ç∫Ê∏õÂ∞ëÈÄüÂ∫¶
-#define HPBAR_SPEED 3.0f
+hp HPBar[HPBER_MAX];
+
+// HPÉoÅ[ÇÃÉXÉÄÅ[ÉYå∏è≠ë¨ìx
+#define DAMAGE_BAR_SPEED (1.5f)		// ê‘ÉoÅ[ÇÃå∏è≠ë¨ìx
+#define DAMAGE_BAR_DELAY (30.0f)	// ê‘ÉoÅ[Ç™å∏ÇËénÇﬂÇÈÇ‹Ç≈ÇÃíxâÑÉtÉåÅ[ÉÄ
+#define SIZE_ADJUST	((1.88f *  (SCREEN_WIDTH / 1280.0f)))
+#define POS_ADJUST	((86.4f *  (SCREEN_WIDTH / 1280.0f)))
+
 
 // -------------------------------------------------------------
-// ÂàùÊúüÂåñ
+// èâä˙âª
 // -------------------------------------------------------------
 void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar, XMFLOAT2 pos, XMFLOAT2 size, XMFLOAT4 backColor, XMFLOAT4 fillColor)
 {
@@ -20,9 +29,26 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	bar->size = size;
 	bar->current = size.x;
 	bar->target = size.x;
+	bar->damageCurrent = size.x; 
+	bar->damageDelay = 0.0f;      
 	bar->use = true;
 	bar->backColor = backColor;
 	bar->fillColor = fillColor;
+	bar->damageColor = color::red;
+	bar->damageTimer = 0.0f;
+
+	// ÉVÉFÉCÉNèâä˙âª
+	bar->shakeOffset = { 0.0f, 0.0f };
+	bar->shakeTimer = 0.0f;
+	bar->shakeDuration = 0.0f;
+	bar->shakeAmplitude = 0.0f;
+	bar->shakeSpeed = 0.0f;
+	bar->gaugeIndex = -1;
+	bar->shakeTexNum = -1; // ÉVÉFÉCÉNíÜÇÃë„ë÷ÉeÉNÉXÉ`ÉÉÇ»Çµ
+	bar->deathTexNum = -1;
+
+	bar->currentType = PlayerType::None;
+	bar->isOutline = false;
 
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -30,39 +56,57 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	TexMetadata		metadata;
 	ScratchImage	image;
 	
-	LoadFromWICFile(L"asset\\texture\\uiHpGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);//„ÉÜ„ÇØ„Çπ„ÉÅ„É£„ÅØÂ§âÊõ¥ÂèØ
+	LoadFromWICFile(L"asset\\texture\\uiHpGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);//ÉeÉNÉXÉ`ÉÉÇÕïœçXâ¬
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
-	assert(g_Texture[0]);//Ë™≠„ÅøËæº„ÅøÂ§±ÊïóÊôÇ„Å´„ÉÄ„Ç§„Ç¢„É≠„Ç∞„ÇíË°®Á§∫
+	assert(g_Texture[0]);//ì«Ç›çûÇ›é∏îséûÇ…É_ÉCÉAÉçÉOÇï\é¶
 
-	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//„ÉÜ„ÇØ„Çπ„ÉÅ„É£„ÅØÂ§âÊõ¥ÂèØ
+	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//ÉeÉNÉXÉ`ÉÉÇÕïœçXâ¬
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
-	assert(g_Texture[1]);//Ë™≠„ÅøËæº„ÅøÂ§±ÊïóÊôÇ„Å´„ÉÄ„Ç§„Ç¢„É≠„Ç∞„ÇíË°®Á§∫
+	assert(g_Texture[1]);//ì«Ç›çûÇ›é∏îséûÇ…É_ÉCÉAÉçÉOÇï\é¶
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//„ÉÜ„ÇØ„Çπ„ÉÅ„É£„ÅØÂ§âÊõ¥ÂèØ
+	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//ÉeÉNÉXÉ`ÉÉÇÕïœçXâ¬
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
-	assert(g_Texture[2]);//Ë™≠„ÅøËæº„ÅøÂ§±ÊïóÊôÇ„Å´„ÉÄ„Ç§„Ç¢„É≠„Ç∞„ÇíË°®Á§∫
+	assert(g_Texture[2]);//ì«Ç›çûÇ›é∏îséûÇ…É_ÉCÉAÉçÉOÇï\é¶
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//„ÉÜ„ÇØ„Çπ„ÉÅ„É£„ÅØÂ§âÊõ¥ÂèØ
+	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//ÉeÉNÉXÉ`ÉÉÇÕïœçXâ¬
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
-	assert(g_Texture[3]);//Ë™≠„ÅøËæº„ÅøÂ§±ÊïóÊôÇ„Å´„ÉÄ„Ç§„Ç¢„É≠„Ç∞„ÇíË°®Á§∫
+	assert(g_Texture[3]);//ì«Ç›çûÇ›é∏îséûÇ…É_ÉCÉAÉçÉOÇï\é¶
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//„ÉÜ„ÇØ„Çπ„ÉÅ„É£„ÅØÂ§âÊõ¥ÂèØ
+	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//ÉeÉNÉXÉ`ÉÉÇÕïœçXâ¬
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
-	assert(g_Texture[4]);//Ë™≠„ÅøËæº„ÅøÂ§±ÊïóÊôÇ„Å´„ÉÄ„Ç§„Ç¢„É≠„Ç∞„ÇíË°®Á§∫
+	assert(g_Texture[4]);//ì«Ç›çûÇ›é∏îséûÇ…É_ÉCÉAÉçÉOÇï\é¶
 
-	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//„ÉÜ„ÇØ„Çπ„ÉÅ„É£„ÅØÂ§âÊõ¥ÂèØ
+	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//ÉeÉNÉXÉ`ÉÉÇÕïœçXâ¬
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
-	assert(g_Texture[5]);//Ë™≠„ÅøËæº„ÅøÂ§±ÊïóÊôÇ„Å´„ÉÄ„Ç§„Ç¢„É≠„Ç∞„ÇíË°®Á§∫
+	assert(g_Texture[5]);//ì«Ç›çûÇ›é∏îséûÇ…É_ÉCÉAÉçÉOÇï\é¶
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//ÉeÉNÉXÉ`ÉÉÇÕïœçXâ¬
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[6]);
+	assert(g_Texture[6]);//ì«Ç›çûÇ›é∏îséûÇ…É_ÉCÉAÉçÉOÇï\é¶
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//ÉeÉNÉXÉ`ÉÉÇÕïœçXâ¬
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[7]);
+	assert(g_Texture[7]);//ì«Ç›çûÇ›é∏îséûÇ…É_ÉCÉAÉçÉOÇï\é¶
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//ÉeÉNÉXÉ`ÉÉÇÕïœçXâ¬
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[8]);
+	assert(g_Texture[8]);//ì«Ç›çûÇ›é∏îséûÇ…É_ÉCÉAÉçÉOÇï\é¶
+
+	LoadFromWICFile(L"asset\\texture\\uiBaseCryGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//ÉeÉNÉXÉ`ÉÉÇÕïœçXâ¬
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[9]);
+	assert(g_Texture[9]);//ì«Ç›çûÇ›é∏îséûÇ…É_ÉCÉAÉçÉOÇï\é¶
+
 }
 
+
 // -------------------------------------------------------------
-// Êõ¥Êñ∞
+// çXêV
 // -------------------------------------------------------------
 void UpdateHP(hp* bar)
 {
 	if (!bar->use) return;
 
-	// current„Çítarget„Å´Ëøë„Å•„Åë„Çã
+	// currentÇtargetÇ…ãﬂÇ√ÇØÇÈ
 	if (bar->current > bar->target)
 	{
 		bar->current -= HPBAR_SPEED;
@@ -82,71 +126,175 @@ void UpdateHP(hp* bar)
 			bar->current = bar->target;
 		}
 	}
+
+	// É_ÉÅÅ[ÉWÉoÅ[çXêVÅiè≠ÇµÉfÉBÉåÉCÇÇ©ÇØÇƒÇ©ÇÁêiÇﬁÅj
+	if (bar->damageTimer > 0.0f)
+	{
+		bar->damageTimer -= 1.0f;
+		if (bar->damageTimer < 0.0f)
+		{
+			bar->damageTimer = 0.0f;
+		}
+	}
+	else
+	{
+		// íxâÑÇ™èIÇÌÇ¡ÇΩÇÁí èÌÇÃèàóù
+		if (bar->damageCurrent > bar->current)
+		{
+			bar->damageCurrent -= DAMAGE_BAR_SPEED;
+			if (bar->damageCurrent < bar->current)
+			{
+				bar->damageCurrent = bar->current;
+			}
+		}
+	}
+
+	// ÉVÉFÉCÉNçXêVÅiÉtÉåÅ[ÉÄíPà Ç≈å∏ÇÁÇ∑Åj
+	if (bar->shakeTimer > 0.0f && bar->shakeDuration > 0.0f)
+	{
+		// Ç±ÇÃHPÉoÅ[Ç…ëŒâûÇ∑ÇÈÉQÅ[ÉWÇÃÇ›ÉVÉFÉCÉNÇ≥ÇπÇÈ
+		if (bar->gaugeIndex >= 0)
+		{
+			Gauge_SetShakeOffset(bar->gaugeIndex, bar->shakeOffset);
+		}
+
+		// écÇËÉtÉåÅ[ÉÄÇ1å∏ÇÁÇ∑
+		bar->shakeTimer -= 1.0f;
+		if (bar->shakeTimer < 0.0f) bar->shakeTimer = 0.0f;
+
+		// ê≥ãKâªÇ≥ÇÍÇΩécÇË
+		float t = bar->shakeTimer / bar->shakeDuration; // å∏êäóp
+		// åoâﬂÉtÉåÅ[ÉÄêîÇ…ë¨ìxÇä|ÇØÇÈ
+		float elapsed = bar->shakeDuration - bar->shakeTimer;
+		float phase = elapsed * bar->shakeSpeed * 0.5f; // í≤êÆ
+		// Xï˚å¸ÇsinÅAYï˚å¸ÇcosÇ≈êUìÆÇ≥ÇπÇÈ
+		float x = sinf(phase) * bar->shakeAmplitude * t;
+		float y = cosf(phase * 1.3f) * (bar->shakeAmplitude * 0.5f) * t; // YÇÕè≠Çµè¨Ç≥Çﬂ
+
+		bar->shakeOffset = { x, y };
+	}
+	else
+	{
+		bar->shakeOffset = { 0.0f, 0.0f };
+	}
 }
 
-// -------------------------------------------------------------
-// ÊèèÁîª
-// -------------------------------------------------------------
-// Êóß„Éê„Éº„Ç∏„Éßnn„É≥Ôºö„Éù„É™„Ç¥„É≥ÁâàHP„Éê„Éº
-//void DrawHP(const HP* bar)
-//{
-//	if (!bar->use) return;
-//
-//	Shader_BeginUI();
-//
-//	Shader_SetColor(color::white);
-//
-//	g_pContext->PSSetShaderResources(0, 1, &g_Texture);
-//
-//	const float border = 3.0f; // Â§ñÊû†„ÅÆÂ§™„Åï
-//
-//	XMFLOAT2 borderPos = bar->pos;
-//	XMFLOAT2 borderSize = { bar->size.x + border * 2, bar->size.y + border * 2 };
-//
-//	DrawSprite(borderPos, borderSize, color::black);
-//    
-//	// ÊÆãÈáèÔºàcurrentÂàÜ„Å†„ÅëÊ®™ÂπÖ„ÇíÁ∏Æ„ÇÅ„ÇãÔºâ
-//	XMFLOAT2 fillPos = {
-//	 bar->pos.x - (bar->size.x / 2.0f) + (bar->current / 2.0f),
-//	 bar->pos.y
-//	};
-//    DrawSprite(bar->pos, bar->size, bar->backColor);
-//	
-//	// ËÉåÊôØÔºàÂõ∫ÂÆöÂπÖÔºâ
-//	XMFLOAT2 fillSize = { bar->current, bar->size.y };
-//	DrawSprite(fillPos, fillSize, bar->fillColor);
-//
-//}
 
-void DrawHP(const hp* bar, int texNum)
+// -------------------------------------------------------------
+// ï`âÊ
+// -------------------------------------------------------------
+void DrawHP(const hp* bar, int texNum, bool isDead)
 {
 	if (!bar->use) return;
 
 	Shader_BeginUI();
 	Shader_SetColor(color::white);
 
-	// HPÂâ≤Âêà
+	// HPäÑçá
 	float ratio = bar->current / bar->size.x;
 	ratio = max(0.0f, min(1.0f, ratio));
 
-	// ÁîªÂÉè„Éê„ÉºÊú¨‰ΩìÔºàÊ®™„Å´Ââä„ÇãÔºâ
+	// É_ÉÅÅ[ÉWÉoÅ[äÑçá
+	float damageRatio = bar->damageCurrent / bar->size.x;
+	damageRatio = max(0.0f, min(1.0f, damageRatio));
+
+	XMFLOAT2 backSize = { bar->size.x, bar->size.y };
+
+	// ï`âÊà íuÇ…ÉVÉFÉCÉNÉIÉtÉZÉbÉgÇâ¡Ç¶ÇÈ
+	XMFLOAT2 drawPos = { bar->pos.x + bar->shakeOffset.x, bar->pos.y + bar->shakeOffset.y };
+
+	XMFLOAT2 backPos = { drawPos.x - (bar->size.x / 2.0f) + backSize.x / 2.0f, drawPos.y };
+
+	// ÉeÉNÉXÉ`ÉÉÉCÉìÉfÉbÉNÉXÇ∆êFÇåàíË
+	int backTexIndex = texNum;
+	XMFLOAT4 backDrawColor = bar->backColor;
+
+	if (isDead)
+	{
+		// éÄÇÒÇæÉvÉåÉCÉÑÅ[ÇÕÉeÉNÉXÉ`ÉÉÇäDêFÇ…Ç∑ÇÈ
+		if (bar->deathTexNum >= 0 && bar->deathTexNum < 10)
+		{
+			backTexIndex = bar->deathTexNum;
+		}
+		backDrawColor = color::gray;
+	}
+	else if (bar->shakeTimer > 0.0f && bar->shakeTexNum >= 0 && bar->shakeTexNum < 10)
+	{
+		// ê∂ë∂íÜÇ≈ÉVÉFÉCÉNíÜÇ»ÇÁÉVÉFÉCÉNópÉeÉNÉXÉ`ÉÉÇégÇ§
+		backTexIndex = bar->shakeTexNum;
+	}
+
+	if (bar->isOutline && !isDead)
+	{
+		const float outerScale = 1.02f; 
+
+		XMFLOAT2 outerSize = { backSize.x * outerScale, backSize.y * outerScale };
+		XMFLOAT4 outerColor = color::black;
+
+		switch (bar->currentType)
+		{
+		case PlayerType::Glass:
+			outerColor = color::sky;
+			break;
+		case PlayerType::Concrete:
+			outerColor = color::gray;
+			break;
+		case PlayerType::Plant:
+			outerColor = color::green;
+			break;
+		case PlayerType::Electricity:
+			outerColor = color::yellow;
+			break;
+		default:
+			outerColor = color::black;
+			break;
+		}
+
+		Shader_SetDrawMode(2);
+		Shader_SetColor(outerColor);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[backTexIndex]);
+		DrawSprite(backPos, outerSize, backDrawColor);
+
+		Shader_SetDrawMode(0);
+		Shader_SetColor(color::white);
+	}
+
+	// îwåiÇï`âÊ
+	g_pContext->PSSetShaderResources(0, 1, &g_Texture[backTexIndex]);
+	DrawSprite(backPos, backSize, backDrawColor);
+
+	// éÄÇÒÇæÇÁÇÕfillÉoÅ[Çï`âÊÇµÇ»Ç¢
+	if (isDead)
+	{
+		Shader_Begin();
+		return;
+	}
+
+	float AdjScreenX = SCREEN_ADJUST_X;
+
+	// ê‘ÉoÅ[ÅiÉ_ÉÅÅ[ÉWï\é¶ÅjÇêÊÇ…ï`âÊ
+	if (damageRatio > ratio)
+	{
+		XMFLOAT2 damageUvMin = { 0.0f, 0.0f };
+		XMFLOAT2 damageUvMax = { damageRatio, 1.0f };
+
+		XMFLOAT2 damageFillSize = { bar->size.x * damageRatio * AdjScreenX, bar->size.y };
+		XMFLOAT2 damageFillSizeOK = { damageFillSize.x / SIZE_ADJUST, damageFillSize.y };
+		XMFLOAT2 damageFillPosOK = { drawPos.x - (bar->size.x / 2.0f) + damageFillSizeOK.x / 2.0f + POS_ADJUST, drawPos.y };
+
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
+		Shader_BeginHpber();
+		Shader_SetHpber(bar->damageColor, bar->damageColor, 1.0f, 1.0f);  // ê‘àÍêF
+		DrawSpriteUV(damageFillPosOK, damageFillSizeOK, bar->damageColor, damageUvMin, damageUvMax);
+	}
+
+	// óŒÉoÅ[Åiåªç›HPÅjÇè„Ç…ï`âÊ 
 	XMFLOAT2 uvMin = { 0.0f, 0.0f };
 	XMFLOAT2 uvMax = { ratio, 1.0f };
-    
-	XMFLOAT2 backSize = { bar->size.x, bar->size.y };
-	XMFLOAT2 backPos = { bar->pos.x - (bar->size.x / 2.0f) + backSize.x / 2.0f, bar->pos.y
-	};
-	
-	XMFLOAT2 fillSize = { bar->size.x * ratio, bar->size.y };
-	XMFLOAT2 fillPos = { bar->pos.x - (bar->size.x / 2.0f) + (fillSize.x / 2.0f), bar->pos.y
-	};
 
-	//// „Çµ„Ç§„Ç∫„Éª‰ΩçÁΩÆË™øÊï¥Ôºà„Åî„ÇäÊäº„ÅóÔºâ
-	XMFLOAT2 fillSizeOK = { fillSize.x / 1.88f, fillSize.y};
-	XMFLOAT2 fillPosOK = {bar->pos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + 86.4f, bar->pos.y};
-	
-	g_pContext->PSSetShaderResources(0, 1, &g_Texture[texNum]);
-	DrawSprite(backPos, backSize, bar->backColor);
+	XMFLOAT2 fillSize = { bar->size.x * ratio * AdjScreenX, bar->size.y };
+	XMFLOAT2 fillSizeOK = { fillSize.x / SIZE_ADJUST, fillSize.y };
+	XMFLOAT2 fillPosOK = { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + POS_ADJUST, drawPos.y };
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	Shader_BeginHpber();
@@ -154,27 +302,91 @@ void DrawHP(const hp* bar, int texNum)
 	DrawSpriteUV(fillPosOK, fillSizeOK, bar->fillColor, uvMin, uvMax);
 
 	Shader_Begin();
-
-	/*g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
-	DrawSprite({ 74, 647 }, {110, 110}, XMFLOAT4(1, 1, 1, 0.6));*/
 }
 
+
 // -------------------------------------------------------------
-// HPË®≠ÂÆö
+// HPê›íË
 // -------------------------------------------------------------
 void SetHPValue(hp* bar, int currentHP, int maxHP)
 {
-	float ratio = (float)currentHP / (float)maxHP;
-	if (ratio < 0.0f) ratio = 0.0f;
-	if (ratio > 1.0f) ratio = 1.0f;
+    float ratio = (float)currentHP / (float)maxHP;
+    if (ratio < 0.0f) ratio = 0.0f;
+    if (ratio > 1.0f) ratio = 1.0f;
 
-	bar->target = bar->size.x * ratio;
+    float newTarget = bar->size.x * ratio;
+    
+    // É_ÉÅÅ[ÉWÇéÛÇØÇΩéûÇ…É^ÉCÉ}Å[ÇÉZÉbÉg
+    if (newTarget < bar->target)
+    {
+        bar->damageTimer = DAMAGE_BAR_DELAY;  // damageDelay Å® damageTimer
+    }
+    
+    bar->target = newTarget;
 }
 
+
 // -------------------------------------------------------------
-// ÁµÇ‰∫Ü
+// HPÉoÅ[ÉVÉFÉCÉN
+// -------------------------------------------------------------
+void SetHPShake(hp* bar, float amplitude, float duration, float speed, int shakeTexNum)
+{
+	if (!bar) return;
+	if (duration <= 0.0f)
+	{
+		// ñ≥å¯Ç»ÇÁÇ∑ÇÆÉNÉäÉA
+		bar->shakeTimer = 0.0f;
+		bar->shakeDuration = 0.0f;
+		bar->shakeAmplitude = 0.0f;
+		bar->shakeSpeed = 0.0f;
+		bar->shakeOffset = { 0.0f, 0.0f };
+		bar->shakeTexNum = -1;
+		return;
+	}
+
+	bar->shakeAmplitude = amplitude;
+	bar->shakeDuration = duration;
+	bar->shakeSpeed = speed;
+	bar->shakeTimer = duration; // écÇËÉtÉåÅ[ÉÄÇdurationÇ≈ÉZÉbÉg
+	bar->shakeTexNum = shakeTexNum; // ÉVÉFÉCÉNíÜÇ…égÇ§ÉeÉNÉXÉ`ÉÉÅi-1Ç≈ñ≥å¯Åj
+}
+
+
+// -------------------------------------------------------------
+// éÄÇÒÇæÉ|ÉåÉCÉÑÅ[ópÉeÉNÉXÉ`ÉÉÉZÉbÉg
+// -------------------------------------------------------------
+void SetDeathHP(hp* bar, int deathTexNum)
+{
+	if (!bar) return;
+	bar->deathTexNum = deathTexNum;
+}
+
+
+// -------------------------------------------------------------
+// èIóπ
 // -------------------------------------------------------------
 void FinalizeHP(hp* bar)
 {
 	bar->use = false;
+}
+
+
+// -------------------------------------------------------------
+// ÉQÇ¡ÇΩÅ`
+// -------------------------------------------------------------
+hp* GetHPBar(int HPIndex)
+{
+	if (HPIndex < 0 || HPIndex >= HPBER_MAX) return nullptr;
+	return &HPBar[HPIndex];
+}
+
+
+// -------------------------------------------------------------
+// ëÆê´ópÇÃÉAÉEÉgÉâÉCÉìópê›íË
+// -------------------------------------------------------------
+void SetHPOutline(hp* bar, PlayerType type)
+{
+	if (!bar) return;
+	bar->currentType = type;
+	bar->isOutline = (type != PlayerType::None);
 }

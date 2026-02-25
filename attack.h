@@ -1,7 +1,10 @@
-ï»¿#pragma once
+#pragma once
 
 #include <d3d11.h>
 #include "collider.h"
+
+// ƒ}ƒNƒ’è‹`
+#define ATTACK_SE_COUNT	(2)	// UŒ‚ SE‚Ì”
 
 struct ATTACK_OBJECT
 {

@@ -9,6 +9,7 @@
 //#include "texture.h"
 #include "model.h"
 //#include "renderer.h"
+#include "shader.h"
 
 //======================================================
 //	ロード
@@ -123,7 +124,7 @@ void ModelRelease(MODEL* model)
 
 	for (std::pair<const std::string, ID3D11ShaderResourceView*> pair : model->Texture)
 	{
-		pair.second->Release();
+		if (pair.second)	pair.second->Release();
 	}
 
 	aiReleaseImport(model->AiScene);
@@ -136,6 +137,8 @@ void ModelRelease(MODEL* model)
 //======================================================
 void ModelDraw(MODEL* model)
 {
+	Shader_Begin();
+
 	// プリミティブトポロジ設定
 	Direct3D_GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

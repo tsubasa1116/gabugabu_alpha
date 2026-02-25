@@ -1,4 +1,4 @@
-ï»¿// Camera.h
+// Camera.h
 
 #pragma once
 
@@ -7,20 +7,26 @@
 #include "direct3d.h"
 using namespace DirectX;
 
+enum CAMERAMODE
+{
+	CAMERAMODE_MANUAL,
+	CAMERAMODE_AUTO,
+};
+
 class CAMERA
 {
 public:
-	XMFLOAT3 position;		// åº§æ¨™
-	XMFLOAT3 atPosition;	// æ³¨è¦–ç‚¹
-	XMFLOAT3 upVector;		// ä¸Šæ–¹ãƒ™ã‚¯ãƒˆãƒ«
+	XMFLOAT3 position;		// À•W
+	XMFLOAT3 atPosition;	// ’‹“_
+	XMFLOAT3 upVector;		// ã•ûƒxƒNƒgƒ‹
 
-	XMMATRIX view;			// ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—
-	XMMATRIX projection;	// ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³è¡Œåˆ—
+	XMMATRIX view;			// ƒrƒ…[s—ñ
+	XMMATRIX projection;	// ƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñ
 
-	float fov;		// è¦–é‡è§’ï¼ˆç”»è§’ï¼‰
-	float aspect;	// ç”»é¢ã®ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”
-	float nearClip;	// è¿‘é¢ã‚¯ãƒªãƒƒãƒ—è·é›¢
-	float farClip;	// é é¢ã‚¯ãƒªãƒƒãƒ—è·é›¢
+	float fov;		// ‹–ìŠpi‰æŠpj
+	float aspect;	// ‰æ–Ê‚ÌƒAƒXƒyƒNƒg”ä
+	float nearClip;	// ‹ß–ÊƒNƒŠƒbƒv‹——£
+	float farClip;	// ‰“–ÊƒNƒŠƒbƒv‹——£
 };
 
 void Camera_Initialize();
@@ -39,3 +45,12 @@ void SetCameraUpVector(XMFLOAT3);
 XMMATRIX GetViewMatrix();
 XMMATRIX GetProjectionMatrix();
 
+void Camera_StartShake(float intensity, float duration);
+
+void Camera_UpdateAuto();
+
+DirectX::XMFLOAT3 GetCameraPosition();
+
+void Camera_FocusOnPlayer(int playerIndex, float duration);
+void Camera_ReturnToNormal();
+bool Camera_IsInDeathFocus();

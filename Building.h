@@ -51,7 +51,7 @@ public:
 	XMFLOAT3 scaling;
 
 	// 種類・状態
-	BuildingType  Type;
+	BuildingType  type;
 	BuildingPhase Phase;
 
 	// 当たり判定（未使用）
@@ -60,8 +60,12 @@ public:
 	// モデル
 	MODEL* m_Model;
 
-	// 有効フラグ
-	bool isActive;
+	bool isActive;		// 有効フラグ
+	bool isDestroyed;	// 建物破壊フラグ
+
+	// プレイヤー接近時のテクスチャオフセット
+	int m_TexOffset;
+	bool m_IsPlayerNear;
 
 	//=================================
 	// コンストラクタ
@@ -81,7 +85,7 @@ public:
 	void SetPhase(BuildingPhase phase);
 
 	// ゲッター
-	BuildingType  GetType()  const { return Type; }
+	BuildingType  GetType()  const { return type; }
 	BuildingPhase GetPhase() const { return Phase; }
 };
 
@@ -91,8 +95,7 @@ public:
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Building_Finalize();
 void Building_DrawAll(bool s_IsKonamiCodeEntered);
+void Building_UpdateAll();
 
 int GetBuildingCount();
 Building** GetBuildings();
-
-

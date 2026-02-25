@@ -1,33 +1,35 @@
-ï»¿#pragma once
+#pragma once
 
 #include <d3d11.h>
 #include "collider.h"
 #include <DirectXMath.h>
 #include <vector>
 
-// ãƒžã‚¯ãƒ­å®šç¾©
-//#define SPECIAL_GLASS_TIME ãƒŸã‚µã‚¤ãƒ«å…¨ã¦ã®activeãŒfalseã«ãªã£ãŸã‚‰çµ‚äº†ãªã®ã§ä¸è¦
+// ƒ}ƒNƒ’è‹`
+//#define SPECIAL_GLASS_TIME ƒ~ƒTƒCƒ‹‘S‚Ä‚Ìactive‚ªfalse‚É‚È‚Á‚½‚çI—¹‚È‚Ì‚Å•s—v
 #define SPECIAL_CONCRETE_TIME		(1.5f)
-#define SPECIAL_PLANT_TIME			(10.0f)
+#define SPECIAL_PLANT_TIME			(5.0f)
 #define SPECIAL_ELECTRICITY_TIME	(5.0f)
 
-#define SPECIAL_GLASS_DAMAGE		(50.0f)	// ãƒŸã‚µã‚¤ãƒ« 1å€‹ã‚ãŸã‚Šã®ãƒ€ãƒ¡ãƒ¼ã‚¸é‡
-#define SPECIAL_CONCRETE_DAMAGE		(75.0f)	// åˆ¤å®š1å›žã®ã¿
-#define SPECIAL_PLANT_DAMAGE		(0.1f)	// ã‚¹ãƒªãƒƒãƒ—ãƒ€ãƒ¡ãƒ¼ã‚¸
-#define SPECIAL_ELECTRICITY_DAMAGE	(40.0f)	// é›· 1å€‹ã‚ãŸã‚Šã®ãƒ€ãƒ¡ãƒ¼ã‚¸é‡
+#define SPECIAL_GLASS_DAMAGE		(50.0f)	// ƒ~ƒTƒCƒ‹ 1ŒÂ‚ ‚½‚è‚Ìƒ_ƒ[ƒW—Ê
+#define SPECIAL_CONCRETE_DAMAGE		(75.0f)	// ”»’è1‰ñ‚Ì‚Ý
+#define SPECIAL_PLANT_DAMAGE		(0.1f)	// ƒXƒŠƒbƒvƒ_ƒ[ƒW
+#define SPECIAL_ELECTRICITY_DAMAGE	(40.0f)	// —‹ 1ŒÂ‚ ‚½‚è‚Ìƒ_ƒ[ƒW—Ê
 
-#define SPECIAL_GLASSBOX_QUANTITY		(3)	// ã‚¬ãƒ©ã‚¹ 1ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«é£›ã°ã™ç®±ã®æ•°
-#define SPECIAL_ELECTRICITY_QUANTITY	(4)	// é›»æ°— è½é›·ã®æ•°
+#define SPECIAL_GLASSBOX_QUANTITY		(3)	// ƒKƒ‰ƒX 1ƒvƒŒƒCƒ„[‚É”ò‚Î‚·” ‚Ì”
+#define SPECIAL_ELECTRICITY_QUANTITY	(6)	// “d‹C —Ž—‹‚Ì”
 
-// ã‚¬ãƒ©ã‚¹ã‚¹ãƒšã‚·ãƒ£ãƒ« ãƒŸã‚µã‚¤ãƒ«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+#define SPECIAL_SE_COUNT				(4)	// ƒXƒyƒVƒƒƒ‹ SE‚Ì”
+
+// ƒKƒ‰ƒXƒXƒyƒVƒƒƒ‹ ƒ~ƒTƒCƒ‹ƒIƒuƒWƒFƒNƒg
 struct GLASS_BOX
 {
-	XMFLOAT3 position;			// ä½ç½®
-	XMFLOAT3 rotation;			// å›žè»¢
-	XMFLOAT3 scaling;			// ã‚¹ã‚±ãƒ¼ãƒ«
-	XMFLOAT3 dir;				// ç§»å‹•æ–¹å‘
-	XMFLOAT3 targetPosition;	// ç›®æ¨™ä½ç½®
-	bool active;				// æœ‰åŠ¹çŠ¶æ…‹
+	XMFLOAT3 position;			// ˆÊ’u
+	XMFLOAT3 rotation;			// ‰ñ“]
+	XMFLOAT3 scaling;			// ƒXƒP[ƒ‹
+	XMFLOAT3 dir;				// ˆÚ“®•ûŒü
+	XMFLOAT3 targetPosition;	// –Ú•WˆÊ’u
+	bool active;				// —LŒøó‘Ô
 };
 
 struct SPECIAL_OBJECT
@@ -37,6 +39,12 @@ struct SPECIAL_OBJECT
 	XMFLOAT3 scaling;
 
 	AABB boundingBox;
+};
+
+struct PLANT_CIRCLE
+{
+	XMFLOAT3 position;
+	float radius;
 };
 
 void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

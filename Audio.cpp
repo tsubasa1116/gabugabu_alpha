@@ -1,4 +1,4 @@
-ï»¿#include <d3d11.h>
+#include <d3d11.h>
 #include <DirectXMath.h>
 using namespace DirectX;
 #include "direct3d.h"
@@ -12,10 +12,10 @@ static IXAudio2MasteringVoice* g_MasteringVoice{};
 
 void InitAudio()
 {
-	// XAudioç”Ÿæˆ
+	// XAudio¶¬
 	XAudio2Create(&g_Xaudio, 0);
 
-	// ãƒžã‚¹ã‚¿ãƒªãƒ³ã‚°ãƒœã‚¤ã‚¹ç”Ÿæˆ
+	// ƒ}ƒXƒ^ƒŠƒ“ƒOƒ{ƒCƒX¶¬
 	g_Xaudio->CreateMasteringVoice(&g_MasteringVoice);
 }
 
@@ -24,14 +24,6 @@ void UninitAudio()
 	g_MasteringVoice->DestroyVoice();
 	g_Xaudio->Release();
 }
-
-
-
-
-
-
-
-
 
 struct AUDIO
 {
@@ -42,10 +34,8 @@ struct AUDIO
 	int						PlayLength{};
 };
 
-#define AUDIO_MAX 100
+#define AUDIO_MAX (100)
 static AUDIO g_Audio[AUDIO_MAX]{};
-
-
 
 int LoadAudio(const char *FileName)
 {
@@ -63,10 +53,7 @@ int LoadAudio(const char *FileName)
 	if (index == -1)
 		return -1;
 
-
-
-
-	// ã‚µã‚¦ãƒ³ãƒ‰ãƒ‡ãƒ¼ã‚¿èª­è¾¼
+	// ƒTƒEƒ“ƒhƒf[ƒ^“Çž
 	WAVEFORMATEX wfx = { 0 };
 
 	{
@@ -77,7 +64,6 @@ int LoadAudio(const char *FileName)
 		MMCKINFO mmckinfo = { 0 };
 		UINT32 buflen;
 		LONG readlen;
-
 
 		hmmio = mmioOpen((LPSTR)FileName, &mmioinfo, MMIO_READ);
 		assert(hmmio);
@@ -105,52 +91,45 @@ int LoadAudio(const char *FileName)
 		datachunkinfo.ckid = mmioFOURCC('d', 'a', 't', 'a');
 		mmioDescend(hmmio, &datachunkinfo, &riffchunkinfo, MMIO_FINDCHUNK);
 
-
-
 		buflen = datachunkinfo.cksize;
 		g_Audio[index].SoundData = new unsigned char[buflen];
 		readlen = mmioRead(hmmio, (HPSTR)g_Audio[index].SoundData, buflen);
 
-
 		g_Audio[index].Length = readlen;
 		g_Audio[index].PlayLength = readlen / wfx.nBlockAlign;
-
 
 		mmioClose(hmmio, 0);
 	}
 
-
-	// ã‚µã‚¦ãƒ³ãƒ‰ã‚½ãƒ¼ã‚¹ç”Ÿæˆ
+	// ƒTƒEƒ“ƒhƒ\[ƒX¶¬
 	g_Xaudio->CreateSourceVoice(&g_Audio[index].SourceVoice, &wfx);
 	assert(g_Audio[index].SourceVoice);
-
 
 	return index;
 }
 
-
-
-
 void UnloadAudio(int Index)
 {
+	if (Index < 0 || Index >= AUDIO_MAX) return;
+	if (g_Audio[Index].SourceVoice == nullptr) return;
+
 	g_Audio[Index].SourceVoice->Stop();
 	g_Audio[Index].SourceVoice->DestroyVoice();
+	g_Audio[Index].SourceVoice = nullptr;
 
 	delete[] g_Audio[Index].SoundData;
 	g_Audio[Index].SoundData = nullptr;
 }
 
-
-
-
-
 void PlayAudio(int Index, bool Loop)
 {
+	if (Index < 0 || Index >= AUDIO_MAX) return;
+	if (g_Audio[Index].SourceVoice == nullptr) return;
+
 	g_Audio[Index].SourceVoice->Stop();
 	g_Audio[Index].SourceVoice->FlushSourceBuffers();
 
-
-	// ãƒãƒƒãƒ•ã‚¡è¨­å®š
+	// ƒoƒbƒtƒ@Ý’è
 	XAUDIO2_BUFFER bufinfo;
 
 	memset(&bufinfo, 0x00, sizeof(bufinfo));
@@ -159,7 +138,7 @@ void PlayAudio(int Index, bool Loop)
 	bufinfo.PlayBegin = 0;
 	bufinfo.PlayLength = g_Audio[Index].PlayLength;
 
-	// ãƒ«ãƒ¼ãƒ—è¨­å®š
+	// ƒ‹[ƒvÝ’è
 	if (Loop)
 	{
 		bufinfo.LoopBegin = 0;
@@ -169,8 +148,7 @@ void PlayAudio(int Index, bool Loop)
 
 	g_Audio[Index].SourceVoice->SubmitSourceBuffer(&bufinfo, NULL);
 
-
-	// å†ç”Ÿ
+	// Ä¶
 	g_Audio[Index].SourceVoice->Start();
 
 }
