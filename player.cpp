@@ -39,10 +39,10 @@ using namespace DirectX;
 //======================================================
 //	マクロ定義
 //======================================================
-#define HPBER_SIZE_X	(270.0f)	// HPバーのサイズ
-#define HPBER_SIZE_Y	(270.0f)	// 〃
-#define GAUGE_POS_X		(69.0f)		// HPバーを基準としたゲージの位置調整
-#define GAUGE_POS_Y		(8.0f)		// 〃
+#define GAUGE_POS_X	(69.0f * (SCREEN_WIDTH / 1280.0f))	
+#define GAUGE_POS_Y	(8.0f *  (SCREEN_HEIGHT / 720.0f))	
+#define	HPBER_SIZE_X (270.0f * (SCREEN_WIDTH / 1280.0f))
+#define	HPBER_SIZE_Y (270.0f * (SCREEN_HEIGHT / 720.0f))
 
 //======================================================
 //	グローバル変数
@@ -257,10 +257,13 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// デバッグレンダラー初期化
 	Debug_Initialize(pDevice, pContext);
 
-	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[2], { 800.0f,  650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
-	InitializeHP(pDevice, pContext, &HPBar[3], { 1120.0f, 650.0f }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	float screenX = SCREEN_ADJUST_X;
+	float screenY = 650.0f * SCREEN_ADJUST_Y;
+
+	InitializeHP(pDevice, pContext, &HPBar[0], { 160.0f * screenX, screenY }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[1], { 480.0f * screenX, screenY }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[2], { 800.0f * screenX, screenY }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
+	InitializeHP(pDevice, pContext, &HPBar[3], { 1120.0f * screenX, screenY }, { HPBER_SIZE_X, HPBER_SIZE_Y }, color::white, color::green);
 
 	HPBar[0].gaugeIndex = 0;
 	HPBar[1].gaugeIndex = 1;
@@ -2108,15 +2111,16 @@ void Player_DrawStock(int i)
 	Shader_BeginUI();
 
 	// HPバー位置取得・ゲージ座標設定
-	float bx = HPBar[i].pos.x - 60.0f;
-	float by = HPBar[i].pos.y + 60.0f;
+	float bx = HPBar[i].pos.x - (60.0f * SCREEN_ADJUST_X);
+	float by = HPBar[i].pos.y + (60.0f * SCREEN_ADJUST_Y);
+
 
 	// プレイヤーごとのストック描画
 	for (int j = 0; j < player[i].stock; j++)
 	{
 		// ストック描画変数
-		XMFLOAT2 pos = { bx + j * 30.0f, by };	// 横並び
-		XMFLOAT2 size = { 260.0f, 260.0f };
+		XMFLOAT2 pos = { bx + (j * 30.0f * SCREEN_ADJUST_X), by };	// 横並び
+		XMFLOAT2 size = { (260.0f * SCREEN_ADJUST_X), (260.0f * SCREEN_ADJUST_Y) };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 13]);
 
