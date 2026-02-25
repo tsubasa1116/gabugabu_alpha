@@ -449,6 +449,9 @@ void Attack_Update(int playerIndex)
 
 		// 進化フラグを立てる
 		player.isEvolving = true;
+
+		PlayAudio(g_SE_ID[2], false);	// 変身SEを再生
+
 		player.evolvingTimer += DELTA_TIME;
 
 		// 現在のフォーム（進化前の状態）を保存

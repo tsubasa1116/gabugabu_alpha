@@ -637,8 +637,6 @@ void Player_Update()
 		// 進化フラグの更新
 		if (player[p].isEvolving)
 		{
-			if (player[p].evolvingTimer == 0.0f)	PlayAudio(g_SE_ID[3], false);	// 変身SEを再生
-
 			player[p].evolvingTimer += DELTA_TIME;	// 進化タイマーを更新
 
 			if (player[p].evolvingTimer >= EVOLVING_TIME)
@@ -774,11 +772,7 @@ void Player_Update()
 			if (player[p].form == Form::Third && g_Input[p].ZR)	player[p].useSpecial = true;
 
 			// フラグが立ったら更新処理を呼び出す
-			if (player[p].isAttacking)	// 攻撃
-			{
-				Attack_Update(p);
-				//PlayAudio(g_SE_ID[0], false);	// がぶがぶ音(ループなし)
-			}
+			if (player[p].isAttacking)	Attack_Update(p);	// 攻撃
 			if (player[p].useSkill)		Skill_Update(p);	// スキル
 			if (player[p].useSpecial)	Special_Update(p);	// スペシャル
 
@@ -973,7 +967,7 @@ void Player_Update()
 				player[p].invincibleTimer = 0.0f;
 
 				// 進化時の咆哮SE再生
-				if (player[p].form == Form::Second)		PlayAudio(g_SE_ID[0], false);	// 咆哮 第2形態
+					 if (player[p].form == Form::Second)PlayAudio(g_SE_ID[0], false);	// 咆哮 第2形態
 				else if (player[p].form == Form::Third)	PlayAudio(g_SE_ID[1], false);	// 咆哮 第3形態
 			}
 		}
@@ -983,7 +977,7 @@ void Player_Update()
 		{
 			// 属性ごとの基準オフセット（属性1つあたり32コマ）
 			int typeBase = 0;
-			if (player[p].type == PlayerType::Concrete)	typeBase = 0;
+				 if (player[p].type == PlayerType::Concrete)	typeBase = 0;
 			else if (player[p].type == PlayerType::Electricity)	typeBase = 32;
 			else if (player[p].type == PlayerType::Glass)		typeBase = 64;
 			else if (player[p].type == PlayerType::Plant)		typeBase = 96;
@@ -994,7 +988,7 @@ void Player_Update()
 
 			// 方向オフセット（1方向あたり4コマ）
 			int dirOffset = 0;
-			if (player[p].lastDir == PlayerDir::Down)		dirOffset = 0;
+				 if (player[p].lastDir == PlayerDir::Down)		dirOffset = 0;
 			else if (player[p].lastDir == PlayerDir::Down_Left)	dirOffset = 4;
 			else if (player[p].lastDir == PlayerDir::Left)		dirOffset = 8;
 			else if (player[p].lastDir == PlayerDir::Up_Left)	dirOffset = 12;
@@ -1012,7 +1006,8 @@ void Player_Update()
 		if (!player[p].skillAnimation && g_skillAnimStarted[p])
 		{
 			g_skillAnimStarted[p] = false;
-		}		
+		}
+
 		// スペシャル開始時のフレーム初期化（アニメーション更新タイミングに依存しない）
 		if (player[p].useSpecial && !g_specialAnimStarted[p])
 		{
@@ -1113,9 +1108,8 @@ void Player_Update()
 					}
 				}
 			}
-
 			// ダウン 5コマ (ダメージ 2コマ + ダウン 3コマ) 最終コマで停止
-			else if (player[p].isDown == true)
+			else if (player[p].isDown)
 			{
 				// 向きに応じた開始フレームを決定
 				int start = 15; // デフォルト（Down）
@@ -1161,32 +1155,8 @@ void Player_Update()
 					}
 				}
 			}
-			// スペシャル 8コマ
-			else if (player[p].useSpecial)
-			{
-				int type = -1;
-					 if (player[p].type == PlayerType::Concrete)	type = 0;
-				else if (player[p].type == PlayerType::Electricity)	type = 1;
-				else if (player[p].type == PlayerType::Glass)		type = 2;
-				else if (player[p].type == PlayerType::Plant)		type = 3;
-
-				// 向きに応じた開始フレームを決定
-				int start = type * 64;
-					 if (player[p].lastDir == PlayerDir::Down)		start += 0;
-				else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
-				else if (player[p].lastDir == PlayerDir::Left)		start += 16;
-				else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
-				else if (player[p].lastDir == PlayerDir::Up)		start += 32;
-				else if (player[p].lastDir == PlayerDir::Up_Right)	start += 40;
-				else if (player[p].lastDir == PlayerDir::Right)		start += 48;
-				else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
-
-				const int count = 8;
-
-				LoopRange(g_animFrame[p], start, count, advance);
-			}
 			// ダメージ 3コマ
-			else if (player[p].isAttacked == true || player[p].isStunning)
+			else if (player[p].isAttacked || player[p].isStunning)
 			{
 					 if (player[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p], 14, 3, advance);	//  下   14～16 
 				else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p], 40, 3, advance);	// 左下  40～42
@@ -1264,7 +1234,7 @@ void Player_Update()
 				}
 			}
 			// 攻撃 6コマ
-			else if (player[p].isAttacking == true)
+			else if (player[p].isAttacking)
 			{
 					 if (player[p].lastDir == PlayerDir::Down)		LoopRange(g_animFrame[p], 20, 6, advance);	//  下   20～25
 				else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(g_animFrame[p], 46, 6, advance);	// 左下  46～51
@@ -1540,7 +1510,6 @@ void Player_Update()
 	ImGui::End();
 }
 
-
 //======================================================
 //	シルエット用描画
 //======================================================
@@ -1605,14 +1574,14 @@ static void Player_DrawSilhouette(int p)
 	ID3D11ShaderResourceView* srv = nullptr;
 	switch (player[p].form)
 	{
-		// 第1形態
+	// 第1形態
 	case Form::First:
-		if (p == 0)						srv = g_Texture[0];
+			 if (p == 0)						srv = g_Texture[0];
 		else if (p == 1)				srv = g_Texture[1];
 		else if (p == 2)				srv = g_Texture[2];
 		else if (p == 3)				srv = g_Texture[3];
 		break;
-		// 第2形態
+	// 第2形態
 	case Form::Second:
 		switch (player[p].type)
 		{
@@ -1623,14 +1592,14 @@ static void Player_DrawSilhouette(int p)
 		default: break;
 		}
 		break;
-		// 第3形態
+	// 第3形態
 	case Form::Third:
 		switch (player[p].type)
 		{
-		case PlayerType::Glass:			srv = g_Texture[8];	break;
-		case PlayerType::Concrete:		srv = g_Texture[9];	break;
-		case PlayerType::Plant:			srv = g_Texture[10];break;
-		case PlayerType::Electricity:	srv = g_Texture[11];break;
+		case PlayerType::Glass:			srv = g_Texture[8];		break;
+		case PlayerType::Concrete:		srv = g_Texture[9];		break;
+		case PlayerType::Plant:			srv = g_Texture[10];	break;
+		case PlayerType::Electricity:	srv = g_Texture[11];	break;
 		default: break;
 		}
 		break;
@@ -1683,7 +1652,6 @@ static void Player_DrawSilhouette(int p)
 	Shader_SetDrawMode(0);
 	Shader_SetColor(color::white);
 }
-
 
 //======================================================
 //	アウトライン用描画
@@ -1740,19 +1708,18 @@ static void Player_DrawOutline(int p)
 	// アウトライン用の描画モード設定
 	Shader_SetDrawMode(2);
 
-
 	// テクスチャ設定（通常描画と同じ）
 	ID3D11ShaderResourceView* srv = nullptr;
 	switch (player[p].form)
 	{
-		// 第1形態
+	// 第1形態
 	case Form::First:
-		if (p == 0)						srv = g_Texture[0];
+			 if (p == 0)						srv = g_Texture[0];
 		else if (p == 1)				srv = g_Texture[1];
 		else if (p == 2)				srv = g_Texture[2];
 		else if (p == 3)				srv = g_Texture[3];
 		break;
-		// 第2形態
+	// 第2形態
 	case Form::Second:
 		switch (player[p].type)
 		{
@@ -1763,7 +1730,7 @@ static void Player_DrawOutline(int p)
 		default: break;
 		}
 		break;
-		// 第3形態
+	// 第3形態
 	case Form::Third:
 		switch (player[p].type)
 		{
@@ -1784,8 +1751,8 @@ static void Player_DrawOutline(int p)
 	// 頂点バッファにデータコピー（UV設定）
 	D3D11_MAPPED_SUBRESOURCE msr;
 	Vertex2 localVt[PLAYER_VERTEX];
-	
 	CopyMemory(&localVt[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+
 	// 現在のアニメーションフレームからUV計算
 	int frame = g_animFrame[p];
 	int col = frame % SHEET_COLS;
@@ -2182,7 +2149,6 @@ void Player_DrawHP()
 		{
 			Effect_Clear(i);
 		}
-
 
 		// 通常ゲージ（内＋外）は常に描画
 		// スキルゲージは属性確定のときのみ描画

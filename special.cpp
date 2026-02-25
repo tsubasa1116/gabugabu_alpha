@@ -333,7 +333,10 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_SE_ID[2] = LoadAudio("asset\\Audio\\Special_Electricity.wav");	// スペシャル 電気
 
 	// ガラスSE：複数同時再生用スロットをロード
-	for (int i = 0; i < GLASS_SE_SLOT_MAX; ++i)	g_GlassSE_IDs[i] = LoadAudio("asset\\Audio\\Special_Glass.wav");
+	for (int i = 0; i < GLASS_SE_SLOT_MAX; ++i)
+	{
+		g_GlassSE_IDs[i] = LoadAudio("asset\\Audio\\Special_Glass.wav");
+	}
 	g_GlassSE_NextSlot = 0;
 }
 
@@ -373,12 +376,6 @@ void Special_Glass_Update(int playerIndex)
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
-
-	//// スペシャル発動の最初のフレームだけSEを再生
-	//if (player.specialTimer == 0.0f)
-	//{
-	//	PlayAudio(g_SE_ID[0], false);
-	//}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
@@ -434,7 +431,7 @@ void Special_Glass_Update(int playerIndex)
 				GLASS_BOX box;
 				box.position = player.position; // 箱をプレイヤーの位置に出現させる
 				box.rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				box.scaling = XMFLOAT3(0.25f, 0.25f, 0.25f); // 箱のサイズ
+				box.scaling = XMFLOAT3(0.4f, 0.4f, 0.4f); // 箱のサイズ
 				box.targetPosition =
 				{
 					otherPlayer.position.x + offsets[i].x,
@@ -494,8 +491,7 @@ void Special_Glass_Update(int playerIndex)
 				{
 					box.position.y = box.targetPosition.y;	// 降下完了
 					box.active = false;	// 地面に着いたら非アクティブ化
-					Camera_StartShake(0.2f, 0.2f);
-					
+
 					// ガラスSE再生（ラウンドロビンで別スロットを使い、前の音を途切れさせない）
 					PlayAudio(g_GlassSE_IDs[g_GlassSE_NextSlot], false);
 					g_GlassSE_NextSlot = (g_GlassSE_NextSlot + 1) % GLASS_SE_SLOT_MAX;
