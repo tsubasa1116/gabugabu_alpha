@@ -15,6 +15,7 @@ using namespace DirectX;
 #include "keyboard.h"
 #include "DamageText.h"
 #include "Effect.h"
+#include "Audio.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -57,6 +58,8 @@ static int  g_concreteFrame[PLAYER_MAX] = { 0 };
 static float g_concreteTimer[PLAYER_MAX] = { 0.0f };
 static const int   CONCRETE_FRAME_MAX = 72;	// 0～72
 static const float CONCRETE_ANIM_FRAME_TIME = 0.15f;
+
+static int g_SE_ID[SPECIAL_SE_COUNT] = { NULL };
 
 static Vertex2 Special_vdata[SPECIAL_VERTEX] =
 {
@@ -317,6 +320,12 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Special_Concrete_Initialize(pDevice, pContext);
 	Special_Plant_Initialize(pDevice, pContext);
 	Special_Electricity_Initialize(pDevice, pContext);
+
+	// SEの初期化
+	//g_SE_ID[0] = LoadAudio("asset\\Audio\\Special_Concrete.wav");		// スペシャル ガラス
+	g_SE_ID[1] = LoadAudio("asset\\Audio\\Special_Concrete.wav");		// スペシャル コンクリート
+	g_SE_ID[2] = LoadAudio("asset\\Audio\\Special_Plant.wav");			// スペシャル 植物
+	g_SE_ID[3] = LoadAudio("asset\\Audio\\Special_Electricity.wav");	// スペシャル 電気
 }
 
 void Special_Finalize()
@@ -340,6 +349,8 @@ void Special_Finalize()
 			g_Special_Texture[i] = NULL;
 		}
 	}
+
+	for (int i = 0; i < SPECIAL_SE_COUNT; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 void Special_Glass_Update(int playerIndex)
@@ -350,6 +361,12 @@ void Special_Glass_Update(int playerIndex)
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
+
+	//// スペシャル発動の最初のフレームだけSEを再生
+	//if (player.specialTimer == 0.0f)
+	//{
+	//	PlayAudio(g_SE_ID[0], false);
+	//}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
@@ -561,6 +578,9 @@ void Special_Concrete_Update(int playerIndex)
 		{
 			g_concreteRangeFinished[playerIndex] = true;
 
+			// 着地したらSE再生
+			if(g_concreteRangeFinished[playerIndex])	PlayAudio(g_SE_ID[1], false);
+
 			const float radius = 5.0f;
 			Circle circle = { player.position, radius }; // 円の中心と半径を設定
 
@@ -639,6 +659,9 @@ void Special_Plant_Update(int playerIndex)
 
 	if (!g_plantInitialized[playerIndex])
 	{
+		// SE再生
+		PlayAudio(g_SE_ID[2], false);
+
 		Effect_Set(22, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
 		g_plantInitialized[playerIndex] = true;
 	}
@@ -693,6 +716,12 @@ void Special_Electricity_Update(int playerIndex)
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
+
+	// スペシャル発動の最初のフレームだけSEを再生
+	if (player.specialTimer == 0.0f)
+	{
+		PlayAudio(g_SE_ID[3], false);
+	}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;

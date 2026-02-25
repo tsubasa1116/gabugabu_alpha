@@ -18,6 +18,7 @@ using namespace DirectX;
 #include "input.h"
 #include "hp.h"
 #include "color.h"
+#include "Audio.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -34,6 +35,8 @@ static ID3D11ShaderResourceView* g_Attack_Texture[PLAYER_MAX];
 
 // オブジェクト
 static ATTACK_OBJECT Attack[PLAYER_MAX];
+
+static int g_SE_ID[ATTACK_SE_COUNT] = { NULL };
 
 // マクロ定義
 #define ATTACK_VERTEX (24)
@@ -265,6 +268,10 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		CopyMemory(&index[0], &Attack_idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
+
+	// SEの初期化
+	g_SE_ID[0] = LoadAudio("asset\\Audio\\BuildingDestroy.wav");	// 建物 崩壊
+	g_SE_ID[1] = LoadAudio("asset\\Audio\\gabugabu01.wav");			// プレイヤーをがぶがぶする音
 }
 
 void Attack_Finalize()
@@ -288,6 +295,8 @@ void Attack_Finalize()
 			g_Attack_Texture[i] = NULL;
 		}
 	}
+
+	for (int i = 0; i < ATTACK_SE_COUNT; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 void Attack_Update(int playerIndex)
@@ -386,6 +395,7 @@ void Attack_Update(int playerIndex)
 
 				buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 				buildingObjects[i]->isDestroyed = true;				// 建物破壊フラグを有効
+				PlayAudio(g_SE_ID[0]);								// 建物崩壊の効果音を再生
 				player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 				player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
@@ -401,11 +411,9 @@ void Attack_Update(int playerIndex)
 				// 満腹度の上限
 				if (player.satiety > PLAYER_MAX_SATIETY)	player.satiety = PLAYER_MAX_SATIETY;
 
-				// 効果音やエフェクトを再生
-
 				// ヒットでスキルを終了
-				player.isAttacking = false;
-				player.attackTimer = 0.0f;
+				//player.isAttacking = false;
+				//player.attackTimer = 0.0f;
 
 				// 更新済みAABB
 				CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
@@ -445,10 +453,7 @@ void Attack_Update(int playerIndex)
 		player.form = static_cast<Form>(static_cast<int>(player.form) + 1);
 
 		// 2. 第3形態までしか進化しないように制限
-		if (player.form >= Form::Third)
-		{
-			player.form = Form::Third;
-		}
+		if (player.form >= Form::Third)	player.form = Form::Third;
 
 		// 3. タイプ決定ロジック
 		//    Typeの決定は、Normalから FirstEvolutionに進化する場合のみ実行
@@ -476,10 +481,7 @@ void Attack_Update(int playerIndex)
 			int maxCount = 0;
 			for (int i = 0; i < 4; i++)
 			{
-				if (counts[i] > maxCount)
-				{
-					maxCount = counts[i];
-				}
+				if (counts[i] > maxCount)	maxCount = counts[i];
 			}
 
 			// --- Step 2: 履歴を「最新」から「過去」へ遡って勝者を決める ---
@@ -785,6 +787,9 @@ void AttackPlayerCollisions()
 				// ダメージフラグ・タイマー（アニメ/UI 用）
 				defender.isAttacked = true;
 				defender.attackedTimer = 0.0f;
+
+				// がぶがぶ音(ループなし)
+				if(defender.attackedTimer == 0.0f)	PlayAudio(g_SE_ID[1], false);
 
 				// 再計算
 				CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);
