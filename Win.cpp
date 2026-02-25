@@ -105,7 +105,7 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\characterWin01_v1.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(L"asset\\texture\\characterWin01_v2.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture6);
 		g_TexMeta6 = metadata;
 		assert(g_Texture6);
@@ -267,7 +267,7 @@ void Win_Draw()
 		float v1 = (frameY + 1) * frameHeight / g_TexMeta6.height;
 
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 130 };
-		XMFLOAT2 size = { frameWidth * 1.5f, frameHeight * 1.5f }; // Šg‘å—á
+		XMFLOAT2 size = { frameWidth * 0.75f, frameHeight * 0.75f }; // Šg‘å—á
 		XMFLOAT4 col = { 1, 1, 1, 1 };
 
 		DrawSpriteUV(pos, size, col, XMFLOAT2(u0, v0), XMFLOAT2(u1, v1));
