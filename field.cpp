@@ -157,7 +157,7 @@ MAPDATA Map[] =
 
 	// ===== BOX 70 =====
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 71
-	{ {},{}, FIELD::FIELD_BOX }, // 72
+	{ {},{}, FIELD::FIELD_Glass, }, // 72
 	{ {},{}, FIELD::FIELD_Electricity }, // 73
 	{ {},{}, FIELD::FIELD_Electricity,3 },// 74
 	{ {},{}, FIELD::FIELD_Plant,0 }, // 75
@@ -165,7 +165,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Plant,1}, // 77
 	{ {},{}, FIELD::FIELD_Plant,0 }, // 78
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 79
-	{ {},{}, FIELD::FIELD_BOX }, // 80
+	{ {},{}, FIELD::FIELD_Plant,1}, // 80
 						  
 	// ===== BOX 80 ===== 
 	{ {},{}, FIELD::FIELD_Plant,0 }, // 81
@@ -188,7 +188,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Concrete ,2}, // 96
 	{ {},{}, FIELD::FIELD_Plant,2 }, // 97
 	{ {},{}, FIELD::FIELD_BOX }, // 98
-	{ {},{}, FIELD::FIELD_BOX }, // 99
+	{ {},{}, FIELD::FIELD_Plant,1 }, // 99
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 100
 
 	// ===== BOX 100 =====
