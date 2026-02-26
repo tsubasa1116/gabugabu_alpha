@@ -67,5 +67,9 @@ void Special_Glass_Draw(int playerIndex);
 void Special_Concrete_Draw(int playerIndex);
 void Special_Plant_Draw(int playerIndex);
 void Special_Electricity_Draw(int playerIndex);
+void Special_Electricity_Draw2(int playerIndex);
 
 SPECIAL_OBJECT* GetSpecial(int playerIndex);
+
+// special.h または field.cpp の extern （他のファイルからも参照可能）宣言
+extern ID3D11ShaderResourceView* g_Special_Texture[];

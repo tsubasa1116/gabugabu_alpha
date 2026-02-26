@@ -1205,6 +1205,7 @@ void Special_Electricity_Draw(int playerIndex)
 	Shader_SetLight(normalLight);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
 // TODO
 void Special_Electricity_Update2(int playerIndex)
 {
@@ -1315,6 +1316,121 @@ void Special_Electricity_Update2(int playerIndex)
 	}
 }
 
+// Electricity専用描画
+void Special_Electricity_Draw2(int playerIndex)
+{
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
+	for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
+	{
+		XMFLOAT3 target = player.electricityCircles[i].center;
+
+		// --- 範囲円（+Y面）のUVを6x6分割で書き換え ---
+		{
+			int frame = g_animFrame[playerIndex];
+			int col = frame % SHEET_COLS;
+			int row = frame / SHEET_COLS;
+			float u0 = (float)col / (float)SHEET_COLS;
+			float v0 = (float)row / (float)SHEET_ROWS;
+			float u1 = u0 + 1.0f / (float)SHEET_COLS;
+			float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+			D3D11_MAPPED_SUBRESOURCE msr;
+			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+			Vertex2* vertex = (Vertex2*)msr.pData;
+			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+			vertex[16].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+			vertex[17].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+			vertex[18].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+			vertex[19].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
+			g_pContext->Unmap(g_VertexBuffer, 0);
+		}
+
+		// --- 範囲円描画前にライトを親関数と同じ明るさに設定 ---
+		LIGHT rangeLight{};
+		rangeLight.Enable = TRUE;
+		rangeLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+		rangeLight.Diffuse = XMFLOAT4(2.5f, 2.5f, 2.5f, 1.0f);
+		rangeLight.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+		Shader_SetLight(rangeLight);
+
+		// 範囲円（+Y面）を描画
+		XMMATRIX circleWorldMatrix =
+			XMMatrixScaling(1.0f, 1.0f, 1.0f) *
+			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+			XMMatrixTranslation(target.x, target.y + 0.1f, target.z);
+
+		XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(circleWVP);
+
+		SetBlendState(BLENDSTATE_ALPHA);
+		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[playerIndex]);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		g_pContext->Draw(4, 16);	// +Y面の4頂点 (16, 17, 18, 19)
+
+		// --- 雷エフェクト（-Z面）描画前にライトを強くする ---
+		LIGHT lightningLight{};
+		lightningLight.Enable = TRUE;
+		lightningLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+		lightningLight.Diffuse = XMFLOAT4(4.0f, 4.0f, 4.0f, 1.0f);
+		lightningLight.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		Shader_SetLight(lightningLight);
+
+		// --- 雷エフェクト（-Z面）のUVを8x8分割で書き換え ---
+		{
+			int frame = g_lightningFrame[playerIndex];
+			int col = frame % LIGHTNING_SHEET_COLS;
+			int row = frame / LIGHTNING_SHEET_COLS;
+			float u0 = (float)col / (float)LIGHTNING_SHEET_COLS;
+			float v0 = (float)row / (float)LIGHTNING_SHEET_ROWS;
+			float u1 = u0 + 1.0f / (float)LIGHTNING_SHEET_COLS;
+			float v1 = v0 + 1.0f / (float)LIGHTNING_SHEET_ROWS;
+
+			D3D11_MAPPED_SUBRESOURCE msr;
+			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+			Vertex2* vertex = (Vertex2*)msr.pData;
+			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+			vertex[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+			vertex[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+			vertex[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+			vertex[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
+			g_pContext->Unmap(g_VertexBuffer, 0);
+		}
+
+		// --- 雷エフェクト（-Z面）を描画 ---
+		float lightningTopY = 10.0f;
+		float lightningBottomY = target.y;
+		float length = fabsf(lightningTopY - lightningBottomY);
+
+		XMMATRIX lightningWorldMatrix =
+			XMMatrixScaling(2.0f, length * 1.0f, 2.0f) *
+			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+			XMMatrixTranslation(target.x + 0.5f, 4.0f, target.z + 0.1f);
+		//XMMatrixTranslation(target.x, (lightningTopY + lightningBottomY) / 2.0f, target.z);
+
+		XMMATRIX lightningWVP = lightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(lightningWVP);
+
+		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[7]);
+		SetBlendState(BLENDSTATE_ALPHA);
+
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		g_pContext->Draw(4, 0);	// -Z面の4頂点 (0, 1, 2, 3)
+	}
+
+	// --- ループ終了後にライトを元に戻す ---
+	LIGHT normalLight{};
+	normalLight.Enable = TRUE;
+	normalLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	normalLight.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+	normalLight.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	Shader_SetLight(normalLight);
+}
+
 void Special_Draw(int playerIndex)
 {
 	// 範囲チェック
@@ -1393,7 +1509,7 @@ void Special_Draw(int playerIndex)
 	case PlayerType::Glass:			Special_Glass_Draw(playerIndex);		break;
 	case PlayerType::Concrete:		Special_Concrete_Draw(playerIndex);		break;
 	case PlayerType::Plant:			Special_Plant_Draw(playerIndex);		break;
-	case PlayerType::Electricity:	Special_Electricity_Draw(playerIndex);	break;
+	case PlayerType::Electricity:	Special_Electricity_Draw2(playerIndex);	break;
 	default: break;
 	}
 }

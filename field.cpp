@@ -21,7 +21,7 @@
 //	マクロ定義
 //======================================================
 #define BOX_NUM_VERTEX	(24)
-#define FIELD_TEX_MAX	(4)
+#define FIELD_TEX_MAX	(5)
 
 //======================================================
 //	グローバル変数
@@ -40,7 +40,6 @@ static	ID3D11DeviceContext* g_pContext = NULL;
 
 // FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
-#define FIELD_TEX_MAX (4)
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
@@ -48,6 +47,7 @@ static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 	L"Asset\\Texture\\neo_green_3.png",  // 1
 	L"Asset\\Texture\\texturefieldTree01_v1.png",
 	L"Asset\\Texture\\neo_gray_2.png",
+	L"Asset\\Texture\\neo_yellow.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
 
@@ -514,6 +514,35 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			texIndex = 0;
 			break;
 		}
+
+		////////////////////////////////////////////////////////////////
+		// 今から描くマス（i番目）が、誰かの雷床になっていないか探す
+		bool isElectrified = false;
+		for (int p = 0; p < PLAYER_MAX; ++p)
+		{
+			PLAYEROBJECT* player = GetPlayer(p);
+			// そのプレイヤーが「雷タイプのスペシャル」を使用中か？
+			if (player != nullptr && player->useSpecial && player->type == PlayerType::Electricity)
+			{
+				// 選ばれた5つの雷床のどれかが、今のマス(i)と同じ番号か？
+				for (int e = 0; e < SPECIAL_ELECTRICITY_QUANTITY; ++e)
+				{
+					if (player->electricityTileIndices[e] == i)
+					{
+						isElectrified = true; // 雷床だ！
+						break;
+					}
+				}
+			}
+			if (isElectrified) break; // 誰かの雷床だとわかったら、探すのはおしまい
+		}
+
+		// もし雷床なら、強制的に雷用のテクスチャ（4番）に変える！
+		if (isElectrified)
+		{
+			texIndex = 4;
+		}
+		///////////////////////////////////////////////////////////////
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
 
