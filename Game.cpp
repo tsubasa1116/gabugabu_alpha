@@ -96,7 +96,7 @@ void Game_Finalize()
 	Skill_Finalize();
 	Special_Finalize();
 	SkyBall_Finalize();
-	Building_Finalize();
+	//Building_Finalize();
 
 	//BallFinalize();
 	//P_Finalize();
