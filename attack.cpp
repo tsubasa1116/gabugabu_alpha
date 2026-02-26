@@ -18,181 +18,185 @@ using namespace DirectX;
 #include "input.h"
 #include "hp.h"
 #include "color.h"
+#include "gamepad.h"
+#include "Audio.h"
 
-// ƒOƒ[ƒoƒ‹•Ï”
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
 
-// ’¸“_ƒoƒbƒtƒ@
+// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
 static ID3D11Buffer* g_VertexBuffer;
 
-// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
+// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
 static ID3D11Buffer* g_IndexBuffer;
 
-// ƒeƒNƒXƒ`ƒƒ•Ï”
+// ãƒ†ã‚¯ã‚¹ãƒãƒ£å¤‰æ•°
 static ID3D11ShaderResourceView* g_Attack_Texture[PLAYER_MAX];
 
-// ƒIƒuƒWƒFƒNƒg
+// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 static ATTACK_OBJECT Attack[PLAYER_MAX];
 
-// ƒ}ƒNƒ’è‹`
+static int g_SE_ID[ATTACK_SE_COUNT] = { NULL };
+
+// ãƒã‚¯ãƒ­å®šç¾©
 #define ATTACK_VERTEX (24)
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// TODO:OŠpŒ`‚ÌUŒ‚—p‚Ì“–‚½‚è”»’è‚ğì‚èA2d‚ÉH‚ç‚¤‚Ì‚ğ‚È‚­‚·
+// TODO:ä¸‰è§’å½¢ã®æ”»æ’ƒç”¨ã®å½“ãŸã‚Šåˆ¤å®šã‚’ä½œã‚Šã€2é‡ã«é£Ÿã‚‰ã†ã®ã‚’ãªãã™
 
 static Vertex2 Attack_vdata[ATTACK_VERTEX] =
 {
-	// -Z–Ê (–@ü: 0,0,-1)
-	{// ’¸“_0 LEFT-TOP
-		XMFLOAT3(-0.5f, 0.5f, -0.5f),		// À•W
-		XMFLOAT3(0.0f, 0.0f, -1.0f),		// –@ü
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	// ƒJƒ‰[
-		XMFLOAT2(0.0f,0.0f)					// ƒeƒNƒXƒ`ƒƒÀ•W
+	// -Zé¢ (æ³•ç·š: 0,0,-1)
+	{// é ‚ç‚¹0 LEFT-TOP
+		XMFLOAT3(-0.5f, 0.5f, -0.5f),		// åº§æ¨™
+		XMFLOAT3(0.0f, 0.0f, -1.0f),		// æ³•ç·š
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),	// ã‚«ãƒ©ãƒ¼
+		XMFLOAT2(0.0f,0.0f)					// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™
 	},
-	{// ’¸“_1 RIGHT-TOP
+	{// é ‚ç‚¹1 RIGHT-TOP
 		XMFLOAT3(0.5f, 0.5f, -0.5f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{// ’¸“_2 LEFT-BOTTOM
+	{// é ‚ç‚¹2 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, -0.5f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	{// ’¸“_3 RIGHT-BOTTOM
+	{// é ‚ç‚¹3 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +X–Ê (–@ü: 1,0,0)
-	{// ’¸“_4 LEFT-TOP
+	// +Xé¢ (æ³•ç·š: 1,0,0)
+	{// é ‚ç‚¹4 LEFT-TOP
 		XMFLOAT3(0.5f, 0.5f, -0.5f),
 		XMFLOAT3(1.0f, 0.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{// ’¸“_5 RIGHT-TOP
+	{// é ‚ç‚¹5 RIGHT-TOP
 		XMFLOAT3(0.5f, 0.5f, 0.5f),
 		XMFLOAT3(1.0f, 0.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{// ’¸“_6 LEFT-BOTTOM
+	{// é ‚ç‚¹6 LEFT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT3(1.0f, 0.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	{// ’¸“_7 RIGHT-BOTTM
+	{// é ‚ç‚¹7 RIGHT-BOTTM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT3(1.0f, 0.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +Z–Ê (–@ü: 0,0,1)
-	{// ’¸“_8 LEFT-TOP
+	// +Zé¢ (æ³•ç·š: 0,0,1)
+	{// é ‚ç‚¹8 LEFT-TOP
 		XMFLOAT3(0.5f, 0.5f, 0.5f),
 		XMFLOAT3(0.0f, 0.0f, 1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{// ’¸“_9 RIGHT-TOP
+	{// é ‚ç‚¹9 RIGHT-TOP
 		XMFLOAT3(-0.5f, 0.5f, 0.5f),
 		XMFLOAT3(0.0f, 0.0f, 1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{// ’¸“_10 LEFT-BOTTOM
+	{// é ‚ç‚¹10 LEFT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT3(0.0f, 0.0f, 1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	{// ’¸“_11 RIGHT-BOTTOM
+	{// é ‚ç‚¹11 RIGHT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),
 		XMFLOAT3(0.0f, 0.0f, 1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// -X–Ê (–@ü: -1,0,0)
-	{// ’¸“_12 LEFT-TOP
+	// -Xé¢ (æ³•ç·š: -1,0,0)
+	{// é ‚ç‚¹12 LEFT-TOP
 		XMFLOAT3(-0.5f, 0.5f, 0.5f),
 		XMFLOAT3(-1.0f, 0.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{// ’¸“_13 RIGHT-TOP
+	{// é ‚ç‚¹13 RIGHT-TOP
 		XMFLOAT3(-0.5f, 0.5f, -0.5f),
 		XMFLOAT3(-1.0f, 0.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{// ’¸“_14 LEFT-BOTTOM
+	{// é ‚ç‚¹14 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),
 		XMFLOAT3(-1.0f, 0.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	{// ’¸“_15 RIGHT-BOTTOM
+	{// é ‚ç‚¹15 RIGHT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, -0.5f),
 		XMFLOAT3(-1.0f, 0.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// +Y–Ê (–@ü: 0,1,0)
-	{// ’¸“_16 LEFT-TOP
+	// +Yé¢ (æ³•ç·š: 0,1,0)
+	{// é ‚ç‚¹16 LEFT-TOP
 		XMFLOAT3(-0.5f, 0.5f, 0.5f),
 		XMFLOAT3(0.0f, 1.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{// ’¸“_17 RIGHT-TOP
+	{// é ‚ç‚¹17 RIGHT-TOP
 		XMFLOAT3(0.5f, 0.5f, 0.5f),
 		XMFLOAT3(0.0f, 1.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{// ’¸“_18 LEFT-BOTTOM
+	{// é ‚ç‚¹18 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, 0.5f, -0.5f),
 		XMFLOAT3(0.0f, 1.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	{// ’¸“_19 RIGHT-BOTTOM
+	{// é ‚ç‚¹19 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, 0.5f, -0.5f),
 		XMFLOAT3(0.0f, 1.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,1.0f)
 	},
 
-	// -Y–Ê (–@ü: 0,-1,0)
-	{// ’¸“_20 LEFT-TOP
+	// -Yé¢ (æ³•ç·š: 0,-1,0)
+	{// é ‚ç‚¹20 LEFT-TOP
 		XMFLOAT3(-0.5f, -0.5f, -0.5f),
 		XMFLOAT3(0.0f, -1.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,0.0f)
 	},
-	{// ’¸“_21 RIGHT-TOP
+	{// é ‚ç‚¹21 RIGHT-TOP
 		XMFLOAT3(0.5f, -0.5f, -0.5f),
 		XMFLOAT3(0.0f, -1.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(1.0f,0.0f)
 	},
-	{// ’¸“_22 LEFT-BOTTOM
+	{// é ‚ç‚¹22 LEFT-BOTTOM
 		XMFLOAT3(-0.5f, -0.5f, 0.5f),
 		XMFLOAT3(0.0f, -1.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f,1.0f)
 	},
-	{// ’¸“_23 RIGHT-BOTTOM
+	{// é ‚ç‚¹23 RIGHT-BOTTOM
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT3(0.0f, -1.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -201,15 +205,15 @@ static Vertex2 Attack_vdata[ATTACK_VERTEX] =
 };
 
 
-// ƒCƒ“ƒfƒbƒNƒX”z—ñ
+// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹é…åˆ—
 static UINT Attack_idxdata[6 * 6]
 {
-	 0,  1,  2,  2,  1,  3, // -Z–Ê
-	 4,  5,  6,  6,  5,  7, // +X–Ê
-	 8,  9, 10, 10,  9, 11, // +Z–Ê
-	12, 13, 14, 14, 13, 15, // -X–Ê
-	16, 17, 18, 18, 17, 19, // +Y–Ê
-	20, 21, 22, 22, 21, 23, // -Y–Ê
+	 0,  1,  2,  2,  1,  3, // -Zé¢
+	 4,  5,  6,  6,  5,  7, // +Xé¢
+	 8,  9, 10, 10,  9, 11, // +Zé¢
+	12, 13, 14, 14, 13, 15, // -Xé¢
+	16, 17, 18, 18, 17, 19, // +Yé¢
+	20, 21, 22, 22, 21, 23, // -Yé¢
 };
 
 void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -221,11 +225,11 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		Attack[p].scaling = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	}
 
-	// ’¸“_ƒoƒbƒtƒ@ì¬
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex2) * ATTACK_VERTEX; // Ši”[‚Å‚«‚é’¸“_” * ’¸“_ƒTƒCƒY
+	bd.ByteWidth = sizeof(Vertex2) * ATTACK_VERTEX; // æ ¼ç´ã§ãã‚‹é ‚ç‚¹æ•° * é ‚ç‚¹ã‚µã‚¤ã‚º
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -233,7 +237,7 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	TexMetadata metadata;
 	ScratchImage image;
 
@@ -245,26 +249,32 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(),image.GetImageCount(), metadata, &g_Attack_Texture[1]);
 	assert(g_Attack_Texture[1]);
 
-	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@ì¬
+	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
 	{
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 		bd.Usage = D3D11_USAGE_DYNAMIC;
-		bd.ByteWidth = sizeof(UINT) * 6 * 6; // Ši”[‚Å‚«‚é’¸“_” * ’¸“_ƒTƒCƒY
+		bd.ByteWidth = sizeof(UINT) * 6 * 6; // æ ¼ç´ã§ãã‚‹é ‚ç‚¹æ•° * é ‚ç‚¹ã‚µã‚¤ã‚º
 
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
 
-		// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚Ö‘‚«‚İ
+		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã¸æ›¸ãè¾¼ã¿
 		D3D11_MAPPED_SUBRESOURCE msr;
 		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		UINT* index = (UINT*)msr.pData;
 
-		// ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^‚ğƒoƒbƒtƒ@‚ÖƒRƒs[
+		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ•ã‚¡ã¸ã‚³ãƒ”ãƒ¼
 		CopyMemory(&index[0], &Attack_idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
+
+	// SEã®åˆæœŸåŒ–
+	g_SE_ID[0] = LoadAudio("asset\\Audio\\BuildingDestroy.wav");	// å»ºç‰© å´©å£Š
+	g_SE_ID[1] = LoadAudio("asset\\Audio\\gabugabu01.wav");			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’ãŒã¶ãŒã¶ã™ã‚‹éŸ³
+	g_SE_ID[2] = LoadAudio("asset\\Audio\\transform.wav");			// 
+
 }
 
 void Attack_Finalize()
@@ -288,11 +298,13 @@ void Attack_Finalize()
 			g_Attack_Texture[i] = NULL;
 		}
 	}
+
+	for (int i = 0; i < ATTACK_SE_COUNT; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 void Attack_Update(int playerIndex)
 {
-	// ”ÍˆÍƒ`ƒFƒbƒN 0 1 2 3 ˆÈŠO‚È‚ç return
+	// ç¯„å›²ãƒã‚§ãƒƒã‚¯ 0 1 2 3 ä»¥å¤–ãªã‚‰ return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
@@ -306,23 +318,23 @@ void Attack_Update(int playerIndex)
 		float Player_RotationY = player.rotation.y;
 		float rad = XMConvertToRadians(Player_RotationY);
 
-		// is•ûŒü‚ğŒvZ
+		// é€²è¡Œæ–¹å‘ã‚’è¨ˆç®—
 		XMFLOAT3 dir =
 		{
-			sinf(rad),	// X•ûŒü
-			0.0f,		// Y•ûŒüi…•½j
-			cosf(rad)	// Z•ûŒü
+			sinf(rad),	// Xæ–¹å‘
+			0.0f,		// Yæ–¹å‘ï¼ˆæ°´å¹³ï¼‰
+			cosf(rad)	// Zæ–¹å‘
 		};
 
-		// ƒvƒŒƒCƒ„[‚Ì‘O•û‚É‚ª‚Ô‚ª‚Ô‚ğ”z’u
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‰æ–¹ã«ãŒã¶ãŒã¶ã‚’é…ç½®
 		atttackObject.position.x = dir.x * player.scaling.x + player.position.x;
 		atttackObject.position.y = player.position.y;
 		atttackObject.position.z = dir.z * player.scaling.z + player.position.z;
 
-		// UŒ‚ƒ^ƒCƒ}[XV
+		// æ”»æ’ƒã‚¿ã‚¤ãƒãƒ¼æ›´æ–°
 		player.attackTimer += DELTA_TIME;
 
-		// ƒvƒŒƒCƒ„[–ˆ‚ÌUŒ‚ŠÔ‚ªŒo‰ß‚µ‚½‚çUŒ‚I—¹
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ¯ã®æ”»æ’ƒæ™‚é–“ãŒçµŒéã—ãŸã‚‰æ”»æ’ƒçµ‚äº†
 		if (player.attackTimer >= ATTACKING_TIME)
 		{
 			player.isAttacking = false;
@@ -331,130 +343,131 @@ void Attack_Update(int playerIndex)
 	}
 
 	// -------------------------------------------------------------
-	// “–‚½‚è”»’è
+	// å½“ãŸã‚Šåˆ¤å®š
 	// -------------------------------------------------------------
-	// AABB‚ÌXV
+	// AABBã®æ›´æ–°
 	CalculateAABB(atttackObject.boundingBox, atttackObject.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
 
-	int buildingCount = GetBuildingCount();			// ”‚ğæ“¾
-	Building** buildingObjects = GetBuildings();	// ƒŠƒXƒg‚ğæ“¾
+	int buildingCount = GetBuildingCount();			// æ•°ã‚’å–å¾—
+	Building** buildingObjects = GetBuildings();	// ãƒªã‚¹ãƒˆã‚’å–å¾—
 
-	// ‘S‚Ä‚ÌƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚ÆÕ“Ë”»’è‚ğs‚¤
+	// å…¨ã¦ã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¨è¡çªåˆ¤å®šã‚’è¡Œã†
 	for (int i = 0; i < buildingCount; ++i)
 	{
-		// ”ñƒAƒNƒeƒBƒu‚ÈƒIƒuƒWƒFƒNƒg‚ğƒXƒLƒbƒvi“ñd‚ÅƒQ[ƒW‚ª‰ÁZ‚³‚ê‚é‚±‚Æ‚ğ–h‚®‚½‚ßj
+		// éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ã‚¹ã‚­ãƒƒãƒ—ï¼ˆäºŒé‡ã§ã‚²ãƒ¼ã‚¸ãŒåŠ ç®—ã•ã‚Œã‚‹ã“ã¨ã‚’é˜²ããŸã‚ï¼‰
 		if (!buildingObjects[i]->isActive) continue;
 
-		// i”Ô–Ú‚ÌƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚ÌAABB‚ğæ“¾
-		// field.cpp‚ÌInitialize‚ÅŒvZÏ‚İ‚Ì‚½‚ßA‚»‚Ì‚Ü‚ÜQÆ
+		// iç•ªç›®ã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®AABBã‚’å–å¾—
+		// field.cppã®Initializeã§è¨ˆç®—æ¸ˆã¿ã®ãŸã‚ã€ãã®ã¾ã¾å‚ç…§
 		AABB pStaticObjectAABB = buildingObjects[i]->boundingBox;
 
-		// ƒvƒŒƒCƒ„[‚ÌAABB‚ÆƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚ÌAABB‚ÅMTV‚ğŒvZ
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®AABBã¨ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®AABBã§MTVã‚’è¨ˆç®—
 		MTV collision = CalculateAABBMTV(atttackObject.boundingBox, pStaticObjectAABB);
 
 		Keyboard_Keys_tag confirmKey[PLAYER_MAX] = { KK_SPACE , KK_ENTER, KK_V, KK_SPACE };
 
-		// Œš•¨iFIELD_BUILDINGj‚ÉÕ“Ë‚µ‚Ä‚¢‚ÄA‚©‚ÂŠeX‚ÌƒvƒŒƒCƒ„[‚Ì‚ª‚Ô‚ª‚ÔƒL[‚ª‰Ÿ‚³‚ê‚Ä‚¢‚½‚ç
+		// å»ºç‰©ï¼ˆFIELD_BUILDINGï¼‰ã«è¡çªã—ã¦ã„ã¦ã€ã‹ã¤å„ã€…ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ãŒã¶ãŒã¶ã‚­ãƒ¼ãŒæŠ¼ã•ã‚Œã¦ã„ãŸã‚‰
 		if (collision.isColliding)
 		{
 			BuildingType type = buildingObjects[i]->type;
 
 			if (g_Input[playerIndex].A || Keyboard_IsKeyDown(confirmKey[playerIndex]))
 			{
-				// ŠeŒš•¨ƒ^ƒCƒv‚²‚Æ‚Ìˆ—
+				// å„å»ºç‰©ã‚¿ã‚¤ãƒ—ã”ã¨ã®å‡¦ç†
 				switch (type)
 				{
 				case BuildingType::Glass:
-					player.breakCount_Glass += 1;						// ƒKƒ‰ƒX‚ğ‰ó‚µ‚½”‚ğƒvƒ‰ƒX
+					player.breakCount_Glass += 1;						// ã‚¬ãƒ©ã‚¹ã‚’å£Šã—ãŸæ•°ã‚’ãƒ—ãƒ©ã‚¹
 					break;
 
 				case BuildingType::Concrete:
-					player.breakCount_Concrete += 1;					// ƒRƒ“ƒNƒŠ[ƒg‚ğ‰ó‚µ‚½”‚ğƒvƒ‰ƒX
+					player.breakCount_Concrete += 1;					// ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆã‚’å£Šã—ãŸæ•°ã‚’ãƒ—ãƒ©ã‚¹
 					break;
 
 				case BuildingType::Plant:					
-					player.breakCount_Plant += 1;						// A•¨‚ğ‰ó‚µ‚½”‚ğƒvƒ‰ƒX
+					player.breakCount_Plant += 1;						// æ¤ç‰©ã‚’å£Šã—ãŸæ•°ã‚’ãƒ—ãƒ©ã‚¹
 					break;
 
 				case BuildingType::Electricity:
-					player.breakCount_Electricity += 1;					// “d‹C‚ğ‰ó‚µ‚½”‚ğƒvƒ‰ƒX
+					player.breakCount_Electricity += 1;					// é›»æ°—ã‚’å£Šã—ãŸæ•°ã‚’ãƒ—ãƒ©ã‚¹
 					break;
 
 				default:
 					break;
 				}
 
-				buildingObjects[i]->isActive = false;				// Œš•¨‚ğ”ñƒAƒNƒeƒBƒu‰»
-				buildingObjects[i]->isDestroyed = true;				// Œš•¨”j‰óƒtƒ‰ƒO‚ğ—LŒø
-				player.evolutionGauge += player.evolutionGaugeRate;	// i‰»ƒQ[ƒW‚ğƒvƒ‰ƒX
-				player.brokenHistory.push_back(type);				// ÅŒã‚É”j‰ó‚µ‚½Œš•¨ƒ^ƒCƒv‚ğ•Û‘¶
+				buildingObjects[i]->isActive = false;				// å»ºç‰©ã‚’éã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ–
+				buildingObjects[i]->isDestroyed = true;				// å»ºç‰©ç ´å£Šãƒ•ãƒ©ã‚°ã‚’æœ‰åŠ¹
+				PlayAudio(g_SE_ID[0]);								// å»ºç‰©å´©å£Šã®åŠ¹æœéŸ³ã‚’å†ç”Ÿ
+				player.evolutionGauge += player.evolutionGaugeRate;	// é€²åŒ–ã‚²ãƒ¼ã‚¸ã‚’ãƒ—ãƒ©ã‚¹
+				player.brokenHistory.push_back(type);				// æœ€å¾Œã«ç ´å£Šã—ãŸå»ºç‰©ã‚¿ã‚¤ãƒ—ã‚’ä¿å­˜
 
-				// HP‰ñ•œ
+				// HPå›å¾©
 				player.hp += 10.0f;
-				// HP‚ÌãŒÀ
+				// HPã®ä¸Šé™
 				if (player.hp > PLAYER_MAX_HP)	player.hp = PLAYER_MAX_HP;
 
-				player.isHealing = true;	// ‰ñ•œ’†ƒtƒ‰ƒO‚ğ—§‚Ä‚é
+				player.isHealing = true;	// å›å¾©ä¸­ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 				
-				// –• “x‘‰Á
+				// æº€è…¹åº¦å¢—åŠ 
 				player.satiety += 1.0f;
-				// –• “x‚ÌãŒÀ
+				// æº€è…¹åº¦ã®ä¸Šé™
 				if (player.satiety > PLAYER_MAX_SATIETY)	player.satiety = PLAYER_MAX_SATIETY;
 
-				// Œø‰Ê‰¹‚âƒGƒtƒFƒNƒg‚ğÄ¶
+				// ãƒ’ãƒƒãƒˆã§ã‚¹ã‚­ãƒ«ã‚’çµ‚äº†
+				//player.isAttacking = false;
+				//player.attackTimer = 0.0f;
 
-				// ƒqƒbƒg‚ÅƒXƒLƒ‹‚ğI—¹
-				player.isAttacking = false;
-				player.attackTimer = 0.0f;
-
-				// XVÏ‚İAABB
+				// æ›´æ–°æ¸ˆã¿AABB
 				CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 			}
 
-			// Õ“Ë‚µ‚Ä‚¢‚½‚çAMTV‚Ì•ª‚¾‚¯ˆÊ’u‚ğ–ß‚·
+			// è¡çªã—ã¦ã„ãŸã‚‰ã€MTVã®åˆ†ã ã‘ä½ç½®ã‚’æˆ»ã™
 			atttackObject.position.x += collision.translation.x;
 			atttackObject.position.y += collision.translation.y;
 			atttackObject.position.z += collision.translation.z;
 
-			// ‰Ÿ‚µ–ß‚µŒã‚ÌV‚µ‚¢AABB‚ğÄŒvZ
-			// ‚±‚ê‚É‚æ‚èA“¯‚¶ƒtƒŒ[ƒ€“à‚ÅŸ‚ÌƒtƒB[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚Æ‚Ì”»’è‚É”õ‚¦‚Ü‚·B
+			// æŠ¼ã—æˆ»ã—å¾Œã®æ–°ã—ã„AABBã‚’å†è¨ˆç®—
+			// ã“ã‚Œã«ã‚ˆã‚Šã€åŒã˜ãƒ•ãƒ¬ãƒ¼ãƒ å†…ã§æ¬¡ã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¨ã®åˆ¤å®šã«å‚™ãˆã¾ã™ã€‚
 			CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
 
-			// ƒfƒoƒbƒOo—Í
-			//hal::dout << "Õ“ËI‰Ÿ‚µ–ß‚µ—Ê: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "X²" : (collision.translation.y != 0 ? "Y²" : "Z²")) << std::endl;
+			// ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›
+			//hal::dout << "è¡çªï¼æŠ¼ã—æˆ»ã—é‡: " << collision.overlap << " @ " << (collision.translation.x != 0 ? "Xè»¸" : (collision.translation.y != 0 ? "Yè»¸" : "Zè»¸")) << std::endl;
 
-			// ªªª@#include "debug_ostream.h"@‚ÌƒCƒ“ƒNƒ‹[ƒh‚ÅƒfƒoƒbƒOŠm”F
+			// â†‘â†‘â†‘ã€€#include "debug_ostream.h"ã€€ã®ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã§ãƒ‡ãƒãƒƒã‚°ç¢ºèª
 		}
 	}
 
-	// --- i‰»ˆ— ---
+	// --- é€²åŒ–å‡¦ç† ---
 	if (player.evolutionGauge >= EVOLUTIONGAUGE_MAX)
 	{
-		// ƒvƒŒƒCƒ„[‚ğ–³“G‚É‚·‚é
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’ç„¡æ•µã«ã™ã‚‹
 		player.isInvincible = true;
 		player.invincibleTimer = 0.0f;
 
-		// i‰»ƒtƒ‰ƒO‚ğ—§‚Ä‚é
+		PlayAudio(g_SE_ID[2], false);	// å¤‰èº«SEã‚’å†ç”Ÿ
+
+		// é€²åŒ–ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 		player.isEvolving = true;
+
+		PlayAudio(g_SE_ID[2], false);	// å¤‰èº«SEã‚’å†ç”Ÿ
+
 		player.evolvingTimer += DELTA_TIME;
 
-		// Œ»İ‚ÌƒtƒH[ƒ€ii‰»‘O‚Ìó‘Ôj‚ğ•Û‘¶
+		// ç¾åœ¨ã®ãƒ•ã‚©ãƒ¼ãƒ ï¼ˆé€²åŒ–å‰ã®çŠ¶æ…‹ï¼‰ã‚’ä¿å­˜
 		Form currentForm = player.form;
 
-		// 1. i‰»’iŠK‚ğ1‚Âi‚ß‚é
+		// 1. é€²åŒ–æ®µéšã‚’1ã¤é€²ã‚ã‚‹
 		player.form = static_cast<Form>(static_cast<int>(player.form) + 1);
 
-		// 2. ‘æ3Œ`‘Ô‚Ü‚Å‚µ‚©i‰»‚µ‚È‚¢‚æ‚¤‚É§ŒÀ
-		if (player.form >= Form::Third)
-		{
-			player.form = Form::Third;
-		}
+		// 2. ç¬¬3å½¢æ…‹ã¾ã§ã—ã‹é€²åŒ–ã—ãªã„ã‚ˆã†ã«åˆ¶é™
+		if (player.form >= Form::Third)	player.form = Form::Third;
 
-		// 3. ƒ^ƒCƒvŒˆ’èƒƒWƒbƒN
-		//    Type‚ÌŒˆ’è‚ÍANormal‚©‚ç FirstEvolution‚Éi‰»‚·‚éê‡‚Ì‚İÀs
+		// 3. ã‚¿ã‚¤ãƒ—æ±ºå®šãƒ­ã‚¸ãƒƒã‚¯
+		//    Typeã®æ±ºå®šã¯ã€Normalã‹ã‚‰ FirstEvolutionã«é€²åŒ–ã™ã‚‹å ´åˆã®ã¿å®Ÿè¡Œ
 		if (currentForm == Form::First)
 		{
-			// 4í—Ş‚Ì”j‰ó‚µ‚½Œš•¨”‚ğ”z—ñ‚ÉŠi”[
+			// 4ç¨®é¡ã®ç ´å£Šã—ãŸå»ºç‰©æ•°ã‚’é…åˆ—ã«æ ¼ç´
 			const int counts[4] =
 			{
 				player.breakCount_Glass,		// idx 0
@@ -463,7 +476,7 @@ void Attack_Update(int playerIndex)
 				player.breakCount_Electricity	// idx 3
 			};
 
-			// ‘Î‰‚·‚éƒ^ƒCƒv’è‹`
+			// å¯¾å¿œã™ã‚‹ã‚¿ã‚¤ãƒ—å®šç¾©
 			const BuildingType types[4] =
 			{
 				BuildingType::Glass,
@@ -472,26 +485,23 @@ void Attack_Update(int playerIndex)
 				BuildingType::Electricity
 			};
 
-			// --- Step 1: Å‘åƒJƒEƒ“ƒg”(maxCount)‚ğ‹‚ß‚é ---
+			// --- Step 1: æœ€å¤§ã‚«ã‚¦ãƒ³ãƒˆæ•°(maxCount)ã‚’æ±‚ã‚ã‚‹ ---
 			int maxCount = 0;
 			for (int i = 0; i < 4; i++)
 			{
-				if (counts[i] > maxCount)
-				{
-					maxCount = counts[i];
-				}
+				if (counts[i] > maxCount)	maxCount = counts[i];
 			}
 
-			// --- Step 2: —š—ğ‚ğuÅVv‚©‚çu‰ß‹v‚Ö‘k‚Á‚ÄŸÒ‚ğŒˆ‚ß‚é ---
+			// --- Step 2: å±¥æ­´ã‚’ã€Œæœ€æ–°ã€ã‹ã‚‰ã€Œéå»ã€ã¸é¡ã£ã¦å‹è€…ã‚’æ±ºã‚ã‚‹ ---
 			int maxIdx = 0;
 
-			// vector‚ğŒã‚ë‚©‚ç‰ñ‚·
+			// vectorã‚’å¾Œã‚ã‹ã‚‰å›ã™
 			for (int i = player.brokenHistory.size() - 1; i >= 0; i--)
 			{
 				BuildingType historyType = player.brokenHistory[i];
 				int typeIdx = -1;
 
-				// ƒ^ƒCƒv‚ğƒCƒ“ƒfƒbƒNƒX”Ô†‚É•ÏŠ·
+				// ã‚¿ã‚¤ãƒ—ã‚’ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ç•ªå·ã«å¤‰æ›
 				for (int j = 0; j < 4; j++)
 				{
 					if (historyType == types[j])
@@ -501,14 +511,14 @@ void Attack_Update(int playerIndex)
 					}
 				}
 
-				// u¡Œ©‚Ä‚¢‚é—š—ğ‚Ìƒ^ƒCƒvv‚ªuÅ‘åƒJƒEƒ“ƒg”‚ğ‚ÂƒOƒ‹[ƒvv‚Ìˆêˆõ‚©H
+				// ã€Œä»Šè¦‹ã¦ã„ã‚‹å±¥æ­´ã®ã‚¿ã‚¤ãƒ—ã€ãŒã€Œæœ€å¤§ã‚«ã‚¦ãƒ³ãƒˆæ•°ã‚’æŒã¤ã‚°ãƒ«ãƒ¼ãƒ—ã€ã®ä¸€å“¡ã‹ï¼Ÿ
 				if (typeIdx != -1 && counts[typeIdx] == maxCount)
 				{
 					maxIdx = typeIdx;
-					break; // Œ©‚Â‚©‚Á‚½“_‚ÅŠm’èI
+					break; // è¦‹ã¤ã‹ã£ãŸæ™‚ç‚¹ã§ç¢ºå®šï¼
 				}
 			}
-			// --- Step 3: ÅIƒ^ƒCƒv”½‰f ---
+			// --- Step 3: æœ€çµ‚ã‚¿ã‚¤ãƒ—åæ˜  ---
 			switch (maxIdx)
 			{
 			case 0: player.type = PlayerType::Glass;		break;
@@ -517,15 +527,15 @@ void Attack_Update(int playerIndex)
 			case 3: player.type = PlayerType::Electricity;	break;
 			}
 
-			// ƒ^ƒCƒv‚ªŒÅ’è‚³‚ê‚½ƒtƒ‰ƒO‚ğ—§‚Ä‚é
+			// ã‚¿ã‚¤ãƒ—ãŒå›ºå®šã•ã‚ŒãŸãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 			player.isTypeFixed = true;
 		}
 
-		// 4. ƒŠƒZƒbƒgˆ— (–ˆ‰ñÀs)
-		//    ƒ^ƒCƒvŒˆ’è‚Ì if ƒuƒƒbƒN‚ÌŠO‚Éo‚·‚±‚Æ‚ÅA‚Ç‚ÌƒtƒH[ƒ€’iŠK‚©‚ç‚Ìi‰»‚Å‚àƒŠƒZƒbƒg‚³‚ê‚é
+		// 4. ãƒªã‚»ãƒƒãƒˆå‡¦ç† (æ¯å›å®Ÿè¡Œ)
+		//    ã‚¿ã‚¤ãƒ—æ±ºå®šã® if ãƒ–ãƒ­ãƒƒã‚¯ã®å¤–ã«å‡ºã™ã“ã¨ã§ã€ã©ã®ãƒ•ã‚©ãƒ¼ãƒ æ®µéšã‹ã‚‰ã®é€²åŒ–ã§ã‚‚ãƒªã‚»ãƒƒãƒˆã•ã‚Œã‚‹
 
 
-		// ‘æ3Œ`‘Ô‚É“’B‚µ‚½’¼Œã‚È‚çƒGƒtƒFƒNƒg‚ğƒZƒbƒg
+		// ç¬¬3å½¢æ…‹ã«åˆ°é”ã—ãŸç›´å¾Œãªã‚‰ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ã‚»ãƒƒãƒˆ
 		/*if (playerObject->form == Form::Third && currentForm != Form::Third)
 		{
 			XMFLOAT2 pos = { 170.0f, 600.0f };
@@ -533,23 +543,23 @@ void Attack_Update(int playerIndex)
 			Effect_Set(0, pos, size);
 		}*/
 
-		// ‘æ3Œ`‘Ô‚É“’B‚µ‚½’¼Œã‚È‚çƒGƒtƒFƒNƒg‚ğƒZƒbƒgiƒvƒŒƒCƒ„[”Ô†•ÊˆÊ’uEƒ^ƒCƒv•ÊƒeƒNƒXƒ`ƒƒj
+		// ç¬¬3å½¢æ…‹ã«åˆ°é”ã—ãŸç›´å¾Œãªã‚‰ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ã‚»ãƒƒãƒˆï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç•ªå·åˆ¥ä½ç½®ãƒ»ã‚¿ã‚¤ãƒ—åˆ¥ãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼‰
 		if (player.form == Form::Third && currentForm != Form::Third)
 		{
 			float screenX = SCREEN_ADJUST_X;
 			float screenY = 620.0f * SCREEN_ADJUST_Y;
 
-			// ƒvƒŒƒCƒ„[‚²‚Æ‚Ì‰æ–Êã‚ÌƒGƒtƒFƒNƒgˆÊ’u
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®ç”»é¢ä¸Šã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆä½ç½®
 			const XMFLOAT2 playerEffectPos[PLAYER_MAX] =
 			{
-				{  170.0f * screenX, screenY }, // ƒvƒŒƒCƒ„[1
-				{  490.0f * screenX, screenY }, // ƒvƒŒƒCƒ„[2
-				{  810.0f * screenX, screenY }, // ƒvƒŒƒCƒ„[3
-				{ 1130.0f * screenX, screenY }  // ƒvƒŒƒCƒ„[4
+				{  170.0f * screenX, screenY }, // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1
+				{  490.0f * screenX, screenY }, // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼2
+				{  810.0f * screenX, screenY }, // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼3
+				{ 1130.0f * screenX, screenY }  // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼4
 			};
 
-			// i‰»ƒ^ƒCƒv•Ê‚ÌƒeƒNƒXƒ`ƒƒ”Ô†iEffect ‚ÌƒeƒNƒXƒ`ƒƒ”z—ñ‚Æ‡‚í‚¹‚é‚±‚Æj
-			int effectTexNo = 0; // ƒfƒtƒHƒ‹ƒg
+			// é€²åŒ–ã‚¿ã‚¤ãƒ—åˆ¥ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ç•ªå·ï¼ˆEffect ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£é…åˆ—ã¨åˆã‚ã›ã‚‹ã“ã¨ï¼‰
+			int effectTexNo = 0; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
 			switch (player.type)
 			{
 			case PlayerType::Glass:			effectTexNo = 0; break;
@@ -559,14 +569,14 @@ void Attack_Update(int playerIndex)
 			default:						effectTexNo = 0; break;
 			}
 
-			// ƒvƒŒƒCƒ„[”Ô†‚Í playerIndexi0ƒx[ƒXj
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç•ªå·ã¯ playerIndexï¼ˆ0ãƒ™ãƒ¼ã‚¹ï¼‰
 			XMFLOAT2 pos = playerEffectPos[playerIndex];
 			XMFLOAT2 size = { 350.0f, 350.0f };
 
 			Effect_SetUI(effectTexNo, pos, size);
 		}
 
-		player.brokenHistory.clear(); // —š—ğ‚àƒNƒŠƒA‚·‚é
+		player.brokenHistory.clear(); // å±¥æ­´ã‚‚ã‚¯ãƒªã‚¢ã™ã‚‹
 		player.evolutionGauge = 0;
 		player.breakCount_Glass = 0;
 		player.breakCount_Concrete = 0;
@@ -577,163 +587,167 @@ void Attack_Update(int playerIndex)
 
 void Attack_Draw(int playerIndex)
 {
-	// ”ÍˆÍƒ`ƒFƒbƒN 0 1 2 3 ˆÈŠO‚È‚ç return
+	// ç¯„å›²ãƒã‚§ãƒƒã‚¯ 0 1 2 3 ä»¥å¤–ãªã‚‰ return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	// QÆ‚ğæ‚é
-	ATTACK_OBJECT& attackObject = Attack[playerIndex];
-	ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
+	// DEBUG:å–ã‚Šã‚ãˆãšã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼
+	//{
+	//	// å‚ç…§ã‚’å–ã‚‹
+	//	ATTACK_OBJECT& attackObject = Attack[playerIndex];
+	//	ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
 
-	// =====================
-	// ƒ[ƒ‹ƒhs—ñ‚Ìì¬
-	// =====================
+	//	// =====================
+	//	// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã®ä½œæˆ
+	//	// =====================
 
-	// ƒXƒP[ƒŠƒ“ƒOs—ñ‚Ìì¬
-	XMMATRIX ScalingMatrix = XMMatrixScaling
-	(
-		attackObject.scaling.x,
-		attackObject.scaling.y,
-		attackObject.scaling.z
-	);
+	//	// ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°è¡Œåˆ—ã®ä½œæˆ
+	//	XMMATRIX ScalingMatrix = XMMatrixScaling
+	//	(
+	//		attackObject.scaling.x,
+	//		attackObject.scaling.y,
+	//		attackObject.scaling.z
+	//	);
 
-	// ‰ñ“]s—ñ‚Ìì¬
-	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
-	(
-		XMConvertToRadians(attackObject.rotation.x),
-		XMConvertToRadians(attackObject.rotation.y),
-		XMConvertToRadians(attackObject.rotation.z)
-	);
+	//	// å›è»¢è¡Œåˆ—ã®ä½œæˆ
+	//	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
+	//	(
+	//		XMConvertToRadians(attackObject.rotation.x),
+	//		XMConvertToRadians(attackObject.rotation.y),
+	//		XMConvertToRadians(attackObject.rotation.z)
+	//	);
 
-	// •½sˆÚ“®s—ñ‚Ìì¬
-	XMMATRIX TranslationMatrix = XMMatrixTranslation
-	(
-		attackObject.position.x,
-		attackObject.position.y,
-		attackObject.position.z
-	);
+	//	// å¹³è¡Œç§»å‹•è¡Œåˆ—ã®ä½œæˆ
+	//	XMMATRIX TranslationMatrix = XMMatrixTranslation
+	//	(
+	//		attackObject.position.x,
+	//		attackObject.position.y,
+	//		attackObject.position.z
+	//	);
 
-	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
+	//	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
 
-	// ƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñì¬
-	XMMATRIX projection = GetProjectionMatrix();
+	//	// ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³è¡Œåˆ—ä½œæˆ
+	//	XMMATRIX projection = GetProjectionMatrix();
 
-	// ƒrƒ…[s—ñì¬
-	XMMATRIX view = GetViewMatrix();
+	//	// ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ä½œæˆ
+	//	XMMATRIX view = GetViewMatrix();
 
-	// ÅI“I‚È•ÏŠ·s—ñ‚ğì¬
-	XMMATRIX WVP = WorldMatrix * view * projection;
+	//	// æœ€çµ‚çš„ãªå¤‰æ›è¡Œåˆ—ã‚’ä½œæˆ
+	//	XMMATRIX WVP = WorldMatrix * view * projection;
 
-	// •ÏŠ·s—ñ‚ğ’¸“_ƒVƒF[ƒ_[‚ÖƒZƒbƒg
-	Shader_SetMatrix(WVP);
+	//	// å¤‰æ›è¡Œåˆ—ã‚’é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¸ã‚»ãƒƒãƒˆ
+	//	Shader_SetMatrix(WVP);
 
-	LIGHT light{};
-	light.Enable = TRUE;
-	// Œõ‚ÌŒü‚«iƒ[ƒ‹ƒh‹óŠÔjƒVƒF[ƒ_[‘¤‚Å’PˆÊ‰»‚µ‚Äg‚Á‚Ä‚¢‚é‘z’è
-	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-	// ŠgUŒõ‚ÆŠÂ‹«Œõ
-	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
-	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-	Shader_SetLight(light);
+	//	LIGHT light{};
+	//	light.Enable = TRUE;
+	//	// å…‰ã®å‘ãï¼ˆãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ï¼‰ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å´ã§å˜ä½åŒ–ã—ã¦ä½¿ã£ã¦ã„ã‚‹æƒ³å®š
+	//	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	//	// æ‹¡æ•£å…‰ã¨ç’°å¢ƒå…‰
+	//	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+	//	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	//	Shader_SetLight(light);
 
-	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Öİ’è
-	Shader_Begin();
+	//	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã¸è¨­å®š
+	//	Shader_Begin();
 
-	// •s“§–¾‚Å•`‰æ‚·‚é‚½‚ßƒuƒŒƒ“ƒh‚ğ–³Œø‰»‚µA•`‰æƒJƒ‰[‚ÌƒAƒ‹ƒtƒ@‚ğ1‚ÉŒÅ’è‚·‚é
-	SetBlendState(BLENDSTATE_NONE);
-	Shader_SetColor(color::white);
+	//	// ä¸é€æ˜ã§æç”»ã™ã‚‹ãŸã‚ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚’ç„¡åŠ¹åŒ–ã—ã€æç”»ã‚«ãƒ©ãƒ¼ã®ã‚¢ãƒ«ãƒ•ã‚¡ã‚’1ã«å›ºå®šã™ã‚‹
+	//	SetBlendState(BLENDSTATE_NONE);
+	//	Shader_SetColor(color::white);
 
-	// ’¸“_ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Öİ’è
-	D3D11_MAPPED_SUBRESOURCE msr;
-	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	Vertex2* vertex = (Vertex2*)msr.pData;
+	//	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã¸è¨­å®š
+	//	D3D11_MAPPED_SUBRESOURCE msr;
+	//	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	//	Vertex2* vertex = (Vertex2*)msr.pData;
 
-	// ’¸“_ƒf[ƒ^‚ğ’¸“_ƒoƒbƒtƒ@‚ÖƒRƒs[‚·‚é
-	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * ATTACK_VERTEX);
+	//	// é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã¸ã‚³ãƒ”ãƒ¼ã™ã‚‹
+	//	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * ATTACK_VERTEX);
 
-	// ƒRƒs[Š®—¹
-	g_pContext->Unmap(g_VertexBuffer, 0);
+	//	// ã‚³ãƒ”ãƒ¼å®Œäº†
+	//	g_pContext->Unmap(g_VertexBuffer, 0);
 
-	// ƒeƒNƒXƒ`ƒƒ‚ğƒZƒbƒg
-	g_pContext->PSSetShaderResources(0, 1, &tex);
+	//	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã‚»ãƒƒãƒˆ
+	//	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// ’¸“_ƒoƒbƒtƒ@‚ğƒZƒbƒg
-	UINT stride = sizeof(Vertex2);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	//	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ã‚»ãƒƒãƒˆ
+	//	UINT stride = sizeof(Vertex2);
+	//	UINT offset = 0;
+	//	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 
-	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚ğƒZƒbƒg
-	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	//	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã‚’ã‚»ãƒƒãƒˆ
+	//	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	// •`‰æ‚·‚éƒ|ƒŠƒSƒ“‚Ìí—Ş‚ğƒZƒbƒg 3’¸“_‚Åƒ|ƒŠƒSƒ“1–‡‚Æ‚µ‚Ä•\¦
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	g_pContext->DrawIndexed(6 * 6, 0, 0);
+	//	// æç”»ã™ã‚‹ãƒãƒªã‚´ãƒ³ã®ç¨®é¡ã‚’ã‚»ãƒƒãƒˆ 3é ‚ç‚¹ã§ãƒãƒªã‚´ãƒ³1æšã¨ã—ã¦è¡¨ç¤º
+	//	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	SetBlendState(BLENDSTATE_ALPHA);
+	//	g_pContext->DrawIndexed(6 * 6, 0, 0);
+
+	//	SetBlendState(BLENDSTATE_ALPHA);
+	//}
 }
 
 void AttackPlayerCollisions()
 {
-	// ŠeƒvƒŒƒCƒ„[‚ÌUŒ‚ƒIƒuƒWƒFƒNƒg‚ğƒ‹[ƒv‚µ‚ÄA‘¼ƒvƒŒƒCƒ„[‘Sˆõ‚É“–‚½‚è”»’è‚ğs‚¤
+	// å„ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ”»æ’ƒã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ãƒ«ãƒ¼ãƒ—ã—ã¦ã€ä»–ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å…¨å“¡ã«å½“ãŸã‚Šåˆ¤å®šã‚’è¡Œã†
 	for (int atk = 0; atk < PLAYER_MAX; ++atk)
 	{
-		if (atk < 0 || atk >= PLAYER_MAX) continue; // ’Ç‰Á‚ÌˆÀ‘Sƒ`ƒFƒbƒN
+		if (atk < 0 || atk >= PLAYER_MAX) continue; // è¿½åŠ ã®å®‰å…¨ãƒã‚§ãƒƒã‚¯
 		ATTACK_OBJECT& attackObject = Attack[atk];
 
-		// player ‚ÍŠù‘¶‚Ì GetPlayer ‚ğg‚Á‚Äƒkƒ‹ƒ`ƒFƒbƒN
+		// player ã¯æ—¢å­˜ã® GetPlayer ã‚’ä½¿ã£ã¦ãƒŒãƒ«ãƒã‚§ãƒƒã‚¯
 		PLAYEROBJECT* attackerPtr = GetPlayer(atk);
 		if (attackerPtr == nullptr) continue;
 		PLAYEROBJECT& attacker = *attackerPtr;
 
-		if (!attacker.isAttacking) continue;	// UŒ‚’†‚Ì‚İ”»’è
+		if (!attacker.isAttacking) continue;	// æ”»æ’ƒä¸­ã®ã¿åˆ¤å®š
 
-		// UŒ‚ƒIƒuƒWƒFƒNƒg‚ÆUŒ‚Ò‚Ì AABB ‚ğXV
+		// æ”»æ’ƒã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¨æ”»æ’ƒè€…ã® AABB ã‚’æ›´æ–°
 		CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
 		CalculateAABB(attacker.boundingBox, attacker.position, attacker.scaling);
 
-		// UŒ‚Ò‚ÌŒü‚«ƒxƒNƒgƒ‹‚ğXVirotation.y ‚©‚çZoj
+		// æ”»æ’ƒè€…ã®å‘ããƒ™ã‚¯ãƒˆãƒ«ã‚’æ›´æ–°ï¼ˆrotation.y ã‹ã‚‰ç®—å‡ºï¼‰
 		{
 			float rad = XMConvertToRadians(attacker.rotation.y);
 			attacker.dir.x = sinf(rad);
 			attacker.dir.z = cosf(rad);
 		}
 
-		// --- ƒvƒŒƒCƒ„[‘¤‚Åg‚Á‚Ä‚¢‚é•`‰æƒXƒP[ƒ‹Eƒqƒbƒgƒ{ƒbƒNƒX”ä—¦‚Æ‡‚í‚¹‚é ---
+		// --- ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å´ã§ä½¿ã£ã¦ã„ã‚‹æç”»ã‚¹ã‚±ãƒ¼ãƒ«ãƒ»ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹æ¯”ç‡ã¨åˆã‚ã›ã‚‹ ---
 		const float RENDER_SCALE = 2.0f;
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
-		// Player ‚Æ“¯‚¶’Z•Ó/’·•Ó’è‹`‚ğg‚¤
+		// Player ã¨åŒã˜çŸ­è¾º/é•·è¾ºå®šç¾©ã‚’ä½¿ã†
 		const float HITBOX_SHORT = 0.35f;
 		const float HITBOX_LONG  = 0.65f;
 
-		// UŒ‚‚ª“–‚½‚é‘ÎÛ‚Æ‚µ‚Ä‘¼ƒvƒŒƒCƒ„[‘Sˆõ‚ğƒ`ƒFƒbƒN
+		// æ”»æ’ƒãŒå½“ãŸã‚‹å¯¾è±¡ã¨ã—ã¦ä»–ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å…¨å“¡ã‚’ãƒã‚§ãƒƒã‚¯
 		for (int def = 0; def < PLAYER_MAX; ++def)
 		{
-			if (def == atk) continue; // ©•ª‚É‚Í“–‚½‚ç‚È‚¢
+			if (def == atk) continue; // è‡ªåˆ†ã«ã¯å½“ãŸã‚‰ãªã„
 
 			PLAYEROBJECT* defenderObject = GetPlayer(def);
 			if (defenderObject == nullptr) continue;
 			PLAYEROBJECT& defender = *defenderObject;
 
 			if (!defender.active) continue;
-			// ”í’e’†‚â–³“G‚È‚çƒXƒLƒbƒv
+			// è¢«å¼¾ä¸­ã‚„ç„¡æ•µãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
 			if (defender.isInvincible) continue;
 
-			// defender ‚ÌŒü‚«‚©‚ç’Z•Ó/’·•Ó‚ğŒˆ‚ß‚é
+			// defender ã®å‘ãã‹ã‚‰çŸ­è¾º/é•·è¾ºã‚’æ±ºã‚ã‚‹
 			float radDef = XMConvertToRadians(defender.rotation.y);
 			float defFacingX = sinf(radDef);
 			float defFacingZ = cosf(radDef);
 			bool defFacingZDominant = fabsf(defFacingZ) >= fabsf(defFacingX);
 
-			float widthScale = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;		// X•ûŒüƒXƒP[ƒ‹
-			float depthScale = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z•ûŒüƒXƒP[ƒ‹
+			float widthScale = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;		// Xæ–¹å‘ã‚¹ã‚±ãƒ¼ãƒ«
+			float depthScale = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Zæ–¹å‘ã‚¹ã‚±ãƒ¼ãƒ«
 
-			// ‘æ2Œ`‘Ô ‘æ3Œ`‘Ô‚ÍX‚ÆZ“¯‚¶‚É‚·‚é
+			// ç¬¬2å½¢æ…‹ ç¬¬3å½¢æ…‹ã¯Xã¨ZåŒã˜ã«ã™ã‚‹
 			if (defender.form == Form::Second || defender.form == Form::Third)
 			{
 				widthScale = 0.3f;
 				depthScale = 0.3f;
 			}
 
-			// defender —p‚Ìƒqƒbƒgƒ{ƒbƒNƒXƒXƒP[ƒ‹‚ğŒvZ‚µ‚Ä AABB ‚ğì‚é
+			// defender ç”¨ã®ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ã‚¹ã‚±ãƒ¼ãƒ«ã‚’è¨ˆç®—ã—ã¦ AABB ã‚’ä½œã‚‹
 			XMFLOAT3 defenderHitboxScaling =
 			{
 				defender.scaling.x * RENDER_SCALE * widthScale,
@@ -742,51 +756,55 @@ void AttackPlayerCollisions()
 			};
 			CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);
 
-			// ”»’èidefender AABB ‚Æ UŒ‚ƒIƒuƒWƒFƒNƒg AABBj
+			// åˆ¤å®šï¼ˆdefender AABB ã¨ æ”»æ’ƒã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ AABBï¼‰
 			MTV col = CalculateAABBMTV(defender.boundingBox, attackObject.boundingBox);
 
 			if (col.isColliding)
 			{
-				//// ƒmƒbƒNƒoƒbƒNiUŒ‚Ò‚ÌŒü‚«‚ÆUŒ‚—Í‚ğg—pj
+				//// ãƒãƒƒã‚¯ãƒãƒƒã‚¯ï¼ˆæ”»æ’ƒè€…ã®å‘ãã¨æ”»æ’ƒåŠ›ã‚’ä½¿ç”¨ï¼‰
 				//defender.position.x += attacker.dir.x/* * attacker.power*/;
 				//defender.position.y += attacker.power;
 				//defender.position.z += attacker.dir.z/* * attacker.power*/;
 
-				// ‚Á”ò‚Î‚·‹­‚³i‚±‚±‚ğ‘å‚«‚­‚·‚é‚Æ‚ß‚Á‚¿‚á”ò‚ÔIj
-				float liftUpPower = 2.0f;    // ­‚µã‚É•‚‚©‚¹‚é‚Æ‚Á”ò‚Î‚³‚ê‚½Š´‚ªo‚é‚æ
+				// å¹ã£é£›ã°ã™å¼·ã•ï¼ˆã“ã“ã‚’å¤§ããã™ã‚‹ã¨ã‚ã£ã¡ã‚ƒé£›ã¶ï¼ï¼‰
+				float liftUpPower = 2.0f;    // å°‘ã—ä¸Šã«æµ®ã‹ã›ã‚‹ã¨å¹ã£é£›ã°ã•ã‚ŒãŸæ„ŸãŒå‡ºã‚‹ã‚ˆ
 
-				// À•W‚ğ’¼Ú‚¢‚¶‚é‚Ì‚Å‚Í‚È‚­A‘¬“xivelocityj‚É—Í‚ğ—­‚ß‚é
+				// åº§æ¨™ã‚’ç›´æ¥ã„ã˜ã‚‹ã®ã§ã¯ãªãã€é€Ÿåº¦ï¼ˆvelocityï¼‰ã«åŠ›ã‚’æºœã‚ã‚‹
 				defender.velocity.x = attacker.dir.x * attacker.power * defender.weight;
 				defender.velocity.y = liftUpPower;
 				defender.velocity.z = attacker.dir.z * attacker.power * defender.weight;
 
-				// ƒ_ƒ[ƒW—p•Ï”
+				// ãƒ€ãƒ¡ãƒ¼ã‚¸ç”¨å¤‰æ•°
 				float rawDamage = attacker.attack * defender.defense;
 
-				// ƒ_ƒ[ƒWi–hŒä‚ÅŒyŒ¸j
+				// ãƒ€ãƒ¡ãƒ¼ã‚¸ï¼ˆé˜²å¾¡ã§è»½æ¸›ï¼‰
 				defender.hp -= rawDamage;
 				if (defender.hp < 0.0f) defender.hp = 0.0f;
 
 				TriggerbyHPShake(def, 8.0f,20.0f,1.5f);
+				TriggerVibration(def, 0.1f, 0.1f, 50);
 
-				// ƒXƒ^ƒ“ƒQ[ƒW‘‰Á
+				// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸å¢—åŠ 
 				defender.stunGauge += 0.5f;
 
-				// ƒ_ƒ[ƒW”š‚ğ•\¦i“ªã‚ÉƒIƒtƒZƒbƒgj
+				// ãƒ€ãƒ¡ãƒ¼ã‚¸æ•°å­—ã‚’è¡¨ç¤ºï¼ˆé ­ä¸Šã«ã‚ªãƒ•ã‚»ãƒƒãƒˆï¼‰
 				int dmgInt = static_cast<int>(rawDamage + 0.5f);
 				XMFLOAT3 hitPos = defender.position;
 				hitPos.y += defender.scaling.y + 0.3f;
 				SetDamageText(hitPos, dmgInt, TextColor::Blue);
 
-				// ƒ_ƒ[ƒWƒtƒ‰ƒOEƒ^ƒCƒ}[iƒAƒjƒ/UI —pj
+				// ãƒ€ãƒ¡ãƒ¼ã‚¸ãƒ•ãƒ©ã‚°ãƒ»ã‚¿ã‚¤ãƒãƒ¼ï¼ˆã‚¢ãƒ‹ãƒ¡/UI ç”¨ï¼‰
 				defender.isAttacked = true;
 				defender.attackedTimer = 0.0f;
 
-				// ÄŒvZ
+				// ãŒã¶ãŒã¶éŸ³(ãƒ«ãƒ¼ãƒ—ãªã—)
+				if(defender.attackedTimer == 0.0f)	PlayAudio(g_SE_ID[1], false);
+
+				// å†è¨ˆç®—
 				CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);
 				CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
 			
-				attacker.isAttacking = false;	// UŒ‚I—¹
+				attacker.isAttacking = false;	// æ”»æ’ƒçµ‚äº†
 			}
 		}
 	}
@@ -794,7 +812,7 @@ void AttackPlayerCollisions()
 
 ATTACK_OBJECT* GetAttack(int playerIndex)
 {
-	// ”ÍˆÍƒ`ƒFƒbƒN 0 1 2 3 ˆÈŠO‚È‚ç nullptr ‚ğ•Ô‚·
+	// ç¯„å›²ãƒã‚§ãƒƒã‚¯ 0 1 2 3 ä»¥å¤–ãªã‚‰ nullptr ã‚’è¿”ã™
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
 	return &Attack[playerIndex];
