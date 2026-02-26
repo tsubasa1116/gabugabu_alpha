@@ -70,9 +70,9 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	XMFLOAT4 para;
 
-	para = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
+	para = XMFLOAT4(0.7f, 0.7f, 0.9999f, 1.0f);
 	Light.SetAmbient(para);
-	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);
+	para = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 	Light.SetDiffuse(para);
 	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);
 
