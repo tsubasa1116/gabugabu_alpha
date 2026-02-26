@@ -1,4 +1,4 @@
-// Player.h
+// player.h
 
 #pragma once
 
@@ -9,10 +9,10 @@
 #include "special.h"
 
 // マクロ定義
-#define	PLAYER_MAX			(4)		// プレイヤー最大数
+#define	PLAYER_MAX				(4)	// プレイヤー最大数
 #define	DELTA_TIME	 (1.0f / 60.0f)	// デルタタイム（秒）
 
-#define	PLAYER_MAX_HP				(50.0f)// プレイヤー 最大HP
+#define	PLAYER_MAX_HP				(500.0f)// プレイヤー 最大HP
 #define	PLAYER_MAX_SATIETY			(7.0f)	// プレイヤー 最大満腹度
 #define	PLAYER_EVOLUTION_GAUGE_RATE	(0.5f)	// プレイヤー 進化ゲージ増加率
 
@@ -30,6 +30,8 @@
 #define	PLAYER_VERTEX	(6)		// 一面のみの頂点数
 #define COORDINATE		(0.5f)	// デフォルト (0.5f)
 #define TEXCOORD		(1.0f)	// デフォルト (1.0f)
+
+#define PLAYER_SE_COUNT		(4)	// プレイヤー SEの数
 
 enum class PlayerDir
 {
@@ -97,6 +99,7 @@ struct PLAYEROBJECT
 	bool useSkill;			// スキル中かどうか
 	float skillTimer;		// スキル中の経過時間
 	float skillCoolTimer;	// スキルクール中の経過時間
+	bool skillAnimation;	// スキルアニメーション中かどうか
 
 	bool useSpecial;		// スペシャル中かどうか
 	float specialTimer;		// スペシャル中の経過時間
@@ -128,7 +131,7 @@ struct PLAYEROBJECT
 
 	Form form;								// 変身形態
 	PlayerType type;						// プレイヤーの属性タイプ
-	bool isTypeFixed = false;				// 進化タイプが固定されたかどうか
+	bool isTypeFixed		;				// 進化タイプが固定されたかどうか
 	float evolutionGauge;					// 進化ゲージ
 	float evolutionGaugeRate;				// 進化ゲージ 倍率
 	int breakCount_Glass;					// 破壊した数 ガラス
@@ -146,6 +149,8 @@ struct PLAYEROBJECT
 
 	Circle electricityCircles[SPECIAL_ELECTRICITY_QUANTITY]; // スペシャル 電気の円
 	std::vector<GLASS_BOX> glassBoxes; // スペシャル ガラスのミサイルリスト
+
+	XMFLOAT2 moveInput2D;
 };
 
 void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

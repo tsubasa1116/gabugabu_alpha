@@ -4,6 +4,7 @@
 #include "keyboard.h"
 #include "Effect.h"
 #include "player.h"
+#include "Audio.h"
 #include "debug_ostream.h"     // ← 追加: hal::dout を使うため
 #include <codecvt>            // ← 追加: ワイド→UTF-8 変換用
 #include <locale>
@@ -22,40 +23,42 @@ static Building* Buildings[300];
 // 現在の建物数
 static int BuildingCount = 0;
 
+//static int g_SE_ID[10] = { NULL };
+
 // ★テクスチャのパス用意
 static const wchar_t* g_TexturePaths[] =
-{ L"Asset\\Texture\\gure.jpg",
-	L"Asset\\Texture\\とんがり木.png",   // ← togeki専用
-	L"Asset\\Texture\\とんがり木エフェクト.png",
-	L"Asset\\Texture\\ライブ.png",
-	L"Asset\\Texture\\ライブエフェクト.png",
-	L"Asset\\Texture\\美術館.png",
-	L"Asset\\Texture\\美術館エフェクト.png",
-	L"Asset\\Texture\\こんくり三段.png",
-	L"Asset\\Texture\\こんくり三段エフェクト.png",
-	L"Asset\\Texture\\３個のコンクリ.png",
-	L"Asset\\Texture\\３個のコンクリエフェクト.png",
-	L"Asset\\Texture\\４つのガラス.png",
-	L"Asset\\Texture\\４つのガラスエフェクト.png",
-	L"Asset\\Texture\\信号.png",
-	L"Asset\\Texture\\信号エフェクト.png",
-	L"Asset\\Texture\\２この丸ガラス.png",
-	L"Asset\\Texture\\２この丸ガラスエフェクト.png",
-	L"Asset\\Texture\\木と遊具.png",
-	L"Asset\\Texture\\木と遊具エフェクト.png",
-	L"Asset\\Texture\\木といえ.png",
-	L"Asset\\Texture\\木といえエフェクト.png",
-	L"Asset\\Texture\\togegarasu.png",
-	L"Asset\\Texture\\togegarasuエフェクト.png",
-	L"Asset\\Texture\\3kabe.png",
-	L"Asset\\Texture\\3kabeエフェクト.png",
-	L"Asset\\Texture\\1kabe.png",
-	L"Asset\\Texture\\1kabeエフェクト.png",
-	L"Asset\\Texture\\textureTreeMain_v3.png",
-	L"Asset\\Texture\\textureTreeMainHighlight_v2.png",
-	L"Asset\\Texture\\textureTowerMain_v2.png",
-	L"Asset\\Texture\\東京タワーエフェクト.png",
-	L"Asset\\Texture\\fade.bmp"
+{ L"Asset\\Texture\\gure.jpg",//1
+	L"Asset\\Texture\\とんがり木.png",   			  //1
+	L"Asset\\Texture\\とんがり木エフェクト.png",		 //2
+	L"Asset\\Texture\\ライブ.png",						//3
+	L"Asset\\Texture\\ライブエフェクト.png",		   //4
+	L"Asset\\Texture\\美術館.png",						//5
+	L"Asset\\Texture\\美術館エフェクト.png",		   //6
+	L"Asset\\Texture\\こんくり三段.png",				 //7
+	L"Asset\\Texture\\こんくり三段エフェクト.png",		//8
+	L"Asset\\Texture\\３個のコンクリ.png",				//9
+	L"Asset\\Texture\\３個のコンクリエフェクト.png",   //10
+	L"Asset\\Texture\\４つのガラス.png",				 //11
+	L"Asset\\Texture\\４つのガラスエフェクト.png",		//12
+	L"Asset\\Texture\\信号.png",						 //13
+	L"Asset\\Texture\\信号エフェクト.png",				//14
+	L"Asset\\Texture\\２この丸ガラス.png",				//15
+	L"Asset\\Texture\\２この丸ガラスエフェクト.png",   //16
+	L"Asset\\Texture\\木と遊具.png",				   //17
+	L"Asset\\Texture\\木と遊具エフェクト.png",		  //18
+	L"Asset\\Texture\\木といえ.png",				   //19
+	L"Asset\\Texture\\木といえエフェクト.png",		  //20
+	L"Asset\\Texture\\togegarasu2.png",				   //21
+	L"Asset\\Texture\\togegarasuエフェクト.png",		  //22
+	L"Asset\\Texture\\3kabe.png",					   //23
+	L"Asset\\Texture\\3kabeエフェクト.png",			  //24
+	L"Asset\\Texture\\1kabe.png",					   //25
+	L"Asset\\Texture\\1kabeエフェクト.png",			  //26
+	L"Asset\\Texture\\textureTreeMain_v3.png",		   //27
+	L"Asset\\Texture\\textureTreeMainHighlight_v2.png",//28
+	L"Asset\\Texture\\textureTowerMain_v2.png",		   //29
+	L"Asset\\Texture\\東京タワーエフェクト.png",		 //30
+	L"Asset\\Texture\\fade.bmp"						   //31
 };
 // 配列要素数から定数を作成（定義と実データの不一致を防ぐ）
 static const int FIELD_TEX_MAX = static_cast<int>(sizeof(g_TexturePaths) / sizeof(g_TexturePaths[0]));
@@ -71,7 +74,7 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX] = { nullptr };
 static const char* g_GlassModels[] = {
 	"3birugarsu",
 	"2marugarasu",
-	"togegarasu"
+	"togegarasu2"
 
 };
 
@@ -95,8 +98,8 @@ static const char* g_ElectricModels[] = {
 	"singou",
 	"taw-",
 	"raibu",
-	"denki1kaba-",
-	"denki3kaba-"
+	"propsElectricitySub03_v9",
+	"propsElectricitySub02_v9"
 };
 
 // 配列数取得マクロ
@@ -144,7 +147,7 @@ Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
 	m_IsPlayerNear(false)
 {
 	// 初期トランスフォーム
-	scaling = { 1.0f, 1.0f, 1.0f };
+	scaling = { 1.5f, 1.5f, 1.5f };
 	rotation = { 0.0f, 0.0f, 0.0f };
 
 	// モデル番号の範囲チェック
@@ -189,8 +192,6 @@ Building::~Building()
 //=========================================
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Building_Finalize();
-
 	// ★デバイス＆コンテキスト保存
 	g_pDevice = pDevice;
 	g_pContext = pContext;
@@ -272,6 +273,8 @@ void Building_Finalize()
 			g_Texture[i] = nullptr;
 		}
 	}
+
+	//for (int i = 0; i < 4; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 //=========================================
@@ -451,12 +454,12 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 		baseTexIndex = 13;//ok
 	}
 	else if (type == BuildingType::Electricity &&
-		strcmp(g_ElectricModels[m_ModelIndex], "denki3kaba-") == 0)
+		strcmp(g_ElectricModels[m_ModelIndex], "propsElectricitySub02_v9") == 0)
 	{
 		baseTexIndex = 23;//ok
 	}
 	else if (type == BuildingType::Electricity &&
-		strcmp(g_ElectricModels[m_ModelIndex], "denki1kaba-") == 0)
+		strcmp(g_ElectricModels[m_ModelIndex], "propsElectricitySub03_v9") == 0)
 	{
 		baseTexIndex = 25;//ok
 	}
@@ -494,7 +497,7 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 		baseTexIndex = 15;//ok
 	}
 	else if (type == BuildingType::Glass &&
-		strcmp(g_GlassModels[m_ModelIndex], "togegarasu") == 0)
+		strcmp(g_GlassModels[m_ModelIndex], "togegarasu2") == 0)
 	{
 		baseTexIndex = 21;//ok
 	}
