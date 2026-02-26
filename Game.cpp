@@ -1,7 +1,7 @@
 //======================================================
 //	Game.cpp[]
 // 
-//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
+//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
 //======================================================
 
 #include "Manager.h"
@@ -28,7 +28,7 @@
 #include "direct3d.h"
 #include "SkyBall.h"
 //======================================================
-//	æ§‹é€ è¬¡å®£è¨€
+//	\‘¢—wéŒ¾
 //======================================================
 LIGHTOBJECT Light;
 
@@ -38,7 +38,7 @@ LIGHTOBJECT Light;
 static int g_BgmID = NULL;
 bool input2 = false;
 
-// ã‚³ãƒãƒ³ãƒ‰ãŒå…¥åŠ›ã•ã‚ŒãŸã¨ãã«ç«‹ã¤ãƒ•ãƒ©ã‚°
+// ƒRƒ}ƒ“ƒh‚ª“ü—Í‚³‚ê‚½‚Æ‚«‚É—§‚Âƒtƒ‰ƒO
 static bool s_IsKonamiCodeEntered = false;
 
 //======================================================
@@ -63,16 +63,16 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext);		
 	//Score_Initialize(pDevice, pContext);
 
-	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// ã‚µã‚¦ãƒ³ãƒ‰ãƒ­ãƒ¼ãƒ‰
-	//PlayAudio(g_BgmID, true);		// å†ç”Ÿé–‹å§‹(ãƒ«ãƒ¼ãƒ—ã‚ã‚Š)
-	//PlayAudio(g_BgmID);			// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼‰
-	//PlayAudio(g_BgmID, false);	// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼‰
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// ƒTƒEƒ“ƒhƒ[ƒh
+	PlayAudio(g_BgmID, true);		// Ä¶ŠJniƒ‹[ƒv‚ ‚èj
+	//PlayAudio(g_BgmID);			// Ä¶ŠJniƒ‹[ƒv‚È‚µj
+	//PlayAudio(g_BgmID, false);	// Ä¶ŠJniƒ‹[ƒv‚È‚µj
 
 	XMFLOAT4 para;
 
-	para = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
+	para = XMFLOAT4(0.7f, 0.7f, 0.9999f, 1.0f);
 	Light.SetAmbient(para);
-	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);
+	para = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 	Light.SetDiffuse(para);
 	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);
 
@@ -96,24 +96,25 @@ void Game_Finalize()
 	Skill_Finalize();
 	Special_Finalize();
 	SkyBall_Finalize();
+	//Building_Finalize();
 
 	//BallFinalize();
 	//P_Finalize();
 	//Score_Finalize();
 
-	UnloadAudio(g_BgmID);	// ã‚µã‚¦ãƒ³ãƒ‰ã®è§£æ”¾
+	UnloadAudio(g_BgmID);
 	DamageText_Finalize();
 }
 
 //======================================================
-//	æ›´æ–°å‡¦ç†
+//	XVˆ—
 //======================================================
 void Game_Update()
 {
 	// ------------------------------------
 	// 
 	// ------------------------------------
-	// ã‚³ãƒãƒ³ãƒ‰ã§ä½¿ç”¨ã™ã‚‹å…¨ã¦ã®ã‚­ãƒ¼ã®æŠ¼ä¸‹ãƒˆãƒªã‚¬ãƒ¼ã‚’ãƒã‚§ãƒƒã‚¯ã—ã€æ¤œå‡ºé–¢æ•°ã«æ¸¡ã™
+	// ƒRƒ}ƒ“ƒh‚Åg—p‚·‚é‘S‚Ä‚ÌƒL[‚Ì‰Ÿ‰ºƒgƒŠƒK[‚ğƒ`ƒFƒbƒN‚µAŒŸoŠÖ”‚É“n‚·
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
 		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
@@ -127,7 +128,7 @@ void Game_Update()
 	Building_UpdateAll();
 	Effect_Update();
 
-	// å»ºç‰©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°ï¼ˆ1æ£Ÿãšã¤ï¼‰
+	// Œš•¨ƒGƒtƒFƒNƒgXVi1“‚¸‚Âj
 	int buildingCount = GetBuildingCount();
 	for (int i = 0; i < buildingCount; i++)
 	{
@@ -144,10 +145,10 @@ void Game_Update()
 	//Score_Update();
 	DamageText_Update();
 
-	//ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³ã¸é·ç§»
+	//ƒQ[ƒ€ƒV[ƒ“‚Ö‘JˆÚ
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-		// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã•ã›ã¦ã‚·ãƒ¼ãƒ³ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
+		// ƒtƒF[ƒhƒAƒEƒg‚³‚¹‚ÄƒV[ƒ“‚ğØ‚è‘Ö‚¦‚é
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_WIN);
 	}
@@ -170,7 +171,7 @@ void Game_Draw()
 
 	Field_Draw(s_IsKonamiCodeEntered);
 
-	// â˜… å»ºç‰©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ä¸€æ‹¬æç”»ï¼ˆ3Dç©ºé–“ï¼‰
+	// Œš•¨ƒGƒtƒFƒNƒg‚ÌˆêŠ‡•`‰æi3D‹óŠÔj
 	{
 		Shader_Begin();
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -187,9 +188,9 @@ void Game_Draw()
 	}
 	Player_Draw(s_IsKonamiCodeEntered);
 
-	//2Dæç”»
-	Light.SetEnable(FALSE);			// ãƒ©ã‚¤ãƒ†ã‚£ãƒ³ã‚°OFF
-	Shader_SetLight(Light.Light);	// ãƒ©ã‚¤ãƒˆæ§‹é€ ä½“ã‚’ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¸ã‚»ãƒƒãƒˆ
+	//2D•`‰æ
+	Light.SetEnable(FALSE);			// ƒ‰ƒCƒeƒBƒ“ƒOOFF
+	Shader_SetLight(Light.Light);	// ƒ‰ƒCƒg\‘¢‘Ì‚ğƒVƒF[ƒ_[‚ÖƒZƒbƒg
 	SetDepthTest(FALSE);
 
 	Effect_Draw();

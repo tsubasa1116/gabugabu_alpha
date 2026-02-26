@@ -1,76 +1,111 @@
 #pragma once
-
 #include <d3d11.h>
 #include <DirectXMath.h>
-#include "direct3d.h"
-#include "sprite.h"
 #include "shader.h"
 #include "collider.h"
-#include "Building.h"
+#include "model.h"
 
 using namespace DirectX;
 
 //=========================================
-// MAP構成ブロックの種類
+// 建物の種類
 //=========================================
-
-enum FIELD
-{
-	FIELD_BOX = 0,	// 箱
-	FIELD_BUILDING,	// 建物（Building）
-	FIELD_MAX
+enum class BuildingType {
+	None,		// 未設定
+	Glass,		// ガラス建物
+	Concrete,	// コンクリ建物
+	Plant,		// 植物建物
+	Electricity,// 電気建物
+	Max
 };
 
 //=========================================
-// MAPデータ構造体（1マス分）
+// 建物の状態（将来拡張用）
 //=========================================
-
-class Glass
+enum class BuildingPhase
 {
-public:
-	XMFLOAT3 pos;		// 座標
-	AABB boundingBox;	// 当たり判定
-	FIELD GL;
-
-	bool isActive = true;
-	// --- ここを追加！ ---
-	BuildingType type = BuildingType::Glass;
+	New,		// 新品
+	Damaged,	// 破損
+	Broken		// 破壊
 };
 
-class Concrete
+//=========================================
+// Building クラス
+//=========================================
+class Building
 {
-public:
-	XMFLOAT3 pos;		// 座標
-	AABB boundingBox;	// 当たり判定
-	FIELD Co;
+private:
+	// モデル＆テクスチャの番号
+	// （同じ番号で両方を管理）
+	int m_ModelIndex;
 
-	bool isActive = true;
-	// --- ここを追加！ ---
-	BuildingType type = BuildingType::Concrete;
+	// 種類・フェーズに応じて
+	// モデルとテクスチャを読み込む
+	//void LoadModelForPhase();
+
+public:
+
+	// トランスフォーム
+	XMFLOAT3 position;
+	XMFLOAT3 rotation;
+	XMFLOAT3 scaling;
+
+	// 種類・状態
+	BuildingType  type;
+	BuildingPhase Phase;
+
+	// 当たり判定（未使用）
+	AABB boundingBox;
+
+	// モデル
+	//MODEL* m_Model;
+
+	bool isActive;		// 有効フラグ
+	bool isDestroyed;	// 建物破壊フラグ
+
+	// プレイヤー接近時のテクスチャオフセット
+	int m_TexOffset;
+	bool m_IsPlayerNear;
+
+	float m_Alpha = 1.0f;      // 1.0（不透明）～ 0.0（完全に透明）
+	bool  m_IsFading = false;  // フェードアウト中かどうかのフラグ
+
+	//=================================
+	// コンストラクタ
+	//=================================
+	Building(BuildingType type, XMFLOAT3 pos, int modelIndex = 0);
+
+	// デストラクタ
+	~Building();
+
+	// 更新
+	void Update();
+
+	// 描画
+	void Draw(bool s_IsKonamiCodeEntered);
+
+	void Rebirth(); // 復活
+
+	// 状態変更
+	//void SetPhase(BuildingPhase phase);
+
+	// ゲッター
+	BuildingType  GetType()  const { return type; }
+	BuildingPhase GetPhase() const { return Phase; }
+
+	const AABB& GetAABB() const { return boundingBox; }
+
+	float m_RespawnTimer = { 10.0f };	// 復活までの秒数
+	float m_RebirthAnimTimer = 0.0f;
 };
 
-class Plant
-{
-public:
-	XMFLOAT3 pos;		// 座標
-	AABB boundingBox;	// 当たり判定
-	FIELD Pl;
+//=========================================
+// Building 管理用関数
+//=========================================
+void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+void Building_Finalize();
+void Building_DrawAll(bool s_IsKonamiCodeEntered);
+void Building_UpdateAll();
 
-	bool isActive = true;
-	// --- ここを追加！ ---
-	BuildingType type = BuildingType::Plant;
-};
-
-class ELECTRICITY
-{
-public:
-	XMFLOAT3 pos;		// 座標
-	AABB boundingBox;	// 当たり判定
-	FIELD El;
-	bool isActive = true;
-	// --- ここを追加！ ---
-	BuildingType type = BuildingType::Electricity;
-};
-
-
-
+int GetBuildingCount();
+Building** GetBuildings();

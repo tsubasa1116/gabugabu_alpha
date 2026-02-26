@@ -19,6 +19,8 @@
 #define SPECIAL_GLASSBOX_QUANTITY		(3)	// ガラス 1プレイヤーに飛ばす箱の数
 #define SPECIAL_ELECTRICITY_QUANTITY	(6)	// 電気 落雷の数
 
+#define SPECIAL_SE_COUNT				(3)	// スペシャル SEの数 ガラスを除く
+
 // ガラススペシャル ミサイルオブジェクト
 struct GLASS_BOX
 {
@@ -59,6 +61,7 @@ void Special_Glass_Update(int playerIndex);
 void Special_Concrete_Update(int playerIndex);
 void Special_Plant_Update(int playerIndex);
 void Special_Electricity_Update(int playerIndex);
+void Special_Electricity_Update2(int playerIndex);
 
 void Special_Glass_Draw(int playerIndex);
 void Special_Concrete_Draw(int playerIndex);
