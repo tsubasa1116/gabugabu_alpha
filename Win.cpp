@@ -128,6 +128,26 @@ void Win_Finalize()
 	SAFE_RELEASE(g_Texture4);
 	SAFE_RELEASE(g_Texture5);
 	SAFE_RELEASE(g_Texture6);
+	SAFE_RELEASE(g_WinTex);
+
+	// モデルの解放（モデル解放関数があればそちらを使用）
+	if (g_WinModel)
+	{
+		// プロジェクトのモデル解放関数に置き換えてください
+		// 例: UnloadModel(g_WinModel);
+		g_WinModel = nullptr;
+	}
+
+	// ポインタリセット（借りているだけなのでReleaseはしない）
+	g_pDevice = nullptr;
+	g_pContext = nullptr;
+
+	// アニメーション状態リセット
+	g_AnimFrame = ANIM_START;
+	g_AnimTimer = 0.0f;
+	g_SlideOffsetTop = 0.0f;
+	g_SlideOffsetBottom = 0.0f;
+
 }
 
 //======================================================

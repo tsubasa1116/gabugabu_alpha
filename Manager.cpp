@@ -142,8 +142,12 @@ void SetScene(SCENE scene)
 		Start_Finalize();
 		break;
 	case SCENE_SETTING:
+		Setting_Finalize();		// © ’Ç‰Á
+		g_InitSettingOnce = false;	// © Ä‰Šú‰»‚ğ‰Â”\‚É‚·‚é
 		break;
 	case SCENE_SOUND:
+		Sound_Finalize();		// © ’Ç‰Á
+		g_InitSoundOnce = false;	// © Ä‰Šú‰»‚ğ‰Â”\‚É‚·‚é
 		break;
 	case SCENE_GAME:
 		Game_Finalize();
