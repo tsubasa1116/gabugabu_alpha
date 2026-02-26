@@ -161,37 +161,21 @@ void Win_Update()
 		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
 	}
 
-	// スライドオフセット更新
+	// スライドオフセット更新（正規化しない。描画側で各自fmodfする）
 	g_SlideOffsetTop += SLIDE_SPEED;
 	g_SlideOffsetBottom -= SLIDE_SPEED;
 
-	// fmodfで常に0～width未満に正規化（負値も正しく扱う）
-	if (g_TexMeta2.width > 0) {
-		g_SlideOffsetTop = fmodf(g_SlideOffsetTop, (float)g_TexMeta2.width);
-		if (g_SlideOffsetTop < 0) g_SlideOffsetTop += (float)g_TexMeta2.width;
+	// オーバーフロー防止のみ（十分大きい値でリセット）
+	const float WRAP_LIMIT = 100000.0f;
+	if (g_SlideOffsetTop > WRAP_LIMIT) g_SlideOffsetTop -= WRAP_LIMIT;
+	if (g_SlideOffsetBottom < -WRAP_LIMIT) g_SlideOffsetBottom += WRAP_LIMIT;
 
-		g_SlideOffsetBottom = fmodf(g_SlideOffsetBottom, (float)g_TexMeta2.width);
-		if (g_SlideOffsetBottom < 0) g_SlideOffsetBottom += (float)g_TexMeta2.width;
-	}
-
-	static bool WinFrameInitialized = false;
-
-	//// アニメーションフレーム更新
-	//if (!WinFrameInitialized)
-	//{
-	//	g_AnimFrame = 8; // 8からスタート
-	//	WinFrameInitialized = true;
-	//}
-
-	g_AnimTimer += DELTA_TIME; // 60FPS前提
+	g_AnimTimer += DELTA_TIME;
 	if (g_AnimTimer >= ANIM_SPEED)
 	{
 		g_AnimTimer = 0.0f;
 		if (g_AnimFrame < ANIM_END)	g_AnimFrame++;
-		// g_AnimFrameがANIM_ENDになったら止まる（ループしない）
 	}
-
-	//else    WinFrameInitialized = false;
 }
 
 //======================================================
@@ -269,7 +253,6 @@ void Win_Draw()
 
 	if (g_Texture6)
 	{
-		
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture6); 
 		
 		int frame = g_AnimFrame; // 8～15
@@ -305,12 +288,13 @@ void DrawSlidingBanner(ID3D11ShaderResourceView* tex, float y, float offset, flo
 	// 画面幅取得
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 
-	// 最初の描画開始位置を計算
-	float startX = fmodf(offset, width);
-	if (startX > 0) startX -= width;
+	// この関数の繰り返し単位(width)で正規化
+	float normOffset = fmodf(offset, width);
+	// 開始位置を画面左端より手前に配置
+	float startX = normOffset - width;
 
 	// 画面全体をカバーするまで繰り返し描画
-	for (float x = startX; x < SCREEN_WIDTH; x += width)
+	for (float x = startX; x < SCREEN_WIDTH + width; x += width)
 	{
 		XMFLOAT2 pos = { x + width / 2, y };
 		DrawSprite(pos, size, col);
@@ -332,15 +316,15 @@ void DrawPlayerWinCrownBanner(
 
 	// 1セットの幅（PLAYER WIN + spacing + 王冠 + spacing）
 	float setWidth = widthPlayerWin + spacing + widthCrown + spacing;
-	float setHeight = max(heightPlayerWin, heightCrown);
 
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 
-	// オフセット正規化
-	float startX = fmodf(offset, setWidth);
-	if (startX > 0) startX -= setWidth;
+	// この関数の繰り返し単位(setWidth)で正規化
+	float normOffset = fmodf(offset, setWidth);
+	// 開始位置を画面左端より手前に配置
+	float startX = normOffset - setWidth;
 
-	for (float x = startX; x < SCREEN_WIDTH; x += setWidth)
+	for (float x = startX; x < SCREEN_WIDTH + setWidth; x += setWidth)
 	{
 		// PLAYER WIN
 		g_pContext->PSSetShaderResources(0, 1, &texPlayerWin);
