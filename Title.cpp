@@ -62,7 +62,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata2;
 		ScratchImage	image2;
-		LoadFromWICFile(L"asset\\texture\\uiStart_v2.png", WIC_FLAGS_NONE, &metadata2, image2);
+		LoadFromWICFile(L"asset\\texture\\TitleLogo_v2.png", WIC_FLAGS_NONE, &metadata2, image2);
 		CreateShaderResourceView(pDevice, image2.GetImages(), image2.GetImageCount(), metadata2, &g_Texture2);
 		assert(g_Texture2);//読み込み失敗時にダイアログを表示
 	}
