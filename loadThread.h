@@ -13,5 +13,5 @@ namespace Loader {
     // 全部のロードが終わったか確認する
     bool IsFinished();
 
-
+    void Reset();
 }

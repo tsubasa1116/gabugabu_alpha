@@ -116,6 +116,7 @@ static UINT idxdata[6]
 static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
 
 static std::atomic<int> g_loadedCount(0);                   // 何枚終わったか（進捗用）
+static bool      s_ShowImgui = true;
 
 //======================================================
 //	初期化関数
@@ -215,34 +216,22 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Loader::AddTask([pDevice]()
 	{
 		LoadTextureList(pDevice);
+
+	//// ===== GPU テクスチャ ウォームアップ =====
+	//{
+	//	const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
+	//	for (size_t i = 0; i < TEX_COUNT; ++i)
+	//	{
+	//		if (g_Texture[i] != nullptr)
+	//		{
+	//			g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
+	//			g_pContext->DrawIndexed(0, 0, 0);
+	//		}
+	//	}
+	//	ID3D11ShaderResourceView* nullSRV = nullptr;
+	//	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
+	//}
 		});
-
-//#ifdef _DEBUG_
-//	// テクスチャロード時間計測
-//	auto tex_start = std::chrono::high_resolution_clock::now();
-//	LoadTextureList(pDevice);
-//	auto tex_end = std::chrono::high_resolution_clock::now();
-//	auto tex_ms = std::chrono::duration_cast<std::chrono::milliseconds>(tex_end - tex_start).count();
-//	hal::dout << "テクスチャロード時間: " << tex_ms << " ms" << std::endl;
-//#else
-//	// テクスチャ読み込み
-//	LoadTextureList(pDevice);
-//#endif
-
-	// ===== GPU テクスチャ ウォームアップ =====
-	{
-		const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
-		for (size_t i = 0; i < TEX_COUNT; ++i)
-		{
-			if (g_Texture[i] != nullptr)
-			{
-				g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
-				g_pContext->DrawIndexed(0, 0, 0);
-			}
-		}
-		ID3D11ShaderResourceView* nullSRV = nullptr;
-		g_pContext->PSSetShaderResources(0, 1, &nullSRV);
-	}
 
 	// インデックスバッファ作成
 	{
@@ -476,80 +465,94 @@ void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 //======================================================
 void Player_Update()
 {
-	// デバッグ用 ImGui ウィンドウ
-	ImGui::Begin("Player Debug");
+
+	if (Keyboard_IsKeyDownTrigger(KK_TAB))
+	{
+		s_ShowImgui = !s_ShowImgui;
+	}
 
 	// 各プレイヤーに対応する発動キー
 	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V, KK_SPACE };
 
 	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_D7, KK_D8, KK_D9, KK_D0 };
 
-	for (int p = 0; p < PLAYER_MAX; ++p)
+	if (s_ShowImgui)
 	{
-		// プレイヤーごとに ID を分ける（同一ラベル衝突回避）
-		ImGui::PushID(p);
+		// デバッグ用 ImGui ウィンドウ
+		ImGui::Begin("Player Debug");
 
-		ImGui::Text("Player %d", p + 1);
-		ImGui::Indent();
-
-		ImGui::SliderFloat("poisonTimer", &player[p].poisonTimer, 0.0f, 5.0f);
-		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
-		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
-		ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
-		ImGui::BulletText("position.y        : %.2f", player[p].position.y);
-		ImGui::BulletText("isEggBreaking     : %d", player[p].isEggBreaking);
-		ImGui::BulletText("isShadowEnabled   : %d", player[p].isShadowEnabled);
-		ImGui::BulletText("isHealing         : %d", player[p].isHealing);
-		ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
-		ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
-		ImGui::BulletText("useSkill          : %d", player[p].useSkill);
-		ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
-		ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
-
-		if (ImGui::Button("hp -1"))			player[p].hp -= 0.1f;
-		if (ImGui::Button("gl +1"))			player[p].breakCount_Glass += 1;
-		else if (ImGui::Button("pl +1"))	player[p].breakCount_Plant += 1;
-		else if (ImGui::Button("co +1"))	player[p].breakCount_Concrete += 1;
-		else if (ImGui::Button("el +1"))	player[p].breakCount_Electricity += 1;
-
-		ImGui::SliderFloat("HP", &player[p].hp, 0.0f, 500.0f);
-		ImGui::SliderFloat("Outer", &player[p].evolutionGauge, 0.0f, 1.0f);
-		ImGui::BulletText("2 Concrete breaks : %d", player[p].breakCount_Concrete);
-		ImGui::BulletText("3 Plant breaks    : %d", player[p].breakCount_Plant);
-		ImGui::BulletText("4 Electricity breaks : %d", player[p].breakCount_Electricity);
-
-		// 履歴リストのサイズを表示
-		size_t historySize = player[p].brokenHistory.size();
-		ImGui::BulletText("brokenHistory Size : %zu", historySize);
-
-		if (historySize > 0)
+		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
-			ImGui::Indent(); // 履歴をさらに一段インデント
-			ImGui::Text("History (Latest -> Oldest):");
+			// プレイヤーごとに ID を分ける（同一ラベル衝突回避）
+			ImGui::PushID(p);
 
-			// 履歴を最新（末尾）から古い方へループして表示
-			for (int i = (int)historySize - 1; i >= 0; --i)
+			ImGui::Text("Player %d", p + 1);
+			ImGui::Indent();
+
+			ImGui::SliderFloat("poisonTimer", &player[p].poisonTimer, 0.0f, 5.0f);
+			ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
+			ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
+			ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
+			ImGui::BulletText("position.y        : %.2f", player[p].position.y);
+			ImGui::BulletText("isEggBreaking     : %d", player[p].isEggBreaking);
+			ImGui::BulletText("isShadowEnabled   : %d", player[p].isShadowEnabled);
+			ImGui::BulletText("isHealing         : %d", player[p].isHealing);
+			ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
+			ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
+			ImGui::BulletText("useSkill          : %d", player[p].useSkill);
+			ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
+			ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
+
+			if (ImGui::Button("hp -1"))			player[p].hp -= 0.1f;
+			if (ImGui::Button("gl +1"))			player[p].breakCount_Glass += 1;
+			else if (ImGui::Button("pl +1"))	player[p].breakCount_Plant += 1;
+			else if (ImGui::Button("co +1"))	player[p].breakCount_Concrete += 1;
+			else if (ImGui::Button("el +1"))	player[p].breakCount_Electricity += 1;
+
+			ImGui::SliderFloat("HP", &player[p].hp, 0.0f, 500.0f);
+			ImGui::SliderFloat("Outer", &player[p].evolutionGauge, 0.0f, 1.0f);
+			ImGui::BulletText("2 Concrete breaks : %d", player[p].breakCount_Concrete);
+			ImGui::BulletText("3 Plant breaks    : %d", player[p].breakCount_Plant);
+			ImGui::BulletText("4 Electricity breaks : %d", player[p].breakCount_Electricity);
+
+			// 履歴リストのサイズを表示
+			size_t historySize = player[p].brokenHistory.size();
+			ImGui::BulletText("brokenHistory Size : %zu", historySize);
+
+			if (historySize > 0)
 			{
-				// BuildingType は enum型（整数値）なので、そのまま %d で表示可能
-				// または、ImGui::Textで整形して表示する
+				ImGui::Indent(); // 履歴をさらに一段インデント
+				ImGui::Text("History (Latest -> Oldest):");
 
-				// 例1: 履歴のインデックスと値を直接表示
-				// ImGui::BulletText("[%d]: %d", p, (int)object[p].brokenHistory[p]);
+				// 履歴を最新（末尾）から古い方へループして表示
+				for (int i = (int)historySize - 1; i >= 0; --i)
+				{
+					// BuildingType は enum型（整数値）なので、そのまま %d で表示可能
+					// または、ImGui::Textで整形して表示する
 
-				// 例2: 履歴の値を横に並べて表示
-				ImGui::SameLine(); // 同じ行に表示
-				// 履歴の値（整数）を文字列に変換してから表示
-				ImGui::Text("%d", (int)player[p].brokenHistory[i]);
+					// 例1: 履歴のインデックスと値を直接表示
+					// ImGui::BulletText("[%d]: %d", p, (int)object[p].brokenHistory[p]);
+
+					// 例2: 履歴の値を横に並べて表示
+					ImGui::SameLine(); // 同じ行に表示
+					// 履歴の値（整数）を文字列に変換してから表示
+					ImGui::Text("%d", (int)player[p].brokenHistory[i]);
+				}
+
+				// 履歴が横に並びすぎないよう改行
+				ImGui::NewLine();
+				ImGui::Unindent();
 			}
 
-			// 履歴が横に並びすぎないよう改行
-			ImGui::NewLine();
 			ImGui::Unindent();
+			ImGui::Separator();
+			ImGui::PopID();
 		}
-
-		ImGui::Unindent();
-		ImGui::Separator();
-		ImGui::PopID();
+		ImGui::End();
+	}
+	
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
 
 		if (!player[p].active) continue;
 
@@ -809,10 +812,10 @@ void Player_Update()
 					if (g_Input[1].LStickY > 0.0f) { moveInput.y -= 1.0f; player[1].isMoving = true; }
 					if (g_Input[1].LStickX < 0.0f) { moveInput.x -= 1.0f; player[1].isMoving = true; }
 					if (g_Input[1].LStickX > 0.0f) { moveInput.x += 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_W)) { moveInput.y += 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S)) { moveInput.y -= 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A)) { moveInput.x -= 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D)) { moveInput.x += 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_UP)) { moveInput.y += 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_DOWN)) { moveInput.y -= 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_LEFT)) { moveInput.x -= 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_RIGHT)) { moveInput.x += 1.0f; player[1].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[1].isMoving = false;
 				}
 				else if (p == 2) // プレイヤー2 (TFGH) 攻撃 V
@@ -821,10 +824,10 @@ void Player_Update()
 					if (g_Input[2].LStickY > 0.0f) { moveInput.y -= 1.0f; player[2].isMoving = true; }
 					if (g_Input[2].LStickX < 0.0f) { moveInput.x -= 1.0f; player[2].isMoving = true; }
 					if (g_Input[2].LStickX > 0.0f) { moveInput.x += 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_W)) { moveInput.y += 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S)) { moveInput.y -= 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A)) { moveInput.x -= 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D)) { moveInput.x += 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_T)) { moveInput.y += 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_G)) { moveInput.y -= 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_F)) { moveInput.x -= 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_H)) { moveInput.x += 1.0f; player[2].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[2].isMoving = false;
 				}
 				if (p == 3) // プレイヤー3 (WASD) 攻撃 Space
@@ -833,10 +836,10 @@ void Player_Update()
 					if (g_Input[3].LStickY > 0.0f) { moveInput.y -= 1.0f; player[3].isMoving = true; }
 					if (g_Input[3].LStickX < 0.0f) { moveInput.x -= 1.0f; player[3].isMoving = true; }
 					if (g_Input[3].LStickX > 0.0f) { moveInput.x += 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_W)) { moveInput.y += 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S)) { moveInput.y -= 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A)) { moveInput.x -= 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D)) { moveInput.x += 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_NUMPAD8)) { moveInput.y += 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_NUMPAD5)) { moveInput.y -= 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_NUMPAD4)) { moveInput.x -= 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_NUMPAD6)) { moveInput.x += 1.0f; player[3].isMoving = true; }
 					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[3].isMoving = false;
 				}
 				player[p].moveInput2D = moveInput;
@@ -1425,7 +1428,6 @@ void Player_Update()
 
 	// プレイヤー同士の攻撃判定
 	AttackPlayerCollisions();
-	ImGui::End();
 }
 
 

@@ -1,7 +1,7 @@
 #include "loadThread.h"
 #include <thread>
 #include <objbase.h>
-#include <iostream> // デバッグ用
+#include <iostream>
 #include <string>
 
 namespace Loader {
@@ -21,7 +21,7 @@ namespace Loader {
     {
         g_isStarted = true;
         
-        // デバッグ: 開始時のタスク数を出力
+        // 開始時のタスク数を出力
         OutputDebugStringA(("ロード開始: タスク数 = " + std::to_string(g_tasks.size()) + "\n").c_str());
         
         if (g_tasks.empty()) 
@@ -60,4 +60,18 @@ namespace Loader {
     }
 
     bool IsFinished() { return g_isFinished; }
+    void Reset() 
+{
+        if (!g_isFinished)
+        {
+            // ロードが終わっていないならリセットしない
+            OutputDebugStringA("Loader::Reset(): ロード未完了;;リセットをスキップします\n");
+            return;
+        }
+
+        g_tasks.clear();
+        g_isFinished = false;
+        g_isStarted = false;
+        OutputDebugStringA("Loader::Reset(): リセット完了\n");
+    }
 }

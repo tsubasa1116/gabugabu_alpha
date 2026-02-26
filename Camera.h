@@ -13,6 +13,12 @@ enum CAMERAMODE
 	CAMERAMODE_AUTO,
 };
 
+enum FOLLOW_MODE 
+{
+	FOLLOW_SINGLE, 
+	FOLLOW_ALL
+};
+
 class CAMERA
 {
 public:
@@ -54,3 +60,5 @@ DirectX::XMFLOAT3 GetCameraPosition();
 void Camera_FocusOnPlayer(int playerIndex, float duration);
 void Camera_ReturnToNormal();
 bool Camera_IsInDeathFocus();
+
+CAMERA* GetCamera();

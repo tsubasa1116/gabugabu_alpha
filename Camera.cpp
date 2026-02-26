@@ -21,6 +21,7 @@ static bool     s_IsLerping = false;      // 目標と現在が十分に離れているか
 const float     SMOOTH_FACTOR = 0.5f;     // 1フレームあたりの進行率で、大きいほど速く追従する
 const float     FOV_SMOOTH_FACTOR = 0.15f;// fovの追従速度
 const float     TARGET_EPSILON = 0.001f;  // 目標到達判定の閾値(しきいち)
+static float     margin = 55.0f;
 
 // カメラシェイク用
 static bool     s_IsShaking = false;      // シェイク中かどうか
@@ -37,6 +38,16 @@ static XMFLOAT3 s_BeforeFocusPos;             // フォーカス前のカメラ位置
 static XMFLOAT3 s_BeforeFocusAt;              // フォーカス前の注視点
 static float    s_BeforeFocusFov;             // フォーカス前のfov
 static CAMERAMODE s_BeforeFocusMode;          // フォーカス前のカメラモード
+static int       s_TargetIndex = 0;           // フォーカスするプレイヤー
+static int       s_CenterTarget = 0;	      // 中心計算に使用するプレイヤーの数
+static bool      s_ShowImgui = true;          // Imgui表示フラグ
+static int       s_FollowMode = FOLLOW_ALL;   // フォローモード
+
+static bool      s_RotateEnabled = false;     // 周回有効フラグ
+static float     s_RotateRadius = 10.0f;      // 周回半径
+static float     s_RotateSpeed = 1.0f;        // 周回速度（ラジアン／秒）
+static float     s_RotateHeight = 13.3f;      // カメラ高さ
+static float     s_RotateAngle = 0.0f;
 
 CAMERAMODE cameraMode = CAMERAMODE_MANUAL;
 
@@ -330,7 +341,6 @@ void Camera_UpdateAuto()
 		return;
 	}
 
-
 	// すべてのプレイヤーの位置を平均して中心を計算
 	XMFLOAT3 center = { 0.0f, 0.0f, 0.0f };
 
@@ -342,32 +352,58 @@ void Camera_UpdateAuto()
 	int playerCount = 0;
 
 	// 全プレイヤーの位置を取得して中心と範囲を計算
-	for (int i = 0; i < 4; i++) 
+	for (int i = 0; i < s_CenterTarget; i++)
 	{
-		PLAYEROBJECT* player = GetPlayer(i);
-		if (!player) continue;
+		if (s_FollowMode == FOLLOW_SINGLE)
+		{
+			PLAYEROBJECT* player = GetPlayer(s_TargetIndex);
+			if (!player) continue;
 
-		// 死んだプレイヤーは中心計算の対象外にする
-		bool isDead = (!player->active && player->stock <= 0);
-		if (isDead) continue;
+			bool isDead = (!player->active && player->stock <= 0);
+			if (isDead) continue;
 
-		// プレイヤーの位置を中心に加算
-		center.x += player->position.x;
-		center.z += player->position.z;
+			center.x += player->position.x;
+			center.z += player->position.z;
 
-		// プレイヤーの位置の範囲を更新
-		if (player->position.x < minX) minX = player->position.x;
-		if (player->position.x > maxX) maxX = player->position.x;
-		if (player->position.z < minZ) minZ = player->position.z;
-		if (player->position.z > maxZ) maxZ = player->position.z;
-		playerCount++;
+			if (player->position.x < minX) minX = player->position.x;
+			if (player->position.x > maxX) maxX = player->position.x;
+			if (player->position.z < minZ) minZ = player->position.z;
+			if (player->position.z > maxZ) maxZ = player->position.z;
+			playerCount++;
+		}
+		else if (s_FollowMode == FOLLOW_ALL)
+		{
+			PLAYEROBJECT* player = GetPlayer(i);
+			if (!player) continue;
+
+			bool isDead = (!player->active && player->stock <= 0);
+			if (isDead) continue;
+
+			center.x += player->position.x;
+			center.z += player->position.z;
+
+			if (player->position.x < minX) minX = player->position.x;
+			if (player->position.x > maxX) maxX = player->position.x;
+			if (player->position.z < minZ) minZ = player->position.z;
+			if (player->position.z > maxZ) maxZ = player->position.z;
+			playerCount++;
+		}
 	}
 
 	// プレイヤーの平均位置を中心とする
-	if (playerCount > 0) 
+	if (playerCount > 0)
 	{
 		center.x /= (float)playerCount;
 		center.z /= (float)playerCount;
+	}
+	else
+	{
+		// s_CenterTarget が 0 のときはステージ中央（原点）を使う
+		XMFLOAT3 stageCenter = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		center = stageCenter;
+		minX = maxX = center.x;
+		minZ = maxZ = center.z;
+		playerCount = 1;
 	}
 
 	// カメラオフセットの初期値
@@ -375,49 +411,72 @@ void Camera_UpdateAuto()
 	static float camera_offset_y = 10.0f;
 	static float camera_offset_z = -10.0f;
 
+	if (Keyboard_IsKeyDownTrigger(KK_TAB))
+	{
+		s_ShowImgui = !s_ShowImgui;
+	}
+
 	//=================================================================
-	// ImGuiでカメラオフセットの調整UI
+	// ImGui
 	//=================================================================
-	ImGui::Begin("CameraOffset");
-	ImGui::SliderFloat("X", &camera_offset_x, -20.0f, 20.0f, "%.1f");
-	ImGui::SliderFloat("Y", &camera_offset_y,  0.0f,  30.0f, "%.1f");
-	ImGui::SliderFloat("Z", &camera_offset_z, -30.0f, 30.0f, "%.1f");
-
-	// リセットボタン
-	if (ImGui::Button("Reset"))
+	if (s_ShowImgui)
 	{
-		camera_offset_x = 0.0f;
-		camera_offset_y = 10.0f;
-		camera_offset_z = -10.0f;
-	}
+		ImGui::Begin("CameraDebug");
 
-	// プリセットボタン
-	if (ImGui::Button("Top"))
-	{
-		camera_offset_x = 0.0f;
-		camera_offset_y = 20.0f;
-		camera_offset_z = -0.001f;
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Side"))
-	{
-		camera_offset_x = 15.0f;
-		camera_offset_y = 5.0f;
-		camera_offset_z = 0.0f;
-	}
+		ImGui::Text("Follow Mode:");
+		ImGui::RadioButton("SingleCam", &s_FollowMode, FOLLOW_SINGLE);
+		ImGui::SameLine();
+		ImGui::RadioButton("CenterCam", &s_FollowMode, FOLLOW_ALL);
 
-	ImGui::End();
+		ImGui::SliderFloat("CamRange", &margin, 0.0f, 100.0f);
+
+		if (s_FollowMode == FOLLOW_SINGLE)
+			ImGui::SliderInt("pTarget", &s_TargetIndex, 0, PLAYER_MAX - 1);
+		if (s_FollowMode == FOLLOW_ALL)
+			ImGui::SliderInt("pCenter", &s_CenterTarget, 0, PLAYER_MAX);
+
+		// コントロール
+		ImGui::Separator();
+		ImGui::Text("RotateDebug");
+		ImGui::Checkbox("EnableRotate", &s_RotateEnabled);
+		ImGui::SliderFloat("RotateRadius", &s_RotateRadius, 1.0f, 200.0f);
+		ImGui::SliderFloat("RotateHeight", &s_RotateHeight, 0.0f, 80.0f);
+		ImGui::SliderFloat("RotateSpeed ", &s_RotateSpeed, -6.2831853f, 6.2831853f);
+
+		ImGui::End();
+	}
 	//=================================================================
 
 	// 注視点は中心（目標に設定する）
 	s_TargetAt = center;
 
-	// カメラの位置を調整（平行投影の立体感）
-	// 50度　(x,5 y,13.3 z,-10)
-	s_TargetPos = XMFLOAT3(center.x + 5.0f, center.y + 13.3f, center.z + -10.0f);
-	//s_TargetPos = XMFLOAT3(center.x + camera_offset_x, center.y + camera_offset_y, center.z + camera_offset_z);
+	// Rotateが有効なら角度を進めて位置を円運動に設定
+	if (s_RotateEnabled)
+	{
+		const float dt = 1.0f / 60.0f;
 
-	// 平行投影用の表示範囲計算
+		// 角度更新（速度はラジアン/秒）
+		s_RotateAngle += s_RotateSpeed * dt;
+
+		// 角度の巻き戻し
+		const float TWO_PI = 6.283185307179586f;
+		if (s_RotateAngle > TWO_PI)  s_RotateAngle -= TWO_PI;
+		if (s_RotateAngle < -TWO_PI) s_RotateAngle += TWO_PI;
+
+		// XZ咆哮で円を描く
+		float ox = cosf(s_RotateAngle) * s_RotateRadius;
+		float oz = sinf(s_RotateAngle) * s_RotateRadius;
+
+		// 高さ(center.y + s_OrbitHeight)
+		s_TargetPos = XMFLOAT3(center.x + ox, center.y + s_RotateHeight, center.z + oz);
+	}
+	else
+	{
+		// カメラの位置を調整（既存の固定オフセット）
+		s_TargetPos = XMFLOAT3(center.x + 5.0f, center.y + 13.3f, center.z + -10.0f);
+	}
+
+	// 平行投影用の表示範囲計算（カメラ幅は常に計算）
 	float spreadX = maxX - minX;
 	float spreadZ = maxZ - minZ;
 
@@ -425,11 +484,10 @@ void Camera_UpdateAuto()
 	float maxSpread = (spreadX > spreadZ) ? spreadX : spreadZ;
 
 	// 平行投影での表示幅を計算して、この値が画面の横方向の幅になる
-	float margin = 15.0f;
 	float targetWidth = maxSpread + margin;
 
 	// ズームの最小値
-	if (targetWidth < 12.0f) targetWidth = 12.0f;
+	if (targetWidth < 7.0f) targetWidth = 7.0f;
 
 	// fovを平行投影の幅として利用（目標に設定）
 	s_TargetFov = targetWidth;
@@ -437,7 +495,7 @@ void Camera_UpdateAuto()
 	// カメラシェイクの更新
 	if (s_IsShaking)
 	{
-		s_ShakeTimer += 1.0f / 60.0f; 
+		s_ShakeTimer += 1.0f / 60.0f;
 
 		if (s_ShakeTimer >= s_ShakeDuration)
 		{
@@ -542,6 +600,7 @@ void Camera_ReturnToNormal()
 
 	// 元の状態に戻す（通常のオートカメラ処理）
 	s_IsDeathFocus = false;
+
 	s_FocusPlayerIndex = -1;
 }
 
@@ -551,3 +610,7 @@ bool Camera_IsInDeathFocus()
 	return s_IsDeathFocus;
 }
 
+CAMERA* GetCamera()
+{
+	return &CameraObject;
+}

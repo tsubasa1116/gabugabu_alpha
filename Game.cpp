@@ -111,6 +111,7 @@ void Game_Finalize()
 	UnloadAudio(g_BgmID);	// サウンドの解放
 	DamageText_Finalize();
 	g_GameInitialized = false;
+	Loader::Reset();
 }
 
 //======================================================
@@ -166,6 +167,8 @@ void Game_Update()
 //======================================================
 void Game_Draw()
 {
+	Fade_Draw();
+
 	if (!Loader::IsFinished()) return;
 
 	Light.SetEnable(FALSE);

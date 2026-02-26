@@ -14,7 +14,7 @@
 #include "fade.h"
 #include "swipe.h"
 #include "shader.h"
-#include "LoadingScreen.h"  // 追加
+#include "LoadingScreen.h"
 
 //グローバル変数
 static SCENE g_Scene = SCENE_NONE;
@@ -25,12 +25,12 @@ void Manager_Initialize()
 {
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
-	LoadingScreen_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());  // 追加
+	LoadingScreen_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 
 #ifdef _DEBUG
 	//DEBUG:
-	SetScene(SCENE_GAME);
-	//SetScene(SCENE_TITLE);
+	//SetScene(SCENE_GAME);
+	SetScene(SCENE_TITLE);
 #else
 	SetScene(SCENE_TITLE);
 #endif
@@ -38,7 +38,7 @@ void Manager_Initialize()
 
 void Manager_Finalize()
 {
-	LoadingScreen_Finalize();  // 追加
+	LoadingScreen_Finalize();
 	Fade_Finalize();
 	Swipe_Finalize();
 	SetScene(SCENE_NONE);

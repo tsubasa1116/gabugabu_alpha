@@ -842,7 +842,7 @@ void Shader_SetDrawMode(int mode)
 	dm.pad[0] = dm.pad[1] = dm.pad[2] = 0.0f;
 	memcpy(mapped.pData, &dm, sizeof(dm));
 
-	g_pContext->Unmap(g_pColorBuffer, 0);
+	g_pContext->Unmap(g_pDrawModeBuffer, 0);
 
 	// register(b2)‚É‘—‚é
 	g_pContext->PSSetConstantBuffers(2, 1, &g_pDrawModeBuffer);

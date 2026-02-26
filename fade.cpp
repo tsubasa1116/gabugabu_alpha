@@ -77,7 +77,7 @@ void Fade_Draw()
 				g_Fade.state = FADE_STATE::FADE_NONE;
 				SetSceneWithLoading(g_Fade.scene, g_Fade.loadingVideo);
 				
-				// 重要: useLoadingフラグをリセット
+				// useLoadingフラグをリセット
 				g_Fade.useLoading = false;
 				g_Fade.loadingVideo = nullptr;
 			}

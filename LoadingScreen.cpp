@@ -287,7 +287,7 @@ void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath)
 
     if (!g_pLoadingScreen->Initialize(g_pDevice, g_pContext, videoPath))
     {
-        // 動画読み込み失敗の場合、通常のシーン遷移にフォールバック
+        // 動画読み込み失敗の場合は通常のシーン遷移にきりかえる
         delete g_pLoadingScreen;
         g_pLoadingScreen = nullptr;
         SetScene(nextScene);
@@ -300,7 +300,6 @@ void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath)
             switch (nextScene)
             {
             case SCENE_GAME:
-                // Direct3D_GetDevice()などは適切に書き換えてください
                 Game_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
                 break;
             case SCENE_TITLE:
