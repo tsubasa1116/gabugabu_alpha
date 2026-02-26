@@ -624,7 +624,7 @@ void Ready_Draw()
 		DrawSprite(pos, size, col);
 	}
 
-	// １Ｐ?４ＰＯＫ描画（ポップイン付き）
+	// １Ｐ～４ＰＯＫ描画（ポップイン付き）
 	for (int i = 0; i < 4; i++)
 	{
 		if (g_OKPopElapsed[i] < 0.0f || !okTextures[i]) continue;
