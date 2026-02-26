@@ -53,7 +53,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
-		LoadFromWICFile(L"asset\\texture\\uiStart_v2.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(L"asset\\texture\\uiStart_v3.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 		assert(g_Texture);//読み込み失敗時にダイアログを表示
 	}
@@ -62,7 +62,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata2;
 		ScratchImage	image2;
-		LoadFromWICFile(L"asset\\texture\\titleLogo_v2.png", WIC_FLAGS_NONE, &metadata2, image2);
+		LoadFromWICFile(L"asset\\texture\\titleLogo_v3.png", WIC_FLAGS_NONE, &metadata2, image2);
 		CreateShaderResourceView(pDevice, image2.GetImages(), image2.GetImageCount(), metadata2, &g_Texture2);
 		assert(g_Texture2);//読み込み失敗時にダイアログを表示
 	}
@@ -165,7 +165,7 @@ void Title_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 
 		XMFLOAT2 baseLogoSize = { SCREEN_WIDTH * 0.55f, SCREEN_HEIGHT * 0.55f };
-		XMFLOAT2 logoSize = { baseLogoSize.x * logoScale, baseLogoSize.y * logoScale };
+		XMFLOAT2 logoSize = { baseLogoSize.x * logoScale * 1.5f, baseLogoSize.y * logoScale * 2.0f };
 		XMFLOAT2 logoPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.4f };
 
 		// DrawSprite は中心位置基準を想定しているのでそのまま渡す
