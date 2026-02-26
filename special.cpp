@@ -1459,8 +1459,8 @@ void Special_Electricity_Update2(int playerIndex)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
-		g_animFrame[playerIndex] = 0;
-		g_animTimer[playerIndex] = 0.0f;
+		animFrame[playerIndex] = 0;
+		animTimer[playerIndex] = 0.0f;
 		initialized[playerIndex] = false;
 		// タイマーもリセット
 		for (int i = 0; i < PLAYER_MAX; i++) nextHitTimer[i] = 0.0f;
