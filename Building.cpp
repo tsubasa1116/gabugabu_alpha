@@ -36,9 +36,9 @@ static const wchar_t* g_TexturePaths[] =
 	L"Asset\\Texture\\美術館.png",						//5
 	L"Asset\\Texture\\美術館エフェクト.png",		   //6
 	L"Asset\\Texture\\こんくり三段.png",				 //7
-	L"Asset\\Texture\\こんくり三段エフェクト.png",		//8
+	L"Asset\\Texture\\textureConcreteSub01Highlight_v4.png",		//8
 	L"Asset\\Texture\\３個のコンクリ.png",				//9
-	L"Asset\\Texture\\３個のコンクリエフェクト.png",   //10
+	L"Asset\\Texture\\textureConcreteSub03Highlight_v4.png",   //10
 	L"Asset\\Texture\\４つのガラス.png",				 //11
 	L"Asset\\Texture\\４つのガラスエフェクト.png",		//12
 	L"Asset\\Texture\\信号.png",						 //13
@@ -114,32 +114,32 @@ static MODEL* g_pElectricModels[COUNT(g_ElectricModels)] = { nullptr };
 
 // --- モデルのコライダーサイズ --------------------------------------------------------------
 struct ModelBaseSize { float x, y, z; };
-
+  
 static ModelBaseSize g_GlassModelSizes[COUNT(g_GlassModels)] = {
-	{1.0f, 2.0f, 1.0f},		// 3birugarsuのサイズ
-	{0.8f, 1.5f, 0.8f},		// 2marugarasu
-	{0.8f, 1.5f, 0.8f}		// togegarasu2
+	{1.7f, 2.0f, 1.9f},		// 3birugarsuのサイズ
+	{2.8f, 1.5f, 2.8f},		// 2marugarasu
+	{1.1f, 1.5f, 1.1f}		// togegarasu2
 };
 
 static ModelBaseSize g_ConcreteModelSizes[COUNT(g_ConcreteModels)] = {
-	{1.5f, 3.0f, 1.5f},		// bizyutukan
-	{1.2f, 2.5f, 1.2f},		// biru3dannkonkuri
+	{3.7f, 3.0f, 2.0f},		// bizyutukan
+	{0.8f, 2.5f, 1.1f},		// biru3dannkonkuri
 	{1.5f, 3.5f, 1.5f}		// 3biltateconkuri
 };
 
 static ModelBaseSize g_PlantModelSizes[COUNT(g_PlantModels)] = {
-	{1.0f, 2.5f, 1.0f},		// kitoyugu
-	{1.5f, 3.0f, 1.5f},		// togoki
-	{1.2f, 2.8f, 1.2f},		// kitoie
-	{1.5f, 3.5f, 1.5f}		// propsTreeMain_v12
+	{1.6f, 2.5f, 1.6f},		// kitoyugu
+	{1.8f, 3.0f, 1.8f},		// togoki
+	{1.5f, 2.8f, 1.2f},		// kitoie
+	{2.3f, 3.5f, 2.3f}		// propsTreeMain_v12
 };
 
 static ModelBaseSize g_ElectricModelSizes[COUNT(g_ElectricModels)] = {
-	{1.0f, 2.0f, 1.0f},		// singou
+	{1.4f, 2.0f, 0.9f},		// singou
 	{1.5f, 3.0f, 1.5f},		// taw-
-	{1.2f, 2.5f, 1.2f},		// raibu
-	{1.5f, 3.5f, 1.5f},		// propsElectricitySub03_v9
-	{1.2f, 2.8f, 1.2f}		// propsElectricitySub02_v9
+	{3.9f, 2.5f, 1.6f},		// raibu
+	{1.0f, 3.5f, 1.1f},		// propsElectricitySub03_v9
+	{1.0f, 2.8f, 1.0f}		// propsElectricitySub02_v9
 };
 
 
