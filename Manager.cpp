@@ -15,9 +15,9 @@
 #include "fade.h"
 #include "swipe.h"
 #include "shader.h"
-#include "LoadingScreen.h"  // è¿½åŠ 
+#include "LoadingScreen.h"  // ’Ç‰Á
 
-//ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+//ƒOƒ[ƒoƒ‹•Ï”
 static SCENE g_Scene = SCENE_NONE;
 static bool g_InitSettingOnce = false;
 static bool g_InitSoundOnce = false;
@@ -26,7 +26,7 @@ void Manager_Initialize()
 {
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
-	LoadingScreen_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());  // è¿½åŠ 
+	LoadingScreen_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());  // ’Ç‰Á
 
 #ifdef _DEBUG
 	//DEBUG:
@@ -39,7 +39,7 @@ void Manager_Initialize()
 
 void Manager_Finalize()
 {
-	LoadingScreen_Finalize();  // è¿½åŠ 
+	LoadingScreen_Finalize();  // ’Ç‰Á
 	Fade_Finalize();
 	Swipe_Finalize();
 	SetScene(SCENE_NONE);
@@ -47,7 +47,7 @@ void Manager_Finalize()
 
 void Manager_Update()
 {
-	// ãƒ­ãƒ¼ãƒ‰ä¸­ã¯é€šå¸¸ã®ã‚·ãƒ¼ãƒ³æ›´æ–°ã‚’ã‚¹ã‚­ãƒƒãƒ—
+	// ƒ[ƒh’†‚Í’Êí‚ÌƒV[ƒ“XV‚ğƒXƒLƒbƒv
 	if (IsLoading())
 	{
 		LoadingScreen_Update();
@@ -92,7 +92,7 @@ void Manager_Update()
 
 void Manager_Draw()
 {
-	// ãƒ­ãƒ¼ãƒ‰ä¸­ã¯ãƒ­ãƒ¼ãƒ‰ç”»é¢ã®ã¿æç”»
+	// ƒ[ƒh’†‚Íƒ[ƒh‰æ–Ê‚Ì‚İ•`‰æ
 	if (IsLoading())
 	{
 		LoadingScreen_Draw();
@@ -137,7 +137,7 @@ void Manager_Draw()
 
 void SetScene(SCENE scene)
 {
-	// å®Ÿè¡Œä¸­ã®ã‚·ãƒ¼ãƒ³ã‚’çµ‚äº†ã™ã‚‹
+	// Às’†‚ÌƒV[ƒ“‚ğI—¹‚·‚é
 	switch (g_Scene)
 	{
 	case SCENE_NONE:
@@ -149,12 +149,12 @@ void SetScene(SCENE scene)
 		Start_Finalize();
 		break;
 	case SCENE_SETTING:
-		Setting_Finalize();		// â† è¿½åŠ 
-		g_InitSettingOnce = false;	// â† å†åˆæœŸåŒ–ã‚’å¯èƒ½ã«ã™ã‚‹
+		Setting_Finalize();		// © ’Ç‰Á
+		g_InitSettingOnce = false;	// © Ä‰Šú‰»‚ğ‰Â”\‚É‚·‚é
 		break;
 	case SCENE_SOUND:
-		Sound_Finalize();		// â† è¿½åŠ 
-		g_InitSoundOnce = false;	// â† å†åˆæœŸåŒ–ã‚’å¯èƒ½ã«ã™ã‚‹
+		Sound_Finalize();		// © ’Ç‰Á
+		g_InitSoundOnce = false;	// © Ä‰Šú‰»‚ğ‰Â”\‚É‚·‚é
 		break;
 	case SCENE_READY:
 		Ready_Finalize();
@@ -174,7 +174,7 @@ void SetScene(SCENE scene)
 
 	g_Scene = scene;
 
-	// æ¬¡ã®ã‚·ãƒ¼ãƒ³ã‚’åˆæœŸåŒ–ã™ã‚‹
+	// Ÿ‚ÌƒV[ƒ“‚ğ‰Šú‰»‚·‚é
 	switch (g_Scene)
 	{
 	case SCENE_NONE:
