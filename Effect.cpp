@@ -75,8 +75,8 @@ static int g_EffectTimer = 0;
 
 static bool g_EffectLoopFlag = false;
 
-static int   g_animFrame[PLAYER_MAX] = { 0 };
-static float g_animTimer[PLAYER_MAX] = { 0.0f };
+static int   animFrame[PLAYER_MAX] = { 0 };
+static float animTimer[PLAYER_MAX] = { 0.0f };
 static const float ANIM_FRAME_TIME = 0.16f;	// 1フレームあたりの秒数
 
 PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
@@ -165,7 +165,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(7, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// 第3形態 電気
 	// ゲーム内
 	Effect_LoadTexture(8, L"Asset\\Texture\\effectSkillGlassConcrete_v4.png");	// スキル ガラス・コンクリート 回復
-	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v2.png");			// スキル 植物
+	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v3.png");			// スキル 植物
 	Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// スキル 電気
 	Effect_LoadTexture(11, L"Asset\\Texture\\effectPoison_v3.png");				// 毒・Aボタン・プレイヤーの影
 	Effect_LoadTexture(12, L"Asset\\Texture\\effectHit01_v4.png");				// ヒット コンクリート 建物・プレイヤーを攻撃した時 スタン
@@ -222,8 +222,8 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// アニメーションの初期化
 	for (int i = 0; i < PLAYER_MAX; ++i)
 	{
-		g_animFrame[i] = 0;
-		g_animTimer[i] = 0.0f;
+		animFrame[i] = 0;
+		animTimer[i] = 0.0f;
 	}
 
 	// ===== GPU テクスチャ ウォームアップ =====
@@ -360,8 +360,6 @@ void Effect_Draw()
 	}
 }
 
-
-
 // ===============================================
 // プレイヤー付近に表示するエフェクト更新関数
 // ===============================================
@@ -432,6 +430,9 @@ void Effect_UpdateForPlayer(int playerIndex)
 		int skillEnd = 0;
 		bool useLoopRange = false;
 
+		// 再生間隔（デフォルトは ANIM_FRAME_TIME。植物のみ高速化）
+		float skillFrameInterval = ANIM_FRAME_TIME;
+
 		switch (player.type)
 		{
 		case PlayerType::Glass:
@@ -453,22 +454,33 @@ void Effect_UpdateForPlayer(int playerIndex)
 			}
 			break;
 		case PlayerType::Plant:
-			useLoopRange = true;
+			useLoopRange = false;
 			skillStart = 0;
-			skillEnd = 54;
+			skillEnd = 59;
+			skillFrameInterval = 0.1f;   // フレーム間隔を短くして高速再生
+			if (!skillFrameInitialized[playerIndex])
+			{
+				g_PlayerEffectAnim[playerIndex].skillFrame = skillStart;
+				skillFrameInitialized[playerIndex] = true;
+			}
 			break;
 		case PlayerType::Electricity:
+			// 電気は従来どおりループ範囲で再生
 			useLoopRange = true;
 			skillStart = 0;
 			skillEnd = 62;
+			// electricity は初期化を行わない既存の挙動を維持
 			break;
 		default:
 			break;
 		}
-		if (player.type != PlayerType::Glass && player.type != PlayerType::Concrete)	skillFrameInitialized[playerIndex] = false;
+
+		// Glass / Concrete / Plant は個別初期化を保持するためここでの一括リセットを避ける
+		if (player.type != PlayerType::Glass && player.type != PlayerType::Concrete && player.type != PlayerType::Plant)
+			skillFrameInitialized[playerIndex] = false;
 
 		g_PlayerEffectAnim[playerIndex].skillTimer += DELTA_TIME;
-		if (g_PlayerEffectAnim[playerIndex].skillTimer >= ANIM_FRAME_TIME)
+		if (g_PlayerEffectAnim[playerIndex].skillTimer >= skillFrameInterval)
 		{
 			g_PlayerEffectAnim[playerIndex].skillTimer = 0.0f;
 			if (useLoopRange)	LoopRange(g_PlayerEffectAnim[playerIndex].skillFrame, skillStart, skillEnd, 1);
@@ -705,7 +717,6 @@ void Effect_UpdateForPlayer(int playerIndex)
 	}
 }
 
-
 //===============================================
 // エフェクトセット
 //===============================================
@@ -826,7 +837,7 @@ void Effect_ClearUI(int pIndex)
 			{  170.0f * screenX, screenY },	// プレイヤー1
 			{  490.0f * screenX, screenY },	// プレイヤー2
 			{  810.0f * screenX, screenY },	// プレイヤー3
-			{ 1130.0f * screenX, screenY }		// プレイヤー4
+			{ 1130.0f * screenX, screenY }	// プレイヤー4
 	};
 
 	if (pIndex < 0 || pIndex >= 4) return;
@@ -895,7 +906,7 @@ void EffectFront_DrawForPlayer(int playerIndex)
 	Vertex2 localV[PLAYER_VERTEX];
 	CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
 
-	int frame = g_animFrame[playerIndex];
+	int frame = animFrame[playerIndex];
 	int col = frame % EFFECT_SPRITE_X;
 	int row = frame / EFFECT_SPRITE_X;
 	float u0 = (float)col / (float)EFFECT_SPRITE_X;
@@ -947,9 +958,9 @@ void EffectFront_DrawForPlayer(int playerIndex)
 			XMFLOAT3 ofs(0, 0, 0);
 			switch (player.type)
 			{
-			case PlayerType::Glass:			texNo = 8;	scale = 1.0f; ofs = XMFLOAT3(0, 0, 0); break;
-			case PlayerType::Concrete:		texNo = 8;	scale = 1.0f; ofs = XMFLOAT3(0, 0, 0); break;
-			case PlayerType::Plant:			texNo = 9;	scale = 1.0f; ofs = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Glass:			texNo = 8;	scale = 1.5f; ofs = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Concrete:		texNo = 8;	scale = 1.5f; ofs = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Plant:			texNo = 9;	scale = 1.5f; ofs = XMFLOAT3(0, 0, 0); break;
 			case PlayerType::Electricity:	texNo = 10;	scale = 1.5f; ofs = XMFLOAT3(0, 0, 0); break;
 			default: break;
 			}

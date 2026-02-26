@@ -41,8 +41,8 @@ static PLANT_CIRCLE g_PlantCircle[PLAYER_MAX];
 #define SPECIAL_VERTEX (24)
 
 // スペシャル アニメーション用変数
-static int   g_animFrame[PLAYER_MAX];
-static float g_animTimer[PLAYER_MAX];
+static int   animFrame[PLAYER_MAX];
+static float animTimer[PLAYER_MAX];
 static const float ANIM_FRAME_TIME = 0.15f;	// 1フレームあたりの秒数
 static const int   SHEET_COLS = 8;
 static const int   SHEET_ROWS = 8;
@@ -377,8 +377,12 @@ void Special_Glass_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
+	if (player.specialTimer == 0.0f)	player.specialAnimation = true;
+
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
+
+	if (player.specialTimer >= 1.0f)	player.specialAnimation = false;
 
 	// スペシャルの初期化処理
 	static bool initialized[PLAYER_MAX] = { false }; // 各プレイヤーごとに初期化フラグを持つ
@@ -397,6 +401,9 @@ void Special_Glass_Update(int playerIndex)
 
 			// リスポーン中のプレイヤーには箱を飛ばさない
 			if (otherPlayer.duringRespawn) continue;
+
+			// リスポーン中や卵割れ中はダメージを受けないよう無視する
+			if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
 
 			// 他のプレイヤーの周りに3つの箱を生成
 			XMFLOAT3 offsets[SPECIAL_GLASSBOX_QUANTITY];
@@ -456,7 +463,7 @@ void Special_Glass_Update(int playerIndex)
 			if (box.position.y < player.position.y + 6.0f)
 			{
 				// ① プレイヤーの位置からY座標+6まで上昇
-				box.position.y += DELTA_TIME * 5.0f; // 上昇速度
+				box.position.y += DELTA_TIME * 6.0f; // 上昇速度
 				if (box.position.y >= player.position.y + 6.0f)	box.position.y = player.position.y + 6.0f;
 			}
 			else missileRain[playerIndex] = true; // 上昇完了後にフラグを立てる
@@ -471,7 +478,7 @@ void Special_Glass_Update(int playerIndex)
 				XMVECTOR direction = XMVector3Normalize(targetPos - currentPos);
 
 				// 移動速度を設定
-				const float speed = DELTA_TIME * 5.0f;
+				const float speed = DELTA_TIME * 6.0f;
 				XMVECTOR movement = direction * speed;
 
 				// 新しい位置を計算
@@ -486,7 +493,7 @@ void Special_Glass_Update(int playerIndex)
 			else if (box.position.y > box.targetPosition.y)
 			{
 				// ③ targetPositionまで降下
-				box.position.y -= DELTA_TIME * 5.0f;	// 降下速度
+				box.position.y -= DELTA_TIME * 6.0f;	// 降下速度
 				if (box.position.y <= box.targetPosition.y)
 				{
 					box.position.y = box.targetPosition.y;	// 降下完了
@@ -511,6 +518,8 @@ void Special_Glass_Update(int playerIndex)
 						PLAYEROBJECT& otherPlayer = *otherPlayerObject;
 
 						if (otherPlayer.isInvincible) continue; // 無敵中は無視
+						// リスポーン中や卵割れ中はダメージを受けないよう無視する
+						if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
 
 						// 箱とプレイヤーの衝突判定
 						if (CheckCircleAABBCollision(boxCollider, otherPlayer.boundingBox))
@@ -548,8 +557,8 @@ void Special_Glass_Update(int playerIndex)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
-		g_animFrame[playerIndex] = 0;		// アニメーションリセット
-		g_animTimer[playerIndex] = 0.0f;
+		animFrame[playerIndex] = 0;		// アニメーションリセット
+		animTimer[playerIndex] = 0.0f;
 		initialized[playerIndex] = false;	// 次回のスペシャル使用時に再初期化するため
 		missileRain[playerIndex] = false;	// フラグをリセット
 		player.form = Form::First;			// 変身形態を第1形態に戻す
@@ -570,34 +579,68 @@ void Special_Concrete_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
+	// コンクリート専用アニメーション用タイマー（プレイヤー毎）
+	static float concreteAnimAcc[PLAYER_MAX] = { 0.0f };
+	// 空中での時間ベース切替用タイマー（プレイヤー毎）
+	static float concreteAirTimer[PLAYER_MAX] = { 0.0f };
+	static bool  concreteWasInAir[PLAYER_MAX] = { false };
+	// 空中で「4フレームを再生済みか（5へ移行済みか）」を保持
+	static bool  concreteAirPlayed5[PLAYER_MAX] = { false };
+
+	const float AIR_EPS = 0.05f;               // 空中判定の閾値
+	const float TOGGLE_TIME = ANIM_FRAME_TIME; // フレーム切替周期（地上／着地用）
+	const float AIR_SHOW4_DURATION = 0.25f;    // 空中でまず4フレームを表示する秒数（この後1回だけ5に移行）
+
 	// スペシャルの初期位置をプレイヤーの位置に設定
 	if (player.specialTimer == 0.0f)
 	{
 		player.oldPosition = player.position;
 		g_concreteRangeFinished[playerIndex] = false;
+		player.specialAnimation = true;
+
+		// アニメーション初期化（地上 0～3 から開始）
+		animFrame[playerIndex] = 0;
+		animTimer[playerIndex] = 0.0f;
+		concreteAnimAcc[playerIndex] = 0.0f;
+		concreteAirTimer[playerIndex] = 0.0f;
+		concreteWasInAir[playerIndex] = false;
+		concreteAirPlayed5[playerIndex] = false;
+
+		// もし PLAYEROBJECT に animFrame があるなら同期する
+		player.animFrame = 0;
+		player.animTimer = 0.0f;
 	}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
 
-	// ジャンプ処理
-	if (player.specialTimer <= 0.75f)
+	// --- ジャンプ処理 ---
+	if (player.specialTimer >= 0.25f && player.specialTimer <= 0.75f)
 	{
-		player.position.y = player.oldPosition.y + 3.0f * player.specialTimer / 0.75f; // 線形補間でY座標を上げる
+		// 上昇
+		player.position.y = player.oldPosition.y + 3.0f * player.specialTimer / 0.75f;
 	}
 	else if (player.specialTimer > 0.75f && player.specialTimer <= 1.5f)
 	{
-		// 着地処理
-		player.position.y = player.oldPosition.y + (3.0f * (1.0f - (player.specialTimer - 0.75f) / 0.15f)); // 線形補間でY座標を上げる
-		if (player.position.y <= player.oldPosition.y)	player.position.y = player.oldPosition.y;
+		// 降下（着地へ）
+		player.position.y = player.oldPosition.y + (3.0f * (1.0f - (player.specialTimer - 0.75f) / 0.15f));
+		if (player.position.y <= player.oldPosition.y) player.position.y = player.oldPosition.y;
 
-		// ダメージ処理（1回だけ実行）
-		if (player.specialTimer - DELTA_TIME < 0.75f) // 0.75秒を超えた瞬間に実行
+		// 着地した瞬間の処理（ダメージ判定等）
+		if (player.specialTimer - DELTA_TIME < 0.75f)
 		{
 			g_concreteRangeFinished[playerIndex] = true;
 
+			// 着地時アニメーションを着地フレームへ切り替え
+			animFrame[playerIndex] = 6;
+			player.animFrame = 6;
+			concreteAnimAcc[playerIndex] = 0.0f;
+			concreteAirTimer[playerIndex] = 0.0f;
+			concreteWasInAir[playerIndex] = false;
+			concreteAirPlayed5[playerIndex] = false;
+
 			// 着地したらSE再生
-			if(g_concreteRangeFinished[playerIndex])	PlayAudio(g_SE_ID[1], false);
+			PlayAudio(g_SE_ID[0], false);
 
 			const float radius = 5.0f;
 			Circle circle = { player.position, radius }; // 円の中心と半径を設定
@@ -617,6 +660,9 @@ void Special_Concrete_Update(int playerIndex)
 
 				if (otherPlayer.isInvincible) continue; // 無敵中は無視
 
+				// リスポーン中や卵割れ中はダメージを受けないよう無視する
+				if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
+
 				// 円とAABBの衝突判定
 				if (CheckCircleAABBCollision(circle, otherPlayer.boundingBox))
 				{
@@ -632,34 +678,117 @@ void Special_Concrete_Update(int playerIndex)
 					hitPos.y += otherPlayer.scaling.y + 0.3f;
 					SetDamageText(hitPos, dmgInt, TextColor::Red);
 
-					// HPが0以下にならないように
 					if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
-
-					otherPlayer.isAttacked = true; // 攻撃を受けたフラグを立てる
+					otherPlayer.isAttacked = true;
 				}
 			}
 		}
 	}
+
+	// --- ここから：ジャンプ処理の間に（および着地後）アニメーションを更新 ---
+	{
+		// 判定フラグ
+		bool landed = g_concreteRangeFinished[playerIndex];
+		bool inAir = false;
+		if (!landed && player.specialTimer > 0.0f)
+		{
+			inAir = (player.position.y > player.oldPosition.y + AIR_EPS);
+		}
+		bool onGround = (!inAir && !landed);
+
+		// タイマー更新
+		concreteAnimAcc[playerIndex] += DELTA_TIME;
+
+		// 空中時間タイマー管理（時間ベースで切替える）
+		if (inAir)
+		{
+			if (!concreteWasInAir[playerIndex])
+			{
+				// 空中に入った瞬間にリセットしてまず4を表示する
+				concreteAirTimer[playerIndex] = 0.0f;
+				concreteWasInAir[playerIndex] = true;
+				concreteAirPlayed5[playerIndex] = false;
+				animFrame[playerIndex] = 4;
+				player.animFrame = 4;
+			}
+			else
+			{
+				concreteAirTimer[playerIndex] += DELTA_TIME;
+
+				// 4をAIR_SHOW4_DURATION秒表示したら一度だけ5へ遷移（以降は5のまま）
+				if (!concreteAirPlayed5[playerIndex] && concreteAirTimer[playerIndex] >= AIR_SHOW4_DURATION)
+				{
+					concreteAirPlayed5[playerIndex] = true;
+					animFrame[playerIndex] = 5;
+					player.animFrame = 5;
+				}
+				// まだ時間経過前は4を維持（既に設定済み）
+			}
+		}
+		else
+		{
+			// 空中でないときは空中フラグリセット（着地時は着地処理側で6/7にする）
+			concreteWasInAir[playerIndex] = false;
+			concreteAirTimer[playerIndex] = 0.0f;
+			concreteAirPlayed5[playerIndex] = false;
+		}
+
+		if (landed)
+		{
+			// 着地後はフレーム 6 と 7 を交互に表示（時間ベースではなく従来のTOGGLE_TIMEで良ければそのまま）
+			if (concreteAnimAcc[playerIndex] >= TOGGLE_TIME)
+			{
+				concreteAnimAcc[playerIndex] -= TOGGLE_TIME;
+				int frame = (animFrame[playerIndex] < 6 || animFrame[playerIndex] > 7) ? 6 : ((animFrame[playerIndex] == 6) ? 7 : 6);
+				animFrame[playerIndex] = frame;
+				player.animFrame = frame;
+			}
+		}
+		else if (onGround)
+		{
+			// 地上はフレーム 0～3 をループ
+			if (concreteAnimAcc[playerIndex] >= TOGGLE_TIME)
+			{
+				concreteAnimAcc[playerIndex] -= TOGGLE_TIME;
+				int frame = (animFrame[playerIndex] < 0 || animFrame[playerIndex] > 3) ? 0 : ((animFrame[playerIndex] + 1) % 4);
+				animFrame[playerIndex] = frame;
+				player.animFrame = frame;
+			}
+		}
+		// inAir は上で時間ベース制御済み（ループなし）
+	}
+	// --- アニメーション更新ここまで ---
 
 	// スペシャルの効果時間が経過したらスペシャル終了
 	if (player.specialTimer >= SPECIAL_CONCRETE_TIME)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
-		g_animFrame[playerIndex] = 0;
-		g_animTimer[playerIndex] = 0.0f;
+		animFrame[playerIndex] = 0;
+		animTimer[playerIndex] = 0.0f;
+		player.animFrame = 0;
+		player.animTimer = 0.0f;
 		player.form = Form::First;
 		player.type = PlayerType::None;
 		player.defense = 1.0f;
 		player.useSkill = false;
 		player.useSpecial = false;
+		// 明示的にスペシャルアニメーションも停止させる
+		player.specialAnimation = false;
+
 		Effect_Clear(playerIndex);
 		player.isTypeFixed = false;
 
-		// 範囲表示終了フラグを立てる
+		// 範囲表示終了フラグを立てる（必要なら残す）
 		g_concreteRangeFinished[playerIndex] = true;
 		g_concreteFrame[playerIndex] = 0;
 		g_concreteTimer[playerIndex] = 0.0f;
+
+		// アニメーション用タイマーもリセット
+		concreteAnimAcc[playerIndex] = 0.0f;
+		concreteAirTimer[playerIndex] = 0.0f;
+		concreteWasInAir[playerIndex] = false;
+		concreteAirPlayed5[playerIndex] = false;
 	}
 }
 
@@ -672,8 +801,12 @@ void Special_Plant_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
+	if (player.specialTimer == 0.0f)	player.specialAnimation = true;
+
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
+
+	if (player.specialTimer >= 1.0f)	player.specialAnimation = false;
 
 	// 半径2.5fの円形当たり判定を作成
 	g_PlantCircle[playerIndex].radius = 2.5f;
@@ -682,7 +815,7 @@ void Special_Plant_Update(int playerIndex)
 	if (!g_plantInitialized[playerIndex])
 	{
 		// SE再生
-		PlayAudio(g_SE_ID[2], false);
+		PlayAudio(g_SE_ID[1], false);
 
 		Effect_Set(22, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
 		g_plantInitialized[playerIndex] = true;
@@ -697,6 +830,9 @@ void Special_Plant_Update(int playerIndex)
 		PLAYEROBJECT& otherPlayer = *otherPlayerObject;
 
 		if (otherPlayer.isInvincible) continue; // 無敵中は無視
+
+		// リスポーン中や卵割れ中はダメージを受けないよう無視する
+		if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
 
 		// 円とAABBの衝突判定
 		if (CheckCircleAABBCollision(circle, otherPlayer.boundingBox))
@@ -717,8 +853,8 @@ void Special_Plant_Update(int playerIndex)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
-		g_animFrame[playerIndex] = 0;
-		g_animTimer[playerIndex] = 0.0f;
+		animFrame[playerIndex] = 0;
+		animTimer[playerIndex] = 0.0f;
 		player.form = Form::First;									// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;								// タイプをリセット
 		player.evolutionGaugeRate = PLAYER_EVOLUTION_GAUGE_RATE;	// スキルの進化ゲージバフもリセット
@@ -740,13 +876,16 @@ void Special_Electricity_Update(int playerIndex)
 	PLAYEROBJECT& player = *playerObject;
 
 	// スペシャル発動の最初のフレームだけSEを再生
-	if (player.specialTimer == 0.0f)
-	{
-		PlayAudio(g_SE_ID[3], false);
+	if (player.specialTimer == 0.0f) 
+	{ 
+		PlayAudio(g_SE_ID[2], false);
+		player.specialAnimation = true;
 	}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
+
+	if (player.specialTimer >= 1.0f)	player.specialAnimation = false;
 
 	// スペシャルの初期化処理
 	static bool initialized[PLAYER_MAX] = { false };
@@ -814,8 +953,8 @@ void Special_Electricity_Update(int playerIndex)
 	{
 		player.useSpecial = false;
 		player.specialTimer = 0.0f;
-		g_animFrame[playerIndex] = 0;		// アニメーションリセット
-		g_animTimer[playerIndex] = 0.0f;
+		animFrame[playerIndex] = 0;		// アニメーションリセット
+		animTimer[playerIndex] = 0.0f;
 		initialized[playerIndex] = false;	// 次回のスペシャル使用時に再初期化するため
 		player.form = Form::First;			// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;		// タイプをリセット
@@ -836,15 +975,36 @@ void Special_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	// スペシャル使用中かつスタン中でない場合に更新処理
+	// ----- 変更点: コンクリート衝撃波アニメーションは
+	//         スペシャル使用中に限らず再生させる -----
+	// 範囲表示フェーズが完了している（着地済み）なら、専用タイマーで g_concreteFrame を進める
+	if (g_concreteRangeFinished[playerIndex] && player.type == PlayerType::Concrete)
+	{
+		g_concreteTimer[playerIndex] += DELTA_TIME;
+		if (g_concreteTimer[playerIndex] >= CONCRETE_ANIM_FRAME_TIME)
+		{
+			g_concreteTimer[playerIndex] -= CONCRETE_ANIM_FRAME_TIME;
+			g_concreteFrame[playerIndex]++;
+			if (g_concreteFrame[playerIndex] >= CONCRETE_FRAME_MAX) g_concreteFrame[playerIndex] = CONCRETE_FRAME_MAX - 1;
+		}
+	}
+	else
+	{
+		// 範囲表示未開始／終了時はフレームをリセット（タイマーもリセット）
+		g_concreteFrame[playerIndex] = 0;
+		g_concreteTimer[playerIndex] = 0.0f;
+	}
+	// ----- 変更点ここまで -----
+
+	// スペシャル使用中かつスタン中でない場合に更新処理を行う
 	if (player.useSpecial && !player.isStunning)
 	{
 		// スペシャル範囲アニメーション
-		g_animTimer[playerIndex] += DELTA_TIME;
-		if (g_animTimer[playerIndex] >= ANIM_FRAME_TIME)
+		animTimer[playerIndex] += DELTA_TIME;
+		if (animTimer[playerIndex] >= ANIM_FRAME_TIME)
 		{
-			g_animTimer[playerIndex] -= ANIM_FRAME_TIME;
-			g_animFrame[playerIndex] = (g_animFrame[playerIndex] + 1) % 30;
+			animTimer[playerIndex] -= ANIM_FRAME_TIME;
+			animFrame[playerIndex] = (animFrame[playerIndex] + 1) % 30;
 		}
 
 		// 雷エフェクト専用アニメーション
@@ -1086,9 +1246,9 @@ void Special_Electricity_Draw(int playerIndex)
 	{
 		XMFLOAT3 target = player.electricityCircles[i].center;
 
-		// --- 範囲円（+Y面）のUVを6x6分割で書き換え ---
+		// 範囲円（+Y面）
 		{
-			int frame = g_animFrame[playerIndex];
+			int frame = animFrame[playerIndex];
 			int col = frame % SHEET_COLS;
 			int row = frame / SHEET_COLS;
 			float u0 = (float)col / (float)SHEET_COLS;
@@ -1237,7 +1397,7 @@ void Special_Draw(int playerIndex)
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
 	// スプライトシートのUV座標を計算
-	int frame = g_animFrame[playerIndex];
+	int frame = animFrame[playerIndex];
 	int col = frame % SHEET_COLS;
 	int row = frame / SHEET_COLS;
 	float u0 = (float)col / (float)SHEET_COLS;

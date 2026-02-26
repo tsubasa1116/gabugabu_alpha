@@ -728,6 +728,10 @@ void AttackPlayerCollisions()
 			PLAYEROBJECT& defender = *defenderObject;
 
 			if (!defender.active) continue;
+
+			// リスポーン中や卵割れ中はダメージを受けないよう無視する
+			if (defender.duringRespawn || defender.isEggBreaking) continue;
+
 			// 被弾中や無敵ならスキップ
 			if (defender.isInvincible) continue;
 
