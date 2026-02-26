@@ -44,10 +44,10 @@ static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
-	L"Asset\\Texture\\texturefieldTree01_v2.png",  // 0
-	L"Asset\\Texture\\murasaki.png",  // 1
+	L"Asset\\Texture\\neo_dark_green_2.png",  // 0
+	L"Asset\\Texture\\neo_green_3.png",  // 1
 	L"Asset\\Texture\\texturefieldTree01_v1.png",
-	L"Asset\\Texture\\texturefieldConcrete02_v4.png",
+	L"Asset\\Texture\\neo_gray_2.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
 
@@ -519,11 +519,8 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 
 		// ------------------------------
 		// 地面モデル描画
-		// ------------------------------
-		if (!s_IsKonamiCodeEntered || input2)
-		{
-			ModelDraw(Test);
-		}
+		// ------------------------------	
+		ModelDraw(Test);
 
 		//// テクスチャをパイプラインから解除
 		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };

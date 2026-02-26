@@ -8,6 +8,7 @@
 #include "debug_ostream.h"     // ← 追加: hal::dout を使うため
 #include <codecvt>            // ← 追加: ワイド→UTF-8 変換用
 #include <locale>
+#include "debug_render.h"
 
 
 //=========================================
@@ -111,7 +112,7 @@ static MODEL* g_pConcreteModels		[COUNT(g_ConcreteModels)]	= { nullptr };
 static MODEL* g_pPlantModels		[COUNT(g_PlantModels)]		= { nullptr };
 static MODEL* g_pElectricModels		[COUNT(g_ElectricModels)]	= { nullptr };
 
-
+// --- モデルのコライダーサイズ --------------------------------------------------------------
 struct ModelBaseSize { float x, y, z; };
 
 static ModelBaseSize g_GlassModelSizes[COUNT(g_GlassModels)] = {
@@ -141,6 +142,37 @@ static ModelBaseSize g_ElectricModelSizes[COUNT(g_ElectricModels)] = {
 	{1.2f, 2.8f, 1.2f}		// propsElectricitySub02_v9
 };
 
+
+// --- モデルのスケーリングサイズ --------------------------------------------------------------	
+struct ModelScalingSize { float x, y, z; };
+
+static ModelScalingSize g_GlassModelScales[COUNT(g_GlassModels)] = {
+	{1.0f, 1.0f, 1.0f},		// 3birugarsuのサイズ
+	{1.0f, 1.0f, 1.0f},		// 2marugarasu
+	{1.0f, 1.0f, 1.0f}		// togegarasu2
+};
+
+static ModelScalingSize g_ConcreteModelScales[COUNT(g_ConcreteModels)] = {
+	{1.0f, 1.0f, 1.0f},		// bizyutukan
+	{1.0f, 1.0f, 1.0f},		// biru3dannkonkuri
+	{1.0f, 1.0f, 1.0f}		// 3biltateconkuri
+};
+
+static ModelScalingSize g_PlantModelScales[COUNT(g_PlantModels)] = {
+	{1.0f, 1.0f, 1.0f},		// kitoyugu
+	{1.3f, 1.3f, 1.3f},		// togoki
+	{1.0f, 1.0f, 1.0f},		// kitoie
+	{1.0f, 1.0f, 1.0f}		// propsTreeMain_v12
+};
+
+static ModelScalingSize g_ElectricModelScales[COUNT(g_ElectricModels)] = {
+	{1.0f, 1.0f, 1.0f},		// singou
+	{2.5f, 2.5f, 3.0f},		// taw-
+	{1.0f, 1.0f, 1.0f},		// raibu
+	{1.0f, 1.0f, 1.0f},		// propsElectricitySub03_v9
+	{1.0f, 1.0f, 1.0f}		// propsElectricitySub02_v9
+};
+
 //=========================================
 // 全建物更新
 //=========================================
@@ -148,9 +180,13 @@ void Building_UpdateAll()
 {
 	for (int i = 0; i < BuildingCount; i++)
 	{
-		if (Buildings[i] && Buildings[i]->isActive)
+		if (Buildings[i]) // isActive のチェックを外す！
 		{
-			Buildings[i]->Update();
+			// 「生きている」か「壊れて復活待機中」なら Update を呼ぶ
+			if (Buildings[i]->isActive || Buildings[i]->isDestroyed)
+			{
+				Buildings[i]->Update();
+			}
 		}
 	}
 }
@@ -161,10 +197,35 @@ void Building_DrawAll(bool s_IsKonamiCodeEntered)
 {
 	for (int i = 0; i < BuildingCount; i++)
 	{
-		if (Buildings[i] && Buildings[i]->isActive)
+		if (Buildings[i])
 		{
-			Buildings[i]->Draw(s_IsKonamiCodeEntered);
+			// ★ 「生きている」か「壊れた直後でまだ縮小中」なら描画する
+			if (Buildings[i]->isActive || (Buildings[i]->isDestroyed && Buildings[i]->scaling.x > 0.0f))
+			{
+				Buildings[i]->Draw(s_IsKonamiCodeEntered);
+			}
 		}
+	}
+
+	// --- 当たり判定の可視化 (デバッグモード時) ---
+	if (s_IsKonamiCodeEntered)
+	{
+		Shader_SetMatrix(XMMatrixIdentity() * GetViewMatrix() * GetProjectionMatrix());
+		SetBlendState(BLENDSTATE_NONE);
+		SetDepthTest(false); // 建物の中に判定が埋まって見えなくなるのを防ぐ（最前面に描く）
+
+		for (int i = 0; i < BuildingCount; i++)
+		{
+			if (Buildings[i] && Buildings[i]->isActive)
+			{
+				// 2. 建物のboundingBoxを描画！
+				// 色はプレイヤー（赤）と区別するために、例えば「緑色」にしてみよう
+				Debug_DrawAABB(Buildings[i]->GetAABB(), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
+			}
+		}
+
+		// 次の描画のために設定を戻しておく
+		SetDepthTest(true);
 	}
 }
 
@@ -254,6 +315,7 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_pElectricModels[i] = ModelLoad(path);
 	}
 
+
 	// --- 2.テクスチャのロード ---
 
 	MAPDATA* map = GetFieldObjects();
@@ -306,8 +368,7 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		int modelIndex = map[i].variant;
 
 		// 建物生成（buildingsに追加していく）
-		Buildings[BuildingCount++] =
-			new Building(type, map[i].pos, modelIndex);
+		Buildings[BuildingCount++] = new Building(type, map[i].pos, modelIndex);
 
 		if (BuildingCount >= 100) break;
 	}
@@ -342,88 +403,98 @@ void Building_Finalize()
 	}
 }
 
-////=========================================
-//// モデル読み込み処理
-////=========================================
-//void Building::LoadModelForPhase()
-//{
-//	// 既存モデル解放
-//	if (m_Model)
-//	{
-//		ModelRelease(m_Model);
-//		m_Model = nullptr;
-//	}
-//
-//	const char* modelName = nullptr;
-//
-//	// 建物タイプごとにモデル決定
-//	switch (type)
-//	{
-//	case BuildingType::Glass:		modelName = g_GlassModels[m_ModelIndex];	break;
-//	case BuildingType::Concrete:	modelName = g_ConcreteModels[m_ModelIndex];	break;
-//	case BuildingType::Plant:		modelName = g_PlantModels[m_ModelIndex];	break;
-//	case BuildingType::Electricity:	modelName = g_ElectricModels[m_ModelIndex];	break;
-//	default:
-//		//path = "asset/build_default.fbx"; // デフォルトモデル
-//		break;
-//	}
-//
-//	if (modelName == nullptr)
-//	{
-//		hal::dout << "Building::LoadModelForPhase: modelName==nullptr for type=" << (int)type << " index=" << m_ModelIndex << std::endl;
-//		m_Model = nullptr;
-//		isActive = false; // モデル無ければ描画しない
-//		return;
-//	}
-//
-//	// パス組み立て
-//	char path[256];
-//	snprintf(path, sizeof(path), "asset/model/%s.fbx", modelName);
-//
-//	// モデルロード（例外発生の可能性のある実装ならここでキャッチ）
-//	try
-//	{
-//		m_Model = ModelLoad(path);
-//	}
-//	catch (const std::exception& ex)
-//	{
-//		hal::dout << "Building::LoadModelForPhase: ModelLoad threw exception for " << path << " : " << ex.what() << std::endl;
-//		m_Model = nullptr;
-//		isActive = false;
-//		return;
-//	}
-//	catch (...)
-//	{
-//		hal::dout << "Building::LoadModelForPhase: ModelLoad threw unknown exception for " << path << std::endl;
-//		m_Model = nullptr;
-//		isActive = false;
-//		return;
-//	}
-//
-//	if (!m_Model)
-//	{
-//		hal::dout << "Building::LoadModelForPhase: ModelLoad returned nullptr for " << path << std::endl;
-//		isActive = false;
-//	}
-//}
-//
-////=========================================
-//// フェーズ変更（将来拡張用）
-////=========================================
-//void Building::SetPhase(BuildingPhase phase)
-//{
-//	if (Phase != phase)
-//	{
-//		Phase = phase;
-//		LoadModelForPhase();
-//	}
-//}
+
+void Building::Rebirth()
+{
+	this->isDestroyed = false;
+	this->isActive = true;
+	this->m_Alpha = 1.0f;
+	this->m_TexOffset = 0;
+
+	// ★ ここがポイント！
+	this->scaling = { 0.0f, 0.0f, 0.0f }; // まずはサイズ0からスタート
+	this->m_RebirthAnimTimer = 0.4f;      // 0.4秒かけてアニメーションするよ
+
+}
 
 //=========================================
 // 更新
 //=========================================
 void Building::Update()
 {
+	// --- 復活（消えていく）処理 ---
+	if (this->isDestroyed)
+	{
+		// 食べられた瞬間のタイマーの初期値を 5.0f と想定
+		// 経過時間を計算するために、今のタイマーの減り具合を見るよ
+		m_RespawnTimer -= 1.0f / 60.0f;
+
+		// 食べられた瞬間に 5.0f だったとして、4.9秒^5.0秒の間は「膨らむ」
+		// それ以降は「縮む」という風に条件分けしてみよう
+		float eatDuration = 10.0f - m_RespawnTimer; // 経過時間
+
+		if (eatDuration < 0.08f) // 最初の0.1秒間
+		{
+			// ぷくっと膨らませる（1.5 -> 1.8）
+			scaling.x += 0.2f;
+			scaling.y += 0.2f;
+			scaling.z += 0.2f;
+		}
+		else // 0.1秒過ぎたら
+		{
+			// 急激に小さくする
+			scaling.x -= 0.15f;
+			scaling.y -= 0.15f;
+			scaling.z -= 0.15f;
+
+			if (scaling.x < 0.0f) scaling.x = scaling.y = scaling.z = 0.0f;
+		}
+
+		if (m_RespawnTimer <= 0.0f)
+		{
+			Rebirth();
+		}
+
+		// 消えきったら、無駄な計算をしないように return
+		if (scaling.x <= 0.0f) return;
+	}
+
+	// --- B. 復活する演出 (タイマーが動いているとき) ---
+	if (this->m_RebirthAnimTimer > 0.0f)
+	{
+		this->m_RebirthAnimTimer -= 1.0f / 60.0f;
+
+		// 1. 最初の 0.3秒くらい (0.1fより大きい間) で 0.0 -> 1.8 へ
+		if (this->m_RebirthAnimTimer > 0.1f)
+		{
+			// 0.0から1.8まで、タイマーに合わせて「だんだん」大きくする
+			// (1.0f - タイマーの割合) を使うとスムーズになるよ！
+			float progress = (0.4f - m_RebirthAnimTimer) / 0.3f; // 0.0 ～ 1.0 になる
+			if (progress > 1.0f) progress = 1.0f;
+
+			scaling.x = scaling.y = scaling.z = 1.8f * progress;
+		}
+		// 2. 最後の 0.1秒で 1.8 -> 1.5 へ
+		else
+		{
+			// 1.8から1.5まで、止まらずにスッと戻す
+			float progress = (0.1f - m_RebirthAnimTimer) / 0.1f; // 0.0 ～ 1.0 になる
+			if (progress > 1.0f) progress = 1.0f;
+
+			// 1.8 から 0.3 引きたい (1.8 - 0.3 * progress)
+			scaling.x = scaling.y = scaling.z = 1.8f - (0.3f * progress);
+		}
+
+		// タイマーが終わったらピッタリ 1.5f に固定
+		if (this->m_RebirthAnimTimer <= 0.0f) {
+			scaling = { 1.5f, 1.5f, 1.5f };
+		}
+	}
+
+	// --- 生きているときの処理 ---
+	if (!this->isActive) return;
+
+
 	// プレイヤーとの距離判定
 	bool anyPlayerNear = false;
 
@@ -461,10 +532,10 @@ void Building::Update()
 
 	// 1.カタログから自分のモデルサイズを特定
 	ModelBaseSize base;
-		 if(type == BuildingType::Glass)		base = g_GlassModelSizes[m_ModelIndex];
-	else if(type == BuildingType::Concrete)		base = g_ConcreteModelSizes[m_ModelIndex];
-	else if(type == BuildingType::Plant)		base = g_PlantModelSizes[m_ModelIndex];
-	else if(type == BuildingType::Electricity)	base = g_ElectricModelSizes[m_ModelIndex];
+		 if(type == BuildingType::Glass)		base = g_GlassModelSizes	[m_ModelIndex];
+	else if(type == BuildingType::Concrete)		base = g_ConcreteModelSizes	[m_ModelIndex];
+	else if(type == BuildingType::Plant)		base = g_PlantModelSizes	[m_ModelIndex];
+	else if(type == BuildingType::Electricity)	base = g_ElectricModelSizes	[m_ModelIndex];
 	else return; // タイプ不明なら終わり
 
 	// --- 2. 実際の当たり判定サイズを計算 ---
@@ -480,7 +551,7 @@ void Building::Update()
 	currentPos.y += 1.0f;
 
 	// CalculateAABBをここで呼ぶ（インスタンスごとの計算）
-	CalculateAABB(this->boundingBox, currentPos, this->scaling);
+	CalculateAABB(this->boundingBox, currentPos, actualSize);
 }
 
 //=========================================
@@ -490,12 +561,25 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 {
 	// カタログから対象のモデルを取得
 	MODEL* pTarget = nullptr;
+	ModelScalingSize baseScale = { 1.0f, 1.0f, 1.0f }; // デフォルト値
 	switch (type)
 	{
-	case BuildingType::Glass:       pTarget = g_pGlassModels[m_ModelIndex];     break;
-	case BuildingType::Concrete:    pTarget = g_pConcreteModels[m_ModelIndex];  break;
-	case BuildingType::Plant:       pTarget = g_pPlantModels[m_ModelIndex];     break;
-	case BuildingType::Electricity: pTarget = g_pElectricModels[m_ModelIndex];  break;
+	case BuildingType::Glass:
+		pTarget = g_pGlassModels[m_ModelIndex];
+		baseScale = g_GlassModelScales[m_ModelIndex]; // カタログから取得！
+		break;
+	case BuildingType::Concrete:
+		pTarget = g_pConcreteModels[m_ModelIndex];
+		baseScale = g_ConcreteModelScales[m_ModelIndex];
+		break;
+	case BuildingType::Plant:
+		pTarget = g_pPlantModels[m_ModelIndex];
+		baseScale = g_PlantModelScales[m_ModelIndex];
+		break;
+	case BuildingType::Electricity:
+		pTarget = g_pElectricModels[m_ModelIndex];
+		baseScale = g_ElectricModelScales[m_ModelIndex];
+		break;
 	}
 
 	if (!pTarget) return; // モデルがなければ終わり
@@ -504,10 +588,14 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 
 	Shader_Begin();
 
+
 	XMMATRIX VP = GetViewMatrix() * GetProjectionMatrix();
 
+	// インスタンスの scaling と カタログの baseScale を掛け合わせる
 	XMMATRIX World =
-		XMMatrixScaling(scaling.x, scaling.y, scaling.z) *
+		XMMatrixScaling(scaling.x * baseScale.x,
+			scaling.y * baseScale.y,
+			scaling.z * baseScale.z) *
 		XMMatrixRotationRollPitchYaw(
 			rotation.x + XMConvertToRadians(-90.0f),
 			rotation.y,
@@ -618,7 +706,8 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->PSSetShaderResources(0, 1, nullSRV);
 	}
 
-	if (!s_IsKonamiCodeEntered) ModelDraw(pTarget);
+	/*if (!s_IsKonamiCodeEntered) */ ModelDraw(pTarget);
+
 }
 
 //=========================================

@@ -67,6 +67,9 @@ public:
 	int m_TexOffset;
 	bool m_IsPlayerNear;
 
+	float m_Alpha = 1.0f;      // 1.0（不透明）～ 0.0（完全に透明）
+	bool  m_IsFading = false;  // フェードアウト中かどうかのフラグ
+
 	//=================================
 	// コンストラクタ
 	//=================================
@@ -81,6 +84,8 @@ public:
 	// 描画
 	void Draw(bool s_IsKonamiCodeEntered);
 
+	void Rebirth(); // 復活
+
 	// 状態変更
 	//void SetPhase(BuildingPhase phase);
 
@@ -89,6 +94,9 @@ public:
 	BuildingPhase GetPhase() const { return Phase; }
 
 	const AABB& GetAABB() const { return boundingBox; }
+
+	float m_RespawnTimer = {10.0f};	// 復活までの秒数
+	float m_RebirthAnimTimer = 0.0f;
 };
 
 //=========================================
