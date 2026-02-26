@@ -132,6 +132,8 @@ static void Effect_LoadTexture(int i, const wchar_t* num)
 	hr = CreateShaderResourceView(g_pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[i]);
 	assert(SUCCEEDED(hr));
 	assert(g_Texture[i]);
+
+	g_ReleaseOwned[i] = true; // ← 追加：自前で読み込んだテクスチャは解放対象
 }
 
 //===============================================
@@ -189,7 +191,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));// 0でクリア
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// 格納できる頂点数*頂点サイズ
+	bd.ByteWidth = sizeof(Vertex2) * PLAYER_VERTEX;// 格納できる頂点数*頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -202,7 +204,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		D3D11_BUFFER_DESC	bd;
 		ZeroMemory(&bd, sizeof(bd));	// 0でクリア
 		bd.Usage = D3D11_USAGE_DYNAMIC;
-		bd.ByteWidth = sizeof(UINT) * 6 * 6;
+		bd.ByteWidth = sizeof(UINT) * 6;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
@@ -213,7 +215,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		UINT* index = (UINT*)msr.pData;
 
 		// インデックスデータをバッファへコピー
-		CopyMemory(&index[0], &effect_idxdata[0], sizeof(UINT) * 6 * 6);
+		CopyMemory(&index[0], &effect_idxdata[0], sizeof(UINT) * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
 	// デバッグレンダラー初期化 
@@ -227,13 +229,14 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	}
 
 	// ===== GPU テクスチャ ウォームアップ =====
+	// DrawIndexed(0,...) はシェーダー未設定でエラーになるため、
+	//    PSSetShaderResources のみでGPUにテクスチャを認識させる
 	{
 		for (int i = 0; i < EFFECT_TEX_MAX; ++i)
 		{
 			if (g_Texture[i] != nullptr)
 			{
 				g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
-				g_pContext->DrawIndexed(0, 0, 0);
 			}
 		}
 		ID3D11ShaderResourceView* nullSRV = nullptr;
@@ -246,7 +249,8 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 //===============================================
 void Effect_Finalize()
 {
-	for (int i = 0; i < EFFECT_MAX; i++)
+	// テクスチャの解放
+	for (int i = 0; i < EFFECT_TEX_MAX; i++)
 	{
 		if (g_Texture[i] && g_ReleaseOwned[i])
 		{
@@ -1061,6 +1065,7 @@ void EffectFront_DrawForPlayer(int playerIndex)
 		g_pContext->Unmap(g_VertexBuffer, 0);
 
 		g_pContext->PSSetShaderResources(0, 1, &srv);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6, 0, 0);
 	}
 }
@@ -1076,6 +1081,9 @@ void EffectShadow_DrawForPlayer(int playerIndex)
 
 	// 影を非表示にする条件
 	if (!player.duringRespawn && !player.isEggBreaking && !player.isShadowEnabled)	return;
+
+	// シェーダーを設定
+	Shader_Begin();
 
 	// 影のY座標（地面の高さ）を決める
 	float groundY = 0.0f;
@@ -1141,7 +1149,6 @@ void EffectShadow_DrawForPlayer(int playerIndex)
 	g_pContext->PSSetShaderResources(0, 1, &srv);
 	g_pContext->DrawIndexed(6, 0, 0);
 }
-
 
 // ===============================================
 // 建物付近に表示するエフェクト更新関数
@@ -1220,6 +1227,9 @@ void Effect_DrawForBuilding(int buildingIndex)
 	// 再生中のみ描画
 	if (!anim.hitPlaying) return;
 
+	// シェーダーを設定（頂点シェーダー未設定エラーの修正）
+	Shader_Begin();
+
 	int texNo = (building[buildingIndex]->type == BuildingType::Concrete) ? 12 : 13;
 
 	XMFLOAT3 pos = building[buildingIndex]->position;
@@ -1247,7 +1257,8 @@ void Effect_DrawForBuilding(int buildingIndex)
 	vm.r[3].m128_f32[1] = 0.0f;
 	vm.r[3].m128_f32[2] = 0.0f;
 	vm.r[3].m128_f32[3] = 1.0f;
-	vm = XMMatrixTranspose(vm);  // ビュー行列の回転部分を転置＝逆回転
+	vm = XMMatrixTranspose(vm);
+
 	vm.r[3].m128_f32[0] = pos.x;
 	vm.r[3].m128_f32[1] = pos.y + 2.0f;  // 建物の少し上に配置
 	vm.r[3].m128_f32[2] = pos.z;

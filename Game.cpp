@@ -63,16 +63,16 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext);		
 	//Score_Initialize(pDevice, pContext);
 
-	//g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// サウンドロード
-	//PlayAudio(g_BgmID, true);		// 再生開始（ループあり）
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// サウンドロード
+	PlayAudio(g_BgmID, true);		// 再生開始（ループあり）
 	//PlayAudio(g_BgmID);			// 再生開始（ループなし）
 	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし）
 
 	XMFLOAT4 para;
 
-	para = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
+	para = XMFLOAT4(0.7f, 0.7f, 0.9999f, 1.0f);
 	Light.SetAmbient(para);
-	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);
+	para = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 	Light.SetDiffuse(para);
 	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);
 
@@ -96,7 +96,7 @@ void Game_Finalize()
 	Skill_Finalize();
 	Special_Finalize();
 	SkyBall_Finalize();
-	Building_Finalize();
+	//Building_Finalize();
 
 	//BallFinalize();
 	//P_Finalize();
