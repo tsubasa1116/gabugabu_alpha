@@ -1427,18 +1427,11 @@ void Player_Update()
 			// アクティブでないなら無視
 			if (!buildingObjects[j]->isActive)	continue;
 
-			// y座標の調整
-			// Building::Draw() で position.y + 1.0f しているので、判定用の座標も合わせる
-			XMFLOAT3 colliderPos = buildingObjects[j]->position;
-			colliderPos.y += 1.0f;
+			// 建物が自分で計算しておいてくれた AABB をもらうだけ！
+			const AABB& bBox = buildingObjects[j]->GetAABB();
 
-			// コライダーの作成と更新（補正した座標 colliderPos を使う）
-			CalculateAABB(buildingObjects[j]->boundingBox, colliderPos, buildingObjects[j]->scaling);
-
-			// プレイヤー と 建物の当たり判定
-			MTV collision = CalculateAABBMTV(player[p].boundingBox, buildingObjects[j]->boundingBox);
-
-			if (collision.isColliding)
+			// 判定！
+			MTV collision = CalculateAABBMTV(player[p].boundingBox, bBox);			if (collision.isColliding)
 			{
 				// 衝突していたら、MTVの分だけ位置を戻す
 				player[p].position.x += collision.translation.x;

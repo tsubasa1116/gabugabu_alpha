@@ -61,6 +61,7 @@ void Special_Glass_Update(int playerIndex);
 void Special_Concrete_Update(int playerIndex);
 void Special_Plant_Update(int playerIndex);
 void Special_Electricity_Update(int playerIndex);
+void Special_Electricity_Update2(int playerIndex);
 
 void Special_Glass_Draw(int playerIndex);
 void Special_Concrete_Draw(int playerIndex);

@@ -301,6 +301,19 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[7]);
 	assert(g_Special_Texture[7]);
 
+
+	LoadFromWICFile(L"Asset\\Texture\\effectSkillGlassConcrete_v5_1.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[8]);
+	assert(g_Special_Texture[8]);
+
+	LoadFromWICFile(L"Asset\\Texture\\uiOrbit_v1.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[9]);
+	assert(g_Special_Texture[9]);
+
+	LoadFromWICFile(L"Asset\\Texture\\effectHit02_v2.png", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[10]);
+	assert(g_Special_Texture[10]);
+
 	// インデックスバッファ作成
 	{
 		D3D11_BUFFER_DESC bd;
@@ -326,6 +339,8 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Special_Concrete_Initialize(pDevice, pContext);
 	Special_Plant_Initialize(pDevice, pContext);
 	Special_Electricity_Initialize(pDevice, pContext);
+	//Special_Electricity_Initialize2(pDevice, pContext);
+
 
 	// SEの初期化
 	g_SE_ID[0] = LoadAudio("asset\\Audio\\Special_Concrete.wav");		// スペシャル コンクリート
@@ -880,7 +895,7 @@ void Special_Update(int playerIndex)
 		case PlayerType::Glass:			Special_Glass_Update(playerIndex);			break;
 		case PlayerType::Concrete:		Special_Concrete_Update(playerIndex);		break;
 		case PlayerType::Plant:			Special_Plant_Update(playerIndex);			break;
-		case PlayerType::Electricity:	Special_Electricity_Update(playerIndex);	break;
+		case PlayerType::Electricity:	Special_Electricity_Update2(playerIndex);	break;
 		default: break;
 		}
 	}
@@ -1186,6 +1201,116 @@ void Special_Electricity_Draw(int playerIndex)
 	normalLight.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
 	normalLight.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 	Shader_SetLight(normalLight);
+}
+
+// TODO
+void Special_Electricity_Update2(int playerIndex)
+{
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	// プレイヤー情報を取得
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
+	if (player.specialTimer == 0.0f) PlayAudio(g_SE_ID[3], false);
+
+	player.specialTimer += DELTA_TIME;
+
+	// TODO:敵の足元のタイルにする
+	// --- 1. 初期化（ランダムに5つのタイルを選ぶ） ---
+	static bool initialized[PLAYER_MAX] = { false };
+	// ダメージの間隔を管理するタイマー（プレイヤーごとに用意）
+	static float nextHitTimer[PLAYER_MAX] = { 0.0f };
+
+	if (!initialized[playerIndex])
+	{
+		int count = GetFieldObjectCount();
+		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)	// 5つのタイルをランダムに選ぶ
+		{
+			player.electricityTileIndices[i] = rand() % count;	// 0～フィールドオブジェクト数-1のランダムなインデックスを生成
+			MAPDATA* fieldObjects = GetFieldObjects();
+			player.electricityCircles[i].center = fieldObjects[player.electricityTileIndices[i]].pos;
+			player.electricityCircles[i].center.y += 0.1f;
+		}
+		initialized[playerIndex] = true;
+	}
+
+	// --- 2. 毎フレームの判定 ---
+	MAPDATA* fieldObjects = GetFieldObjects();
+
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		if (p == playerIndex) continue;
+
+		PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
+		if (otherPlayerObject == nullptr || !otherPlayerObject->active || otherPlayerObject->isInvincible) continue;
+		PLAYEROBJECT& otherPlayer = *otherPlayerObject;
+
+		// 被ダメージタイマーを減らす
+		if (nextHitTimer[p] > 0.0f) nextHitTimer[p] -= DELTA_TIME;
+
+		bool isRiding = false;
+		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
+		{
+			int tileIdx = player.electricityTileIndices[i];
+			if (CheckAABBHexCollision(otherPlayer.boundingBox, fieldObjects[tileIdx].boundingBox))
+			{
+				isRiding = true;
+				break;
+			}
+		}
+
+		// --- 3. 効果（ダメージとスタン） ---
+		if (isRiding)
+		{
+			// ★ しびれて動けなくする（乗っている間は常に0.2秒スタンに上書き）
+			if (!otherPlayer.useSpecial)
+			{
+				otherPlayer.stunGauge = 10.0f;
+			}
+
+			// ★ ダメージは一定間隔（ここでは0.5秒ごと）に1回だけ発生させる
+			if (nextHitTimer[p] <= 0.0f)
+			{
+				float rawDamage = SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense / 2;
+
+				// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
+				otherPlayer.hp -= rawDamage;
+
+				// ダメージ数字を表示（頭上にオフセット）
+				int dmgInt = static_cast<int>(rawDamage + 0.5f);
+				XMFLOAT3 hitPos = otherPlayer.position;
+				hitPos.y += otherPlayer.scaling.y + 0.3f;
+				SetDamageText(hitPos, dmgInt, TextColor::Red);
+
+				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+
+				// 次のダメージまで0.5秒待つ
+				nextHitTimer[p] = 0.5f;
+			}
+		}
+	}
+
+	// 終了処理
+	if (player.specialTimer >= SPECIAL_ELECTRICITY_TIME)
+	{
+		player.useSpecial = false;
+		player.specialTimer = 0.0f;
+		g_animFrame[playerIndex] = 0;
+		g_animTimer[playerIndex] = 0.0f;
+		initialized[playerIndex] = false;
+		// タイマーもリセット
+		for (int i = 0; i < PLAYER_MAX; i++) nextHitTimer[i] = 0.0f;
+
+		player.form = Form::First;
+		player.type = PlayerType::None;
+		player.speed = 0.06f;
+		player.useSkill = false;
+		player.useSpecial = false;
+		Effect_ClearUI(playerIndex);
+		player.isTypeFixed = false;
+	}
 }
 
 void Special_Draw(int playerIndex)
