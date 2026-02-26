@@ -311,6 +311,7 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
                 // Bind texture, Draw
                 ID3D11ShaderResourceView* texture_srv = (ID3D11ShaderResourceView*)pcmd->GetTexID();
                 device->PSSetShaderResources(0, 1, &texture_srv);
+                device->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
                 device->DrawIndexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
             }
         }

@@ -224,6 +224,8 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 #endif
 
 	// ===== GPU テクスチャ ウォームアップ =====
+	// ※ DrawIndexed(0,...) はシェーダー未設定でエラーになるため、
+	//    PSSetShaderResources のみでGPUにテクスチャを認識させる
 	{
 		const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
 		for (size_t i = 0; i < TEX_COUNT; ++i)
@@ -231,7 +233,6 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			if (g_Texture[i] != nullptr)
 			{
 				g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
-				g_pContext->DrawIndexed(0, 0, 0);
 			}
 		}
 		ID3D11ShaderResourceView* nullSRV = nullptr;
@@ -243,7 +244,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		D3D11_BUFFER_DESC	bd;
 		ZeroMemory(&bd, sizeof(bd));	// 0でクリア
 		bd.Usage = D3D11_USAGE_DYNAMIC;
-		bd.ByteWidth = sizeof(UINT) * 6 * 6;
+		bd.ByteWidth = sizeof(UINT) * 6;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
@@ -254,7 +255,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		UINT* index = (UINT*)msr.pData;
 
 		// インデックスデータをバッファへコピー
-		CopyMemory(&index[0], &idxdata[0], sizeof(UINT) * 6 * 6);
+		CopyMemory(&index[0], &idxdata[0], sizeof(UINT) * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
 	// デバッグレンダラー初期化

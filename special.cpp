@@ -931,6 +931,7 @@ void Special_Glass_Draw(int playerIndex)
 		Shader_SetColor(XMFLOAT4(2.0f, 2.0f, 2.0f, 1.0f)); // 明るさを強調
 
 		// 描画実行
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 		// 描画後にカラーをリセット
@@ -1069,6 +1070,7 @@ void Special_Plant_Draw(int playerIndex)
 	Shader_SetMatrix(WVP);
 
 	// 描画実行
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 	// 攻撃範囲の描画
