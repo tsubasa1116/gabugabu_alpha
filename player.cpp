@@ -972,6 +972,10 @@ void Player_Update()
 			}
 		}
 
+		// ==========================================================
+		// プレイヤー アニメーション更新
+		// ==========================================================
+		
 		// スキル開始時のフレーム初期化（アニメーション更新タイミングに依存しない）
 		if (player[p].skillAnimation && !g_skillAnimStarted[p])
 		{
@@ -1007,7 +1011,6 @@ void Player_Update()
 		{
 			g_skillAnimStarted[p] = false;
 		}
-
 		// スペシャル開始時のフレーム初期化（アニメーション更新タイミングに依存しない）
 		if (player[p].useSpecial && !g_specialAnimStarted[p])
 		{
@@ -1251,12 +1254,12 @@ void Player_Update()
 				float dx = player[p].moveInput2D.x;
 				float dz = player[p].moveInput2D.y;
 
-					 if (dx < 0.0f && dz < 0.0f)LoopRange(g_animFrame[p], 32, 8, advance);
-				else if (dx < 0.0f && dz > 0.0f)LoopRange(g_animFrame[p], 84, 8, advance);
+					 if (dx < 0.0f && dz < 0.0f)LoopRange(g_animFrame[p],  32, 8, advance);
+				else if (dx < 0.0f && dz > 0.0f)LoopRange(g_animFrame[p],  84, 8, advance);
 				else if (dx > 0.0f && dz > 0.0f)LoopRange(g_animFrame[p], 136, 8, advance);
 				else if (dx > 0.0f && dz < 0.0f)LoopRange(g_animFrame[p], 188, 8, advance);
-				else if (dz < 0.0f)				LoopRange(g_animFrame[p], 6, 8, advance);
-				else if (dx < 0.0f)				LoopRange(g_animFrame[p], 58, 8, advance);
+				else if (dz < 0.0f)				LoopRange(g_animFrame[p],   6, 8, advance);
+				else if (dx < 0.0f)				LoopRange(g_animFrame[p],  58, 8, advance);
 				else if (dz > 0.0f)				LoopRange(g_animFrame[p], 110, 8, advance);
 				else if (dx > 0.0f)				LoopRange(g_animFrame[p], 162, 8, advance);
 			}
