@@ -597,7 +597,7 @@ void Special_Concrete_Update(int playerIndex)
 			g_concreteRangeFinished[playerIndex] = true;
 
 			// 着地したらSE再生
-			if(g_concreteRangeFinished[playerIndex])	PlayAudio(g_SE_ID[1], false);
+			if(g_concreteRangeFinished[playerIndex])	PlayAudio(g_SE_ID[0], false);
 
 			const float radius = 5.0f;
 			Circle circle = { player.position, radius }; // 円の中心と半径を設定
@@ -682,7 +682,7 @@ void Special_Plant_Update(int playerIndex)
 	if (!g_plantInitialized[playerIndex])
 	{
 		// SE再生
-		PlayAudio(g_SE_ID[2], false);
+		PlayAudio(g_SE_ID[1], false);
 
 		Effect_Set(22, { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, { SCREEN_WIDTH, SCREEN_HEIGHT }, playerIndex);
 		g_plantInitialized[playerIndex] = true;
@@ -740,10 +740,7 @@ void Special_Electricity_Update(int playerIndex)
 	PLAYEROBJECT& player = *playerObject;
 
 	// スペシャル発動の最初のフレームだけSEを再生
-	if (player.specialTimer == 0.0f)
-	{
-		PlayAudio(g_SE_ID[3], false);
-	}
+	if (player.specialTimer == 0.0f)	PlayAudio(g_SE_ID[2], false);
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
