@@ -185,21 +185,6 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
 		Effect_LoadTexture(25, L"Asset\\Texture\\effectSmork02_v1.png");
 
-
-		// ===== GPU テクスチャ ウォームアップ =====
-		{
-			for (int i = 0; i < EFFECT_TEX_MAX; ++i)
-			{
-				if (g_Texture[i] != nullptr)
-				{
-					g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
-					g_pContext->DrawIndexed(0, 0, 0);
-				}
-			}
-			ID3D11ShaderResourceView* nullSRV = nullptr;
-			g_pContext->PSSetShaderResources(0, 1, &nullSRV);
-		}
-
 	});
 
 	//if (!g_isPlayerLoadingFinished && g_loadedCount == 0) return;
@@ -245,6 +230,26 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_animFrame[i] = 0;
 		g_animTimer[i] = 0.0f;
 	}
+}
+
+void Effect_Warmup()
+{
+	if (!g_pContext) return;
+
+	// ===== GPU テクスチャ ウォームアップ =====
+	const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
+	for (size_t i = 0; i < TEX_COUNT; ++i)
+	{
+		if (g_Texture[i] != nullptr)
+		{
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
+			g_pContext->DrawIndexed(0, 0, 0);
+		}
+	}
+
+	// 最後にリセットしておく
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
 }
 
 //===============================================

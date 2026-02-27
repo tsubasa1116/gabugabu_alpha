@@ -43,6 +43,8 @@ bool input2 = false;
 // コマンドが入力されたときに立つフラグ
 static bool s_IsKonamiCodeEntered = false;
 static bool g_GameInitialized = false;
+static bool g_IsFirstFrame = true;
+
 //======================================================
 //	
 //======================================================
@@ -88,6 +90,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	Loader::StartTaskLoad();
 	g_GameInitialized = true;
+	g_IsFirstFrame = true;
 }
 
 //======================================================
@@ -119,6 +122,13 @@ void Game_Finalize()
 //======================================================
 void Game_Update()
 {
+	if (g_IsFirstFrame)
+	{
+		Player_Warmup();
+		Effect_Warmup();
+		g_IsFirstFrame = false;
+	}
+
 	// ------------------------------------
 	// 
 	// ------------------------------------

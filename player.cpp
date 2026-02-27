@@ -165,6 +165,8 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].attackTimer = 0.0f;
 		player[p].isAttacked = false;
 		player[p].attackedTimer = 0.0f;
+		player[p].isDamageColor = false;
+		player[p].damageColorTimer = 0.0f;
 		player[p].isHealing = false;
 		player[p].healingTimer = 0.0f;
 		player[p].isEvolving = false;
@@ -326,6 +328,7 @@ static void LoadTextureList(ID3D11Device* pDevice)
 				g_Texture[e.idx] = nullptr;
 			}
 			g_loadedCount++;
+
 		}
 		// 読み込み失敗は nullptr を代入して続行
 		else	g_Texture[e.idx] = nullptr;
@@ -339,6 +342,27 @@ static void LoadTextureList(ID3D11Device* pDevice)
 
 
 	}
+}
+
+
+void Player_Warmup()
+{
+	if (!g_pContext) return;
+
+	// ===== GPU テクスチャ ウォームアップ =====
+	const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
+	for (size_t i = 0; i < TEX_COUNT; ++i)
+	{
+		if (g_Texture[i] != nullptr)
+		{
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
+			g_pContext->DrawIndexed(0, 0, 0); 
+		}
+	}
+
+	// 最後にリセットしておく
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
 }
 
 //======================================================
@@ -955,6 +979,20 @@ void Player_Update()
 				player[p].attackedTimer = 0.0f;
 			}
 		}
+
+		// ここから
+		// ダメージ色だけの処理
+		if (player[p].isDamageColor)
+		{
+			player[p].damageColorTimer += DELTA_TIME;
+
+			if (player[p].damageColorTimer >= ATTACKED_TIME)
+			{
+				player[p].isDamageColor = false;
+				player[p].damageColorTimer = 0.0f;
+			}
+		}
+		// ここまで
 
 		// 進化時の無敵処理
 		if (player[p].isInvincible)
@@ -1859,7 +1897,23 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 
 		// プレイヤーごとに異なる色を設定
-		if (player[idx].isPoisoned)
+		if (player[idx].isAttacked || player[idx].isDamageColor)
+		{
+			// どちらのタイマーが動いているか
+			float currentTimer = player[idx].isAttacked ? player[idx].attackedTimer : player[idx].damageColorTimer;
+			
+			// 点滅の速さ
+			float speed = 40.0f; 
+
+			// 点滅の度合い（0.0f～1.0f）
+			float blink = (sinf(currentTimer * speed) + 1.0f) * 0.5f;
+
+			Shader_SetColorLerp(color::white, color::red, blink);
+
+			// 優先して赤くする
+			//Shader_SetColorLerp(color::white, color::red, 0.7f); 
+		}
+		else if (player[idx].isPoisoned)
 		{
 			switch (idx)
 			{
@@ -1871,7 +1925,10 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 			default:	Shader_SetColor(color::white); break;
 			}
 		}
-		else			Shader_SetColor(color::white); // 通常色
+		else
+		{
+			Shader_SetColor(color::white); // 通常色
+		}
 
 		// バッファセット & 描画
 		UINT stride = sizeof(Vertex2);
