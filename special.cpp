@@ -17,6 +17,7 @@ using namespace DirectX;
 #include "Effect.h"
 #include "gamepad.h"
 #include "Audio.h"
+#include "loadThread.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -267,6 +268,8 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
 
+	Loader::AddTask([pDevice]()
+	{
 	// テクスチャ読み込み
 	TexMetadata metadata;
 	ScratchImage image;
@@ -315,6 +318,9 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"Asset\\Texture\\effectHit02_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[10]);
 	assert(g_Special_Texture[10]);
+
+
+	});
 
 	// インデックスバッファ作成
 	{
@@ -1758,6 +1764,7 @@ void Special_Electricity_Draw2(int playerIndex)
 
 void Special_Draw(int playerIndex)
 {
+	if (!Loader::IsFinished) return;
 	// 範囲チェック
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 

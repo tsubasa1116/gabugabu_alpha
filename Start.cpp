@@ -18,6 +18,9 @@
 #include <chrono>
 #include <cmath>
 
+#include "loadThread.h"
+#include "LoadingScreen.h" 
+
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
 static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
 static	DirectX::TexMetadata		g_Metadata3{};
@@ -108,8 +111,12 @@ void Start_Update()
 	//キー入力チェック
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
-		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_READY);
+		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
+		{
+			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
+
+			SetFade(40, color, FADE_OUT, SCENE_READY);
+		}
 	}
 }
 

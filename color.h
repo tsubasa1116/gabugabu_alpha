@@ -3,6 +3,9 @@
 #include <DirectXMath.h>
 using namespace DirectX;
 
+#include <thread>
+#include <atomic>
+
 #define SIZE_DEFAULT { 1.0f, 1.0f ,1.0f }
 #define COLL 0.9f
 #define	SCREEN_WIDTH ((float)Direct3D_GetBackBufferWidth())
