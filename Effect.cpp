@@ -129,15 +129,23 @@ static void Effect_LoadTexture(int i, const wchar_t* num)
 	TexMetadata metadata{};
 	ScratchImage image{};
 	HRESULT hr = LoadFromWICFile(num, WIC_FLAGS_NONE, &metadata, image);
+
+	// ★追加：エラーの正体（HRESULT）をメッセージボックスで強制表示させる
+	if (FAILED(hr))
+	{
+		wchar_t errorMsg[512];
+		swprintf_s(errorMsg, 512, L"[致命的エラー] 画像読み込み失敗！\n\nファイル: %s\nエラーコード(HRESULT): 0x%08X\n", num, hr);
+		MessageBoxW(NULL, errorMsg, L"エラー特定", MB_OK | MB_ICONERROR);
+	}
+
 	assert(SUCCEEDED(hr));
 
 	hr = CreateShaderResourceView(g_pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[i]);
 	assert(SUCCEEDED(hr));
 	assert(g_Texture[i]);
 
-	g_ReleaseOwned[i] = true; // ← 追加：自前で読み込んだテクスチャは解放対象
+	g_ReleaseOwned[i] = true;
 }
-
 //===============================================
 //　初期化
 //===============================================
@@ -185,10 +193,10 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(20, L"Asset\\Texture\\effectEgg_v3.png");				// リスポーン 卵
 	Effect_LoadTexture(21, L"Asset\\Texture\\effectVenomExplosion_v2.png");		// スペシャル 植物 毒煙
 
-		Effect_LoadTexture(22, L"Asset\\Texture\\uiPoison_vx.png");
-		Effect_LoadTexture(23, L"Asset\\Texture\\uiOrbit_v1.png");
-		Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
-		Effect_LoadTexture(25, L"Asset\\Texture\\effectSmork02_v1.png");
+	Effect_LoadTexture(22, L"Asset\\Texture\\uiPoison_vx.png");
+	Effect_LoadTexture(23, L"Asset\\Texture\\uiOrbit_v1.png");
+	Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
+	Effect_LoadTexture(25, L"Asset\\Texture\\effectSmork02_v1.png");
 
 	});
 

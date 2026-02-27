@@ -115,7 +115,7 @@ void Start_Update()
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
-			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\road.mp4");
+			SetFade(40, color, FADE_OUT, SCENE_READY);
 		}
 	}
 }
