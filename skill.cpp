@@ -456,6 +456,9 @@ void Skill_Glass_Update(int playerIndex)
 			if (!otherPlayer.active) continue;		// 非アクティブは無視
 			if (otherPlayer.isInvincible) continue;	// 無敵中は無視
 
+			// リスポーン中や卵割れ中はダメージを受けないよう無視する
+			if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
+
 			// otherPlayer 用のヒットボックススケールを攻撃判定と合わせて計算して AABB を作る
 			XMFLOAT3 otherPlayerHitboxScaling =
 			{
