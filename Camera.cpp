@@ -21,7 +21,7 @@ static bool     s_IsLerping = false;      // 目標と現在が十分に離れているか
 const float     SMOOTH_FACTOR = 0.5f;     // 1フレームあたりの進行率で、大きいほど速く追従する
 const float     FOV_SMOOTH_FACTOR = 0.15f;// fovの追従速度
 const float     TARGET_EPSILON = 0.001f;  // 目標到達判定の閾値(しきいち)
-static float     margin = 55.0f;
+static float     margin = 25.0f;
 
 // カメラシェイク用
 static bool     s_IsShaking = false;      // シェイク中かどうか

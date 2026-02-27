@@ -167,7 +167,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(7, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// 第3形態 電気
 	// ゲーム内
 	Effect_LoadTexture(8, L"Asset\\Texture\\effectSkillGlassConcrete_v4.png");	// スキル ガラス・コンクリート 回復
-	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v3.png");			// スキル 植物
+	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v4.png");			// スキル 植物
 	Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// スキル 電気
 	Effect_LoadTexture(11, L"Asset\\Texture\\effectPoison_v3.png");				// 毒・Aボタン・プレイヤーの影
 	Effect_LoadTexture(12, L"Asset\\Texture\\effectHit01_v4.png");				// ヒット コンクリート 建物・プレイヤーを攻撃した時 スタン
@@ -458,10 +458,9 @@ void Effect_UpdateForPlayer(int playerIndex)
 			}
 			break;
 		case PlayerType::Plant:
-			useLoopRange = false;
+			skillFrameInterval = 0.15f;
 			skillStart = 0;
-			skillEnd = 59;
-			skillFrameInterval = 0.1f;   // フレーム間隔を短くして高速再生
+			skillEnd = 63;
 			if (!skillFrameInitialized[playerIndex])
 			{
 				g_PlayerEffectAnim[playerIndex].skillFrame = skillStart;
@@ -494,7 +493,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 			}
 		}
 	}
-	else	skillFrameInitialized[playerIndex] = false;
+	else	skillFrameInitialized[playerIndex] = false;	// スキルが終了したら初期化フラグをリセット
 
 	// スペシャルエフェクト
 	static bool specialFrameInitialized[PLAYER_MAX] = { false };
@@ -1098,9 +1097,9 @@ void EffectShadow_DrawForPlayer(int playerIndex)
 	float shadowScaling_z = player.scaling.z;
 
 	if (player.duringRespawn)	ScalingMatrix = XMMatrixScaling(shadowScaling_x += 2.0f, 1.0f, shadowScaling_z += 6.0f);
-	else						ScalingMatrix = XMMatrixScaling(shadowScaling_x += 1.5f, 1.0f, shadowScaling_z += 2.0f);
+	else						ScalingMatrix = XMMatrixScaling(shadowScaling_x, 1.0f, shadowScaling_z);
 
-	XMMATRIX TranslationMatrix = XMMatrixTranslation(shadowPos.x, shadowPos.y, shadowPos.z);
+	XMMATRIX TranslationMatrix = XMMatrixTranslation(shadowPos.x + 0.2f, shadowPos.y, shadowPos.z);
 	XMMATRIX WorldMatrix = ScalingMatrix * TranslationMatrix;
 
 	XMMATRIX view = GetViewMatrix();
