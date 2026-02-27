@@ -308,7 +308,7 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	assert(g_Special_Texture[8]);
 
 	//LoadFromWICFile(L"Asset\\Texture\\uiOrbit_v1.png", WIC_FLAGS_NONE, &metadata, image);
-	LoadFromWICFile(L"Asset\\Texture\\effectSkillGlassConcrete_v5_1.png", WIC_FLAGS_NONE, &metadata, image);
+	LoadFromWICFile(L"Asset\\Texture\\effectSPElectricity_v1.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[9]);
 	assert(g_Special_Texture[9]);
 
@@ -1596,67 +1596,18 @@ void Special_Electricity_Draw2(int playerIndex)
 			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			g_pContext->Draw(4, 0);	// -Z面の4頂点 (0, 1, 2, 3)
 
-			// --- 3. 追加のエフェクト描画 (g_Special_Texture[8] の 19~23番) ---
-			{
-				// ★ポイント1: 速度調整 / 3 でゆっくりにする。数字を大きくするほど遅くなる
-				// ★ポイント2: %5 で、コマだけを繰り返す
-				int animationSpeed = 1; // ここを 2~6 くらいで調整
-				//int loopCount = 16;      // 19番から23番までの5コマ
-				int loopCount = 11;      // 19番から23番までの5コマ
-				//int effectFrame = 17 + ((g_animFrame[playerIndex] / animationSpeed) % loopCount);
-				int effectFrame = 2 + ((g_animFrame[playerIndex]) % loopCount);
-
-				int cols = 7; // 8*8シートなので
-				int rows = 7;
-				int col = effectFrame % cols;
-				int row = effectFrame / cols;
-
-				float u0 = (float)col / (float)cols;
-				float v0 = (float)row / (float)rows;
-				float u1 = u0 + 1.0f / (float)cols;
-				float v1 = v0 + 1.0f / (float)rows;
-
-				// 2. 頂点バッファのUVを書き換え（範囲円と同じ 16~19番 を使う）
-				D3D11_MAPPED_SUBRESOURCE msr;
-				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-				Vertex2* vertex = (Vertex2*)msr.pData;
-				CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2)* SPECIAL_VERTEX);
-
-				vertex[16].tex = XMFLOAT2(u0, v0);
-				vertex[17].tex = XMFLOAT2(u1, v0);
-				vertex[18].tex = XMFLOAT2(u0, v1);
-				vertex[19].tex = XMFLOAT2(u1, v1);
-				g_pContext->Unmap(g_VertexBuffer, 0);
-
-				XMMATRIX circleWorldMatrix =
-					XMMatrixScaling(7.0f, 7.0f, 7.0f) *
-					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-					XMMatrixTranslation(target.x, target.y - 1.75f, target.z);
-
-				XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-				Shader_SetMatrix(circleWVP);
-
-				// α値を0.5に設定（半透明）
-				Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f));
-
-				// 4. テクスチャ[8]をセットして描画！
-				g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[8]);
-				g_pContext->Draw(4, 16);
-
-				// 描画後にカラーをリセット
-				Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-			}
-
-			// --- 3. 追加のエフェクト描画 (g_Special_Texture[8] の 19~23番) ---
+			//// --- 3. 追加のエフェクト描画 (g_Special_Texture[8] の 19~23番) ---
 			//{
 			//	// ★ポイント1: 速度調整 / 3 でゆっくりにする。数字を大きくするほど遅くなる
 			//	// ★ポイント2: %5 で、コマだけを繰り返す
-			//	int animationSpeed = 1;
-			//	int loopCount = 16;      // 19番から23番までの5コマ
-			//	int effectFrame = 17 + ((g_animFrame[playerIndex] / animationSpeed) % loopCount);
+			//	int animationSpeed = 1; // ここを 2~6 くらいで調整
+			//	//int loopCount = 16;      // 19番から23番までの5コマ
+			//	int loopCount = 11;      // 19番から23番までの5コマ
+			//	//int effectFrame = 17 + ((g_animFrame[playerIndex] / animationSpeed) % loopCount);
+			//	int effectFrame = 2 + ((g_animFrame[playerIndex]) % loopCount);
 
-			//	int cols = 8; // 8*8シートなので
-			//	int rows = 8;
+			//	int cols = 7; // 8*8シートなので
+			//	int rows = 7;
 			//	int col = effectFrame % cols;
 			//	int row = effectFrame / cols;
 
@@ -1669,7 +1620,7 @@ void Special_Electricity_Draw2(int playerIndex)
 			//	D3D11_MAPPED_SUBRESOURCE msr;
 			//	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 			//	Vertex2* vertex = (Vertex2*)msr.pData;
-			//	CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+			//	CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2)* SPECIAL_VERTEX);
 
 			//	vertex[16].tex = XMFLOAT2(u0, v0);
 			//	vertex[17].tex = XMFLOAT2(u1, v0);
@@ -1678,23 +1629,72 @@ void Special_Electricity_Draw2(int playerIndex)
 			//	g_pContext->Unmap(g_VertexBuffer, 0);
 
 			//	XMMATRIX circleWorldMatrix =
-			//		XMMatrixScaling(8.0f, 8.0f, 8.0f) *
+			//		XMMatrixScaling(7.0f, 7.0f, 7.0f) *
 			//		XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			//		XMMatrixTranslation(target.x, target.y - 1.95f, target.z);
+			//		XMMatrixTranslation(target.x, target.y - 1.75f, target.z);
 
 			//	XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 			//	Shader_SetMatrix(circleWVP);
 
 			//	// α値を0.5に設定（半透明）
-			//	//Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f));
+			//	Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f));
 
 			//	// 4. テクスチャ[8]をセットして描画！
-			//	g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[9]);
+			//	g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[8]);
 			//	g_pContext->Draw(4, 16);
 
 			//	// 描画後にカラーをリセット
-			//	//Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+			//	Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 			//}
+
+			// --- 3. 追加のエフェクト描画 (g_Special_Texture[8] の 19~23番) ---
+			{
+				// ★ポイント1: 速度調整 / 3 でゆっくりにする。数字を大きくするほど遅くなる
+				// ★ポイント2: %5 で、コマだけを繰り返す
+				int animationSpeed = 1;
+				int loopCount = 17;      // 19番から23番までの5コマ
+				int effectFrame = 0 + ((g_animFrame[playerIndex] / animationSpeed) % loopCount);
+
+				int cols = 8; // 8*8シートなので
+				int rows = 8;
+				int col = effectFrame % cols;
+				int row = effectFrame / cols;
+
+				float u0 = (float)col / (float)cols;
+				float v0 = (float)row / (float)rows;
+				float u1 = u0 + 1.0f / (float)cols;
+				float v1 = v0 + 1.0f / (float)rows;
+
+				// 2. 頂点バッファのUVを書き換え（範囲円と同じ 16~19番 を使う）
+				D3D11_MAPPED_SUBRESOURCE msr;
+				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+				Vertex2* vertex = (Vertex2*)msr.pData;
+				CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+
+				vertex[16].tex = XMFLOAT2(u0, v0);
+				vertex[17].tex = XMFLOAT2(u1, v0);
+				vertex[18].tex = XMFLOAT2(u0, v1);
+				vertex[19].tex = XMFLOAT2(u1, v1);
+				g_pContext->Unmap(g_VertexBuffer, 0);
+
+				XMMATRIX circleWorldMatrix =
+					XMMatrixScaling(8.0f, 8.0f, 8.0f) *
+					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+					XMMatrixTranslation(target.x, target.y - 1.95f, target.z);
+
+				XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+				Shader_SetMatrix(circleWVP);
+
+				// α値を0.5に設定（半透明）
+				//Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f));
+
+				// 4. テクスチャ[8]をセットして描画！
+				g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[9]);
+				g_pContext->Draw(4, 16);
+
+				// 描画後にカラーをリセット
+				//Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+			}
 
 			// --- 3. 追加のエフェクト描画 (g_Special_Texture[8] の 19~23番) ---
 			{
