@@ -592,6 +592,13 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 	XMMATRIX VP = GetViewMatrix() * GetProjectionMatrix();
 
 	// インスタンスの scaling と カタログの baseScale を掛け合わせる
+
+	XMFLOAT3 pos = {};
+	if (type == BuildingType::Electricity && strcmp(g_ElectricModels[m_ModelIndex], "taw-") == 0)
+		pos = { position.x, position.y, position.z };
+	else
+		pos = { position.x, position.y + 0.85f, position.z };
+
 	XMMATRIX World =
 		XMMatrixScaling(scaling.x * baseScale.x,
 			scaling.y * baseScale.y,
@@ -600,7 +607,7 @@ void Building::Draw(bool s_IsKonamiCodeEntered)
 			rotation.x + XMConvertToRadians(-90.0f),
 			rotation.y,
 			rotation.z) *
-		XMMatrixTranslation(position.x, position.y + 1.0f, position.z);
+		XMMatrixTranslation(pos.x, pos.y, pos.z);
 
 	Shader_SetWorldMatrix(World);
 	Shader_SetMatrix(World * VP);

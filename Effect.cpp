@@ -75,8 +75,8 @@ static int g_EffectTimer = 0;
 
 static bool g_EffectLoopFlag = false;
 
-static int   animFrame[PLAYER_MAX] = { 0 };
-static float animTimer[PLAYER_MAX] = { 0.0f };
+static int   g_animFrame[PLAYER_MAX] = { 0 };
+static float g_animTimer[PLAYER_MAX] = { 0.0f };
 static const float ANIM_FRAME_TIME = 0.16f;	// 1フレームあたりの秒数
 
 PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
@@ -224,8 +224,8 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// アニメーションの初期化
 	for (int i = 0; i < PLAYER_MAX; ++i)
 	{
-		animFrame[i] = 0;
-		animTimer[i] = 0.0f;
+		g_animFrame[i] = 0;
+		g_animTimer[i] = 0.0f;
 	}
 
 	// ===== GPU テクスチャ ウォームアップ =====
@@ -909,7 +909,7 @@ void EffectFront_DrawForPlayer(int playerIndex)
 	Vertex2 localV[PLAYER_VERTEX];
 	CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
 
-	int frame = animFrame[playerIndex];
+	int frame = g_animFrame[playerIndex];
 	int col = frame % EFFECT_SPRITE_X;
 	int row = frame / EFFECT_SPRITE_X;
 	float u0 = (float)col / (float)EFFECT_SPRITE_X;
