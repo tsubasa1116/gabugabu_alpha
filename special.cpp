@@ -1239,58 +1239,61 @@ void Special_Electricity_Update2(int playerIndex)
 		initialized[playerIndex] = true;
 	}
 
-	// --- 2. 毎フレームの判定 ---
-	MAPDATA* fieldObjects = GetFieldObjects();
-
-	for (int p = 0; p < PLAYER_MAX; ++p)
+	if (player.specialTimer > 1.5f)
 	{
-		if (p == playerIndex) continue;
+		// --- 2. 毎フレームの判定 ---
+		MAPDATA* fieldObjects = GetFieldObjects();
 
-		PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
-		if (otherPlayerObject == nullptr || !otherPlayerObject->active || otherPlayerObject->isInvincible) continue;
-		PLAYEROBJECT& otherPlayer = *otherPlayerObject;
-
-		// 被ダメージタイマーを減らす
-		if (nextHitTimer[p] > 0.0f) nextHitTimer[p] -= DELTA_TIME;
-
-		bool isRiding = false;
-		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
+		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
-			int tileIdx = player.electricityTileIndices[i];
-			if (CheckAABBHexCollision(otherPlayer.boundingBox, fieldObjects[tileIdx].boundingBox))
-			{
-				isRiding = true;
-				break;
-			}
-		}
+			if (p == playerIndex) continue;
 
-		// --- 3. 効果（ダメージとスタン） ---
-		if (isRiding)
-		{
-			// ★ しびれて動けなくする（乗っている間は常に0.2秒スタンに上書き）
-			if (!otherPlayer.useSpecial)
+			PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
+			if (otherPlayerObject == nullptr || !otherPlayerObject->active || otherPlayerObject->isInvincible) continue;
+			PLAYEROBJECT& otherPlayer = *otherPlayerObject;
+
+			// 被ダメージタイマーを減らす
+			if (nextHitTimer[p] > 0.0f) nextHitTimer[p] -= DELTA_TIME;
+
+			bool isRiding = false;
+			for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 			{
-				otherPlayer.stunGauge = 10.0f;
+				int tileIdx = player.electricityTileIndices[i];
+				if (CheckAABBHexCollision(otherPlayer.boundingBox, fieldObjects[tileIdx].boundingBox))
+				{
+					isRiding = true;
+					break;
+				}
 			}
 
-			// ★ ダメージは一定間隔（ここでは0.5秒ごと）に1回だけ発生させる
-			if (nextHitTimer[p] <= 0.0f)
+			// --- 3. 効果（ダメージとスタン） ---
+			if (isRiding)
 			{
-				float rawDamage = SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense / 2;
+				// ★ しびれて動けなくする（乗っている間は常に0.2秒スタンに上書き）
+				if (!otherPlayer.useSpecial)
+				{
+					otherPlayer.stunGauge = 10.0f;
+				}
 
-				// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
-				otherPlayer.hp -= rawDamage;
+				// ★ ダメージは一定間隔（ここでは0.5秒ごと）に1回だけ発生させる
+				if (nextHitTimer[p] <= 0.0f)
+				{
+					float rawDamage = SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense / 2;
 
-				// ダメージ数字を表示（頭上にオフセット）
-				int dmgInt = static_cast<int>(rawDamage + 0.5f);
-				XMFLOAT3 hitPos = otherPlayer.position;
-				hitPos.y += otherPlayer.scaling.y + 0.3f;
-				SetDamageText(hitPos, dmgInt, TextColor::Red);
+					// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
+					otherPlayer.hp -= rawDamage;
 
-				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+					// ダメージ数字を表示（頭上にオフセット）
+					int dmgInt = static_cast<int>(rawDamage + 0.5f);
+					XMFLOAT3 hitPos = otherPlayer.position;
+					hitPos.y += otherPlayer.scaling.y + 0.3f;
+					SetDamageText(hitPos, dmgInt, TextColor::Red);
 
-				// 次のダメージまで0.5秒待つ
-				nextHitTimer[p] = 0.5f;
+					if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+
+					// 次のダメージまで0.5秒待つ
+					nextHitTimer[p] = 0.5f;
+				}
 			}
 		}
 	}
@@ -1360,9 +1363,9 @@ void Special_Electricity_Draw2(int playerIndex)
 
 		// 範囲円（+Y面）を描画
 		XMMATRIX circleWorldMatrix =
-			XMMatrixScaling(1.0f, 1.0f, 1.0f) *
+			XMMatrixScaling(3.0f, 3.0f, 3.0f) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			XMMatrixTranslation(target.x, target.y + 0.1f, target.z);
+			XMMatrixTranslation(target.x, target.y - 0.5f, target.z);
 
 		XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 		Shader_SetMatrix(circleWVP);
@@ -1372,54 +1375,101 @@ void Special_Electricity_Draw2(int playerIndex)
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		g_pContext->Draw(4, 16);	// +Y面の4頂点 (16, 17, 18, 19)
 
-		// --- 雷エフェクト（-Z面）描画前にライトを強くする ---
-		LIGHT lightningLight{};
-		lightningLight.Enable = TRUE;
-		lightningLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-		lightningLight.Diffuse = XMFLOAT4(4.0f, 4.0f, 4.0f, 1.0f);
-		lightningLight.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		Shader_SetLight(lightningLight);
 
-		// --- 雷エフェクト（-Z面）のUVを8x8分割で書き換え ---
+		if (player.specialTimer > 1.5f)
 		{
-			int frame = g_lightningFrame[playerIndex];
-			int col = frame % LIGHTNING_SHEET_COLS;
-			int row = frame / LIGHTNING_SHEET_COLS;
-			float u0 = (float)col / (float)LIGHTNING_SHEET_COLS;
-			float v0 = (float)row / (float)LIGHTNING_SHEET_ROWS;
-			float u1 = u0 + 1.0f / (float)LIGHTNING_SHEET_COLS;
-			float v1 = v0 + 1.0f / (float)LIGHTNING_SHEET_ROWS;
+			// --- 雷エフェクト（-Z面）描画前にライトを強くする ---
+			LIGHT lightningLight{};
+			lightningLight.Enable = TRUE;
+			lightningLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+			lightningLight.Diffuse = XMFLOAT4(4.0f, 4.0f, 4.0f, 1.0f);
+			lightningLight.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			Shader_SetLight(lightningLight);
 
-			D3D11_MAPPED_SUBRESOURCE msr;
-			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-			Vertex2* vertex = (Vertex2*)msr.pData;
-			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
-			vertex[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
-			vertex[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
-			vertex[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
-			vertex[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
-			g_pContext->Unmap(g_VertexBuffer, 0);
+			// --- 雷エフェクト（-Z面）のUVを8x8分割で書き換え ---
+			{
+				int frame = g_lightningFrame[playerIndex];
+				int col = frame % LIGHTNING_SHEET_COLS;
+				int row = frame / LIGHTNING_SHEET_COLS;
+				float u0 = (float)col / (float)LIGHTNING_SHEET_COLS;
+				float v0 = (float)row / (float)LIGHTNING_SHEET_ROWS;
+				float u1 = u0 + 1.0f / (float)LIGHTNING_SHEET_COLS;
+				float v1 = v0 + 1.0f / (float)LIGHTNING_SHEET_ROWS;
+
+				D3D11_MAPPED_SUBRESOURCE msr;
+				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+				Vertex2* vertex = (Vertex2*)msr.pData;
+				CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+				vertex[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+				vertex[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+				vertex[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+				vertex[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
+				g_pContext->Unmap(g_VertexBuffer, 0);
+			}
+
+			// --- 雷エフェクト（-Z面）を描画 ---
+			float lightningTopY = 10.0f;
+			float lightningBottomY = target.y;
+			float length = fabsf(lightningTopY - lightningBottomY);
+
+			XMMATRIX lightningWorldMatrix =
+				XMMatrixScaling(2.0f, length * 1.0f, 2.0f) *
+				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+				XMMatrixTranslation(target.x + 0.5f, 4.0f, target.z + 0.1f);
+			//XMMatrixTranslation(target.x, (lightningTopY + lightningBottomY) / 2.0f, target.z);
+
+			XMMATRIX lightningWVP = lightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(lightningWVP);
+
+			g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[7]);
+			SetBlendState(BLENDSTATE_ALPHA);
+
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			g_pContext->Draw(4, 0);	// -Z面の4頂点 (0, 1, 2, 3)
+
+			// --- 3. 追加のエフェクト描画 (g_Special_Texture[8] の 19~23番) ---
+			{
+				// ★ポイント1: 速度調整 / 3 でゆっくりにする。数字を大きくするほど遅くなる
+				// ★ポイント2: %5 で、コマだけを繰り返す
+				int animationSpeed = 1; // ここを 2~6 くらいで調整してみて！
+				int loopCount = 16;      // 19番から23番までの5コマ
+				int effectFrame = 17 + ((g_animFrame[playerIndex] / animationSpeed) % loopCount);
+
+				int cols = 8; // 8*8シートなので
+				int rows = 8;
+				int col = effectFrame % cols;
+				int row = effectFrame / cols;
+
+				float u0 = (float)col / (float)cols;
+				float v0 = (float)row / (float)rows;
+				float u1 = u0 + 1.0f / (float)cols;
+				float v1 = v0 + 1.0f / (float)rows;
+
+				// 2. 頂点バッファのUVを書き換え（範囲円と同じ 16~19番 を使う）
+				D3D11_MAPPED_SUBRESOURCE msr;
+				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+				Vertex2* vertex = (Vertex2*)msr.pData;
+				CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2)* SPECIAL_VERTEX);
+
+				vertex[16].tex = XMFLOAT2(u0, v0);
+				vertex[17].tex = XMFLOAT2(u1, v0);
+				vertex[18].tex = XMFLOAT2(u0, v1);
+				vertex[19].tex = XMFLOAT2(u1, v1);
+				g_pContext->Unmap(g_VertexBuffer, 0);
+
+				XMMATRIX circleWorldMatrix =
+					XMMatrixScaling(7.0f, 7.0f, 7.0f) *
+					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+					XMMatrixTranslation(target.x, target.y - 1.25f, target.z);
+
+				XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+				Shader_SetMatrix(circleWVP);
+
+				// 4. テクスチャ[8]をセットして描画！
+				g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[8]);
+				g_pContext->Draw(4, 16);
+			}
 		}
-
-		// --- 雷エフェクト（-Z面）を描画 ---
-		float lightningTopY = 10.0f;
-		float lightningBottomY = target.y;
-		float length = fabsf(lightningTopY - lightningBottomY);
-
-		XMMATRIX lightningWorldMatrix =
-			XMMatrixScaling(2.0f, length * 1.0f, 2.0f) *
-			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			XMMatrixTranslation(target.x + 0.5f, 4.0f, target.z + 0.1f);
-		//XMMatrixTranslation(target.x, (lightningTopY + lightningBottomY) / 2.0f, target.z);
-
-		XMMATRIX lightningWVP = lightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-		Shader_SetMatrix(lightningWVP);
-
-		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[7]);
-		SetBlendState(BLENDSTATE_ALPHA);
-
-		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		g_pContext->Draw(4, 0);	// -Z面の4頂点 (0, 1, 2, 3)
 	}
 
 	// --- ループ終了後にライトを元に戻す ---
@@ -1466,7 +1516,7 @@ void Special_Draw(int playerIndex)
 	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// ※ プレイヤー本体の描画と同様に、ここで一度だけ頂点データをGPUに送ります
+	// プレイヤー本体の描画と同様に、ここで一度だけ頂点データをGPUに送ります
 	D3D11_MAPPED_SUBRESOURCE msr;
 	// (注意: g_VertexBuffer が D3D11_USAGE_DYNAMIC である必要があります)
 	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);

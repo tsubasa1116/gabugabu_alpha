@@ -516,7 +516,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		}
 
 		////////////////////////////////////////////////////////////////
-		// 今から描くマス（i番目）が、誰かの雷床になっていないか探す
+				// 今から描くマス（i番目）が、誰かの雷床になっていないか探す
 		bool isElectrified = false;
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
@@ -524,13 +524,17 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			// そのプレイヤーが「雷タイプのスペシャル」を使用中か？
 			if (player != nullptr && player->useSpecial && player->type == PlayerType::Electricity)
 			{
-				// 選ばれた5つの雷床のどれかが、今のマス(i)と同じ番号か？
-				for (int e = 0; e < SPECIAL_ELECTRICITY_QUANTITY; ++e)
+				// ★スペシャル発動から1.0秒経過しているか？
+				if (player->specialTimer > 1.5f)
 				{
-					if (player->electricityTileIndices[e] == i)
+					// 選ばれた5つの雷床のどれかが、今のマス(i)と同じ番号か？
+					for (int e = 0; e < SPECIAL_ELECTRICITY_QUANTITY; ++e)
 					{
-						isElectrified = true; // 雷床だ！
-						break;
+						if (player->electricityTileIndices[e] == i)
+						{
+							isElectrified = true; // 雷床だ！
+							break;
+						}
 					}
 				}
 			}
