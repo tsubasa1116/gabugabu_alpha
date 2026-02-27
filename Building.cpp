@@ -9,6 +9,8 @@
 #include <codecvt>            // © ’Ç‰Á: ƒƒCƒh¨UTF-8 •ÏŠ·—p
 #include <locale>
 #include "debug_render.h"
+#include "loadThread.h"
+#include "model.h"
 
 
 //=========================================

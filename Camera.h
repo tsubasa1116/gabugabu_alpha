@@ -19,11 +19,6 @@ enum FOLLOW_MODE
     FOLLOW_ALL
 };
 
-enum FOLLOW_MODE 
-{
-	FOLLOW_SINGLE, 
-	FOLLOW_ALL
-};
 
 class CAMERA
 {
