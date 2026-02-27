@@ -67,5 +67,6 @@ void Special_Glass_Draw(int playerIndex);
 void Special_Concrete_Draw(int playerIndex);
 void Special_Plant_Draw(int playerIndex);
 void Special_Electricity_Draw(int playerIndex);
+void Special_Electricity_Draw2(int playerIndex);
 
 SPECIAL_OBJECT* GetSpecial(int playerIndex);

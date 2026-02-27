@@ -30,8 +30,8 @@ void Manager_Initialize()
 
 #ifdef _DEBUG
 	//DEBUG:
-	SetScene(SCENE_TITLE);
-	//SetScene(SCENE_GAME);
+	//SetScene(SCENE_TITLE);
+	SetScene(SCENE_GAME);
 #else
 	SetScene(SCENE_TITLE);
 #endif
