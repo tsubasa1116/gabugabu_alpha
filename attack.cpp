@@ -398,6 +398,8 @@ void Attack_Update(int playerIndex)
 
 				buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 				buildingObjects[i]->isDestroyed = true;				// 建物破壊フラグを有効
+				buildingObjects[i]->m_RespawnTimer = 10.0f;
+
 				PlayAudio(g_SE_ID[0]);								// 建物崩壊の効果音を再生
 				player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 				player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
@@ -728,6 +730,10 @@ void AttackPlayerCollisions()
 			PLAYEROBJECT& defender = *defenderObject;
 
 			if (!defender.active) continue;
+
+			// リスポーン中や卵割れ中はダメージを受けないよう無視する
+			if (defender.duringRespawn || defender.isEggBreaking) continue;
+
 			// 被弾中や無敵ならスキップ
 			if (defender.isInvincible) continue;
 

@@ -456,6 +456,9 @@ void Skill_Glass_Update(int playerIndex)
 			if (!otherPlayer.active) continue;		// 非アクティブは無視
 			if (otherPlayer.isInvincible) continue;	// 無敵中は無視
 
+			// リスポーン中や卵割れ中はダメージを受けないよう無視する
+			if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
+
 			// otherPlayer 用のヒットボックススケールを攻撃判定と合わせて計算して AABB を作る
 			XMFLOAT3 otherPlayerHitboxScaling =
 			{
@@ -668,6 +671,7 @@ void Skill_Glass_Draw(int playerIndex)
 		Shader_SetMatrix(WVP);
 
 		// 描画実行
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6 * 6, 0, 0);
 	}
 }
@@ -691,6 +695,7 @@ void Skill_Concrete_Draw(int playerIndex)
 	Shader_SetMatrix(WVP);
 
 	// 描画実行
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 }
 
@@ -713,6 +718,7 @@ void Skill_Plant_Draw(int playerIndex)
 	Shader_SetMatrix(WVP);
 
 	// 描画実行
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 }
 
@@ -735,6 +741,7 @@ void Skill_Electricity_Draw(int playerIndex)
 	Shader_SetMatrix(WVP);
 
 	// 描画実行
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 }

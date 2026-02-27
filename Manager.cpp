@@ -9,6 +9,7 @@
 #include "Start.h"
 #include "Setting.h"
 #include "Sound.h"
+#include "Ready.h"
 #include "Win.h"
 #include "Result.h"
 #include "fade.h"
@@ -29,7 +30,7 @@ void Manager_Initialize()
 
 #ifdef _DEBUG
 	//DEBUG:
-	SetScene(SCENE_GAME);
+	SetScene(SCENE_TITLE);
 	//SetScene(SCENE_GAME);
 #else
 	SetScene(SCENE_TITLE);
@@ -68,6 +69,9 @@ void Manager_Update()
 		break;
 	case SCENE_SOUND:
 		Sound_Update();
+		break;
+	case SCENE_READY:
+		Ready_Update();
 		break;
 	case SCENE_GAME:
 		Game_Update();
@@ -111,6 +115,9 @@ void Manager_Draw()
 	case SCENE_SOUND:
 		Sound_Draw();
 		break;
+	case SCENE_READY:
+		Ready_Draw();
+		break;
 	case SCENE_GAME:
 		Game_Draw();
 		break;
@@ -142,8 +149,15 @@ void SetScene(SCENE scene)
 		Start_Finalize();
 		break;
 	case SCENE_SETTING:
+		Setting_Finalize();		// Å© í«â¡
+		g_InitSettingOnce = false;	// Å© çƒèâä˙âªÇâ¬î\Ç…Ç∑ÇÈ
 		break;
 	case SCENE_SOUND:
+		Sound_Finalize();		// Å© í«â¡
+		g_InitSoundOnce = false;	// Å© çƒèâä˙âªÇâ¬î\Ç…Ç∑ÇÈ
+		break;
+	case SCENE_READY:
+		Ready_Finalize();
 		break;
 	case SCENE_GAME:
 		Game_Finalize();
@@ -184,6 +198,9 @@ void SetScene(SCENE scene)
 			Sound_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 			g_InitSoundOnce = true;
 		}
+		break;
+	case SCENE_READY:
+		Ready_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 		break;
 	case SCENE_GAME:
 		Game_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());

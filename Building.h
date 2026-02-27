@@ -41,7 +41,7 @@ private:
 
 	// 種類・フェーズに応じて
 	// モデルとテクスチャを読み込む
-	void LoadModelForPhase();
+	//void LoadModelForPhase();
 
 public:
 
@@ -58,7 +58,7 @@ public:
 	AABB boundingBox;
 
 	// モデル
-	MODEL* m_Model;
+	//MODEL* m_Model;
 
 	bool isActive;		// 有効フラグ
 	bool isDestroyed;	// 建物破壊フラグ
@@ -66,6 +66,9 @@ public:
 	// プレイヤー接近時のテクスチャオフセット
 	int m_TexOffset;
 	bool m_IsPlayerNear;
+
+	float m_Alpha = 1.0f;      // 1.0（不透明）～ 0.0（完全に透明）
+	bool  m_IsFading = false;  // フェードアウト中かどうかのフラグ
 
 	//=================================
 	// コンストラクタ
@@ -81,12 +84,19 @@ public:
 	// 描画
 	void Draw(bool s_IsKonamiCodeEntered);
 
+	void Rebirth(); // 復活
+
 	// 状態変更
-	void SetPhase(BuildingPhase phase);
+	//void SetPhase(BuildingPhase phase);
 
 	// ゲッター
 	BuildingType  GetType()  const { return type; }
 	BuildingPhase GetPhase() const { return Phase; }
+
+	const AABB& GetAABB() const { return boundingBox; }
+
+	float m_RespawnTimer = { 10.0f };	// 復活までの秒数
+	float m_RebirthAnimTimer = 0.0f;
 };
 
 //=========================================

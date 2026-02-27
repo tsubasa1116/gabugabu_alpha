@@ -84,6 +84,9 @@ struct PLAYEROBJECT
 	bool active;			// 生存フラグ
 	float satiety;			// 満腹度
 
+	int   animFrame = { 0 };	// 現在のプレイヤーアニメーションフレーム
+	float animTimer = { 0.0f };	// アニメーション経過時間
+
 	bool isAttacking;		// 攻撃中かどうか
 	float attackTimer;		// 攻撃中の経過時間
 
@@ -103,6 +106,7 @@ struct PLAYEROBJECT
 
 	bool useSpecial;		// スペシャル中かどうか
 	float specialTimer;		// スペシャル中の経過時間
+	bool specialAnimation;	// スペシャルアニメーション中かどうか
 
 	bool isInvincible;		// 無敵中かどうか
 	float invincibleTimer;	// 無敵中の経過時間
@@ -151,6 +155,8 @@ struct PLAYEROBJECT
 	std::vector<GLASS_BOX> glassBoxes; // スペシャル ガラスのミサイルリスト
 
 	XMFLOAT2 moveInput2D;
+
+	int electricityTileIndices[SPECIAL_ELECTRICITY_QUANTITY] = { 0 }; // 電気スペシャル用：選択されたタイルのインデックス
 };
 
 void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

@@ -75,8 +75,8 @@ static int g_EffectTimer = 0;
 
 static bool g_EffectLoopFlag = false;
 
-static int   g_animFrame[PLAYER_MAX] = { 0 };
-static float g_animTimer[PLAYER_MAX] = { 0.0f };
+static int   animFrame[PLAYER_MAX] = { 0 };
+static float animTimer[PLAYER_MAX] = { 0.0f };
 static const float ANIM_FRAME_TIME = 0.16f;	// 1フレームあたりの秒数
 
 PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
@@ -132,6 +132,8 @@ static void Effect_LoadTexture(int i, const wchar_t* num)
 	hr = CreateShaderResourceView(g_pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[i]);
 	assert(SUCCEEDED(hr));
 	assert(g_Texture[i]);
+
+	g_ReleaseOwned[i] = true; // ← 追加：自前で読み込んだテクスチャは解放対象
 }
 
 //===============================================
@@ -165,7 +167,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(7, L"Asset\\Texture\\uiLightBigElectricity_v1.png");		// 第3形態 電気
 	// ゲーム内
 	Effect_LoadTexture(8, L"Asset\\Texture\\effectSkillGlassConcrete_v4.png");	// スキル ガラス・コンクリート 回復
-	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v2.png");			// スキル 植物
+	Effect_LoadTexture(9, L"Asset\\Texture\\effectSkillTree_v3.png");			// スキル 植物
 	Effect_LoadTexture(10, L"Asset\\Texture\\effectSkillElectricity_v2.png");	// スキル 電気
 	Effect_LoadTexture(11, L"Asset\\Texture\\effectPoison_v3.png");				// 毒・Aボタン・プレイヤーの影
 	Effect_LoadTexture(12, L"Asset\\Texture\\effectHit01_v4.png");				// ヒット コンクリート 建物・プレイヤーを攻撃した時 スタン
@@ -189,7 +191,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));// 0でクリア
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;// 格納できる頂点数*頂点サイズ
+	bd.ByteWidth = sizeof(Vertex2) * PLAYER_VERTEX;// 格納できる頂点数*頂点サイズ
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -202,7 +204,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		D3D11_BUFFER_DESC	bd;
 		ZeroMemory(&bd, sizeof(bd));	// 0でクリア
 		bd.Usage = D3D11_USAGE_DYNAMIC;
-		bd.ByteWidth = sizeof(UINT) * 6 * 6;
+		bd.ByteWidth = sizeof(UINT) * 6;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
@@ -213,7 +215,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		UINT* index = (UINT*)msr.pData;
 
 		// インデックスデータをバッファへコピー
-		CopyMemory(&index[0], &effect_idxdata[0], sizeof(UINT) * 6 * 6);
+		CopyMemory(&index[0], &effect_idxdata[0], sizeof(UINT) * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
 	// デバッグレンダラー初期化 
@@ -222,18 +224,19 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// アニメーションの初期化
 	for (int i = 0; i < PLAYER_MAX; ++i)
 	{
-		g_animFrame[i] = 0;
-		g_animTimer[i] = 0.0f;
+		animFrame[i] = 0;
+		animTimer[i] = 0.0f;
 	}
 
 	// ===== GPU テクスチャ ウォームアップ =====
+	// DrawIndexed(0,...) はシェーダー未設定でエラーになるため、
+	//    PSSetShaderResources のみでGPUにテクスチャを認識させる
 	{
 		for (int i = 0; i < EFFECT_TEX_MAX; ++i)
 		{
 			if (g_Texture[i] != nullptr)
 			{
 				g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
-				g_pContext->DrawIndexed(0, 0, 0);
 			}
 		}
 		ID3D11ShaderResourceView* nullSRV = nullptr;
@@ -246,7 +249,8 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 //===============================================
 void Effect_Finalize()
 {
-	for (int i = 0; i < EFFECT_MAX; i++)
+	// テクスチャの解放
+	for (int i = 0; i < EFFECT_TEX_MAX; i++)
 	{
 		if (g_Texture[i] && g_ReleaseOwned[i])
 		{
@@ -360,8 +364,6 @@ void Effect_Draw()
 	}
 }
 
-
-
 // ===============================================
 // プレイヤー付近に表示するエフェクト更新関数
 // ===============================================
@@ -432,6 +434,9 @@ void Effect_UpdateForPlayer(int playerIndex)
 		int skillEnd = 0;
 		bool useLoopRange = false;
 
+		// 再生間隔（デフォルトは ANIM_FRAME_TIME。植物のみ高速化）
+		float skillFrameInterval = ANIM_FRAME_TIME;
+
 		switch (player.type)
 		{
 		case PlayerType::Glass:
@@ -453,22 +458,33 @@ void Effect_UpdateForPlayer(int playerIndex)
 			}
 			break;
 		case PlayerType::Plant:
-			useLoopRange = true;
+			useLoopRange = false;
 			skillStart = 0;
-			skillEnd = 54;
+			skillEnd = 59;
+			skillFrameInterval = 0.1f;   // フレーム間隔を短くして高速再生
+			if (!skillFrameInitialized[playerIndex])
+			{
+				g_PlayerEffectAnim[playerIndex].skillFrame = skillStart;
+				skillFrameInitialized[playerIndex] = true;
+			}
 			break;
 		case PlayerType::Electricity:
+			// 電気は従来どおりループ範囲で再生
 			useLoopRange = true;
 			skillStart = 0;
 			skillEnd = 62;
+			// electricity は初期化を行わない既存の挙動を維持
 			break;
 		default:
 			break;
 		}
-		if (player.type != PlayerType::Glass && player.type != PlayerType::Concrete)	skillFrameInitialized[playerIndex] = false;
+
+		// Glass / Concrete / Plant は個別初期化を保持するためここでの一括リセットを避ける
+		if (player.type != PlayerType::Glass && player.type != PlayerType::Concrete && player.type != PlayerType::Plant)
+			skillFrameInitialized[playerIndex] = false;
 
 		g_PlayerEffectAnim[playerIndex].skillTimer += DELTA_TIME;
-		if (g_PlayerEffectAnim[playerIndex].skillTimer >= ANIM_FRAME_TIME)
+		if (g_PlayerEffectAnim[playerIndex].skillTimer >= skillFrameInterval)
 		{
 			g_PlayerEffectAnim[playerIndex].skillTimer = 0.0f;
 			if (useLoopRange)	LoopRange(g_PlayerEffectAnim[playerIndex].skillFrame, skillStart, skillEnd, 1);
@@ -705,7 +721,6 @@ void Effect_UpdateForPlayer(int playerIndex)
 	}
 }
 
-
 //===============================================
 // エフェクトセット
 //===============================================
@@ -826,7 +841,7 @@ void Effect_ClearUI(int pIndex)
 			{  170.0f * screenX, screenY },	// プレイヤー1
 			{  490.0f * screenX, screenY },	// プレイヤー2
 			{  810.0f * screenX, screenY },	// プレイヤー3
-			{ 1130.0f * screenX, screenY }		// プレイヤー4
+			{ 1130.0f * screenX, screenY }	// プレイヤー4
 	};
 
 	if (pIndex < 0 || pIndex >= 4) return;
@@ -895,7 +910,7 @@ void EffectFront_DrawForPlayer(int playerIndex)
 	Vertex2 localV[PLAYER_VERTEX];
 	CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
 
-	int frame = g_animFrame[playerIndex];
+	int frame = animFrame[playerIndex];
 	int col = frame % EFFECT_SPRITE_X;
 	int row = frame / EFFECT_SPRITE_X;
 	float u0 = (float)col / (float)EFFECT_SPRITE_X;
@@ -947,9 +962,9 @@ void EffectFront_DrawForPlayer(int playerIndex)
 			XMFLOAT3 ofs(0, 0, 0);
 			switch (player.type)
 			{
-			case PlayerType::Glass:			texNo = 8;	scale = 1.0f; ofs = XMFLOAT3(0, 0, 0); break;
-			case PlayerType::Concrete:		texNo = 8;	scale = 1.0f; ofs = XMFLOAT3(0, 0, 0); break;
-			case PlayerType::Plant:			texNo = 9;	scale = 1.0f; ofs = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Glass:			texNo = 8;	scale = 1.5f; ofs = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Concrete:		texNo = 8;	scale = 1.5f; ofs = XMFLOAT3(0, 0, 0); break;
+			case PlayerType::Plant:			texNo = 9;	scale = 1.5f; ofs = XMFLOAT3(0, 0, 0); break;
 			case PlayerType::Electricity:	texNo = 10;	scale = 1.5f; ofs = XMFLOAT3(0, 0, 0); break;
 			default: break;
 			}
@@ -1050,6 +1065,7 @@ void EffectFront_DrawForPlayer(int playerIndex)
 		g_pContext->Unmap(g_VertexBuffer, 0);
 
 		g_pContext->PSSetShaderResources(0, 1, &srv);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6, 0, 0);
 	}
 }
@@ -1065,6 +1081,9 @@ void EffectShadow_DrawForPlayer(int playerIndex)
 
 	// 影を非表示にする条件
 	if (!player.duringRespawn && !player.isEggBreaking && !player.isShadowEnabled)	return;
+
+	// シェーダーを設定
+	Shader_Begin();
 
 	// 影のY座標（地面の高さ）を決める
 	float groundY = 0.0f;
@@ -1130,7 +1149,6 @@ void EffectShadow_DrawForPlayer(int playerIndex)
 	g_pContext->PSSetShaderResources(0, 1, &srv);
 	g_pContext->DrawIndexed(6, 0, 0);
 }
-
 
 // ===============================================
 // 建物付近に表示するエフェクト更新関数
@@ -1209,6 +1227,9 @@ void Effect_DrawForBuilding(int buildingIndex)
 	// 再生中のみ描画
 	if (!anim.hitPlaying) return;
 
+	// シェーダーを設定（頂点シェーダー未設定エラーの修正）
+	Shader_Begin();
+
 	int texNo = (building[buildingIndex]->type == BuildingType::Concrete) ? 12 : 13;
 
 	XMFLOAT3 pos = building[buildingIndex]->position;
@@ -1236,7 +1257,8 @@ void Effect_DrawForBuilding(int buildingIndex)
 	vm.r[3].m128_f32[1] = 0.0f;
 	vm.r[3].m128_f32[2] = 0.0f;
 	vm.r[3].m128_f32[3] = 1.0f;
-	vm = XMMatrixTranspose(vm);  // ビュー行列の回転部分を転置＝逆回転
+	vm = XMMatrixTranspose(vm);
+
 	vm.r[3].m128_f32[0] = pos.x;
 	vm.r[3].m128_f32[1] = pos.y + 2.0f;  // 建物の少し上に配置
 	vm.r[3].m128_f32[2] = pos.z;
