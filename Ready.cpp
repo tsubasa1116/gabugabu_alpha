@@ -368,7 +368,7 @@ void Ready_Update()
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
-			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\uiRored.mp4");
+			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\road.mp4");
 		}
 	}
 }

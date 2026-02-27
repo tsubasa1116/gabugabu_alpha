@@ -400,9 +400,14 @@ void Attack_Update(int playerIndex)
 				buildingObjects[i]->isDestroyed = true;				// 建物破壊フラグを有効
 				buildingObjects[i]->m_RespawnTimer = 10.0f;
 
-				PlayAudio(g_SE_ID[0]);								// 建物崩壊の効果音を再生
-				player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
-				player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
+				PlayAudio(g_SE_ID[0], false);									// 建物崩壊の効果音を再生
+				if (player.form == Form::First || player.form == Form::Second)
+				{
+					player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
+					// 上限チェック
+					if (player.evolutionGauge > EVOLUTIONGAUGE_MAX)	player.evolutionGauge = EVOLUTIONGAUGE_MAX;
+				}
+				player.brokenHistory.push_back(type);					// 最後に破壊した建物タイプを保存
 
 				// HP回復
 				player.hp += 10.0f;

@@ -481,6 +481,13 @@ void Skill_Glass_Update(int playerIndex)
 				otherPlayer.hp -= SKILL_GLASS_DAMAGE * otherPlayer.defense;
 				// HPが0以下にならないように
 				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+	
+				// ここ２行
+				otherPlayer.isDamageColor = true;
+				otherPlayer.damageColorTimer = 0.0f;
+
+				otherPlayer.isDamageColor = true;	// ダメージカラーON
+				otherPlayer.damageColorTimer = 0.0f;// ダメージカラータイマーリセット
 
 				// スタンゲージ増加
 				otherPlayer.stunGauge += 0.03f;
