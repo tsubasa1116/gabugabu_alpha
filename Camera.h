@@ -19,6 +19,7 @@ enum FOLLOW_MODE
     FOLLOW_ALL
 };
 
+
 class CAMERA
 {
 public:

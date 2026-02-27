@@ -10,6 +10,7 @@
 #include "Building.h"
 #include "Audio.h"
 #include "imgui.h"
+#include "loadThread.h"
 
 #define EFFECT_SPRITE_X		(8)
 #define EFFECT_SPRITE_Y		(8)
@@ -116,6 +117,7 @@ static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
 	 { 1,      0,     0,   true,  0.0f,       1,     0.9f,     1.0f,       2.5f }
 };
 
+
 //===============================================
 //　テクスチャセット用関数
 //===============================================
@@ -127,15 +129,23 @@ static void Effect_LoadTexture(int i, const wchar_t* num)
 	TexMetadata metadata{};
 	ScratchImage image{};
 	HRESULT hr = LoadFromWICFile(num, WIC_FLAGS_NONE, &metadata, image);
+
+	// ★追加：エラーの正体（HRESULT）をメッセージボックスで強制表示させる
+	if (FAILED(hr))
+	{
+		wchar_t errorMsg[512];
+		swprintf_s(errorMsg, 512, L"[致命的エラー] 画像読み込み失敗！\n\nファイル: %s\nエラーコード(HRESULT): 0x%08X\n", num, hr);
+		MessageBoxW(NULL, errorMsg, L"エラー特定", MB_OK | MB_ICONERROR);
+	}
+
 	assert(SUCCEEDED(hr));
 
 	hr = CreateShaderResourceView(g_pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[i]);
 	assert(SUCCEEDED(hr));
 	assert(g_Texture[i]);
 
-	g_ReleaseOwned[i] = true; // ← 追加：自前で読み込んだテクスチャは解放対象
+	g_ReleaseOwned[i] = true;
 }
-
 //===============================================
 //　初期化
 //===============================================
@@ -156,6 +166,8 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		effect[i].scaleGrowing = true;
 	}
 
+	Loader::AddTask([pDevice]()
+	{
 	// UI画面
 	Effect_LoadTexture(0, L"Asset\\Texture\\uiLightBigGlass_v1.png");			// 第2形態 ガラス
 	Effect_LoadTexture(1, L"Asset\\Texture\\uiLightBigConcrete_v1.png");		// 第2形態 コンクリート
@@ -185,6 +197,10 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(23, L"Asset\\Texture\\uiOrbit_v1.png");
 	Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
 	Effect_LoadTexture(25, L"Asset\\Texture\\effectSmork02_v1.png");
+
+	});
+
+	//if (!g_isPlayerLoadingFinished && g_loadedCount == 0) return;
 	
 
 	// 頂点バッファ作成
@@ -227,21 +243,26 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_animFrame[i] = 0;
 		g_animTimer[i] = 0.0f;
 	}
+}
+
+void Effect_Warmup()
+{
+	if (!g_pContext) return;
 
 	// ===== GPU テクスチャ ウォームアップ =====
-	// DrawIndexed(0,...) はシェーダー未設定でエラーになるため、
-	//    PSSetShaderResources のみでGPUにテクスチャを認識させる
+	const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
+	for (size_t i = 0; i < TEX_COUNT; ++i)
 	{
-		for (int i = 0; i < EFFECT_TEX_MAX; ++i)
+		if (g_Texture[i] != nullptr)
 		{
-			if (g_Texture[i] != nullptr)
-			{
-				g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
-			}
+			g_pContext->PSSetShaderResources(0, 1, &g_Texture[i]);
+			g_pContext->DrawIndexed(0, 0, 0);
 		}
-		ID3D11ShaderResourceView* nullSRV = nullptr;
-		g_pContext->PSSetShaderResources(0, 1, &nullSRV);
 	}
+
+	// 最後にリセットしておく
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
 }
 
 //===============================================
@@ -316,6 +337,8 @@ void Effect_Update()
 //===============================================
 void Effect_Draw()
 {
+	if (!Loader::IsFinished) return;
+
 	Shader_Begin();
 	Shader_BeginUI();
 	SetBlendState(BLENDSTATE_ALPHA);

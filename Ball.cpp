@@ -37,6 +37,7 @@ void BallInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void BallFinalize()
 {
 	ModelRelease(g_Ball.Model);
+	g_Ball.Model = nullptr;
 }
 
 void BallUpdate()
