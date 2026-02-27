@@ -268,8 +268,8 @@ void Win_Draw()
 		float u1 = (frameX + 1) * frameWidth / g_TexMeta6.width;
 		float v1 = (frameY + 1) * frameHeight / g_TexMeta6.height;
 
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 250 };
-		XMFLOAT2 size = { frameWidth * 1.3f, frameHeight * 1.3f }; // Šg‘å—á
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
+		XMFLOAT2 size = { frameWidth * 1.0f, frameHeight * 1.0f }; // Šg‘å—á
 		XMFLOAT4 col = { 1, 1, 1, 1 };
 
 		DrawSpriteUV(pos, size, col, XMFLOAT2(u0, v0), XMFLOAT2(u1, v1));
