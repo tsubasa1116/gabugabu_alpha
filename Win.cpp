@@ -108,9 +108,9 @@ static const wchar_t* GetWinTextPath(int winnerIndex)
 	switch (winnerIndex)
 	{
 	case 0:  return L"asset\\texture\\uiWinText1P_v1.png";
-	case 1:  return L"asset\\texture\\uiWinText2P_v2.png";
-	case 2:  return L"asset\\texture\\uiWinText3P_v2.png";
-	case 3:  return L"asset\\texture\\uiWinText4P_v2.png";
+	case 1:  return L"asset\\texture\\uiWinText2P_v4.png";
+	case 2:  return L"asset\\texture\\uiWinText3P_v3.png";
+	case 3:  return L"asset\\texture\\uiWinText4P_v3.png";
 	default: return L"asset\\texture\\uiWinText1P_v1.png";
 	}
 }
@@ -150,8 +150,15 @@ static int GetAnimRow(Form form, PlayerType type, int winnerIndex)
 {
 	if (form == Form::First)
 	{
-		// プレイヤー番号がそのまま行番号
-		return (winnerIndex >= 0 && winnerIndex <= 3) ? winnerIndex : 0;
+		// 第1形態シート: 行0=1P, 行1=2P, 行2=4P, 行3=3P
+		switch (winnerIndex)
+		{
+		case 0: return 0; // 1P → 行0
+		case 1: return 1; // 2P → 行1
+		case 2: return 3; // 3P → 行3
+		case 3: return 2; // 4P → 行2
+		default: return 0;
+		}
 	}
 
 	// 属性のベース行
