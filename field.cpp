@@ -516,7 +516,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		}
 
 		////////////////////////////////////////////////////////////////
-				// 今から描くマス（i番目）が、誰かの雷床になっていないか探す
+		//		// 今から描くマス（i番目）が、誰かの雷床になっていないか探す
 		bool isElectrified = false;
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
