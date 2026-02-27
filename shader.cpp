@@ -462,8 +462,29 @@ void Shader_Finalize()
 	SAFE_RELEASE(g_pHpberBuffer);
 	SAFE_RELEASE(g_pColorBuffer);
 	SAFE_RELEASE(g_pDrawModeBuffer);
-}
 
+	// ピクセルシェーダーの解放を追加
+	SAFE_RELEASE(g_pGaugeShader);
+	SAFE_RELEASE(g_pOutGaugeShader);
+	SAFE_RELEASE(g_pSkillGaugeShader);
+	SAFE_RELEASE(g_pHpberShader);
+	SAFE_RELEASE(g_pDebugColorShader);
+
+	// テクスチャの解放を追加
+	for (int i = 0; i < 4; i++)
+	{
+		SAFE_RELEASE(g_GaugeTex[i]);
+		SAFE_RELEASE(g_SkillGaugeTex[i]);
+		SAFE_RELEASE(g_SkillCoolGaugeTex[i]);
+		SAFE_RELEASE(g_SkillTextTex[i]);
+	}
+	SAFE_RELEASE(g_OutGaugeTex);
+
+	// サンプラーの解放を追加
+	SAFE_RELEASE(g_GaugeSampler);
+	SAFE_RELEASE(g_OutGaugeSampler);
+	SAFE_RELEASE(g_SkillGaugeSampler);
+}
 
 
 //======================================================
@@ -825,7 +846,6 @@ void Shader_SetColorLerp(const XMFLOAT4& mulColor, const XMFLOAT4& lerpColor, fl
 	g_pContext->Unmap(g_pColorBuffer, 0);
 	g_pContext->PSSetConstantBuffers(1, 1, &g_pColorBuffer);
 }
-
 
 //======================================================
 //	シルエット描画用設定

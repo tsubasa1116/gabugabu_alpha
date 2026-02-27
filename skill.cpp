@@ -13,7 +13,7 @@ using namespace DirectX;
 #include "debug_ostream.h"
 #include "player.h"
 #include "keyboard.h"
-
+#include "Audio.h"
 #include "color.h"
 
 // グローバル変数
@@ -33,6 +33,8 @@ static ID3D11ShaderResourceView* g_Skill_Texture[4];
 static SKILL_OBJECT Skill[PLAYER_MAX];
 
 static SKILL_GLASS g_SkillGlass[PLAYER_MAX];
+
+static int g_SE_ID[SKILL_SE_COUNT] = { NULL };
 
 // マクロ定義
 #define SKILL_VERTEX (24) // 24 頂点（キューブ各面 4 頂点 × 6 面）
@@ -231,7 +233,6 @@ void Skill_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext
 	LoadFromWICFile(L"Asset\\Texture\\SkyBlue.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[0]);
 	assert(g_Skill_Texture[0]);
-
 }
 
 void Skill_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -269,7 +270,6 @@ void Skill_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext
 	LoadFromWICFile(L"Asset\\Texture\\Red.jpg", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Skill_Texture[2]);
 	assert(g_Skill_Texture[2]);
-
 }
 
 void Skill_Electricity_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -329,6 +329,12 @@ void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Skill_Concrete_Initialize(pDevice, pContext);
 	Skill_Plant_Initialize(pDevice, pContext);
 	Skill_Electricity_Initialize(pDevice, pContext);
+
+	// SEの初期化
+	g_SE_ID[0] = LoadAudio("asset\\Audio\\Skill_Glass_Expansion.wav");		// スキル ガラス 展開音
+	g_SE_ID[1] = LoadAudio("asset\\Audio\\Skill_Concrete_Expansion.wav");	// スキル コンクリート 展開音
+	g_SE_ID[2] = LoadAudio("asset\\Audio\\Skill_Plant.wav");				// スキル 植物
+	g_SE_ID[3] = LoadAudio("asset\\Audio\\Skill_Electricity.wav");			// スキル 電気
 }
 
 void Skill_Finalize()
@@ -352,6 +358,8 @@ void Skill_Finalize()
 			g_Skill_Texture[i] = NULL;
 		}
 	}
+
+	for (int i = 0; i < SKILL_SE_COUNT; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 void Skill_Glass_Update(int playerIndex)
@@ -371,6 +379,13 @@ void Skill_Glass_Update(int playerIndex)
 		return;
 	}
 
+	// スキル発動の最初のフレームだけSEを再生
+	if (player.skillTimer == 0.0f)
+	{
+		PlayAudio(g_SE_ID[0], false);
+		player.skillAnimation = true;
+	}
+
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;
 
@@ -381,13 +396,13 @@ void Skill_Glass_Update(int playerIndex)
 	const float RelativeAngles[5] = { 20.0f, 130.0f, 180.0f, 220.0f, 290.0f };
 
 	// 5つの箱のプレイヤーからの高さオフセット
-	const float High[5] = { 0.0f, 0.5f, -0.1f, 0.2f, 0.3f };
+	const float High[5] = { 0.0f, 0.5f, 0.1f, 0.2f, 0.3f };
 
 	// 5つの箱の回転角度 (度)
 	const float Rot[5] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 	// 5つの箱のスケーリング値
-	const float Scal[5] = { 0.05f, 0.15f, 0.075f, 0.2f, 0.1f };
+	const float Scal[5] = { 0.1f, 0.3f, 0.15f, 0.4f, 0.2f };
 
 	// プレイヤーの現在の回転角度 (ラジアン)
 	float playerYaw = XMConvertToRadians(player.rotation.y);
@@ -440,6 +455,9 @@ void Skill_Glass_Update(int playerIndex)
 
 			if (!otherPlayer.active) continue;		// 非アクティブは無視
 			if (otherPlayer.isInvincible) continue;	// 無敵中は無視
+
+			// リスポーン中や卵割れ中はダメージを受けないよう無視する
+			if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
 
 			// otherPlayer 用のヒットボックススケールを攻撃判定と合わせて計算して AABB を作る
 			XMFLOAT3 otherPlayerHitboxScaling =
@@ -502,6 +520,13 @@ void Skill_Concrete_Update(int playerIndex)
 		return;
 	}
 
+	// スキル発動の最初のフレームだけSEを再生
+	if (player.skillTimer == 0.0f)
+	{
+		PlayAudio(g_SE_ID[1], false);
+		player.skillAnimation = true;
+	}
+
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;
 
@@ -533,6 +558,13 @@ void Skill_Plant_Update(int playerIndex)
 		player.useSkill = false;
 		player.skillTimer = 0.0f;
 		return;
+	}
+
+	// スキル発動の最初のフレームだけSEを再生
+	if (player.skillTimer == 0.0f)
+	{
+		PlayAudio(g_SE_ID[2], false);
+		player.skillAnimation = true;
 	}
 
 	// スキルタイマー更新
@@ -571,6 +603,13 @@ void Skill_Electricity_Update(int playerIndex)
 	float baseSpeed = 0.06f;								// 第1形態
 	if (player.form == Form::Second) baseSpeed = 0.05f;		// 第2形態
 	else if (player.form == Form::Third) baseSpeed = 0.04f;	// 第3形態
+
+	// スキル発動の最初のフレームだけSEを再生
+	if (player.skillTimer == 0.0f)
+	{
+		PlayAudio(g_SE_ID[3], false);
+		player.skillAnimation = true;
+	}
 
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;
@@ -636,6 +675,7 @@ void Skill_Glass_Draw(int playerIndex)
 		Shader_SetMatrix(WVP);
 
 		// 描画実行
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6 * 6, 0, 0);
 	}
 }
@@ -659,6 +699,7 @@ void Skill_Concrete_Draw(int playerIndex)
 	Shader_SetMatrix(WVP);
 
 	// 描画実行
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 }
 
@@ -681,6 +722,7 @@ void Skill_Plant_Draw(int playerIndex)
 	Shader_SetMatrix(WVP);
 
 	// 描画実行
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 }
 
@@ -703,6 +745,7 @@ void Skill_Electricity_Draw(int playerIndex)
 	Shader_SetMatrix(WVP);
 
 	// 描画実行
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 }

@@ -19,6 +19,7 @@ using namespace DirectX;
 #include "hp.h"
 #include "color.h"
 #include "gamepad.h"
+#include "Audio.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -35,6 +36,8 @@ static ID3D11ShaderResourceView* g_Attack_Texture[PLAYER_MAX];
 
 // オブジェクト
 static ATTACK_OBJECT Attack[PLAYER_MAX];
+
+static int g_SE_ID[ATTACK_SE_COUNT] = { NULL };
 
 // マクロ定義
 #define ATTACK_VERTEX (24)
@@ -266,6 +269,12 @@ void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		CopyMemory(&index[0], &Attack_idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
+
+	// SEの初期化
+	g_SE_ID[0] = LoadAudio("asset\\Audio\\BuildingDestroy.wav");	// 建物 崩壊
+	g_SE_ID[1] = LoadAudio("asset\\Audio\\gabugabu01.wav");			// プレイヤーをがぶがぶする音
+	g_SE_ID[2] = LoadAudio("asset\\Audio\\transform.wav");			// 
+
 }
 
 void Attack_Finalize()
@@ -289,6 +298,8 @@ void Attack_Finalize()
 			g_Attack_Texture[i] = NULL;
 		}
 	}
+
+	for (int i = 0; i < ATTACK_SE_COUNT; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 void Attack_Update(int playerIndex)
@@ -387,6 +398,9 @@ void Attack_Update(int playerIndex)
 
 				buildingObjects[i]->isActive = false;				// 建物を非アクティブ化
 				buildingObjects[i]->isDestroyed = true;				// 建物破壊フラグを有効
+				buildingObjects[i]->m_RespawnTimer = 10.0f;
+
+				PlayAudio(g_SE_ID[0]);								// 建物崩壊の効果音を再生
 				player.evolutionGauge += player.evolutionGaugeRate;	// 進化ゲージをプラス
 				player.brokenHistory.push_back(type);				// 最後に破壊した建物タイプを保存
 
@@ -402,11 +416,9 @@ void Attack_Update(int playerIndex)
 				// 満腹度の上限
 				if (player.satiety > PLAYER_MAX_SATIETY)	player.satiety = PLAYER_MAX_SATIETY;
 
-				// 効果音やエフェクトを再生
-
 				// ヒットでスキルを終了
-				player.isAttacking = false;
-				player.attackTimer = 0.0f;
+				//player.isAttacking = false;
+				//player.attackTimer = 0.0f;
 
 				// 更新済みAABB
 				CalculateAABB(atttackObject.boundingBox, atttackObject.position, atttackObject.scaling);
@@ -435,8 +447,13 @@ void Attack_Update(int playerIndex)
 		player.isInvincible = true;
 		player.invincibleTimer = 0.0f;
 
+		PlayAudio(g_SE_ID[2], false);	// 変身SEを再生
+
 		// 進化フラグを立てる
 		player.isEvolving = true;
+
+		PlayAudio(g_SE_ID[2], false);	// 変身SEを再生
+
 		player.evolvingTimer += DELTA_TIME;
 
 		// 現在のフォーム（進化前の状態）を保存
@@ -446,10 +463,7 @@ void Attack_Update(int playerIndex)
 		player.form = static_cast<Form>(static_cast<int>(player.form) + 1);
 
 		// 2. 第3形態までしか進化しないように制限
-		if (player.form >= Form::Third)
-		{
-			player.form = Form::Third;
-		}
+		if (player.form >= Form::Third)	player.form = Form::Third;
 
 		// 3. タイプ決定ロジック
 		//    Typeの決定は、Normalから FirstEvolutionに進化する場合のみ実行
@@ -477,10 +491,7 @@ void Attack_Update(int playerIndex)
 			int maxCount = 0;
 			for (int i = 0; i < 4; i++)
 			{
-				if (counts[i] > maxCount)
-				{
-					maxCount = counts[i];
-				}
+				if (counts[i] > maxCount)	maxCount = counts[i];
 			}
 
 			// --- Step 2: 履歴を「最新」から「過去」へ遡って勝者を決める ---
@@ -581,96 +592,99 @@ void Attack_Draw(int playerIndex)
 	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	// 参照を取る
-	ATTACK_OBJECT& attackObject = Attack[playerIndex];
-	ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
+	// DEBUG:取りあえずのコライダー
+	//{
+	//	// 参照を取る
+	//	ATTACK_OBJECT& attackObject = Attack[playerIndex];
+	//	ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
 
-	// =====================
-	// ワールド行列の作成
-	// =====================
+	//	// =====================
+	//	// ワールド行列の作成
+	//	// =====================
 
-	// スケーリング行列の作成
-	XMMATRIX ScalingMatrix = XMMatrixScaling
-	(
-		attackObject.scaling.x,
-		attackObject.scaling.y,
-		attackObject.scaling.z
-	);
+	//	// スケーリング行列の作成
+	//	XMMATRIX ScalingMatrix = XMMatrixScaling
+	//	(
+	//		attackObject.scaling.x,
+	//		attackObject.scaling.y,
+	//		attackObject.scaling.z
+	//	);
 
-	// 回転行列の作成
-	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
-	(
-		XMConvertToRadians(attackObject.rotation.x),
-		XMConvertToRadians(attackObject.rotation.y),
-		XMConvertToRadians(attackObject.rotation.z)
-	);
+	//	// 回転行列の作成
+	//	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
+	//	(
+	//		XMConvertToRadians(attackObject.rotation.x),
+	//		XMConvertToRadians(attackObject.rotation.y),
+	//		XMConvertToRadians(attackObject.rotation.z)
+	//	);
 
-	// 平行移動行列の作成
-	XMMATRIX TranslationMatrix = XMMatrixTranslation
-	(
-		attackObject.position.x,
-		attackObject.position.y,
-		attackObject.position.z
-	);
+	//	// 平行移動行列の作成
+	//	XMMATRIX TranslationMatrix = XMMatrixTranslation
+	//	(
+	//		attackObject.position.x,
+	//		attackObject.position.y,
+	//		attackObject.position.z
+	//	);
 
-	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
+	//	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
 
-	// プロジェクション行列作成
-	XMMATRIX projection = GetProjectionMatrix();
+	//	// プロジェクション行列作成
+	//	XMMATRIX projection = GetProjectionMatrix();
 
-	// ビュー行列作成
-	XMMATRIX view = GetViewMatrix();
+	//	// ビュー行列作成
+	//	XMMATRIX view = GetViewMatrix();
 
-	// 最終的な変換行列を作成
-	XMMATRIX WVP = WorldMatrix * view * projection;
+	//	// 最終的な変換行列を作成
+	//	XMMATRIX WVP = WorldMatrix * view * projection;
 
-	// 変換行列を頂点シェーダーへセット
-	Shader_SetMatrix(WVP);
+	//	// 変換行列を頂点シェーダーへセット
+	//	Shader_SetMatrix(WVP);
 
-	LIGHT light{};
-	light.Enable = TRUE;
-	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
-	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-	// 拡散光と環境光
-	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
-	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-	Shader_SetLight(light);
+	//	LIGHT light{};
+	//	light.Enable = TRUE;
+	//	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
+	//	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	//	// 拡散光と環境光
+	//	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+	//	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	//	Shader_SetLight(light);
 
-	// シェーダーを描画パイプラインへ設定
-	Shader_Begin();
+	//	// シェーダーを描画パイプラインへ設定
+	//	Shader_Begin();
 
-	// 不透明で描画するためブレンドを無効化し、描画カラーのアルファを1に固定する
-	SetBlendState(BLENDSTATE_NONE);
-	Shader_SetColor(color::white);
+	//	// 不透明で描画するためブレンドを無効化し、描画カラーのアルファを1に固定する
+	//	SetBlendState(BLENDSTATE_NONE);
+	//	Shader_SetColor(color::white);
 
-	// 頂点シェーダーを描画パイプラインへ設定
-	D3D11_MAPPED_SUBRESOURCE msr;
-	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	Vertex2* vertex = (Vertex2*)msr.pData;
+	//	// 頂点シェーダーを描画パイプラインへ設定
+	//	D3D11_MAPPED_SUBRESOURCE msr;
+	//	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	//	Vertex2* vertex = (Vertex2*)msr.pData;
 
-	// 頂点データを頂点バッファへコピーする
-	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * ATTACK_VERTEX);
+	//	// 頂点データを頂点バッファへコピーする
+	//	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * ATTACK_VERTEX);
 
-	// コピー完了
-	g_pContext->Unmap(g_VertexBuffer, 0);
+	//	// コピー完了
+	//	g_pContext->Unmap(g_VertexBuffer, 0);
 
-	// テクスチャをセット
-	g_pContext->PSSetShaderResources(0, 1, &tex);
+	//	// テクスチャをセット
+	//	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// 頂点バッファをセット
-	UINT stride = sizeof(Vertex2);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	//	// 頂点バッファをセット
+	//	UINT stride = sizeof(Vertex2);
+	//	UINT offset = 0;
+	//	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 
-	// インデックスバッファをセット
-	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	//	// インデックスバッファをセット
+	//	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
+	//	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	g_pContext->DrawIndexed(6 * 6, 0, 0);
+	//	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
-	SetBlendState(BLENDSTATE_ALPHA);
+	//	SetBlendState(BLENDSTATE_ALPHA);
+	//}
 }
 
 void AttackPlayerCollisions()
@@ -716,6 +730,10 @@ void AttackPlayerCollisions()
 			PLAYEROBJECT& defender = *defenderObject;
 
 			if (!defender.active) continue;
+
+			// リスポーン中や卵割れ中はダメージを受けないよう無視する
+			if (defender.duringRespawn || defender.isEggBreaking) continue;
+
 			// 被弾中や無敵ならスキップ
 			if (defender.isInvincible) continue;
 
@@ -784,6 +802,9 @@ void AttackPlayerCollisions()
 				// ダメージフラグ・タイマー（アニメ/UI 用）
 				defender.isAttacked = true;
 				defender.attackedTimer = 0.0f;
+
+				// がぶがぶ音(ループなし)
+				if(defender.attackedTimer == 0.0f)	PlayAudio(g_SE_ID[1], false);
 
 				// 再計算
 				CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);

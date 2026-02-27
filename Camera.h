@@ -9,8 +9,14 @@ using namespace DirectX;
 
 enum CAMERAMODE
 {
-	CAMERAMODE_MANUAL,
-	CAMERAMODE_AUTO,
+    CAMERAMODE_MANUAL,
+    CAMERAMODE_AUTO,
+};
+
+enum FOLLOW_MODE
+{
+    FOLLOW_SINGLE,
+    FOLLOW_ALL
 };
 
 enum FOLLOW_MODE 
@@ -22,17 +28,17 @@ enum FOLLOW_MODE
 class CAMERA
 {
 public:
-	XMFLOAT3 position;		// 座標
-	XMFLOAT3 atPosition;	// 注視点
-	XMFLOAT3 upVector;		// 上方ベクトル
+    XMFLOAT3 position;        // 座標
+    XMFLOAT3 atPosition;    // 注視点
+    XMFLOAT3 upVector;        // 上方ベクトル
 
-	XMMATRIX view;			// ビュー行列
-	XMMATRIX projection;	// プロジェクション行列
+    XMMATRIX view;            // ビュー行列
+    XMMATRIX projection;    // プロジェクション行列
 
-	float fov;		// 視野角（画角）
-	float aspect;	// 画面のアスペクト比
-	float nearClip;	// 近面クリップ距離
-	float farClip;	// 遠面クリップ距離
+    float fov;        // 視野角（画角）
+    float aspect;    // 画面のアスペクト比
+    float nearClip;    // 近面クリップ距離
+    float farClip;    // 遠面クリップ距離
 };
 
 void Camera_Initialize();

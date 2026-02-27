@@ -107,9 +107,11 @@ void SkyBall_Draw()
 	XMMATRIX	wvp = world * view * camera->projection;
 
 	// WVP行列をセット
+
 	Shader_SetMatrix(wvp);
 
 	// モデル表示
+
 	ModelDraw(g_SkyBall.Model);
 
 	camera->projection = oldProjection;

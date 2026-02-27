@@ -165,10 +165,13 @@
     <ClCompile Include="gamepad.cpp">
       <Filter>cpp</Filter>
     </ClCompile>
-    <ClCompile Include="SkyBall.cpp" />
-    <ClCompile Include="Win.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="loadThread.cpp" />
+    <ClCompile Include="SkyBall.cpp" />
+    <ClCompile Include="Win.cpp" />
+    <ClCompile Include="Ready.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attack.h">
@@ -317,6 +320,9 @@
     </ClInclude>
     <ClInclude Include="SkyBall.h" />
     <ClInclude Include="Win.h" />
+    <ClInclude Include="Ready.h">
+      <Filter>h</Filter>
+    </ClInclude>
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="loadThread.h" />
   </ItemGroup>

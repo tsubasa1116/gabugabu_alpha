@@ -9,6 +9,7 @@
 #include "Start.h"
 #include "Setting.h"
 #include "Sound.h"
+#include "Ready.h"
 #include "Win.h"
 #include "Result.h"
 #include "fade.h"
@@ -16,7 +17,7 @@
 #include "shader.h"
 #include "LoadingScreen.h"
 
-//ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+//ƒOƒ[ƒoƒ‹•Ï”
 static SCENE g_Scene = SCENE_NONE;
 static bool g_InitSettingOnce = false;
 static bool g_InitSoundOnce = false;
@@ -29,8 +30,9 @@ void Manager_Initialize()
 
 #ifdef _DEBUG
 	//DEBUG:
+	//SetScene(SCENE_TITLE);
+	SetScene(SCENE_GAME);
 	//SetScene(SCENE_GAME);
-	SetScene(SCENE_TITLE);
 #else
 	SetScene(SCENE_TITLE);
 #endif
@@ -46,7 +48,7 @@ void Manager_Finalize()
 
 void Manager_Update()
 {
-	// ãƒ­ãƒ¼ãƒ‰ä¸­ã¯é€šå¸¸ã®ã‚·ãƒ¼ãƒ³æ›´æ–°ã‚’ã‚¹ã‚­ãƒƒãƒ—
+	// ƒ[ƒh’†‚Í’Êí‚ÌƒV[ƒ“XV‚ðƒXƒLƒbƒv
 	if (IsLoading())
 	{
 		LoadingScreen_Update();
@@ -69,6 +71,9 @@ void Manager_Update()
 	case SCENE_SOUND:
 		Sound_Update();
 		break;
+	case SCENE_READY:
+		Ready_Update();
+		break;
 	case SCENE_GAME:
 		Game_Update();
 		break;
@@ -88,7 +93,7 @@ void Manager_Update()
 
 void Manager_Draw()
 {
-	// ãƒ­ãƒ¼ãƒ‰ä¸­ã¯ãƒ­ãƒ¼ãƒ‰ç”»é¢ã®ã¿æç”»
+	// ƒ[ƒh’†‚Íƒ[ƒh‰æ–Ê‚Ì‚Ý•`‰æ
 	if (IsLoading())
 	{
 		LoadingScreen_Draw();
@@ -111,6 +116,9 @@ void Manager_Draw()
 	case SCENE_SOUND:
 		Sound_Draw();
 		break;
+	case SCENE_READY:
+		Ready_Draw();
+		break;
 	case SCENE_GAME:
 		Game_Draw();
 		break;
@@ -130,7 +138,7 @@ void Manager_Draw()
 
 void SetScene(SCENE scene)
 {
-	// å®Ÿè¡Œä¸­ã®ã‚·ãƒ¼ãƒ³ã‚’çµ‚äº†ã™ã‚‹
+	// ŽÀs’†‚ÌƒV[ƒ“‚ðI—¹‚·‚é
 	switch (g_Scene)
 	{
 	case SCENE_NONE:
@@ -142,8 +150,15 @@ void SetScene(SCENE scene)
 		Start_Finalize();
 		break;
 	case SCENE_SETTING:
+		Setting_Finalize();		// © ’Ç‰Á
+		g_InitSettingOnce = false;	// © Ä‰Šú‰»‚ð‰Â”\‚É‚·‚é
 		break;
 	case SCENE_SOUND:
+		Sound_Finalize();		// © ’Ç‰Á
+		g_InitSoundOnce = false;	// © Ä‰Šú‰»‚ð‰Â”\‚É‚·‚é
+		break;
+	case SCENE_READY:
+		Ready_Finalize();
 		break;
 	case SCENE_GAME:
 		Game_Finalize();
@@ -160,7 +175,7 @@ void SetScene(SCENE scene)
 
 	g_Scene = scene;
 
-	// æ¬¡ã®ã‚·ãƒ¼ãƒ³ã‚’åˆæœŸåŒ–ã™ã‚‹
+	// ŽŸ‚ÌƒV[ƒ“‚ð‰Šú‰»‚·‚é
 	switch (g_Scene)
 	{
 	case SCENE_NONE:
@@ -184,6 +199,9 @@ void SetScene(SCENE scene)
 			Sound_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 			g_InitSoundOnce = true;
 		}
+		break;
+	case SCENE_READY:
+		Ready_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 		break;
 	case SCENE_GAME:
 		Game_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());

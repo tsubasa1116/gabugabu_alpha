@@ -199,6 +199,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="p.cpp" />
     <ClCompile Include="polygon.cpp" />
     <ClCompile Include="player.cpp" />
+    <ClCompile Include="Ready.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="score.cpp" />
     <ClCompile Include="Setting.cpp" />
@@ -253,6 +254,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="p.h" />
     <ClInclude Include="polygon.h" />
     <ClInclude Include="player.h" />
+    <ClInclude Include="Ready.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="score.h" />
     <ClInclude Include="Setting.h" />
