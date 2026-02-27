@@ -136,18 +136,18 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
 	player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 
-	player[0].type = PlayerType::Glass;
-	player[1].type = PlayerType::Concrete;
-	player[2].type = PlayerType::Plant;
-	player[3].type = PlayerType::Electricity;
+	//player[0].type = PlayerType::Glass;
+	//player[1].type = PlayerType::Concrete;
+	//player[2].type = PlayerType::Plant;
+	//player[3].type = PlayerType::Electricity;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
-		//player[p].form = Form::First;
+		player[p].form = Form::First;
 		//player[p].form = Form::Second;
-		player[p].form = Form::Third;
+		//player[p].form = Form::Third;
 
-		//player[p].type = PlayerType::None;
+		player[p].type = PlayerType::None;
 		//player[p].type = PlayerType::Glass;
 		//player[p].type = PlayerType::Concrete;
 		//player[p].type = PlayerType::Plant;
@@ -355,11 +355,8 @@ static void LoadTextureList(ID3D11Device* pDevice)
 		// std::wstring を std::string に変換して出力
 		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
 		hal::dout << "テクスチャロード: " << conv.to_bytes(e.path) << " " << ms << " ms" << std::endl;
-
-
 	}
 }
-
 
 void Player_Warmup()
 {
@@ -507,16 +504,12 @@ void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 //======================================================
 void Player_Update()
 {
-
-	if (Keyboard_IsKeyDownTrigger(KK_TAB))
-	{
-		s_ShowImgui = !s_ShowImgui;
-	}
-
 	// 各プレイヤーに対応する発動キー
-	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V, KK_SPACE };
+	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V, KK_NUMPAD0 };
 
 	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_D7, KK_D8, KK_D9, KK_D0 };
+
+	if (Keyboard_IsKeyDownTrigger(KK_TAB))	s_ShowImgui = !s_ShowImgui;
 
 	if (s_ShowImgui)
 	{
@@ -527,7 +520,6 @@ void Player_Update()
 		{
 			// プレイヤーごとに ID を分ける（同一ラベル衝突回避）
 			ImGui::PushID(p);
-
 			ImGui::Text("Player %d", p + 1);
 			ImGui::Indent();
 
@@ -637,7 +629,7 @@ void Player_Update()
 		// -------------------------------------------------------------
 		switch (player[p].form)
 		{
-		case Form::First: // 第1形態
+		case Form::First:	// 第1形態
 			player[p].scaling.x = 0.5f;
 			player[p].scaling.y = 0.5f;
 			player[p].scaling.z = 0.5f;
@@ -648,7 +640,7 @@ void Player_Update()
 			player[p].isTypeFixed = false;	// スキルクールタイムUIの表示に使用
 			break;
 
-		case Form::Second: // 第2形態
+		case Form::Second:	// 第2形態
 			player[p].scaling.x = 0.8f;
 			player[p].scaling.y = 0.8f;
 			player[p].scaling.z = 0.8f;
@@ -659,7 +651,7 @@ void Player_Update()
 			player[p].isTypeFixed = true;
 			break;
 
-		case Form::Third: // 第3形態
+		case Form::Third:	// 第3形態
 			player[p].scaling.x = 1.2f;
 			player[p].scaling.y = 1.2f;
 			player[p].scaling.z = 1.2f;
@@ -746,10 +738,12 @@ void Player_Update()
 		// 毒状態の処理
 		if (player[p].poisonTimer > 0.0f)
 		{
-			if (player[p].isInvincible) continue; // 無敵中は無視
-
-			// 毒状態の間、ダメージを与える
-			player[p].hp -= SPECIAL_PLANT_DAMAGE * player[p].defense;
+			// 無敵中はダメージを与えないが、ここでループを抜けない（以降の物理・当たり判定は実行する）
+			if (!player[p].isInvincible)
+			{
+				// 毒状態の間、ダメージを与える
+				player[p].hp -= SPECIAL_PLANT_DAMAGE * player[p].defense;
+			}
 
 			// 毒タイマーを進める
 			player[p].poisonTimer -= DELTA_TIME;
@@ -906,7 +900,7 @@ void Player_Update()
 				float dx = player[p].moveInput2D.x;
 				float dz = player[p].moveInput2D.y;
 
-				if (dx < 0.0f && dz < 0.0f) player[p].lastDir = PlayerDir::Down_Left;
+					 if (dx < 0.0f && dz < 0.0f) player[p].lastDir = PlayerDir::Down_Left;
 				else if (dx < 0.0f && dz > 0.0f) player[p].lastDir = PlayerDir::Up_Left;
 				else if (dx > 0.0f && dz > 0.0f) player[p].lastDir = PlayerDir::Up_Right;
 				else if (dx > 0.0f && dz < 0.0f) player[p].lastDir = PlayerDir::Down_Right;
@@ -1015,7 +1009,6 @@ void Player_Update()
 			}
 		}
 
-		// ここから
 		// ダメージ色だけの処理
 		if (player[p].isDamageColor)
 		{
@@ -1027,7 +1020,6 @@ void Player_Update()
 				player[p].damageColorTimer = 0.0f;
 			}
 		}
-		// ここまで
 
 		// 進化時の無敵処理
 		if (player[p].isInvincible)
@@ -1189,7 +1181,7 @@ void Player_Update()
 					g_specialEndAnimTimer[p] = 0.0f;
 
 					int idleStart = 0;
-					if (player[p].lastDir == PlayerDir::Down)		idleStart = 0;
+						 if (player[p].lastDir == PlayerDir::Down)		idleStart = 0;
 					else if (player[p].lastDir == PlayerDir::Down_Left)	idleStart = 26;
 					else if (player[p].lastDir == PlayerDir::Left)		idleStart = 52;
 					else if (player[p].lastDir == PlayerDir::Up_Left)	idleStart = 78;
@@ -1313,13 +1305,13 @@ void Player_Update()
 			else if (player[p].specialAnimation)
 			{
 				int type = -1;
-				if (player[p].type == PlayerType::Concrete)		type = 0;
+					 if (player[p].type == PlayerType::Concrete)	type = 0;
 				else if (player[p].type == PlayerType::Electricity)	type = 1;
 				else if (player[p].type == PlayerType::Glass)		type = 2;
 				else if (player[p].type == PlayerType::Plant)		type = 3;
 
 				int start = type * 64;
-				if (player[p].lastDir == PlayerDir::Down)		start += 0;
+					 if (player[p].lastDir == PlayerDir::Down)		start += 0;
 				else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
 				else if (player[p].lastDir == PlayerDir::Left)		start += 16;
 				else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
