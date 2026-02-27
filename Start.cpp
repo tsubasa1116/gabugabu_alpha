@@ -18,7 +18,8 @@
 #include <chrono>
 #include <cmath>
 
-#include "loadThread.h" // 追加：ロードスレッド管理用
+#include "loadThread.h"
+#include "LoadingScreen.h" 
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
 static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
