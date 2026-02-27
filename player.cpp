@@ -30,6 +30,7 @@ using namespace DirectX;
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+#include "fade.h"
 #include <chrono>
 #include <codecvt>
 #include <vector>
@@ -2175,6 +2176,13 @@ static void Ranking(int playerIndex)
 				player[p].rank = 1;
 				break;
 			}
+		}
+
+		// ŸÒŠm’è ¨ SCENE_WIN ‚Ö‘JˆÚ
+		if (GetFadeState() == FADE_NONE)
+		{
+			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 0.0f);
+			SetFade(60, color, FADE_OUT, SCENE_WIN);
 		}
 	}
 }
