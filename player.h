@@ -93,6 +93,9 @@ struct PLAYEROBJECT
 	bool isAttacked;		// ”í’e’†‚©‚Ç‚¤‚©
 	float attackedTimer;	// ”í’e’†‚ÌŒo‰ßŠÔ
 
+	bool isDamageColor;		// ”í’eŒã‚ÌÔ‚©‚Ç‚¤‚©
+	float damageColorTimer;	// ”í’eŒã‚ÌÔ Œo‰ßŠÔ
+
 	bool isHealing;			// ‰ñ•œ’†‚©‚Ç‚¤‚©
 	float healingTimer;		// ‰ñ•œ’†‚ÌŒo‰ßŠÔ
 

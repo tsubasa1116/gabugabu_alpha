@@ -195,7 +195,6 @@ void Game_Draw()
 
 	Effect_Draw();
 	Player_DrawHP();
-
 	Player_DrawText();
 	DamageText_Draw();
 }

@@ -165,6 +165,8 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].attackTimer = 0.0f;
 		player[p].isAttacked = false;
 		player[p].attackedTimer = 0.0f;
+		player[p].isDamageColor = false;
+		player[p].damageColorTimer = 0.0f;
 		player[p].isHealing = false;
 		player[p].healingTimer = 0.0f;
 		player[p].isEvolving = false;
@@ -481,7 +483,7 @@ void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 void Player_Update()
 {
 	// デバッグ用 ImGui ウィンドウ
-	ImGui::Begin("Player Debug");
+	//ImGui::Begin("Player Debug");
 
 	// 各プレイヤーに対応する発動キー
 	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V, KK_SPACE };
@@ -490,65 +492,65 @@ void Player_Update()
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		// プレイヤーごとに ID を分ける（同一ラベル衝突回避）
-		ImGui::PushID(p);
+		//// プレイヤーごとに ID を分ける（同一ラベル衝突回避）
+		//ImGui::PushID(p);
 
-		ImGui::Text("Player %d", p + 1);
-		ImGui::Indent();
+		//ImGui::Text("Player %d", p + 1);
+		//ImGui::Indent();
 
-		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
-		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
-		ImGui::SliderFloat("skillTimer", &player[p].skillTimer, 0.0f, 10.0f);
-		ImGui::BulletText("form              : %d", player[p].form);
-		ImGui::BulletText("specialAnimation  : %d", player[p].specialAnimation);
-		ImGui::BulletText("type              : %d", player[p].type);
-		ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
-		ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
+		//ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
+		//ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
+		//ImGui::SliderFloat("skillTimer", &player[p].skillTimer, 0.0f, 10.0f);
+		//ImGui::BulletText("form              : %d", player[p].form);
+		//ImGui::BulletText("specialAnimation  : %d", player[p].specialAnimation);
+		//ImGui::BulletText("type              : %d", player[p].type);
+		//ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
+		//ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
 
-		if (ImGui::Button("hp -1"))			player[p].hp -= 0.1f;
-		if (ImGui::Button("gl +1"))			player[p].breakCount_Glass += 1;
-		else if (ImGui::Button("pl +1"))	player[p].breakCount_Plant += 1;
-		else if (ImGui::Button("co +1"))	player[p].breakCount_Concrete += 1;
-		else if (ImGui::Button("el +1"))	player[p].breakCount_Electricity += 1;
+		//if (ImGui::Button("hp -1"))			player[p].hp -= 0.1f;
+		//if (ImGui::Button("gl +1"))			player[p].breakCount_Glass += 1;
+		//else if (ImGui::Button("pl +1"))	player[p].breakCount_Plant += 1;
+		//else if (ImGui::Button("co +1"))	player[p].breakCount_Concrete += 1;
+		//else if (ImGui::Button("el +1"))	player[p].breakCount_Electricity += 1;
 
-		ImGui::SliderFloat("HP", &player[p].hp, 0.0f, 500.0f);
-		ImGui::SliderFloat("Outer", &player[p].evolutionGauge, 0.0f, 1.0f);
-		ImGui::BulletText("2 Concrete breaks : %d", player[p].breakCount_Concrete);
-		ImGui::BulletText("3 Plant breaks    : %d", player[p].breakCount_Plant);
-		ImGui::BulletText("4 Electricity breaks : %d", player[p].breakCount_Electricity);
+		//ImGui::SliderFloat("HP", &player[p].hp, 0.0f, 500.0f);
+		//ImGui::SliderFloat("Outer", &player[p].evolutionGauge, 0.0f, 1.0f);
+		//ImGui::BulletText("2 Concrete breaks : %d", player[p].breakCount_Concrete);
+		//ImGui::BulletText("3 Plant breaks    : %d", player[p].breakCount_Plant);
+		//ImGui::BulletText("4 Electricity breaks : %d", player[p].breakCount_Electricity);
 
-		// 履歴リストのサイズを表示
-		size_t historySize = player[p].brokenHistory.size();
-		ImGui::BulletText("brokenHistory Size : %zu", historySize);
+		//// 履歴リストのサイズを表示
+		//size_t historySize = player[p].brokenHistory.size();
+		//ImGui::BulletText("brokenHistory Size : %zu", historySize);
 
-		if (historySize > 0)
-		{
-			ImGui::Indent(); // 履歴をさらに一段インデント
-			ImGui::Text("History (Latest -> Oldest):");
+		//if (historySize > 0)
+		//{
+		//	ImGui::Indent(); // 履歴をさらに一段インデント
+		//	ImGui::Text("History (Latest -> Oldest):");
 
-			// 履歴を最新（末尾）から古い方へループして表示
-			for (int i = (int)historySize - 1; i >= 0; --i)
-			{
-				// BuildingType は enum型（整数値）なので、そのまま %d で表示可能
-				// または、ImGui::Textで整形して表示する
+		//	// 履歴を最新（末尾）から古い方へループして表示
+		//	for (int i = (int)historySize - 1; i >= 0; --i)
+		//	{
+		//		// BuildingType は enum型（整数値）なので、そのまま %d で表示可能
+		//		// または、ImGui::Textで整形して表示する
 
-				// 例1: 履歴のインデックスと値を直接表示
-				// ImGui::BulletText("[%d]: %d", p, (int)object[p].brokenHistory[p]);
+		//		// 例1: 履歴のインデックスと値を直接表示
+		//		// ImGui::BulletText("[%d]: %d", p, (int)object[p].brokenHistory[p]);
 
-				// 例2: 履歴の値を横に並べて表示
-				ImGui::SameLine(); // 同じ行に表示
-				// 履歴の値（整数）を文字列に変換してから表示
-				ImGui::Text("%d", (int)player[p].brokenHistory[i]);
-			}
+		//		// 例2: 履歴の値を横に並べて表示
+		//		ImGui::SameLine(); // 同じ行に表示
+		//		// 履歴の値（整数）を文字列に変換してから表示
+		//		ImGui::Text("%d", (int)player[p].brokenHistory[i]);
+		//	}
 
-			// 履歴が横に並びすぎないよう改行
-			ImGui::NewLine();
-			ImGui::Unindent();
-		}
+		//	// 履歴が横に並びすぎないよう改行
+		//	ImGui::NewLine();
+		//	ImGui::Unindent();
+		//}
 
-		ImGui::Unindent();
-		ImGui::Separator();
-		ImGui::PopID();
+		//ImGui::Unindent();
+		//ImGui::Separator();
+		//ImGui::PopID();
 
 		if (!player[p].active) continue;
 
@@ -955,6 +957,17 @@ void Player_Update()
 			{
 				player[p].isAttacked = false;
 				player[p].attackedTimer = 0.0f;
+			}
+		}
+		// ダメージ色だけの処理
+		if (player[p].isDamageColor)
+		{
+			player[p].damageColorTimer += DELTA_TIME;
+
+			if (player[p].damageColorTimer >= ATTACKED_TIME)
+			{
+				player[p].isDamageColor = false;
+				player[p].damageColorTimer = 0.0f;
 			}
 		}
 
@@ -1620,7 +1633,7 @@ void Player_Update()
 
 	// プレイヤー同士の攻撃判定
 	AttackPlayerCollisions();
-	ImGui::End();
+	//ImGui::End();
 }
 
 //======================================================
@@ -2054,7 +2067,12 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 
 		// プレイヤーごとに異なる色を設定
-		if (player[idx].isPoisoned)
+		if (player[idx].isAttacked || player[idx].isDamageColor)
+		{
+			// 優先して赤くする
+			Shader_SetColorLerp(color::white, color::red, 0.7f);
+		}
+		else if (player[idx].isPoisoned)
 		{
 			switch (idx)
 			{
@@ -2066,8 +2084,8 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 			default:	Shader_SetColor(color::white); break;
 			}
 		}
-		else			Shader_SetColor(color::white); // 通常色
-
+		else	Shader_SetColor(color::white); // 通常色
+		
 		// バッファセット & 描画
 		UINT stride = sizeof(Vertex2);
 		UINT offset = 0;
@@ -2299,6 +2317,8 @@ void Player_Respawn(int playerIndex)
 		player[playerIndex].attackTimer = 0.0f;
 		player[playerIndex].isAttacked = false;
 		player[playerIndex].attackedTimer = 0.0f;
+		player[playerIndex].isDamageColor = false;
+		player[playerIndex].damageColorTimer = 0.0f;
 		player[playerIndex].isHealing = false;
 		player[playerIndex].healingTimer = 0.0f;
 		player[playerIndex].isEvolving = false;
