@@ -500,6 +500,7 @@ void Player_Update()
 		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
 		ImGui::SliderFloat("skillTimer", &player[p].skillTimer, 0.0f, 10.0f);
 		ImGui::BulletText("form              : %d", player[p].form);
+		ImGui::BulletText("specialAnimation  : %d", player[p].specialAnimation);
 		ImGui::BulletText("type              : %d", player[p].type);
 		ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
 		ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);

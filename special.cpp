@@ -894,8 +894,9 @@ void Special_Electricity_Update(int playerIndex)
 	if (player.specialTimer == 0.0f) 
 	{ 
 		PlayAudio(g_SE_ID[2], false);
-		player.specialAnimation = true;
 	}
+
+	player.specialAnimation = true;
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
@@ -1375,12 +1376,18 @@ void Special_Electricity_Update2(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	if (player.specialTimer == 0.0f) PlayAudio(g_SE_ID[3], false);
+	if (player.specialTimer == 0.0f)
+	{
+		PlayAudio(g_SE_ID[2], false);
+		player.specialAnimation = true;
+	}
 
 	player.specialTimer += DELTA_TIME;
 
+	if (player.specialTimer >= 1.0f)	player.specialAnimation = false;
+
 	// TODO:敵の足元のタイルにする
-	// --- 1. 初期化（ランダムに5つのタイルを選ぶ） ---
+	// --- 1. 初期化（ランダムに6つのタイルを選ぶ） ---
 	static bool initialized[PLAYER_MAX] = { false };
 	// ダメージの間隔を管理するタイマー（プレイヤーごとに用意）
 	static float nextHitTimer[PLAYER_MAX] = { 0.0f };
@@ -1388,7 +1395,7 @@ void Special_Electricity_Update2(int playerIndex)
 	if (!initialized[playerIndex])
 	{
 		int count = GetFieldObjectCount();
-		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)	// 5つのタイルをランダムに選ぶ
+		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)	// 6つのタイルをランダムに選ぶ
 		{
 			player.electricityTileIndices[i] = rand() % count;	// 0～フィールドオブジェクト数-1のランダムなインデックスを生成
 			MAPDATA* fieldObjects = GetFieldObjects();
@@ -1435,7 +1442,7 @@ void Special_Electricity_Update2(int playerIndex)
 			// ★ ダメージは一定間隔（ここでは0.5秒ごと）に1回だけ発生させる
 			if (nextHitTimer[p] <= 0.0f)
 			{
-				float rawDamage = SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense / 2;
+				float rawDamage = SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense;
 
 				// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
 				otherPlayer.hp -= rawDamage;
