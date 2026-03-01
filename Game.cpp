@@ -28,6 +28,7 @@
 #include "direct3d.h"
 #include "SkyBall.h"
 #include "loadThread.h"
+#include "gimmick.h"
 
 //======================================================
 //	構造謡宣言
@@ -61,13 +62,10 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Attack_Initialize(pDevice, pContext);
 	Skill_Initialize(pDevice, pContext);
 	Special_Initialize(pDevice, pContext);
+	Meteor_Initialize(pDevice, pContext);
 	Camera_Initialize();
 	DamageText_Initialize();
 	SkyBall_Initialize(pDevice, pContext);
-
-	//BallInitialize(pDevice, pContext);
-	//P_Initialize(pDevice, pContext);		
-	//Score_Initialize(pDevice, pContext);
 
 	g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// サウンドロード
 	PlayAudio(g_BgmID, true);		// 再生開始（ループあり）
@@ -105,12 +103,9 @@ void Game_Finalize()
 	Attack_Finalize();
 	Skill_Finalize();
 	Special_Finalize();
+	Meteor_Finalize();
 	SkyBall_Finalize();
 	//Building_Finalize();
-
-	//BallFinalize();
-	//P_Finalize();
-	//Score_Finalize();
 
 	UnloadAudio(g_BgmID);
 	DamageText_Finalize();
@@ -136,13 +131,12 @@ void Game_Update()
 	// コマンドで使用する全てのキーの押下トリガーをチェックし、検出関数に渡す
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
-		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
+		if (!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
 		else						s_IsKonamiCodeEntered = false;
 	}
-	// ------------------------------------
-	// 
-	// ------------------------------------
+
 	Player_Update();
+	Meteor_Update();
 	Field_Update();
 	Building_UpdateAll();
 	Effect_Update();
@@ -159,9 +153,6 @@ void Game_Update()
 	Gauge_Update();
 	Camera_Update();
 	SkyBall_Update();
-	//BallUpdate();
-	//P_Update();
-	//Score_Update();
 	DamageText_Update();
 
 	//ゲームシーンへ遷移
@@ -210,10 +201,11 @@ void Game_Draw()
 		SetDepthTest(TRUE);
 	}
 	Player_Draw(s_IsKonamiCodeEntered);
+	Meteor_Draw();
 
-	//2D描画
-	Light.SetEnable(FALSE);			// ライティングOFF
-	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセット
+	// 2D描画
+	Light.SetEnable(FALSE);
+	Shader_SetLight(Light.Light);
 	SetDepthTest(FALSE);
 
 	Effect_Draw();

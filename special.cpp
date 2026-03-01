@@ -30,7 +30,7 @@ static ID3D11Buffer* g_VertexBuffer;
 static ID3D11Buffer* g_IndexBuffer;
 
 // テクスチャ変数
-static ID3D11ShaderResourceView* g_Special_Texture[10];
+static ID3D11ShaderResourceView* g_Special_Texture[11];
 
 // オブジェクト
 static SPECIAL_OBJECT Special[PLAYER_MAX];
