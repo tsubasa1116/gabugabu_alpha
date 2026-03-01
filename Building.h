@@ -95,8 +95,14 @@ public:
 
 	const AABB& GetAABB() const { return boundingBox; }
 
+	// 追加: モデル名取得（FBX名）を返す。
+	// Building.cpp に実装を追加しています。
+	const char* GetModelName() const;
+
 	float m_RespawnTimer = { 10.0f };	// 復活までの秒数
 	float m_RebirthAnimTimer = 0.0f;
+	// 既存ファイル: Building.h
+
 };
 
 //=========================================

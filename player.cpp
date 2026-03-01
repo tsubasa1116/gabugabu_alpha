@@ -35,6 +35,8 @@ using namespace DirectX;
 #include <codecvt>
 #include <vector>
 #include <algorithm>
+#include <cstring> // 追加：strcmp のため
+
 
 //======================================================
 //	マクロ定義
@@ -1426,6 +1428,16 @@ void Player_Update()
 		{
 			// アクティブでないなら無視
 			if (!buildingObjects[j]->isActive)	continue;
+
+			// 追加：FBX名が "togeki" の建物とは当たり判定しない
+			// （Plant タイプのモデル名配列に "togeki" がある想定）
+			const char* modelName = buildingObjects[j]->GetModelName();
+			if (buildingObjects[j]->GetType() == BuildingType::Plant &&
+				std::strcmp(modelName, "togeki") == 0)
+			{
+				// この建物は衝突判定を無視
+				continue;
+			}
 
 			// 建物が自分で計算しておいてくれた AABB をもらうだけ！
 			const AABB& bBox = buildingObjects[j]->GetAABB();
