@@ -90,11 +90,11 @@ struct PLAYEROBJECT
 	bool isAttacking;		// 攻撃中かどうか
 	float attackTimer;		// 攻撃中の経過時間
 
-	bool isDamageColor;     // 赤色点滅だけを行うフラグ
-	float damageColorTimer; // 赤色点滅のタイマー
-
 	bool isAttacked;		// 被弾中かどうか
 	float attackedTimer;	// 被弾中の経過時間
+
+	bool isDamageColor;		// 赤色点滅だけを行うフラグ
+	float damageColorTimer; // 赤色点滅のタイマー
 
 	bool isHealing;			// 回復中かどうか
 	float healingTimer;		// 回復中の経過時間

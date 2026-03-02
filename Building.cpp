@@ -737,3 +737,25 @@ Building** GetBuildings()
 {
 	return Buildings;
 }
+
+// 既存ファイル: Building.cpp
+// 追加: Building::GetModelName() の実装
+// （ファイル内のモデル配列 g_GlassModels / g_ConcreteModels / g_PlantModels / g_ElectricModels を参照）
+
+const char* Building::GetModelName() const
+{
+	// m_ModelIndex はコンストラクタで範囲チェック済みの前提
+	switch (type)
+	{
+	case BuildingType::Glass:
+		return g_GlassModels[m_ModelIndex];
+	case BuildingType::Concrete:
+		return g_ConcreteModels[m_ModelIndex];
+	case BuildingType::Plant:
+		return g_PlantModels[m_ModelIndex];
+	case BuildingType::Electricity:
+		return g_ElectricModels[m_ModelIndex];
+	default:
+		return "";
+	}
+}

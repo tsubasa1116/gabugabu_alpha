@@ -1474,7 +1474,7 @@ void Special_Electricity_Update2(int playerIndex)
 				// ★ ダメージは一定間隔（ここでは0.5秒ごと）に1回だけ発生させる
 				if (nextHitTimer[p] <= 0.0f)
 				{
-					float rawDamage = SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense / 2;
+					float rawDamage = SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense;
 
 					// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
 					otherPlayer.hp -= rawDamage;

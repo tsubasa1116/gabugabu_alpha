@@ -486,6 +486,9 @@ void Skill_Glass_Update(int playerIndex)
 				otherPlayer.isDamageColor = true;
 				otherPlayer.damageColorTimer = 0.0f;
 
+				otherPlayer.isDamageColor = true;	// ダメージカラーON
+				otherPlayer.damageColorTimer = 0.0f;// ダメージカラータイマーリセット
+
 				// スタンゲージ増加
 				otherPlayer.stunGauge += 0.03f;
 			}

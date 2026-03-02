@@ -1,7 +1,7 @@
 //======================================================
 //	Game.cpp[]
 // 
-//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
+//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
 //======================================================
 
 #include "Manager.h"
@@ -32,7 +32,7 @@
 #include "color.h"
 
 //======================================================
-//	\‘¢—wéŒ¾
+//	æ§‹é€ è¬¡å®£è¨€
 //======================================================
 LIGHTOBJECT Light;
 
@@ -42,7 +42,7 @@ LIGHTOBJECT Light;
 static int g_BgmID = NULL;
 bool input2 = false;
 
-// ƒRƒ}ƒ“ƒh‚ª“ü—Í‚³‚ê‚½‚Æ‚«‚É—§‚Âƒtƒ‰ƒO
+// ã‚³ãƒãƒ³ãƒ‰ãŒå…¥åŠ›ã•ã‚ŒãŸã¨ãã«ç«‹ã¤ãƒ•ãƒ©ã‚°
 static bool s_IsKonamiCodeEntered = false;
 static bool g_GameInitialized = false;
 static bool g_IsFirstFrame = true;
@@ -100,10 +100,10 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext);		
 	//Score_Initialize(pDevice, pContext);
 
-	//g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// ƒTƒEƒ“ƒhƒ[ƒh
-	//PlayAudio(g_BgmID, true);		// Ä¶ŠJniƒ‹[ƒv‚ ‚èj
-	//PlayAudio(g_BgmID);			// Ä¶ŠJniƒ‹[ƒv‚È‚µj
-	//PlayAudio(g_BgmID, false);	// Ä¶ŠJniƒ‹[ƒv‚È‚µj
+	//g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// ã‚µã‚¦ãƒ³ãƒ‰ãƒ­ãƒ¼ãƒ‰
+	//PlayAudio(g_BgmID, true);		// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ã‚ã‚Šï¼‰
+	//PlayAudio(g_BgmID);			// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼‰
+	//PlayAudio(g_BgmID, false);	// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼‰
 
 	XMFLOAT4 para;
 
@@ -151,7 +151,7 @@ void Game_Finalize()
 }
 
 //======================================================
-//	XVˆ—
+//	æ›´æ–°å‡¦ç†
 //======================================================
 void Game_Update()
 {
@@ -169,14 +169,14 @@ void Game_Update()
 	{
 		PlayAudio(g_BgmID, true);
 
-		// ‘SƒvƒŒƒCƒ„[‚Ì—‘‚ğŠ„‚é
+		// å…¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®åµã‚’å‰²ã‚‹
 		for (int i = 0; i < PLAYER_MAX; i++)
 		{
 			PLAYEROBJECT* p = GetPlayer(i);
 			if (p && p->active && p->duringRespawn)
 			{
-				p->duringRespawn = false;// —‘ó‘Ô‚ğ‰ğœ
-				p->isEggBreaking = true; // Š„‚é
+				p->duringRespawn = false;// åµçŠ¶æ…‹ã‚’è§£é™¤
+				p->isEggBreaking = true; // å‰²ã‚‹
 			}
 		}
 		s_GameStarted = true;
@@ -185,7 +185,7 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
-	// ƒRƒ}ƒ“ƒh‚Åg—p‚·‚é‘S‚Ä‚ÌƒL[‚Ì‰Ÿ‰ºƒgƒŠƒK[‚ğƒ`ƒFƒbƒN‚µAŒŸoŠÖ”‚É“n‚·
+	// ã‚³ãƒãƒ³ãƒ‰ã§ä½¿ç”¨ã™ã‚‹å…¨ã¦ã®ã‚­ãƒ¼ã®æŠ¼ä¸‹ãƒˆãƒªã‚¬ãƒ¼ã‚’ãƒã‚§ãƒƒã‚¯ã—ã€æ¤œå‡ºé–¢æ•°ã«æ¸¡ã™
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
 		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
@@ -199,7 +199,7 @@ void Game_Update()
 	Building_UpdateAll();
 	Effect_Update();
 
-	// Œš•¨ƒGƒtƒFƒNƒgXVi1“‚¸‚Âj
+	// å»ºç‰©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°ï¼ˆ1æ£Ÿãšã¤ï¼‰
 	int buildingCount = GetBuildingCount();
 	for (int i = 0; i < buildingCount; i++)
 	{
@@ -216,10 +216,10 @@ void Game_Update()
 	//Score_Update();
 	DamageText_Update();
 
-	//ƒQ[ƒ€ƒV[ƒ“‚Ö‘JˆÚ
+	//ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³ã¸é·ç§»
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-		// ƒtƒF[ƒhƒAƒEƒg‚³‚¹‚ÄƒV[ƒ“‚ğØ‚è‘Ö‚¦‚é
+		// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã•ã›ã¦ã‚·ãƒ¼ãƒ³ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_WIN);
 	}
@@ -246,7 +246,7 @@ void Game_Draw()
 
 	Field_Draw(s_IsKonamiCodeEntered);
 
-	// Œš•¨ƒGƒtƒFƒNƒg‚ÌˆêŠ‡•`‰æi3D‹óŠÔj
+	// å»ºç‰©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ä¸€æ‹¬æç”»ï¼ˆ3Dç©ºé–“ï¼‰
 	{
 		Shader_Begin();
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -266,15 +266,15 @@ void Game_Draw()
 		Player_Draw(s_IsKonamiCodeEntered);
 	}
 
-	//2D•`‰æ
-	Light.SetEnable(FALSE);			// ƒ‰ƒCƒeƒBƒ“ƒOOFF
-	Shader_SetLight(Light.Light);	// ƒ‰ƒCƒg\‘¢‘Ì‚ğƒVƒF[ƒ_[‚ÖƒZƒbƒg
+	//2Dæç”»
+	Light.SetEnable(FALSE);			// ãƒ©ã‚¤ãƒ†ã‚£ãƒ³ã‚°OFF
+	Shader_SetLight(Light.Light);	// ãƒ©ã‚¤ãƒˆæ§‹é€ ä½“ã‚’ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¸ã‚»ãƒƒãƒˆ
 	SetDepthTest(FALSE);
 
 	DamageText_Draw();
 
 	if (GetGamePhase() == PHASE_INTRO)
-	{// ƒ~[ƒ‹ƒVƒeƒB–¼D
+	{// ãƒŸãƒ¼ãƒ«ã‚·ãƒ†ã‚£åæœ­
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
@@ -286,12 +286,12 @@ void Game_Draw()
 		Shader_BeginUI();
 		DrawSprite(pos, size, color::white);
 
-		//DrawTextEx(L"ƒ~[ƒ‹ƒVƒeƒB", cx - 620.0f, cy - 340.0f, 70.0f, L"FZƒSƒ“ƒ^‚©‚È", TextColor::Black);
+		//DrawTextEx(L"ãƒŸãƒ¼ãƒ«ã‚·ãƒ†ã‚£", cx - 620.0f, cy - 340.0f, 70.0f, L"FZã‚´ãƒ³ã‚¿ã‹ãª", TextColor::Black);
 	}
 
-	// ƒtƒF[ƒhˆ—
+	// ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†
 	float fadeAlpha = 0.0f;
-	float INTRO_TIME = 3.5f; // INTRO_DURATIONiCamera.cppj‚Æ“¯‚¶”’l‚É‚·‚é
+	float INTRO_TIME = 3.5f; // INTRO_DURATIONï¼ˆCamera.cppï¼‰ã¨åŒã˜æ•°å€¤ã«ã™ã‚‹
 	float FADE_TIME = 0.5f;
 
 	if (GetGamePhase() == PHASE_INTRO)
@@ -308,7 +308,7 @@ void Game_Draw()
 	{
 		float timer = GetGamePhaseTimer();
 
-		// ƒJƒEƒ“ƒgƒ_ƒEƒ“‚Ì˜”Õ‚Í™X‚É–¾‚é‚­‚·‚éi“§–¾“x 1.0 ¨ 0.0j
+		// ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³ã®åºç›¤ã¯å¾ã€…ã«æ˜ã‚‹ãã™ã‚‹ï¼ˆé€æ˜åº¦ 1.0 â†’ 0.0ï¼‰
 		if (timer <= FADE_TIME)
 		{
 			fadeAlpha = 1.0f - (timer / FADE_TIME);
@@ -338,7 +338,7 @@ void Game_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		Shader_SetColor(color::white);
 
-		// ‰æ–Ê’†‰›‚ÌÀ•W‚ğŒvZ
+		// ç”»é¢ä¸­å¤®ã®åº§æ¨™ã‚’è¨ˆç®—
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
@@ -353,7 +353,7 @@ void Game_Draw()
 
 			/*wchar_t text[8];
 			swprintf_s(text, L"%d", count);
-			DrawTextEx(text, cx - 30.0f, cy - 50.0f, 150.0f, L"FZƒSƒ“ƒ^‚©‚È", TextColor::P4color);*/
+			DrawTextEx(text, cx - 30.0f, cy - 50.0f, 150.0f, L"FZã‚´ãƒ³ã‚¿ã‹ãª", TextColor::P4color);*/
 		}
 		else if (count == 2)
 		{
@@ -362,7 +362,7 @@ void Game_Draw()
 
 			/*wchar_t text[8];
 			swprintf_s(text, L"%d", count);
-			DrawTextEx(text, cx - 30.0f, cy - 50.0f, 150.0f, L"FZƒSƒ“ƒ^‚©‚È", TextColor::P3color);*/
+			DrawTextEx(text, cx - 30.0f, cy - 50.0f, 150.0f, L"FZã‚´ãƒ³ã‚¿ã‹ãª", TextColor::P3color);*/
 		}
 		else if (count == 1)
 		{
@@ -371,21 +371,21 @@ void Game_Draw()
 
 			/*wchar_t text[8];
 			swprintf_s(text, L"%d", count);
-			DrawTextEx(text, cx - 20.0f, cy - 50.0f, 150.0f, L"FZƒSƒ“ƒ^‚©‚È", TextColor::P2color);*/
+			DrawTextEx(text, cx - 20.0f, cy - 50.0f, 150.0f, L"FZã‚´ãƒ³ã‚¿ã‹ãª", TextColor::P2color);*/
 		}
 		else if (count == 0)
 		{
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[5]);
 			DrawSprite(pos, sizeGO, color::white);
 
-			/*DrawTextEx(L"GO!", cx - 180.0f, cy - 50.0f, 150.0f, L"FZƒSƒ“ƒ^‚©‚È", TextColor::P1color);*/
+			/*DrawTextEx(L"GO!", cx - 180.0f, cy - 50.0f, 150.0f, L"FZã‚´ãƒ³ã‚¿ã‹ãª", TextColor::P1color);*/
 		}
 	}
 
-	// UI•`‰æi‚É‚ã‚Á3j
+	// UIæç”»ï¼ˆã«ã‚…ã£3ï¼‰
 	if (GetGamePhase() == PHASE_PLAY)
 	{
-		// ƒXƒ‰ƒCƒhƒCƒ“‚ÌŒvZ
+		// ã‚¹ãƒ©ã‚¤ãƒ‰ã‚¤ãƒ³ã®è¨ˆç®—
 		float playTime = GetGamePhaseTimer();
 		float slideDuration = 0.4f;
 		float OffsetY = 0.0f;
@@ -393,31 +393,31 @@ void Game_Draw()
 		if (playTime < slideDuration)
 		{
 			float t = playTime / slideDuration;
-			float easeT = 1.0f - powf(1.0f - t, 3.0f); // Å‰‚Í‘¬‚¢AÅŒã‚ÉŒ¸‘¬
+			float easeT = 1.0f - powf(1.0f - t, 3.0f); // æœ€åˆã¯é€Ÿã„ã€æœ€å¾Œã«æ¸›é€Ÿ
 
-			// ‰æ–ÊŠO‚©‚ç’èˆÊ’u‚ÉŒü‚©‚Á‚ÄˆÚ“®
+			// ç”»é¢å¤–ã‹ã‚‰å®šä½ç½®ã«å‘ã‹ã£ã¦ç§»å‹•
 			OffsetY = 800.0f * (1.0f - easeT);
 		}
 
-		// ƒrƒ…[ƒ|[ƒg(•`‰æ—Ìˆæ)‚ğˆê“I‚É‚¸‚ç‚·
+		// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆ(æç”»é ˜åŸŸ)ã‚’ä¸€æ™‚çš„ã«ãšã‚‰ã™
 		ID3D11DeviceContext* pContext = Direct3D_GetDeviceContext();
 		UINT numViewports = 1;
 		D3D11_VIEWPORT vp;
 
-		// Œ»İ‚Ìİ’è‚ğ•Û‘¶‚µ‚Ä‚¨‚­
+		// ç¾åœ¨ã®è¨­å®šã‚’ä¿å­˜ã—ã¦ãŠã
 		pContext->RSGetViewports(&numViewports, &vp);
 
-		// ‚¸‚ç‚·—p‚Ìİ’è‚ğì‚è“K—p‚·‚é
+		// ãšã‚‰ã™ç”¨ã®è¨­å®šã‚’ä½œã‚Šé©ç”¨ã™ã‚‹
 		D3D11_VIEWPORT slideVp = vp;
-		slideVp.TopLeftY += OffsetY; // ‰æ–Ê‘S‘Ì‚ğƒIƒtƒZƒbƒg•ª‰º‚É‚¸‚ç‚·
+		slideVp.TopLeftY += OffsetY; // ç”»é¢å…¨ä½“ã‚’ã‚ªãƒ•ã‚»ãƒƒãƒˆåˆ†ä¸‹ã«ãšã‚‰ã™
 		pContext->RSSetViewports(1, &slideVp);
 	
-		// ‚¸‚ê‚½‰æ–Ê‚É‘Î‚µ‚Ä‚¢‚Â‚à’Ê‚èUI‚ğ•`‰æ‚·‚é
+		// ãšã‚ŒãŸç”»é¢ã«å¯¾ã—ã¦ã„ã¤ã‚‚é€šã‚ŠUIã‚’æç”»ã™ã‚‹
 		Effect_Draw();
 		Player_DrawHP();
 		Player_DrawText();
 
-		// •`‰æ‚ªI‚í‚Á‚½‚çŒ³‚Ìƒrƒ…[ƒ|[ƒg(‰æ–ÊˆÊ’u)‚É–ß‚·
+		// æç”»ãŒçµ‚ã‚ã£ãŸã‚‰å…ƒã®ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆ(ç”»é¢ä½ç½®)ã«æˆ»ã™
 		pContext->RSSetViewports(1, &vp);
 	}
 
