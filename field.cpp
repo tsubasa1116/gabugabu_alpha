@@ -15,12 +15,14 @@
 #include "imgui_impl_dx11.h"
 
 #include "color.h"
+#include "loadThread.h"
+
 
 //======================================================
 //	マクロ定義
 //======================================================
 #define BOX_NUM_VERTEX	(24)
-#define FIELD_TEX_MAX	(4)
+#define FIELD_TEX_MAX	(5)
 
 //======================================================
 //	グローバル変数
@@ -37,16 +39,17 @@ static	ID3D11DeviceContext* g_pContext = NULL;
 //テクスチャ変数
 //static ID3D11ShaderResourceView* g_Texture;
 
+
 // FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
-#define FIELD_TEX_MAX (4)
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
-	L"Asset\\Texture\\灰色.png",  // 0
-	L"Asset\\Texture\\texturefieldTree02_v1.png",  // 1
-	L"Asset\\Texture\\texturefieldTree01_v1.png",  
-	L"Asset\\Texture\\灰色.png",
+	L"Asset\\Texture\\neo_dark_green_2.png",  // 0
+	L"Asset\\Texture\\neo_green_3.png",  // 1
+	L"Asset\\Texture\\texturefieldTree01_v1.png",
+	L"Asset\\Texture\\neo_gray_2.png",
+	L"Asset\\Texture\\neo_yellow.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
 
@@ -73,19 +76,19 @@ MAPDATA Map[] =
 	// ===== 地面・特殊 =====			 
 	{ {},{}, FIELD::FIELD_Electricity,1}, // 1kaku
 	{ {},{}, FIELD::FIELD_Electricity,0}, // 2kaku
-	{ {},{}, FIELD::FIELD_Plant,1},           // 3kaku
-	{ {},{}, FIELD::FIELD_Electricity,0},           // 4kaku
-	{ {},{}, FIELD::FIELD_Plant,1}, // 5kaku
-	{ {},{}, FIELD::FIELD_Electricity,0},           // 6kaku
-	{ {},{}, FIELD::FIELD_Plant,1},           // 7kaku
+	{ {},{}, FIELD::FIELD_BOX},           // 3kaku
+	{ {},{}, FIELD::FIELD_BOX},           // 4kaku
+	{ {},{}, FIELD::FIELD_BOX}, // 5kaku
+	{ {},{}, FIELD::FIELD_BOX,},           // 6kaku
+	{ {},{}, FIELD::FIELD_BOX},           // 7kaku
 	{ {},{}, FIELD::FIELD_Concrete,2},           // 8kaku
 	{ {},{}, FIELD::FIELD_Concrete,1},           // 9
 	{ {},{}, FIELD::FIELD_Glass},           // 10
 
 	// ===== BOX 10 ===== 
 	{ {},{}, FIELD::FIELD_Glass,}, // 11
-	{ {},{}, FIELD::FIELD_Plant,1}, // 12kaku
-	{ {},{}, FIELD::FIELD_Plant,1}, // 13kaku
+	{ {},{}, FIELD::FIELD_Glass}, // 12kaku
+	{ {},{}, FIELD::FIELD_BOX}, // 13kaku
 	{ {},{}, FIELD::FIELD_Concrete,1}, // 14kaku
 	{ {},{}, FIELD::FIELD_Glass}, // 15kaku
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 16
@@ -97,23 +100,23 @@ MAPDATA Map[] =
 	// ===== BOX 20 ===== 
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 21
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 22
-	{ {},{}, FIELD::FIELD_Plant,0 }, // 23
+	{ {},{}, FIELD::FIELD_BOX}, // 23
 	{ {},{}, FIELD::FIELD_Plant,1}, // 24
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 25
 	{ {},{}, FIELD::FIELD_Electricity,0 }, // 26
 	{ {},{}, FIELD::FIELD_Concrete,2}, // 27
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 28
-	{ {},{}, FIELD::FIELD_Plant,2 }, // 29
+	{ {},{}, FIELD::FIELD_BOX}, // 28
+	{ {},{}, FIELD::FIELD_Plant,1}, // 29
 	{ {},{}, FIELD::FIELD_Glass }, // 30
 
 	// ===== BOX 30 =====
 	{ {},{}, FIELD::FIELD_Electricity,0 }, // 31
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 32
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 33
+	{ {},{}, FIELD::FIELD_BOX }, // 32
+	{ {},{}, FIELD::FIELD_BOX }, // 33
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 34
 	{ {},{}, FIELD::FIELD_Glass }, // 35
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 36
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 37
+	{ {},{}, FIELD::FIELD_BOX }, // 37
 	{ {},{}, FIELD::FIELD_Glass,2 }, // 38
 	{ {},{}, FIELD::FIELD_BOX }, // 39
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 40
@@ -123,7 +126,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Plant,1}, // 42
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 43
 	{ {},{}, FIELD::FIELD_Glass }, // 44
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 45
+	{ {},{}, FIELD::FIELD_BOX }, // 45
 	{ {},{}, FIELD::FIELD_Glass, }, // 46
 	{ {},{}, FIELD::FIELD_Electricity,4}, // 47
 	{ {},{}, FIELD::FIELD_Glass,1 }, // 48  左上デカい建物
@@ -135,7 +138,7 @@ MAPDATA Map[] =
 	{ {},{}, FIELD::FIELD_Concrete }, // 52 右下デカい建物
 	{ {},{}, FIELD::FIELD_Plant,3}, // 53左下デカい
 	{ {},{}, FIELD::FIELD_Electricity}, // 54
-	{ {},{}, FIELD::FIELD_Plant,1}, // 55
+	{ {},{}, FIELD::FIELD_BOX}, // 55
 	{ {},{}, FIELD::FIELD_Glass,2}, // 56
 	{ {},{}, FIELD::FIELD_Electricity}, // 57
 	{ {},{}, FIELD::FIELD_Plant,1}, // 58
@@ -156,42 +159,42 @@ MAPDATA Map[] =
 
 	// ===== BOX 70 =====
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 71
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 72
+	{ {},{}, FIELD::FIELD_BOX }, // 72
 	{ {},{}, FIELD::FIELD_Electricity }, // 73
 	{ {},{}, FIELD::FIELD_Electricity,3 },// 74
 	{ {},{}, FIELD::FIELD_Plant,0 }, // 75
 	{ {},{}, FIELD::FIELD_Plant,2 }, // 76
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 77
+	{ {},{}, FIELD::FIELD_Plant,1}, // 77
 	{ {},{}, FIELD::FIELD_Plant,0 }, // 78
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 79
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 80
-
+	{ {},{}, FIELD::FIELD_BOX }, // 80
+						  
 	// ===== BOX 80 ===== 
 	{ {},{}, FIELD::FIELD_Plant,0 }, // 81
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 82
 	{ {},{}, FIELD::FIELD_Plant,2 }, // 83
 	{ {},{}, FIELD::FIELD_Electricity ,4}, // 84
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 85
+	{ {},{}, FIELD::FIELD_BOX }, // 85
 	{ {},{}, FIELD::FIELD_Plant,1 }, // 86
 	{ {},{}, FIELD::FIELD_Plant,2 }, // 87
 	{ {},{}, FIELD::FIELD_Glass },   // 88
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 89
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 90
+	{ {},{}, FIELD::FIELD_BOX }, // 89
+	{ {},{}, FIELD::FIELD_BOX }, // 90
 	 					  
 	// ===== BOX 90 ===== 
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 91
+	{ {},{}, FIELD::FIELD_BOX }, // 91
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 92
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 93
+	{ {},{}, FIELD::FIELD_BOX }, // 93
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 94
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 95
 	{ {},{}, FIELD::FIELD_Concrete ,2}, // 96
 	{ {},{}, FIELD::FIELD_Plant,2 }, // 97
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 98
-	{ {},{}, FIELD::FIELD_Plant,1 }, // 99
+	{ {},{}, FIELD::FIELD_BOX }, // 98
+	{ {},{}, FIELD::FIELD_BOX }, // 99
 	{ {},{}, FIELD::FIELD_Concrete,1 }, // 100
 
 	// ===== BOX 100 =====
-	{ {},{}, FIELD::FIELD_Plant,1}, // 101
+	{ {},{}, FIELD::FIELD_BOX}, // 101
 	{ {},{}, FIELD::FIELD_Concrete,2 }, // 102  いまのままだとここまでしかモデルが置けない
 	{ {},{}, FIELD::FIELD_BOX }, // 103
 	{ {},{}, FIELD::FIELD_BOX }, // 104
@@ -224,11 +227,6 @@ MAPDATA Map[] =
 //======================================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	char modelPath[256];
-	snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[1]);
-
-	Test = ModelLoad(modelPath);//デバッグ
-
 	// 配列要素数（終了マーカー FIELD_MAX を含まない）
 	int count = GetFieldObjectCount();
 	if (count <= 1)
@@ -390,17 +388,33 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// --------------------------------------------------------------------
 	// 複数のテクスチャを読み込み
 	// --------------------------------------------------------------------
-	for (int i = 0; i < FIELD_TEX_MAX; ++i) // 定義したテクスチャの数だけループ
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		// 配列に定義したパスからテクスチャを読み込む
-		LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(g_pDevice, image.GetImages(),
-			image.GetImageCount(), metadata, &g_Texture[i]);
-		assert(g_Texture[i]);
-	}
-	// --------------------------------------------------------------------
+	Loader::AddTask([pDevice]()
+		{
+			for (int i = 0; i < FIELD_TEX_MAX; ++i)
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				HRESULT hr = LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
+				if (FAILED(hr))
+				{
+					g_Texture[i] = nullptr;
+					continue;
+				}
+
+				hr = CreateShaderResourceView(g_pDevice, image.GetImages(),
+					image.GetImageCount(), metadata, &g_Texture[i]);
+				if (FAILED(hr))
+				{
+					g_Texture[i] = nullptr;
+					continue;
+				}
+			}
+
+			char modelPath[256];
+			snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[1]);
+			Test = ModelLoad(modelPath);
+		}); 
+	//------------------------------------------------------------------
 
 	Building_Initialize(pDevice, pContext);
 }
@@ -412,6 +426,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void Field_Finalize(void)
 {
 	ModelRelease(Test);
+	Test = nullptr;
 
 	//SAFE_RELEASE(g_VertexBuffer);
 	//SAFE_RELEASE(g_IndexBuffer);
@@ -426,6 +441,8 @@ void Field_Finalize(void)
 //======================================================
 void Field_Draw(bool s_IsKonamiCodeEntered)
 {
+	if (!Loader::IsFinished) return;
+
 	static bool input2 = false;
 
 	// デバッグキー
@@ -462,7 +479,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		// ------------------------------
 		// ワールド行列作成
 		// ------------------------------
-		XMMATRIX ScalingMatrix = XMMatrixScaling(1.1f, 1.1f, 1.1f);
+		XMMATRIX ScalingMatrix = XMMatrixScaling(2.0f, 2.0f, 1.0f);
 
 		XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 			XMConvertToRadians(-90.0f),
@@ -480,7 +497,7 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		XMMATRIX WVP = World * VP;
 
 		Shader_SetWorldMatrix(World);
-		Shader_SetMatrix(World * VP);
+		Shader_SetMatrix(WVP);
 
 		// ------------------------------
 		// 種類ごとにテクスチャ切り替え
@@ -490,23 +507,23 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 		switch (Map[i].no)
 		{
 		case FIELD::FIELD_Plant:
-			texIndex = 2;
+			texIndex = 0;
 			break;
 
 		case FIELD::FIELD_Concrete:
-			texIndex = 0;
+			texIndex = 3;
 			break;
 
 		case FIELD::FIELD_Glass:
-			texIndex = 0;
+			texIndex = 3;
 			break;
 
 		case FIELD::FIELD_Electricity:
-			texIndex = 0;
+			texIndex = 3;
 			break;
 
 		case FIELD::FIELD_BOX:
-			texIndex = 3;
+			texIndex = 1;
 			break;
 
 		default:
@@ -514,15 +531,46 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			break;
 		}
 
+		////////////////////////////////////////////////////////////////
+		//		// 今から描くマス（i番目）が、誰かの雷床になっていないか探す
+		bool isElectrified = false;
+		for (int p = 0; p < PLAYER_MAX; ++p)
+		{
+			PLAYEROBJECT* player = GetPlayer(p);
+			// そのプレイヤーが「雷タイプのスペシャル」を使用中か？
+			if (player != nullptr && player->useSpecial && player->type == PlayerType::Electricity)
+			{
+				// ★スペシャル発動から1.0秒経過しているか？
+				if (player->specialTimer > 1.5f)
+				{
+					// 選ばれた5つの雷床のどれかが、今のマス(i)と同じ番号か？
+					for (int e = 0; e < SPECIAL_ELECTRICITY_QUANTITY; ++e)
+					{
+						if (player->electricityTileIndices[e] == i)
+						{
+							isElectrified = true; // 雷床だ！
+							break;
+						}
+					}
+				}
+			}
+			if (isElectrified) break; // 誰かの雷床だとわかったら、探すのはおしまい
+		}
+
+		// もし雷床なら、強制的に雷用のテクスチャ（4番）に変える！
+		if (isElectrified)
+		{
+			texIndex = 4;
+		}
+		///////////////////////////////////////////////////////////////
+
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
 
 		// ------------------------------
 		// 地面モデル描画
 		// ------------------------------
-		if (!s_IsKonamiCodeEntered || input2)
-		{
 			ModelDraw(Test);
-		}
+
 
 		//// テクスチャをパイプラインから解除
 		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };

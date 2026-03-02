@@ -3,6 +3,9 @@
 #include <d3d11.h>
 #include "collider.h"
 
+// ƒ}ƒNƒ’è‹`
+#define ATTACK_SE_COUNT	(3)	// UŒ‚ SE‚Ì”
+
 struct ATTACK_OBJECT
 {
 	XMFLOAT3 position;

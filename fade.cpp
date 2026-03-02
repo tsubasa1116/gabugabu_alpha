@@ -73,9 +73,13 @@ void Fade_Draw()
 			// ロード画面を使用するかどうか
 			if (g_Fade.useLoading)
 			{
-				// ロード画面付きでシーン遷移(フェードウン)
+				// ロード画面付きでシーン遷移(フェードアウト)
 				g_Fade.state = FADE_STATE::FADE_NONE;
 				SetSceneWithLoading(g_Fade.scene, g_Fade.loadingVideo);
+				
+				// useLoadingフラグをリセット
+				g_Fade.useLoading = false;
+				g_Fade.loadingVideo = nullptr;
 			}
 			else
 			{

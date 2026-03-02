@@ -1,7 +1,7 @@
 //======================================================
 //	Game.cpp[]
 // 
-//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
+//	åˆ¶ä½œè€…ï¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼š2024//
 //======================================================
 
 #include "Manager.h"
@@ -27,8 +27,10 @@
 #include "DamageText.h"
 #include "direct3d.h"
 #include "SkyBall.h"
+#include "loadThread.h"
+
 //======================================================
-//	\‘¢—wéŒ¾
+//	æ§‹é€ è¬¡å®£è¨€
 //======================================================
 LIGHTOBJECT Light;
 
@@ -38,14 +40,18 @@ LIGHTOBJECT Light;
 static int g_BgmID = NULL;
 bool input2 = false;
 
-// ƒRƒ}ƒ“ƒh‚ª“ü—Í‚³‚ê‚½‚Æ‚«‚É—§‚Âƒtƒ‰ƒO
+// ã‚³ãƒãƒ³ãƒ‰ãŒå…¥åŠ›ã•ã‚ŒãŸã¨ãã«ç«‹ã¤ãƒ•ãƒ©ã‚°
 static bool s_IsKonamiCodeEntered = false;
+static bool g_GameInitialized = false;
+static bool g_IsFirstFrame = true;
 
 //======================================================
 //	
 //======================================================
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
+	if (g_GameInitialized) return;
+
 	Initialize_MakeText();
 	CreateRenderTarget_MakeText();
 
@@ -63,16 +69,16 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext);		
 	//Score_Initialize(pDevice, pContext);
 
-	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");	// ƒTƒEƒ“ƒhƒ[ƒh
-	//PlayAudio(g_BgmID, true);		// Ä¶ŠJn(ƒ‹[ƒv‚ ‚è)
-	//PlayAudio(g_BgmID);			// Ä¶ŠJniƒ‹[ƒv‚È‚µj
-	//PlayAudio(g_BgmID, false);	// Ä¶ŠJniƒ‹[ƒv‚È‚µj
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// ã‚µã‚¦ãƒ³ãƒ‰ãƒ­ãƒ¼ãƒ‰
+	PlayAudio(g_BgmID, true);		// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ã‚ã‚Šï¼‰
+	//PlayAudio(g_BgmID);			// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼‰
+	//PlayAudio(g_BgmID, false);	// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼‰
 
 	XMFLOAT4 para;
 
-	para = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
+	para = XMFLOAT4(0.7f, 0.7f, 0.9999f, 1.0f);
 	Light.SetAmbient(para);
-	para = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);
+	para = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 	Light.SetDiffuse(para);
 	para = XMFLOAT4(0.5f, -1.0f, 0.0f, 1.0f);
 
@@ -81,6 +87,10 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	para.y /= len;
 	para.z /= len;
 	Light.SetDirection(para);
+
+	Loader::StartTaskLoad();
+	g_GameInitialized = true;
+	g_IsFirstFrame = true;
 }
 
 //======================================================
@@ -96,24 +106,34 @@ void Game_Finalize()
 	Skill_Finalize();
 	Special_Finalize();
 	SkyBall_Finalize();
+	//Building_Finalize();
 
 	//BallFinalize();
 	//P_Finalize();
 	//Score_Finalize();
 
-	UnloadAudio(g_BgmID);	// ƒTƒEƒ“ƒh‚Ì‰ğ•ú
+	UnloadAudio(g_BgmID);
 	DamageText_Finalize();
+	g_GameInitialized = false;
+	Loader::Reset();
 }
 
 //======================================================
-//	XVˆ—
+//	æ›´æ–°å‡¦ç†
 //======================================================
 void Game_Update()
 {
+	if (g_IsFirstFrame)
+	{
+		Player_Warmup();
+		Effect_Warmup();
+		g_IsFirstFrame = false;
+	}
+
 	// ------------------------------------
 	// 
 	// ------------------------------------
-	// ƒRƒ}ƒ“ƒh‚Åg—p‚·‚é‘S‚Ä‚ÌƒL[‚Ì‰Ÿ‰ºƒgƒŠƒK[‚ğƒ`ƒFƒbƒN‚µAŒŸoŠÖ”‚É“n‚·
+	// ã‚³ãƒãƒ³ãƒ‰ã§ä½¿ç”¨ã™ã‚‹å…¨ã¦ã®ã‚­ãƒ¼ã®æŠ¼ä¸‹ãƒˆãƒªã‚¬ãƒ¼ã‚’ãƒã‚§ãƒƒã‚¯ã—ã€æ¤œå‡ºé–¢æ•°ã«æ¸¡ã™
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
 		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
@@ -127,7 +147,7 @@ void Game_Update()
 	Building_UpdateAll();
 	Effect_Update();
 
-	// Œš•¨ƒGƒtƒFƒNƒgXVi1“‚¸‚Âj
+	// å»ºç‰©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°ï¼ˆ1æ£Ÿãšã¤ï¼‰
 	int buildingCount = GetBuildingCount();
 	for (int i = 0; i < buildingCount; i++)
 	{
@@ -144,10 +164,10 @@ void Game_Update()
 	//Score_Update();
 	DamageText_Update();
 
-	//ƒQ[ƒ€ƒV[ƒ“‚Ö‘JˆÚ
+	//ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³ã¸é·ç§»
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-		// ƒtƒF[ƒhƒAƒEƒg‚³‚¹‚ÄƒV[ƒ“‚ğØ‚è‘Ö‚¦‚é
+		// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã•ã›ã¦ã‚·ãƒ¼ãƒ³ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_WIN);
 	}
@@ -158,6 +178,10 @@ void Game_Update()
 //======================================================
 void Game_Draw()
 {
+	Fade_Draw();
+
+	if (!Loader::IsFinished()) return;
+
 	Light.SetEnable(FALSE);
 	Shader_SetLight(Light.Light);
 	SkyBall_Draw();
@@ -170,7 +194,7 @@ void Game_Draw()
 
 	Field_Draw(s_IsKonamiCodeEntered);
 
-	// š Œš•¨ƒGƒtƒFƒNƒg‚ÌˆêŠ‡•`‰æi3D‹óŠÔj
+	// å»ºç‰©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ä¸€æ‹¬æç”»ï¼ˆ3Dç©ºé–“ï¼‰
 	{
 		Shader_Begin();
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -187,14 +211,13 @@ void Game_Draw()
 	}
 	Player_Draw(s_IsKonamiCodeEntered);
 
-	//2D•`‰æ
-	Light.SetEnable(FALSE);			// ƒ‰ƒCƒeƒBƒ“ƒOOFF
-	Shader_SetLight(Light.Light);	// ƒ‰ƒCƒg\‘¢‘Ì‚ğƒVƒF[ƒ_[‚ÖƒZƒbƒg
+	//2Dæç”»
+	Light.SetEnable(FALSE);			// ãƒ©ã‚¤ãƒ†ã‚£ãƒ³ã‚°OFF
+	Shader_SetLight(Light.Light);	// ãƒ©ã‚¤ãƒˆæ§‹é€ ä½“ã‚’ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¸ã‚»ãƒƒãƒˆ
 	SetDepthTest(FALSE);
 
 	Effect_Draw();
 	Player_DrawHP();
-
 	Player_DrawText();
 	DamageText_Draw();
 }
