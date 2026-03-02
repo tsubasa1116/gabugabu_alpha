@@ -32,6 +32,7 @@ static ID3D11PixelShader* g_pGaugeShader = nullptr;
 static ID3D11PixelShader* g_pOutGaugeShader = nullptr;
 static ID3D11PixelShader* g_pSkillGaugeShader = nullptr;
 static ID3D11PixelShader* g_pHpberShader = nullptr;
+static ID3D11PixelShader* g_pBlurShader = nullptr;
 
 static ID3D11Buffer* g_pGaugeBuffer = nullptr;
 static ID3D11Buffer* g_pOutGaugeBuffer = nullptr;
@@ -355,6 +356,20 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	g_pDevice->CreatePixelShader(psBin_hpber.data(), psSize_hpber, nullptr, &g_pHpberShader);
 
+	//----------------------------------------------------------
+	// ブラーシェーダー読み込み
+	//----------------------------------------------------------
+	std::ifstream ifs_ps_blur("ps_blur.cso", std::ios::binary);
+	if (!ifs_ps_blur) return false;
+
+	ifs_ps_blur.seekg(0, std::ios::end);
+	size_t psSize_blur = (size_t)ifs_ps_blur.tellg();
+	ifs_ps_blur.seekg(0, std::ios::beg);
+
+	std::vector<unsigned char> psBin_blur(psSize_blur);
+	ifs_ps_blur.read((char*)psBin_blur.data(), psSize_blur);
+
+	g_pDevice->CreatePixelShader(psBin_blur.data(), psSize_blur, nullptr, &g_pBlurShader);
 
 	//======================================================
 	//	ゲージ用テクスチャ読み込み
@@ -484,6 +499,7 @@ void Shader_Finalize()
 	SAFE_RELEASE(g_GaugeSampler);
 	SAFE_RELEASE(g_OutGaugeSampler);
 	SAFE_RELEASE(g_SkillGaugeSampler);
+	SAFE_RELEASE(g_pBlurShader);
 }
 
 
@@ -866,4 +882,15 @@ void Shader_SetDrawMode(int mode)
 
 	// register(b2)に送る
 	g_pContext->PSSetConstantBuffers(2, 1, &g_pDrawModeBuffer);
+}
+
+//======================================================
+// ブルーム用シェーダー設定
+//======================================================
+void Shader_SetBlur()
+{
+	if (g_pBlurShader)
+	{
+		g_pContext->PSSetShader(g_pBlurShader, nullptr, 0);
+	}
 }

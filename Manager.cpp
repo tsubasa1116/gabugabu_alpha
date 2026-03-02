@@ -201,7 +201,7 @@ void SetScene(SCENE scene)
 		}
 		break;
 	case SCENE_READY:
-		Ready_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+		//Ready_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 		break;
 	case SCENE_GAME:
 		Game_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());

@@ -91,7 +91,7 @@ D2D1_COLOR_F D2DColor(TextColor color)
 	case TextColor::Yellow: return D2D1::ColorF(D2D1::ColorF::Yellow);
 	case TextColor::P1color: return D2D1::ColorF(D2D1::ColorF::LightCoral);
 	case TextColor::P2color: return D2D1::ColorF(D2D1::ColorF::DeepSkyBlue);
-	case TextColor::P3color: return D2D1::ColorF(D2D1::ColorF::Yellow);
+	case TextColor::P3color: return D2D1::ColorF(D2D1::ColorF::Gold);
 	case TextColor::P4color: return D2D1::ColorF(D2D1::ColorF::Lime);
 	}
 	return D2D1::ColorF(D2D1::ColorF::White);

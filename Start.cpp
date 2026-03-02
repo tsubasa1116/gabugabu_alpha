@@ -108,14 +108,14 @@ void Start_Update()
 	g_Texture3FloatTime += dt * g_Texture3Speed;
 	g_Texture3OffsetY = std::sinf(g_Texture3FloatTime) * g_Texture3Amplitude;
 
-	//キー入力チェック
+	// キー入力チェック
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
 		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
-			SetFade(40, color, FADE_OUT, SCENE_READY);
+			SetFadeWithLoading(40, color, FADE_OUT, SCENE_READY, L"asset\\movie\\readyLoad.mp4");
 		}
 	}
 }
