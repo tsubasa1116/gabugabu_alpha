@@ -13,6 +13,7 @@
 #include "shader.h"
 #include "player.h"
 #include "model.h"
+#include "input.h"
 
 static ID3D11ShaderResourceView* g_Texture = NULL;		// 背景
 static ID3D11ShaderResourceView* g_Texture2 = NULL;		// ストライプ
@@ -36,13 +37,147 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 
 static float g_SlideOffsetTop = 0.0f;
 static float g_SlideOffsetBottom = 0.0f;
-const float SLIDE_SPEED = 2.0f;	
+const float SLIDE_SPEED = 2.0f;
 
-const int ANIM_START = 8;
-const int ANIM_END = 15;
-const float ANIM_SPEED = 0.12f; // 1フレームあたりの秒数（お好みで調整）
-static int g_AnimFrame = ANIM_START;
+// アニメーション設定
+const int ANIM_COLS = 8;         // 1行あたりのコマ数
+const int ANIM_ROWS = 8;        // シート全体の行数
+const int ANIM_PLAY_START = 0;  // 行内の再生開始コマ
+const int ANIM_PLAY_END = 7;    // 行内の再生終了コマ
+const float ANIM_SPEED = 0.12f; // 1フレームあたりの秒数
+static int g_AnimFrame = ANIM_PLAY_START;
 static float g_AnimTimer = 0.0f;
+static int g_AnimRow = 0;       // 再生する行番号
+
+// 勝者情報
+static int g_WinnerIndex = -1;
+static PlayerType g_WinnerType = PlayerType::None;
+static Form g_WinnerForm = Form::First;
+
+//======================================================
+//	勝者検索関数
+//======================================================
+static int FindWinner()
+{
+	for (int i = 0; i < 4; i++)
+	{
+		PLAYEROBJECT* p = GetPlayer(i);
+		if (p == nullptr) continue;
+
+		if (p->rank == 1)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+//======================================================
+//	勝者に応じたテクスチャパスを取得
+//======================================================
+// プレイヤー番号に応じた背景パス
+static const wchar_t* GetWinBgPath(int winnerIndex)
+{
+	// 勝者のプレイヤー番号に応じた背景テクスチャ
+	switch (winnerIndex)
+	{
+	case 0:  return L"asset\\texture\\uiWinRord_v1.png";  // 1P用
+	case 1:  return L"asset\\texture\\uiWinRordBlue_v1.png";  // 2P用
+	case 2:  return L"asset\\texture\\uiWinRordYellow_v1.png";  // 3P用
+	case 3:  return L"asset\\texture\\uiWinRordGreen_v1.png";  // 4P用
+	default: return L"asset\\texture\\uiWinRord_v1.png";
+	}
+}
+
+// プレイヤー番号に応じたストライプパス
+static const wchar_t* GetWinBandPath(int winnerIndex)
+{
+	switch (winnerIndex)
+	{
+	case 0:  return L"asset\\texture\\uiWinBand1P_v1.png";
+	case 1:  return L"asset\\texture\\uiWinBand2P_v1.png";
+	case 2:  return L"asset\\texture\\uiWinBand3P_v1.png";
+	case 3:  return L"asset\\texture\\uiWinBand4P_v1.png";
+	default: return L"asset\\texture\\uiWinBand1P_v1.png";
+	}
+}
+
+// プレイヤー番号に応じたPLAYER WINテキストパス
+static const wchar_t* GetWinTextPath(int winnerIndex)
+{
+	switch (winnerIndex)
+	{
+	case 0:  return L"asset\\texture\\uiWinText1P_v1.png";
+	case 1:  return L"asset\\texture\\uiWinText2P_v4.png";
+	case 2:  return L"asset\\texture\\uiWinText3P_v3.png";
+	case 3:  return L"asset\\texture\\uiWinText4P_v3.png";
+	default: return L"asset\\texture\\uiWinText1P_v1.png";
+	}
+}
+
+//======================================================
+//	アニメーション画像パスを取得
+//	第1形態: 全プレイヤー共通の1枚シート（行=プレイヤー番号）
+//	第2・第3形態: 全属性共通の1枚シート（行=属性×形態）
+//======================================================
+static const wchar_t* GetWinAnimPath(Form form)
+{
+	if (form == Form::First)
+	{
+		// 第1形態は全プレイヤーが1枚のシートにまとまっている
+		return L"asset\\texture\\characterWin02_v3.png";
+	}
+	else
+	{
+		// 第2・第3形態は全属性が1枚のシートにまとまっている
+		return L"asset\\texture\\characterWin01_v2.png";
+	}
+}
+
+//======================================================
+//	形態・属性・プレイヤー番号からスプライトシートの行番号を取得
+//
+//	【第1形態シート】
+//	行0: 1P    行1: 2P    行2: 3P    行3: 4P
+//
+//	【第2・第3形態シート】
+//	行0: コンクリ 第2形態   行4: コンクリ 第3形態
+//	行1: 電気     第2形態   行5: 電気     第3形態
+//	行2: ガラス   第2形態   行6: ガラス   第3形態
+//	行3: 植物     第2形態   行7: 植物     第3形態
+//======================================================
+static int GetAnimRow(Form form, PlayerType type, int winnerIndex)
+{
+	if (form == Form::First)
+	{
+		// 第1形態シート: 行0=1P, 行1=2P, 行2=4P, 行3=3P
+		switch (winnerIndex)
+		{
+		case 0: return 0; // 1P → 行0
+		case 1: return 1; // 2P → 行1
+		case 2: return 3; // 3P → 行3
+		case 3: return 2; // 4P → 行2
+		default: return 0;
+		}
+	}
+
+	// 属性のベース行
+	int baseRow = 0;
+	switch (type)
+	{
+	case PlayerType::Concrete:    baseRow = 0; break;
+	case PlayerType::Electricity: baseRow = 1; break;
+	case PlayerType::Glass:       baseRow = 2; break;
+	case PlayerType::Plant:       baseRow = 3; break;
+	default:                      baseRow = 0; break;
+	}
+
+	// 第2形態 → +0、第3形態 → +4
+	if (form == Form::Third)
+		baseRow += 4;
+
+	return baseRow;
+}
 
 //======================================================
 //	初期化関数
@@ -52,11 +187,32 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
+	// 勝者を特定
+	g_WinnerIndex = FindWinner();
+	if (g_WinnerIndex >= 0)
+	{
+		PLAYEROBJECT* winner = GetPlayer(g_WinnerIndex);
+		if (winner)
+		{
+			g_WinnerType = winner->type;
+			g_WinnerForm = winner->form;
+		}
+	}
+
+	// 形態・属性・プレイヤー番号に応じたアニメーション行を決定
+	g_AnimRow = GetAnimRow(g_WinnerForm, g_WinnerType, g_WinnerIndex);
+
+	// 勝者に応じたテクスチャパスを決定
+	const wchar_t* bgPath = GetWinBgPath(g_WinnerIndex);
+	const wchar_t* bandPath = GetWinBandPath(g_WinnerIndex);
+	const wchar_t* textPath = GetWinTextPath(g_WinnerIndex);
+	const wchar_t* animPath = GetWinAnimPath(g_WinnerForm);
+
 	// 背景テクスチャ読み込み
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
-		LoadFromWICFile(L"asset\\texture\\uiWinRord_v1.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(bgPath, WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 		assert(g_Texture);//読み込み失敗時にダイアログを表示
 	}
@@ -65,7 +221,7 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\uiWinBand1P_v1.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(bandPath, WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture2);
 		g_TexMeta2 = metadata;
 		assert(g_Texture2);
@@ -75,7 +231,7 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\uiWinText1P_v1.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(textPath, WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture3);
 		g_TexMeta3 = metadata;
 		assert(g_Texture3);
@@ -101,11 +257,11 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		assert(g_Texture5);
 	}
 
-	// アニメ―しぃん
+	// アニメ―しぃん（勝者の形態に応じたシート）
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\characterWin01_v2.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(animPath, WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture6);
 		g_TexMeta6 = metadata;
 		assert(g_Texture6);
@@ -143,10 +299,16 @@ void Win_Finalize()
 	g_pContext = nullptr;
 
 	// アニメーション状態リセット
-	g_AnimFrame = ANIM_START;
+	g_AnimFrame = ANIM_PLAY_START;
 	g_AnimTimer = 0.0f;
+	g_AnimRow = 0;
 	g_SlideOffsetTop = 0.0f;
 	g_SlideOffsetBottom = 0.0f;
+
+	// 勝者情報リセット
+	g_WinnerIndex = -1;
+	g_WinnerType = PlayerType::None;
+	g_WinnerForm = Form::First;
 }
 
 //======================================================
@@ -174,7 +336,7 @@ void Win_Update()
 	if (g_AnimTimer >= ANIM_SPEED)
 	{
 		g_AnimTimer = 0.0f;
-		if (g_AnimFrame < ANIM_END)	g_AnimFrame++;
+		if (g_AnimFrame < ANIM_PLAY_END) g_AnimFrame++;
 	}
 }
 
@@ -246,30 +408,29 @@ void Win_Draw()
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture4);//g_Textureを使うように設定する
 		SetBlendState(BLENDSTATE_ALPHA);//ブレンド無し
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//スプライトの色
-		XMFLOAT2 pos = { SCREEN_WIDTH - 80, SCREEN_HEIGHT  - 180 };
+		XMFLOAT2 pos = { SCREEN_WIDTH - 80, SCREEN_HEIGHT - 180 };
 		XMFLOAT2 size = { (float)g_TexMeta4.width, (float)g_TexMeta4.height };
 		DrawSprite(pos, size, col);//1枚絵を表示
 	}
 
+	// キャラアニメーション描画
 	if (g_Texture6)
 	{
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture6); 
-		
-		int frame = g_AnimFrame; // 8～15
-		int framesPerRow = 8;
-		int frameX = frame % framesPerRow; // 0～7
-		int frameY = frame / framesPerRow; // 1
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture6);
 
-		float frameWidth = (float)g_TexMeta6.width / 8.0f;
-		float frameHeight = (float)g_TexMeta6.height / 8.0f;
+		int frameX = g_AnimFrame; // 列 (0～7)
+		int frameY = g_AnimRow;   // 行 (形態・属性・プレイヤー番号で決定済み)
 
-		float u0 = frameX * frameWidth / g_TexMeta6.width;
-		float v0 = frameY * frameHeight / g_TexMeta6.height;
-		float u1 = (frameX + 1) * frameWidth / g_TexMeta6.width;
-		float v1 = (frameY + 1) * frameHeight / g_TexMeta6.height;
+		float frameWidth = (float)g_TexMeta6.width / (float)ANIM_COLS;
+		float frameHeight = (float)g_TexMeta6.height / (float)ANIM_ROWS;
 
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
-		XMFLOAT2 size = { frameWidth * 1.0f, frameHeight * 1.0f }; // 拡大例
+		float u0 = (float)frameX / (float)ANIM_COLS;
+		float v0 = (float)frameY / (float)ANIM_ROWS;
+		float u1 = (float)(frameX + 1) / (float)ANIM_COLS;
+		float v1 = (float)(frameY + 1) / (float)ANIM_ROWS;
+
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 130 };
+		XMFLOAT2 size = { frameWidth * 1.4f, frameHeight * 1.5f }; // 拡大例
 		XMFLOAT4 col = { 1, 1, 1, 1 };
 
 		DrawSpriteUV(pos, size, col, XMFLOAT2(u0, v0), XMFLOAT2(u1, v1));

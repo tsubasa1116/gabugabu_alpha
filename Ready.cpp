@@ -14,6 +14,7 @@
 #include "fade.h"
 #include "swipe.h"
 #include "shader.h"
+#include "input.h"
 
 #include <chrono>
 #include <cmath>
@@ -329,10 +330,10 @@ void Ready_Update()
 	g_ReadyLastTime = now;
 
 	// プレイヤー参加判定（押すたびにポップインリスタート）
-	if (Keyboard_IsKeyDownTrigger(KK_D1)) { g_PlayerJoined[0] = true; g_OKPopElapsed[0] = 0.0f; }
-	if (Keyboard_IsKeyDownTrigger(KK_D2)) { g_PlayerJoined[1] = true; g_OKPopElapsed[1] = 0.0f; }
-	if (Keyboard_IsKeyDownTrigger(KK_D3)) { g_PlayerJoined[2] = true; g_OKPopElapsed[2] = 0.0f; }
-	if (Keyboard_IsKeyDownTrigger(KK_D4)) { g_PlayerJoined[3] = true; g_OKPopElapsed[3] = 0.0f; }
+	if (Keyboard_IsKeyDownTrigger(KK_D1) || (g_Input[0].A)) { g_PlayerJoined[0] = true; g_OKPopElapsed[0] = 0.0f; }
+	if (Keyboard_IsKeyDownTrigger(KK_D2) || (g_Input[1].A)) { g_PlayerJoined[1] = true; g_OKPopElapsed[1] = 0.0f; }
+	if (Keyboard_IsKeyDownTrigger(KK_D3) || (g_Input[2].A)) { g_PlayerJoined[2] = true; g_OKPopElapsed[2] = 0.0f; }
+	if (Keyboard_IsKeyDownTrigger(KK_D4) || (g_Input[3].A)) { g_PlayerJoined[3] = true; g_OKPopElapsed[3] = 0.0f; }
 
 	// OKポップインタイマー進行
 	for (int i = 0; i < 4; i++)
