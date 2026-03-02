@@ -797,7 +797,15 @@ void AttackPlayerCollisions()
 				int dmgInt = static_cast<int>(rawDamage + 0.5f);
 				XMFLOAT3 hitPos = defender.position;
 				hitPos.y += defender.scaling.y + 0.3f;
-				SetDamageText(hitPos, dmgInt, TextColor::Blue);
+
+				/*TextColor dmgColor = TextColor::White;
+
+				if (def == 0)      dmgColor = TextColor::P1color;
+				else if (def == 1) dmgColor = TextColor::P2color;
+				else if (def == 2) dmgColor = TextColor::P3color;
+				else if (def == 3) dmgColor = TextColor::P4color;*/
+
+				SetDamageText(hitPos, dmgInt, TextColor::Red);
 
 				// ダメージフラグ・タイマー（アニメ/UI 用）
 				defender.isAttacked = true;
