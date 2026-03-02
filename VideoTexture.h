@@ -29,6 +29,13 @@ public:
 	void SetPlaybackSpeed(float speed) { m_PlaybackSpeed = speed; }
 	float GetPlaybackSpeed() const { return m_PlaybackSpeed; }
 
+	// ループ時にスキップする時間を設定（秒単位）
+	void SetLoopSkipTime(float seconds) { m_LoopSkipTime = seconds; }
+	float GetLoopSkipTime() const { return m_LoopSkipTime; }
+
+	// ループ再生（スキップ時間を適用してリセット）
+	void ResetForLoop();
+
 private:
 	// テクスチャにフレームデータを書き込む
 	void WriteFrameToTexture(IMFSample* pSample);
@@ -46,4 +53,5 @@ private:
 	std::chrono::steady_clock::time_point m_StartTime;  // 再生開始時刻
 	float m_PlaybackSpeed = 1.0f;                       // 再生速度
 	LONGLONG m_LastTimestamp = 0;                       // 最後に表示したフレームのタイムスタンプ
+	float m_LoopSkipTime = 0.0f;
 };
