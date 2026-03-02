@@ -17,7 +17,9 @@
 
 #include <chrono>
 #include <cmath>
-#include "LoadingScreen.h"
+
+#include "loadThread.h"
+#include "LoadingScreen.h" 
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
 static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
@@ -70,7 +72,15 @@ void Start_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		// 実ピクセルサイズを保持（描画時にアスペクト比を保つため）
 		g_Metadata3 = metadata3;
 	}
+
+	//フェードインのセット（初期入力はここで無視しても良い）
+	if (Keyboard_IsKeyDown(KK_ENTER))
+	{
+		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(60.0f, color, FADE_IN, SCENE_READY);
+	}
 }
+
 void Start_Finalize()
 {
 	//テクスチャの解放など
@@ -85,6 +95,7 @@ void Start_Finalize()
 	SAFE_RELEASE(g_StartTex);
 	SAFE_RELEASE(g_Texture3);
 }
+
 void Start_Update()
 {
 	// 時間差分を計算してふよふよアニメーションを更新
@@ -104,7 +115,7 @@ void Start_Update()
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
-			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\uiRored.mp4");
+			SetFade(40, color, FADE_OUT, SCENE_READY);
 		}
 	}
 }

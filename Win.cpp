@@ -1,7 +1,7 @@
 //======================================================
 //	Win.cpp[]
 // 
-//	§ìÒF“c’†—C“Ş			“ú•tF2026//
+//	åˆ¶ä½œè€…ï¼šç”°ä¸­ä½‘å¥ˆ			æ—¥ä»˜ï¼š2026//
 //======================================================
 
 #include "Manager.h"
@@ -13,85 +13,241 @@
 #include "shader.h"
 #include "player.h"
 #include "model.h"
+#include "input.h"
 
-static ID3D11ShaderResourceView* g_Texture = NULL;		// ”wŒi
-static ID3D11ShaderResourceView* g_Texture2 = NULL;		// ƒXƒgƒ‰ƒCƒv
+static ID3D11ShaderResourceView* g_Texture = NULL;		// èƒŒæ™¯
+static ID3D11ShaderResourceView* g_Texture2 = NULL;		// ã‚¹ãƒˆãƒ©ã‚¤ãƒ—
 static ID3D11ShaderResourceView* g_Texture3 = NULL;		// PLAYER WIN
-static ID3D11ShaderResourceView* g_Texture4 = NULL;		// Ÿ‚Ö
-static ID3D11ShaderResourceView* g_WinTex = nullptr;    // Šù‘¶ƒ‚ƒfƒ‹—pƒeƒNƒXƒ`ƒƒ
-static ID3D11ShaderResourceView* g_Texture5 = NULL;		// ‰¤Š¥
-static ID3D11ShaderResourceView* g_Texture6 = NULL;		// ƒAƒjƒ[‚µ‚¡‚ñ
+static ID3D11ShaderResourceView* g_Texture4 = NULL;		// æ¬¡ã¸
+static ID3D11ShaderResourceView* g_WinTex = nullptr;    // æ—¢å­˜ãƒ¢ãƒ‡ãƒ«ç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£
+static ID3D11ShaderResourceView* g_Texture5 = NULL;		// ç‹å† 
+static ID3D11ShaderResourceView* g_Texture6 = NULL;		// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã—ãƒã‚“
 
 static TexMetadata g_WinTexMeta{};
-static TexMetadata g_TexMeta2{}; // ƒXƒgƒ‰ƒCƒv
+static TexMetadata g_TexMeta2{}; // ã‚¹ãƒˆãƒ©ã‚¤ãƒ—
 static TexMetadata g_TexMeta3{}; // PLAYER WIN
-static TexMetadata g_TexMeta4{}; // Ÿ‚Ö
-static TexMetadata g_TexMeta5{}; // ‰¤Š¥
-static TexMetadata g_TexMeta6{}; // ƒAƒjƒ[‚µ‚¡‚ñ
+static TexMetadata g_TexMeta4{}; // æ¬¡ã¸
+static TexMetadata g_TexMeta5{}; // ç‹å† 
+static TexMetadata g_TexMeta6{}; // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã—ãƒã‚“
 
-static MODEL* g_WinModel = nullptr;						// Šù‘¶ƒ‚ƒfƒ‹
+static MODEL* g_WinModel = nullptr;						// æ—¢å­˜ãƒ¢ãƒ‡ãƒ«
 
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 static float g_SlideOffsetTop = 0.0f;
 static float g_SlideOffsetBottom = 0.0f;
-const float SLIDE_SPEED = 2.0f;	
+const float SLIDE_SPEED = 2.0f;
 
-const int ANIM_START = 8;
-const int ANIM_END = 15;
-const float ANIM_SPEED = 0.12f; // 1ƒtƒŒ[ƒ€‚ ‚½‚è‚Ì•b”i‚¨D‚İ‚Å’²®j
-static int g_AnimFrame = ANIM_START;
+// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³è¨­å®š
+const int ANIM_COLS = 8;         // 1è¡Œã‚ãŸã‚Šã®ã‚³ãƒæ•°
+const int ANIM_ROWS = 8;        // ã‚·ãƒ¼ãƒˆå…¨ä½“ã®è¡Œæ•°
+const int ANIM_PLAY_START = 0;  // è¡Œå†…ã®å†ç”Ÿé–‹å§‹ã‚³ãƒ
+const int ANIM_PLAY_END = 7;    // è¡Œå†…ã®å†ç”Ÿçµ‚äº†ã‚³ãƒ
+const float ANIM_SPEED = 0.12f; // 1ãƒ•ãƒ¬ãƒ¼ãƒ ã‚ãŸã‚Šã®ç§’æ•°
+static int g_AnimFrame = ANIM_PLAY_START;
 static float g_AnimTimer = 0.0f;
+static int g_AnimRow = 0;       // å†ç”Ÿã™ã‚‹è¡Œç•ªå·
+
+// å‹è€…æƒ…å ±
+static int g_WinnerIndex = -1;
+static PlayerType g_WinnerType = PlayerType::None;
+static Form g_WinnerForm = Form::First;
 
 //======================================================
-//	‰Šú‰»ŠÖ”
+//	å‹è€…æ¤œç´¢é–¢æ•°
+//======================================================
+static int FindWinner()
+{
+	for (int i = 0; i < 4; i++)
+	{
+		PLAYEROBJECT* p = GetPlayer(i);
+		if (p == nullptr) continue;
+
+		if (p->rank == 1)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+//======================================================
+//	å‹è€…ã«å¿œã˜ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ‘ã‚¹ã‚’å–å¾—
+//======================================================
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç•ªå·ã«å¿œã˜ãŸèƒŒæ™¯ãƒ‘ã‚¹
+static const wchar_t* GetWinBgPath(int winnerIndex)
+{
+	// å‹è€…ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç•ªå·ã«å¿œã˜ãŸèƒŒæ™¯ãƒ†ã‚¯ã‚¹ãƒãƒ£
+	switch (winnerIndex)
+	{
+	case 0:  return L"asset\\texture\\uiWinRord_v1.png";  // 1Pç”¨
+	case 1:  return L"asset\\texture\\uiWinRordBlue_v1.png";  // 2Pç”¨
+	case 2:  return L"asset\\texture\\uiWinRordYellow_v1.png";  // 3Pç”¨
+	case 3:  return L"asset\\texture\\uiWinRordGreen_v1.png";  // 4Pç”¨
+	default: return L"asset\\texture\\uiWinRord_v1.png";
+	}
+}
+
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç•ªå·ã«å¿œã˜ãŸã‚¹ãƒˆãƒ©ã‚¤ãƒ—ãƒ‘ã‚¹
+static const wchar_t* GetWinBandPath(int winnerIndex)
+{
+	switch (winnerIndex)
+	{
+	case 0:  return L"asset\\texture\\uiWinBand1P_v1.png";
+	case 1:  return L"asset\\texture\\uiWinBand2P_v1.png";
+	case 2:  return L"asset\\texture\\uiWinBand3P_v1.png";
+	case 3:  return L"asset\\texture\\uiWinBand4P_v1.png";
+	default: return L"asset\\texture\\uiWinBand1P_v1.png";
+	}
+}
+
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç•ªå·ã«å¿œã˜ãŸPLAYER WINãƒ†ã‚­ã‚¹ãƒˆãƒ‘ã‚¹
+static const wchar_t* GetWinTextPath(int winnerIndex)
+{
+	switch (winnerIndex)
+	{
+	case 0:  return L"asset\\texture\\uiWinText1P_v1.png";
+	case 1:  return L"asset\\texture\\uiWinText2P_v4.png";
+	case 2:  return L"asset\\texture\\uiWinText3P_v3.png";
+	case 3:  return L"asset\\texture\\uiWinText4P_v3.png";
+	default: return L"asset\\texture\\uiWinText1P_v1.png";
+	}
+}
+
+//======================================================
+//	ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”»åƒãƒ‘ã‚¹ã‚’å–å¾—
+//	ç¬¬1å½¢æ…‹: å…¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å…±é€šã®1æšã‚·ãƒ¼ãƒˆï¼ˆè¡Œ=ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç•ªå·ï¼‰
+//	ç¬¬2ãƒ»ç¬¬3å½¢æ…‹: å…¨å±æ€§å…±é€šã®1æšã‚·ãƒ¼ãƒˆï¼ˆè¡Œ=å±æ€§Ã—å½¢æ…‹ï¼‰
+//======================================================
+static const wchar_t* GetWinAnimPath(Form form)
+{
+	if (form == Form::First)
+	{
+		// ç¬¬1å½¢æ…‹ã¯å…¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒ1æšã®ã‚·ãƒ¼ãƒˆã«ã¾ã¨ã¾ã£ã¦ã„ã‚‹
+		return L"asset\\texture\\characterWin02_v3.png";
+	}
+	else
+	{
+		// ç¬¬2ãƒ»ç¬¬3å½¢æ…‹ã¯å…¨å±æ€§ãŒ1æšã®ã‚·ãƒ¼ãƒˆã«ã¾ã¨ã¾ã£ã¦ã„ã‚‹
+		return L"asset\\texture\\characterWin01_v2.png";
+	}
+}
+
+//======================================================
+//	å½¢æ…‹ãƒ»å±æ€§ãƒ»ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç•ªå·ã‹ã‚‰ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚·ãƒ¼ãƒˆã®è¡Œç•ªå·ã‚’å–å¾—
+//
+//	ã€ç¬¬1å½¢æ…‹ã‚·ãƒ¼ãƒˆã€‘
+//	è¡Œ0: 1P    è¡Œ1: 2P    è¡Œ2: 3P    è¡Œ3: 4P
+//
+//	ã€ç¬¬2ãƒ»ç¬¬3å½¢æ…‹ã‚·ãƒ¼ãƒˆã€‘
+//	è¡Œ0: ã‚³ãƒ³ã‚¯ãƒª ç¬¬2å½¢æ…‹   è¡Œ4: ã‚³ãƒ³ã‚¯ãƒª ç¬¬3å½¢æ…‹
+//	è¡Œ1: é›»æ°—     ç¬¬2å½¢æ…‹   è¡Œ5: é›»æ°—     ç¬¬3å½¢æ…‹
+//	è¡Œ2: ã‚¬ãƒ©ã‚¹   ç¬¬2å½¢æ…‹   è¡Œ6: ã‚¬ãƒ©ã‚¹   ç¬¬3å½¢æ…‹
+//	è¡Œ3: æ¤ç‰©     ç¬¬2å½¢æ…‹   è¡Œ7: æ¤ç‰©     ç¬¬3å½¢æ…‹
+//======================================================
+static int GetAnimRow(Form form, PlayerType type, int winnerIndex)
+{
+	if (form == Form::First)
+	{
+		// ç¬¬1å½¢æ…‹ã‚·ãƒ¼ãƒˆ: è¡Œ0=1P, è¡Œ1=2P, è¡Œ2=4P, è¡Œ3=3P
+		switch (winnerIndex)
+		{
+		case 0: return 0; // 1P â†’ è¡Œ0
+		case 1: return 1; // 2P â†’ è¡Œ1
+		case 2: return 3; // 3P â†’ è¡Œ3
+		case 3: return 2; // 4P â†’ è¡Œ2
+		default: return 0;
+		}
+	}
+
+	// å±æ€§ã®ãƒ™ãƒ¼ã‚¹è¡Œ
+	int baseRow = 0;
+	switch (type)
+	{
+	case PlayerType::Concrete:    baseRow = 0; break;
+	case PlayerType::Electricity: baseRow = 1; break;
+	case PlayerType::Glass:       baseRow = 2; break;
+	case PlayerType::Plant:       baseRow = 3; break;
+	default:                      baseRow = 0; break;
+	}
+
+	// ç¬¬2å½¢æ…‹ â†’ +0ã€ç¬¬3å½¢æ…‹ â†’ +4
+	if (form == Form::Third)
+		baseRow += 4;
+
+	return baseRow;
+}
+
+//======================================================
+//	åˆæœŸåŒ–é–¢æ•°
 //======================================================
 void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// ”wŒiƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// å‹è€…ã‚’ç‰¹å®š
+	g_WinnerIndex = FindWinner();
+	if (g_WinnerIndex >= 0)
+	{
+		PLAYEROBJECT* winner = GetPlayer(g_WinnerIndex);
+		if (winner)
+		{
+			g_WinnerType = winner->type;
+			g_WinnerForm = winner->form;
+		}
+	}
+
+	// å½¢æ…‹ãƒ»å±æ€§ãƒ»ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç•ªå·ã«å¿œã˜ãŸã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³è¡Œã‚’æ±ºå®š
+	g_AnimRow = GetAnimRow(g_WinnerForm, g_WinnerType, g_WinnerIndex);
+
+	// å‹è€…ã«å¿œã˜ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ‘ã‚¹ã‚’æ±ºå®š
+	const wchar_t* bgPath = GetWinBgPath(g_WinnerIndex);
+	const wchar_t* bandPath = GetWinBandPath(g_WinnerIndex);
+	const wchar_t* textPath = GetWinTextPath(g_WinnerIndex);
+	const wchar_t* animPath = GetWinAnimPath(g_WinnerForm);
+
+	// èƒŒæ™¯ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
-		LoadFromWICFile(L"asset\\texture\\uiWinRord_v1.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(bgPath, WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-		assert(g_Texture);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+		assert(g_Texture);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 	}
 
-	// ƒXƒgƒ‰ƒCƒvƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// ã‚¹ãƒˆãƒ©ã‚¤ãƒ—ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\uiWinBand1P_v1.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(bandPath, WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture2);
 		g_TexMeta2 = metadata;
 		assert(g_Texture2);
 	}
 
-	// PLAYER WINƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// PLAYER WINãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\uiWinText1P_v1.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(textPath, WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture3);
 		g_TexMeta3 = metadata;
 		assert(g_Texture3);
 	}
 
-	// Ÿ‚ÖƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// æ¬¡ã¸ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
 		LoadFromWICFile(L"asset\\texture\\next.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture4);
 		g_TexMeta4 = metadata;
-		assert(g_Texture4);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
+		assert(g_Texture4);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 	}
 
-	// ‰¤Š¥ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	// ç‹å† ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	{
 		TexMetadata metadata;
 		ScratchImage image;
@@ -101,27 +257,27 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		assert(g_Texture5);
 	}
 
-	// ƒAƒjƒ\‚µ‚¡‚ñ
+	// ã‚¢ãƒ‹ãƒ¡â€•ã—ãƒã‚“ï¼ˆå‹è€…ã®å½¢æ…‹ã«å¿œã˜ãŸã‚·ãƒ¼ãƒˆï¼‰
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\characterWin01_v2.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(animPath, WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture6);
 		g_TexMeta6 = metadata;
 		assert(g_Texture6);
 	}
 
-	// ƒtƒF[ƒhƒCƒ“‚ÌƒZƒbƒg
+	// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã®ã‚»ãƒƒãƒˆ
 	XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	SetFade(60.0f, color, FADE_IN, SCENE_GAME);
 }
 
 //======================================================
-//	I—¹ˆ—ŠÖ”
+//	çµ‚äº†å‡¦ç†é–¢æ•°
 //======================================================
 void Win_Finalize()
 {
-	// ƒeƒNƒXƒ`ƒƒ‚Ì‰ğ•ú‚È‚Ç
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®è§£æ”¾ãªã©
 	SAFE_RELEASE(g_Texture);
 	SAFE_RELEASE(g_Texture2);
 	SAFE_RELEASE(g_Texture3);
@@ -130,84 +286,73 @@ void Win_Finalize()
 	SAFE_RELEASE(g_Texture6);
 	SAFE_RELEASE(g_WinTex);
 
-	// ƒ‚ƒfƒ‹‚Ì‰ğ•úiƒ‚ƒfƒ‹‰ğ•úŠÖ”‚ª‚ ‚ê‚Î‚»‚¿‚ç‚ğg—pj
+	// ãƒ¢ãƒ‡ãƒ«ã®è§£æ”¾ï¼ˆãƒ¢ãƒ‡ãƒ«è§£æ”¾é–¢æ•°ãŒã‚ã‚Œã°ãã¡ã‚‰ã‚’ä½¿ç”¨ï¼‰
 	if (g_WinModel)
 	{
-		// ƒvƒƒWƒFƒNƒg‚Ìƒ‚ƒfƒ‹‰ğ•úŠÖ”‚É’u‚«Š·‚¦‚Ä‚­‚¾‚³‚¢
-		// —á: UnloadModel(g_WinModel);
+		// ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ¢ãƒ‡ãƒ«è§£æ”¾é–¢æ•°ã«ç½®ãæ›ãˆã¦ãã ã•ã„
+		// ä¾‹: UnloadModel(g_WinModel);
 		g_WinModel = nullptr;
 	}
 
-	// ƒ|ƒCƒ“ƒ^ƒŠƒZƒbƒgiØ‚è‚Ä‚¢‚é‚¾‚¯‚È‚Ì‚ÅRelease‚Í‚µ‚È‚¢j
+	// ãƒã‚¤ãƒ³ã‚¿ãƒªã‚»ãƒƒãƒˆï¼ˆå€Ÿã‚Šã¦ã„ã‚‹ã ã‘ãªã®ã§Releaseã¯ã—ãªã„ï¼‰
 	g_pDevice = nullptr;
 	g_pContext = nullptr;
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“ó‘ÔƒŠƒZƒbƒg
-	g_AnimFrame = ANIM_START;
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çŠ¶æ…‹ãƒªã‚»ãƒƒãƒˆ
+	g_AnimFrame = ANIM_PLAY_START;
 	g_AnimTimer = 0.0f;
+	g_AnimRow = 0;
 	g_SlideOffsetTop = 0.0f;
 	g_SlideOffsetBottom = 0.0f;
 
+	// å‹è€…æƒ…å ±ãƒªã‚»ãƒƒãƒˆ
+	g_WinnerIndex = -1;
+	g_WinnerType = PlayerType::None;
+	g_WinnerForm = Form::First;
 }
 
 //======================================================
-//	XVˆ—
+//	æ›´æ–°å‡¦ç†
 //======================================================
 void Win_Update()
 {
-	// ƒL[“ü—Íƒ`ƒFƒbƒN
+	// ã‚­ãƒ¼å…¥åŠ›ãƒã‚§ãƒƒã‚¯
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
 	}
 
-	// ƒXƒ‰ƒCƒhƒIƒtƒZƒbƒgXV
+	// ã‚¹ãƒ©ã‚¤ãƒ‰ã‚ªãƒ•ã‚»ãƒƒãƒˆæ›´æ–°ï¼ˆæ­£è¦åŒ–ã—ãªã„ã€‚æç”»å´ã§å„è‡ªfmodfã™ã‚‹ï¼‰
 	g_SlideOffsetTop += SLIDE_SPEED;
 	g_SlideOffsetBottom -= SLIDE_SPEED;
 
-	// fmodf‚Åí‚É0`width–¢–‚É³‹K‰»i•‰’l‚à³‚µ‚­ˆµ‚¤j
-	if (g_TexMeta2.width > 0) {
-		g_SlideOffsetTop = fmodf(g_SlideOffsetTop, (float)g_TexMeta2.width);
-		if (g_SlideOffsetTop < 0) g_SlideOffsetTop += (float)g_TexMeta2.width;
+	// ã‚ªãƒ¼ãƒãƒ¼ãƒ•ãƒ­ãƒ¼é˜²æ­¢ã®ã¿ï¼ˆååˆ†å¤§ãã„å€¤ã§ãƒªã‚»ãƒƒãƒˆï¼‰
+	const float WRAP_LIMIT = 100000.0f;
+	if (g_SlideOffsetTop > WRAP_LIMIT) g_SlideOffsetTop -= WRAP_LIMIT;
+	if (g_SlideOffsetBottom < -WRAP_LIMIT) g_SlideOffsetBottom += WRAP_LIMIT;
 
-		g_SlideOffsetBottom = fmodf(g_SlideOffsetBottom, (float)g_TexMeta2.width);
-		if (g_SlideOffsetBottom < 0) g_SlideOffsetBottom += (float)g_TexMeta2.width;
-	}
-
-	static bool WinFrameInitialized = false;
-
-	//// ƒAƒjƒ[ƒVƒ‡ƒ“ƒtƒŒ[ƒ€XV
-	//if (!WinFrameInitialized)
-	//{
-	//	g_AnimFrame = 8; // 8‚©‚çƒXƒ^[ƒg
-	//	WinFrameInitialized = true;
-	//}
-
-	g_AnimTimer += DELTA_TIME; // 60FPS‘O’ñ
+	g_AnimTimer += DELTA_TIME;
 	if (g_AnimTimer >= ANIM_SPEED)
 	{
 		g_AnimTimer = 0.0f;
-		if (g_AnimFrame < ANIM_END)	g_AnimFrame++;
-		// g_AnimFrame‚ªANIM_END‚É‚È‚Á‚½‚ç~‚Ü‚éiƒ‹[ƒv‚µ‚È‚¢j
+		if (g_AnimFrame < ANIM_PLAY_END) g_AnimFrame++;
 	}
-
-	//else    WinFrameInitialized = false;
 }
 
 //======================================================
-//	•`‰æŠÖ”
+//	æç”»é–¢æ•°
 //======================================================
 void Win_Draw()
 {
-	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 	Shader_Begin();
 
-	// ‰æ–ÊƒTƒCƒYæ“¾
+	// ç”»é¢ã‚µã‚¤ã‚ºå–å¾—
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
-	// ’¸“_ƒVƒF[ƒ_[‚É•ÏŠ·s—ñ‚ğİ’èiUI—pF’¼Œğ“Š‰ej
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«å¤‰æ›è¡Œåˆ—ã‚’è¨­å®šï¼ˆUIç”¨ï¼šç›´äº¤æŠ•å½±ï¼‰
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
 		0.0f,
 		SCREEN_WIDTH,
@@ -216,84 +361,82 @@ void Win_Draw()
 		0.0f,
 		1.0f));
 
-	// ”wŒi•`‰æ
+	// èƒŒæ™¯æç”»
 	if (g_Texture)
 	{
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Texture‚ğg‚¤‚æ‚¤‚Éİ’è‚·‚é
-		SetBlendState(BLENDSTATE_NONE);//ƒuƒŒƒ“ƒh–³‚µ
-		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ƒXƒvƒ‰ƒCƒg‚ÌF
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Textureã‚’ä½¿ã†ã‚ˆã†ã«è¨­å®šã™ã‚‹
+		SetBlendState(BLENDSTATE_NONE);//ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—
+		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®è‰²
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 		XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
-		DrawSprite(pos, size, col);//1–‡ŠG‚ğ•\¦
+		DrawSprite(pos, size, col);//1æšçµµã‚’è¡¨ç¤º
 	}
 
-	// ƒXƒgƒ‰ƒCƒv•`‰æ
+	// ã‚¹ãƒˆãƒ©ã‚¤ãƒ—æç”»
 	if (g_Texture2)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture2);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
 		XMFLOAT2 size = { (float)g_TexMeta2.width, (float)g_TexMeta2.height };
 		DrawSprite(pos, size, col);
 	}
 
-	// ƒoƒi[k¬—¦
+	// ãƒãƒŠãƒ¼ç¸®å°ç‡
 	const float BANNER_SCALE = 0.7f;
 
-	// ƒoƒi[‚Ì‚‚³EˆÊ’u
+	// ãƒãƒŠãƒ¼ã®é«˜ã•ãƒ»ä½ç½®
 	float bannerYTop = (float)g_TexMeta2.height * BANNER_SCALE / 2.0f;
 	float bannerYBottom = SCREEN_HEIGHT - (float)g_TexMeta2.height * BANNER_SCALE / 2.0f;
 
-	// ãƒoƒi[i‰EƒXƒ‰ƒCƒhj
+	// ä¸ŠãƒãƒŠãƒ¼ï¼ˆå³ã‚¹ãƒ©ã‚¤ãƒ‰ï¼‰
 	if (g_Texture2)
 		DrawSlidingBanner(g_Texture2, bannerYTop, g_SlideOffsetTop, (float)g_TexMeta2.width * BANNER_SCALE, (float)g_TexMeta2.height * BANNER_SCALE);
 	if (g_Texture3 && g_Texture5)
 		DrawPlayerWinCrownBanner(g_Texture3, g_TexMeta3, g_Texture5, g_TexMeta5, bannerYTop, g_SlideOffsetTop, BANNER_SCALE);
 
-	// ‰ºƒoƒi[i¶ƒXƒ‰ƒCƒhj
+	// ä¸‹ãƒãƒŠãƒ¼ï¼ˆå·¦ã‚¹ãƒ©ã‚¤ãƒ‰ï¼‰
 	if (g_Texture2)
 		DrawSlidingBanner(g_Texture2, bannerYBottom, g_SlideOffsetBottom, (float)g_TexMeta2.width * BANNER_SCALE, (float)g_TexMeta2.height * BANNER_SCALE);
 	if (g_Texture3 && g_Texture5)
 		DrawPlayerWinCrownBanner(g_Texture3, g_TexMeta3, g_Texture5, g_TexMeta5, bannerYBottom, g_SlideOffsetBottom, BANNER_SCALE);
 
-	// Ÿ‚Ö•`‰æ
+	// æ¬¡ã¸æç”»
 	if (g_Texture4)
 	{
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture4);//g_Texture‚ğg‚¤‚æ‚¤‚Éİ’è‚·‚é
-		SetBlendState(BLENDSTATE_ALPHA);//ƒuƒŒƒ“ƒh–³‚µ
-		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ƒXƒvƒ‰ƒCƒg‚ÌF
-		XMFLOAT2 pos = { SCREEN_WIDTH - 80, SCREEN_HEIGHT  - 180 };
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture4);//g_Textureã‚’ä½¿ã†ã‚ˆã†ã«è¨­å®šã™ã‚‹
+		SetBlendState(BLENDSTATE_ALPHA);//ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—
+		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®è‰²
+		XMFLOAT2 pos = { SCREEN_WIDTH - 80, SCREEN_HEIGHT - 180 };
 		XMFLOAT2 size = { (float)g_TexMeta4.width, (float)g_TexMeta4.height };
-		DrawSprite(pos, size, col);//1–‡ŠG‚ğ•\¦
+		DrawSprite(pos, size, col);//1æšçµµã‚’è¡¨ç¤º
 	}
 
+	// ã‚­ãƒ£ãƒ©ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æç”»
 	if (g_Texture6)
 	{
-		
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture6); 
-		
-		int frame = g_AnimFrame; // 8`15
-		int framesPerRow = 8;
-		int frameX = frame % framesPerRow; // 0`7
-		int frameY = frame / framesPerRow; // 1
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture6);
 
-		float frameWidth = (float)g_TexMeta6.width / 8.0f;
-		float frameHeight = (float)g_TexMeta6.height / 8.0f;
+		int frameX = g_AnimFrame; // åˆ— (0ï½7)
+		int frameY = g_AnimRow;   // è¡Œ (å½¢æ…‹ãƒ»å±æ€§ãƒ»ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç•ªå·ã§æ±ºå®šæ¸ˆã¿)
 
-		float u0 = frameX * frameWidth / g_TexMeta6.width;
-		float v0 = frameY * frameHeight / g_TexMeta6.height;
-		float u1 = (frameX + 1) * frameWidth / g_TexMeta6.width;
-		float v1 = (frameY + 1) * frameHeight / g_TexMeta6.height;
+		float frameWidth = (float)g_TexMeta6.width / (float)ANIM_COLS;
+		float frameHeight = (float)g_TexMeta6.height / (float)ANIM_ROWS;
 
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 250 };
-		XMFLOAT2 size = { frameWidth * 1.3f, frameHeight * 1.3f }; // Šg‘å—á
+		float u0 = (float)frameX / (float)ANIM_COLS;
+		float v0 = (float)frameY / (float)ANIM_ROWS;
+		float u1 = (float)(frameX + 1) / (float)ANIM_COLS;
+		float v1 = (float)(frameY + 1) / (float)ANIM_ROWS;
+
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 130 };
+		XMFLOAT2 size = { frameWidth * 1.4f, frameHeight * 1.5f }; // æ‹¡å¤§ä¾‹
 		XMFLOAT4 col = { 1, 1, 1, 1 };
 
 		DrawSpriteUV(pos, size, col, XMFLOAT2(u0, v0), XMFLOAT2(u1, v1));
 	}
 
-	// ƒXƒvƒ‰ƒCƒg‚Ì•`‰æ‚Í‘æ1Œ`‘ÔƒuƒŒƒ“ƒh–³‚µ‚©ƒAƒ‹ƒtƒ@‚É‚·‚éiŠù‘¶ƒXƒ^ƒCƒ‹‚É‡‚í‚¹‚éj
+	// ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®æç”»ã¯ç¬¬1å½¢æ…‹ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—ã‹ã‚¢ãƒ«ãƒ•ã‚¡ã«ã™ã‚‹ï¼ˆæ—¢å­˜ã‚¹ã‚¿ã‚¤ãƒ«ã«åˆã‚ã›ã‚‹ï¼‰
 	SetBlendState(BLENDSTATE_NONE);
 }
 
@@ -303,15 +446,16 @@ void DrawSlidingBanner(ID3D11ShaderResourceView* tex, float y, float offset, flo
 	XMFLOAT4 col = { 1, 1, 1, 1 };
 	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// ‰æ–Ê•æ“¾
+	// ç”»é¢å¹…å–å¾—
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 
-	// Å‰‚Ì•`‰æŠJnˆÊ’u‚ğŒvZ
-	float startX = fmodf(offset, width);
-	if (startX > 0) startX -= width;
+	// ã“ã®é–¢æ•°ã®ç¹°ã‚Šè¿”ã—å˜ä½(width)ã§æ­£è¦åŒ–
+	float normOffset = fmodf(offset, width);
+	// é–‹å§‹ä½ç½®ã‚’ç”»é¢å·¦ç«¯ã‚ˆã‚Šæ‰‹å‰ã«é…ç½®
+	float startX = normOffset - width;
 
-	// ‰æ–Ê‘S‘Ì‚ğƒJƒo[‚·‚é‚Ü‚ÅŒJ‚è•Ô‚µ•`‰æ
-	for (float x = startX; x < SCREEN_WIDTH; x += width)
+	// ç”»é¢å…¨ä½“ã‚’ã‚«ãƒãƒ¼ã™ã‚‹ã¾ã§ç¹°ã‚Šè¿”ã—æç”»
+	for (float x = startX; x < SCREEN_WIDTH + width; x += width)
 	{
 		XMFLOAT2 pos = { x + width / 2, y };
 		DrawSprite(pos, size, col);
@@ -328,20 +472,20 @@ void DrawPlayerWinCrownBanner(
 	float widthCrown = (float)metaCrown.width * scale / 10;
 	float heightCrown = (float)metaCrown.height * scale / 10;
 
-	// ŠÔŠu
+	// é–“éš”
 	float spacing = 50.0f;
 
-	// 1ƒZƒbƒg‚Ì•iPLAYER WIN + spacing + ‰¤Š¥ + spacingj
+	// 1ã‚»ãƒƒãƒˆã®å¹…ï¼ˆPLAYER WIN + spacing + ç‹å†  + spacingï¼‰
 	float setWidth = widthPlayerWin + spacing + widthCrown + spacing;
-	float setHeight = max(heightPlayerWin, heightCrown);
 
 	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 
-	// ƒIƒtƒZƒbƒg³‹K‰»
-	float startX = fmodf(offset, setWidth);
-	if (startX > 0) startX -= setWidth;
+	// ã“ã®é–¢æ•°ã®ç¹°ã‚Šè¿”ã—å˜ä½(setWidth)ã§æ­£è¦åŒ–
+	float normOffset = fmodf(offset, setWidth);
+	// é–‹å§‹ä½ç½®ã‚’ç”»é¢å·¦ç«¯ã‚ˆã‚Šæ‰‹å‰ã«é…ç½®
+	float startX = normOffset - setWidth;
 
-	for (float x = startX; x < SCREEN_WIDTH; x += setWidth)
+	for (float x = startX; x < SCREEN_WIDTH + setWidth; x += setWidth)
 	{
 		// PLAYER WIN
 		g_pContext->PSSetShaderResources(0, 1, &texPlayerWin);
@@ -350,7 +494,7 @@ void DrawPlayerWinCrownBanner(
 		XMFLOAT4 col = { 1, 1, 1, 1 };
 		DrawSprite(posPW, sizePW, col);
 
-		// ‰¤Š¥
+		// ç‹å† 
 		g_pContext->PSSetShaderResources(0, 1, &texCrown);
 		XMFLOAT2 posCrown = { x + widthPlayerWin + spacing + widthCrown / 2, y };
 		XMFLOAT2 sizeCrown = { widthCrown, heightCrown };
