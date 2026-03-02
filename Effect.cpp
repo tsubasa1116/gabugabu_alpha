@@ -375,6 +375,7 @@ void Effect_Draw()
 			XMFLOAT2 pos = { effect[i].pos.x, effect[i].pos.y };
 			XMFLOAT2 size = effect[i].size;
 
+			Shader_SetColor(color::white);
 			g_pContext->PSSetShaderResources(0, 1, &tex);
 			DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
 		}
@@ -408,6 +409,7 @@ void Effect_Draw()
 			Shader_Begin();
 			Shader_BeginUI();
 			SetBlendState(BLENDSTATE_ALPHA);
+			Shader_SetColor(color::white);
 			
 			g_pContext->PSSetShaderResources(0, 1, &tex);
 			DrawSpriteUV(pos, size, color::white, uvMin, uvMax);

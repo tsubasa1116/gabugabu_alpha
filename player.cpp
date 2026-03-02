@@ -138,6 +138,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-7.0f, 4.0f, -6.0f);
 	player[3].position = XMFLOAT3(7.0f, 4.0f, 4.0f);
 
+
 	//player[0].type = PlayerType::Glass;
 	//player[1].type = PlayerType::Concrete;
 	//player[2].type = PlayerType::Plant;
@@ -155,6 +156,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		//player[p].type = PlayerType::Plant;
 		//player[p].type = PlayerType::Electricity;
 
+		player[p].velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		player[p].oldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		player[p].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		player[p].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
@@ -2356,6 +2358,7 @@ void Player_DrawHP()
 		// スペシャル使用可能ならエフェクトを表示、そうでなければ消す
 		if (Player_CanUseSpecial(i))
 		{
+			Shader_SetColor(color::white);
 			Effect_Set(24, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (100.0f * SCREEN_ADJUST_Y) }, { (162.0f * SCREEN_ADJUST_X), (60.0f * SCREEN_ADJUST_Y) }, i);
 		}
 		if (!Player_CanUseSpecial(i))
@@ -2525,14 +2528,14 @@ void Player_DrawText()
 			L"Impact",
 			textColor
 		);
-		DrawTextEx(
-			L"   ▼ ",
-			player[p].screenPos.x - offsetX,
-			player[p].screenPos.y + 13.0f,	// テキストの高さ分上に表示
-			15.0f,							// フォントサイズ
-			L"Impact",
-			textColor
-		);
+		//DrawTextEx(
+		//	L"    ▽ ",
+		//	player[p].screenPos.x - offsetX,
+		//	player[p].screenPos.y + 13.0f,	// テキストの高さ分上に表示
+		//	15.0f,							// フォントサイズ
+		//	L"Impact",
+		//	textColor
+		//);
 	}
 }
 

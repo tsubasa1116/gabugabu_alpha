@@ -37,6 +37,8 @@ namespace Loader {
             CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
             int taskIndex = 0;
+			// スレッドの優先度を下げる
+            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
             for (auto& task : g_tasks) 
             {
                 try 
@@ -54,6 +56,7 @@ namespace Loader {
                 {
                     OutputDebugStringA("タスクで不明なエラーが発生\n");
                 }
+                Sleep(3);
             }
 
             CoUninitialize();

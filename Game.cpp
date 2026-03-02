@@ -413,6 +413,7 @@ void Game_Draw()
 		pContext->RSSetViewports(1, &slideVp);
 	
 		// ずれた画面に対していつも通りUIを描画する
+		Shader_SetColor(color::white);
 		Effect_Draw();
 		Player_DrawHP();
 		Player_DrawText();
