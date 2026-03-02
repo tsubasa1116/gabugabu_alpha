@@ -36,7 +36,7 @@ using namespace DirectX;
 #include <vector>
 #include <algorithm>
 #include "loadThread.h"
-
+#include "gimmick.h"
 
 //======================================================
 //	マクロ定義
@@ -122,8 +122,8 @@ static UINT idxdata[6]
 
 static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
 
-static std::atomic<int> g_loadedCount(0);                   // 何枚終わったか（進捗用）
-static bool      s_ShowImgui = true;
+static std::atomic<int> g_loadedCount(0);	// 何枚終わったか（進捗用）
+static bool s_ShowImgui = true;
 
 //======================================================
 //	初期化関数
@@ -162,7 +162,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].power = 0.0f;
 		player[p].speed = 0.0f;
 		player[p].defense = 1.0f;
-		player[p].stock = 1;
+		player[p].stock = 3;
 		player[p].rank = 0;
 		player[p].active = true;
 		player[p].satiety = 0.0f;
@@ -518,6 +518,10 @@ void Player_Update()
 
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
+			GIMMICK_STATE* meteorObject = GetGimmick(p);
+			if (meteorObject == nullptr) return;
+			GIMMICK_STATE& meteor = *meteorObject;
+
 			// プレイヤーごとに ID を分ける（同一ラベル衝突回避）
 			ImGui::PushID(p);
 			ImGui::Text("Player %d", p + 1);
@@ -527,7 +531,10 @@ void Player_Update()
 			ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
 			ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
 			ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
+			ImGui::BulletText("position.x        : %.2f", player[p].position.x);
 			ImGui::BulletText("position.y        : %.2f", player[p].position.y);
+			ImGui::BulletText("position.z        : %.2f", player[p].position.z);
+			ImGui::BulletText("meteor.canFire    : %d", meteor.canFire);
 			ImGui::BulletText("isEggBreaking     : %d", player[p].isEggBreaking);
 			ImGui::BulletText("isShadowEnabled   : %d", player[p].isShadowEnabled);
 			ImGui::BulletText("isHealing         : %d", player[p].isHealing);
@@ -587,9 +594,6 @@ void Player_Update()
 	
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-
-		if (!player[p].active) continue;
-
 		// ワールド座標をスクリーン座標に変換
 		XMFLOAT3 worldPos = player[p].position;
 		worldPos.y += 2.0f; // プレイヤーの上方に表示
@@ -665,6 +669,12 @@ void Player_Update()
 			break;
 		}
 
+		
+		if (!player[p].active)
+		{
+			player[p].position.y = 0.0f;
+		}
+
 		// 回復フラグの更新
 		if (player[p].isHealing)
 		{
@@ -714,10 +724,9 @@ void Player_Update()
 				player[p].eggBreakingTimer = 0.0f;
 			}
 		}
-		else
+		// 重力加速度のない簡易的な重力
+		else if (player[p].active)
 		{
-			// y軸の移動量 (重力 + ジャンプ)
-			// 重力加速度のない簡易的な重力
 			player[p].position.y += -0.1f;
 		}
 
@@ -794,7 +803,7 @@ void Player_Update()
 			if (player[p].stunGauge < 0.0f)	player[p].stunGauge = 0.0f;
 		}
 
-		// スタン中・ダウン中でなければ第1形態行動 1位確定後はアニメーションのみ
+		// スタン中・ダウン中でなければ通常行動 1位確定後はアニメーションのみ
 		if (!player[p].isStunning && !player[p].isDown && player[p].rank != 1 && player[p].active)
 		{
 			// 発動トリガー入力をチェックして攻撃フラグを立てる
@@ -823,7 +832,11 @@ void Player_Update()
 
 			// 現在のプレイヤー p の移動ベクトルだけをリセット
 			player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+		}
 
+		// 非activeでも移動可 隕石用
+		if (!player[p].isStunning && !player[p].isDown && player[p].rank != 1)
+		{
 			XMFLOAT2 moveInput = { 0.0f, 0.0f };
 
 			// スペシャル コンクリート使用中は移動不可
@@ -1515,16 +1528,16 @@ void Player_Update()
 		player[p].velocity.z *= 0.95f;
 
 		// 3. 重力をかける（浮かせた場合）
-		if (!player[p].duringRespawn)
+		if (!player[p].duringRespawn || player[p].active)
 		{
-			if (player[p].position.y >= -11.0f) {
-				player[p].velocity.y = 0.02f; // 下向きの力
-			}
-			else {
-				player[p].velocity.y = 0.0f;
-			}
+			if (player[p].position.y >= -11.0f)	player[p].velocity.y = 0.02f; // 下向きの力
+			else								player[p].velocity.y = 0.0f;
 		}
-
+		else if (!player[p].active)
+		{
+			// 非アクティブ時は速度をゼロにして位置を固定
+			player[p].velocity = { 0.0f, 0.0f, 0.0f };
+		}
 		posBuff = player[p].position;
 
 		// 地面の高さ（最低ライン）
@@ -1532,45 +1545,48 @@ void Player_Update()
 		//bool isShadowEnabled = false;		// 地面に足がついているかフラグ
 
 		// マップデータ（地面）との当たり判定
-		int fieldCount = GetFieldObjectCount();
-		MAPDATA* fieldObjects = GetFieldObjects();
-
-		for (int j = 0; j < fieldCount; ++j)
+		if (player[p].active)
 		{
-			// アクティブじゃない、または no が MAX ならスキップ
-			if (!fieldObjects[j].isActive || fieldObjects[j].no == FIELD::FIELD_MAX)
-			{
-				continue;
-			}
+			int fieldCount = GetFieldObjectCount();
+			MAPDATA* fieldObjects = GetFieldObjects();
 
-			// プレイヤーのAABB（体の一部）が六角柱に乗っているか
-			if (CheckAABBHexCollision(player[p].boundingBox, fieldObjects[j].boundingBox))
+			for (int j = 0; j < fieldCount; ++j)
 			{
-				// タイルの上面のY座標を計算
-				float tileTopY = fieldObjects[j].pos.y + (fieldObjects[j].boundingBox.height / 2.0f);	// -1 + 1.5 = 0.5
-
-				// プレイヤーの底面がタイルの上面以下か
-				if (player[p].boundingBox.Min.y <= tileTopY)
+				// アクティブじゃない、または no が MAX ならスキップ
+				if (!fieldObjects[j].isActive || fieldObjects[j].no == FIELD::FIELD_MAX)
 				{
-					const float baseHalfHeight = COORDINATE;
-					// 着地では見た目の高さ（描画スケール）を基準に計算しているため physicsScaling を使用
-					float halfHeight = baseHalfHeight * player[p].scaling.y * renderScale;
+					continue;
+				}
 
-					// 着地させる（めり込みが起きないよう最低値として補正）
-					float targetY = tileTopY + halfHeight;
-					if (player[p].position.y < targetY)
+				// プレイヤーのAABB（体の一部）が六角柱に乗っているか
+				if (CheckAABBHexCollision(player[p].boundingBox, fieldObjects[j].boundingBox))
+				{
+					// タイルの上面のY座標を計算
+					float tileTopY = fieldObjects[j].pos.y + (fieldObjects[j].boundingBox.height / 2.0f);	// -1 + 1.5 = 0.5
+
+					// プレイヤーの底面がタイルの上面以下か
+					if (player[p].boundingBox.Min.y <= tileTopY)
 					{
-						player[p].position.y = targetY;
-						player[p].isShadowEnabled = true; // 影エフェクト非表示
+						const float baseHalfHeight = COORDINATE;
+						// 着地では見た目の高さ（描画スケール）を基準に計算しているため physicsScaling を使用
+						float halfHeight = baseHalfHeight * player[p].scaling.y * renderScale;
+
+						// 着地させる（めり込みが起きないよう最低値として補正）
+						float targetY = tileTopY + halfHeight;
+						if (player[p].position.y < targetY)
+						{
+							player[p].position.y = targetY;
+							player[p].isShadowEnabled = true; // 影エフェクト非表示
+						}
+
+						// AABB を再計算して整合性を保つ（描画スケールを考慮）
+						// ヒットボックス（向きに応じた長方形）で再計算する
+						CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+
+						top_y = tileTopY;
+
+						break;
 					}
-
-					// AABB を再計算して整合性を保つ（描画スケールを考慮）
-					// ヒットボックス（向きに応じた長方形）で再計算する
-					CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
-
-					top_y = tileTopY;
-
-					break;
 				}
 			}
 		}
@@ -1578,28 +1594,31 @@ void Player_Update()
 		// -------------------------------------------------------------------------------------
 		// 建物との当たり判定
 		// -------------------------------------------------------------------------------------
-		int buildingCount = GetBuildingCount();			// 数を取得
-		Building** buildingObjects = GetBuildings();	// リストを取得
-
-		for (int j = 0; j < buildingCount; ++j)
+		if (player[p].active)
 		{
-			// アクティブでないなら無視
-			if (!buildingObjects[j]->isActive)	continue;
+			int buildingCount = GetBuildingCount();			// 数を取得
+			Building** buildingObjects = GetBuildings();	// リストを取得
 
-			// 建物が自分で計算しておいてくれた AABB をもらうだけ！
-			const AABB& bBox = buildingObjects[j]->GetAABB();
-
-			// 判定！
-			MTV collision = CalculateAABBMTV(player[p].boundingBox, bBox);			if (collision.isColliding)
+			for (int j = 0; j < buildingCount; ++j)
 			{
-				// 衝突していたら、MTVの分だけ位置を戻す
-				player[p].position.x += collision.translation.x;
-				player[p].position.y += collision.translation.y;
-				player[p].position.z += collision.translation.z;
+				// アクティブでないなら無視
+				if (!buildingObjects[j]->isActive)	continue;
 
-				// 押し戻し後の新しいAABBを再計算（描画スケールを反映）
-				// ヒットボックス（向きに応じた長方形）で再計算する
-				CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+				// 建物が自分で計算しておいてくれた AABB をもらうだけ！
+				const AABB& bBox = buildingObjects[j]->GetAABB();
+
+				// 判定！
+				MTV collision = CalculateAABBMTV(player[p].boundingBox, bBox);			if (collision.isColliding)
+				{
+					// 衝突していたら、MTVの分だけ位置を戻す
+					player[p].position.x += collision.translation.x;
+					player[p].position.y += collision.translation.y;
+					player[p].position.z += collision.translation.z;
+
+					// 押し戻し後の新しいAABBを再計算（描画スケールを反映）
+					// ヒットボックス（向きに応じた長方形）で再計算する
+					CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+				}
 			}
 		}
 
@@ -1621,69 +1640,67 @@ void Player_Update()
 		// -------------------------------------------------------------
 		// プレイヤーオブジェクト同士の当たり判定（PLAYER_MAX分対応）
 		// -------------------------------------------------------------
-		for (int otherIndex = p + 1; otherIndex < PLAYER_MAX; ++otherIndex)
+		if (player[p].active)
 		{
-			// 非アクティブは無視
-			if (!player[otherIndex].active) continue;
-
-			// 他プレイヤーの AABB を更新（ここで定義済みの hitboxScalingOther を使用）
-			CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScaling);
-
-			// 衝突チェック（ペア p <-> otherIndex を一度だけ判定）
-			MTV collision_player = CalculateAABBMTV(player[p].boundingBox, player[otherIndex].boundingBox);
-
-			if (collision_player.isColliding)
+			for (int otherIndex = p + 1; otherIndex < PLAYER_MAX; ++otherIndex)
 			{
-				// 向きベクトルを更新（rotation.y から算出）
-				{
-					float rad_p = XMConvertToRadians(player[p].rotation.y);
-					player[p].dir.x = sinf(rad_p);
-					player[p].dir.z = cosf(rad_p);
-				}
+				// 非アクティブは無視
+				if (!player[otherIndex].active) continue;
 
-
-				{
-					float rad_o = XMConvertToRadians(player[otherIndex].rotation.y);
-					player[otherIndex].dir.x = sinf(rad_o);
-					player[otherIndex].dir.z = cosf(rad_o);
-				}
-
-				// 押し戻し量 (MTV) を半分にして双方に適用
-				XMFLOAT3 half_translation =
-				{
-					collision_player.translation.x * 0.5f,
-					collision_player.translation.y * 0.5f,
-					collision_player.translation.z * 0.5f
-				};
-
-				// object[p] を MTV の半分だけ押す
-				player[p].position.x += half_translation.x;
-				player[p].position.y += half_translation.y;
-				player[p].position.z += half_translation.z;
-
-				// object[otherIndex] を逆方向に半分だけ押す
-				player[otherIndex].position.x -= half_translation.x;
-				player[otherIndex].position.y -= half_translation.y;
-				player[otherIndex].position.z -= half_translation.z;
-
-				// 押し戻し後の新しいAABBを再計算 (ヒットボックスで)
-				CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+				// 他プレイヤーの AABB を更新（ここで定義済みの hitboxScalingOther を使用）
 				CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScaling);
+
+				// 衝突チェック（ペア p <-> otherIndex を一度だけ判定）
+				MTV collision_player = CalculateAABBMTV(player[p].boundingBox, player[otherIndex].boundingBox);
+
+				if (collision_player.isColliding)
+				{
+					// 向きベクトルを更新（rotation.y から算出）
+					{
+						float rad_p = XMConvertToRadians(player[p].rotation.y);
+						player[p].dir.x = sinf(rad_p);
+						player[p].dir.z = cosf(rad_p);
+					}
+
+					{
+						float rad_o = XMConvertToRadians(player[otherIndex].rotation.y);
+						player[otherIndex].dir.x = sinf(rad_o);
+						player[otherIndex].dir.z = cosf(rad_o);
+					}
+
+					// 押し戻し量 (MTV) を半分にして双方に適用
+					XMFLOAT3 half_translation =
+					{
+						collision_player.translation.x * 0.5f,
+						collision_player.translation.y * 0.5f,
+						collision_player.translation.z * 0.5f
+					};
+
+					// object[p] を MTV の半分だけ押す
+					player[p].position.x += half_translation.x;
+					player[p].position.y += half_translation.y;
+					player[p].position.z += half_translation.z;
+
+					// object[otherIndex] を逆方向に半分だけ押す
+					player[otherIndex].position.x -= half_translation.x;
+					player[otherIndex].position.y -= half_translation.y;
+					player[otherIndex].position.z -= half_translation.z;
+
+					// 押し戻し後の新しいAABBを再計算 (ヒットボックスで)
+					CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+					CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScaling);
+				}
 			}
 		}
 
 		SetHPValue(&HPBar[p], (int)player[p].hp, (int)PLAYER_MAX_HP);
 		UpdateHP(&HPBar[p]);
 
-		if (&HPBar[p])
-		{
-			SetHPOutline(&HPBar[p], player[p].type);
-		}
+		if (&HPBar[p])	SetHPOutline(&HPBar[p], player[p].type);
 	}
 
 	// プレイヤー同士の攻撃判定
 	AttackPlayerCollisions();
-	//ImGui::End();
 }
 
 //======================================================
@@ -1692,7 +1709,7 @@ void Player_Update()
 static void Player_DrawSilhouette(int p)
 {
 	if (!Loader::IsFinished && g_loadedCount == 0) return;
-	if (!player[p].active) return;
+	if (!player[p].active || player[p].duringRespawn) return;
 
 	// プロジェクション・ビュー行列を取得
 	XMMATRIX proj = GetProjectionMatrix();
@@ -1780,7 +1797,6 @@ static void Player_DrawSilhouette(int p)
 		default: break;
 		}
 		break;
-	default: break;
 	}
 
 	// スキル・スペシャル専用テクスチャ
@@ -2015,8 +2031,6 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	// プレイヤーを描画するラムダ（Projection, View をキャプチャ）
 	auto DrawPlayerInternal = [&](int idx)
 	{
-		if (!player[idx].active) return;
-
 		// プレイヤーの影エフェクト描画
 		EffectShadow_DrawForPlayer(idx);
 
@@ -2171,8 +2185,6 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		if (!player[p].active) continue;
-
 		float dx = player[p].position.x - camPos.x;
 		float dy = player[p].position.y - camPos.y;
 		float dz = player[p].position.z - camPos.z;
@@ -2190,8 +2202,30 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	SetDepthTest(true);
 	SetDepthReadOnly();	// 深度テストはするが深度バッファへの書き込みはしない
 
-	// ソート順（遠いものから描画）
-	for (auto& p : list)	DrawPlayerInternal(p.second);
+	// ソート順（遠いものから描画） - プレイヤー本体は active のものだけ描画
+	for (auto& p : list)
+	{
+		int idx = p.second;
+		if (player[idx].active)
+		{
+			DrawPlayerInternal(idx);
+		}
+	}
+
+	// 非アクティブだが隕石等の理由でエフェクトだけ出す必要があるプレイヤーをここで処理
+	for (int i = 0; i < PLAYER_MAX; ++i)
+	{
+		if (player[i].active) continue; // アクティブなら既に本体＋エフェクト描画済み
+
+		GIMMICK_STATE* meteor = GetGimmick(i);
+		if (meteor && meteor->canFire)
+		{
+			// エフェクトのみ描画（プレイヤー本体は描かない）
+			SetDepthTest(false); // エフェクトは手前描画でも見えるように
+			SetBlendState(BLENDSTATE_ALPHA);
+			EffectFront_DrawForPlayer(i);
+		}
+	}
 
 	// 3Dオブジェクトは深度テストを無効にして描画
 	SetDepthTest(false);
@@ -2227,7 +2261,11 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	{
 		Player_DrawOutline(p.second);
 
-		DrawPlayerInternal(p.second);
+		// 再描画でも本体は active のものだけ描画（非アクティブは Outline 関数内で弾かれる）
+		if (player[p.second].active)
+		{
+			DrawPlayerInternal(p.second);
+		}
 	}
 
 	// シルエット描画を追加

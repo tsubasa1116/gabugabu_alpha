@@ -11,6 +11,7 @@
 #include "Audio.h"
 #include "imgui.h"
 #include "loadThread.h"
+#include "gimmick.h"
 
 #define EFFECT_SPRITE_X		(8)
 #define EFFECT_SPRITE_Y		(8)
@@ -82,8 +83,7 @@ static const float ANIM_FRAME_TIME = 0.16f;	// 1フレームあたりの秒数
 
 PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
 BUILDING_EFFECT_ANIM g_BuildingEffectAnim[BUILDING_EFFECT_MAX];
-
-//static int g_SE_ID[10] = { NULL };
+METEOR_EFFECT_ANIM g_MeteorEffectAnim[PLAYER_MAX];
 
 // テクスチャ番号ごとの設定
 static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
@@ -197,12 +197,11 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(23, L"Asset\\Texture\\uiOrbit_v1.png");
 	Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
 	Effect_LoadTexture(25, L"Asset\\Texture\\effectSmork02_v1.png");
-
+	Effect_LoadTexture(26, L"Asset\\Texture\\effectDown_v2.png");				// ストック0・隕石爆発
 	});
 
 	//if (!g_isPlayerLoadingFinished && g_loadedCount == 0) return;
 	
-
 	// 頂点バッファ作成
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));// 0でクリア
@@ -574,7 +573,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		// 爆発エフェクト開始
 		if (!explosionFrameInitialized[playerIndex])
 		{
-			g_PlayerEffectAnim[playerIndex].explosionFrame = 0;
+			g_PlayerEffectAnim[playerIndex].explosionFrame = 32;
 			g_PlayerEffectAnim[playerIndex].explosionTimer = 0.0f;
 			explosionFrameInitialized[playerIndex] = true;
 		}
@@ -582,7 +581,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		if (!cameraFocusStarted[playerIndex])
 		{
 			// カメラフォーカス開始
-			Camera_FocusOnPlayer(playerIndex, 10.0f);
+			Camera_FocusOnPlayer(playerIndex, 5.0f);
 			cameraFocusStarted[playerIndex] = true;
 		}
 
@@ -595,9 +594,9 @@ void Effect_UpdateForPlayer(int playerIndex)
 			g_PlayerEffectAnim[playerIndex].explosionFrame++;
 
 			// エフェクトが最後まで再生されたら終了
-			if (g_PlayerEffectAnim[playerIndex].explosionFrame >= 29)
+			if (g_PlayerEffectAnim[playerIndex].explosionFrame >= 63)
 			{
-				g_PlayerEffectAnim[playerIndex].explosionFrame = 29;
+				g_PlayerEffectAnim[playerIndex].explosionFrame = 63;
 				explosionFinished[playerIndex] = true;
 
 				// エフェクト終了と同時にカメラフォーカスを解除
@@ -890,6 +889,10 @@ void EffectFront_DrawForPlayer(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
+	GIMMICK_STATE* meteorObject = GetGimmick(playerIndex);
+	if (meteorObject == nullptr) return;
+	GIMMICK_STATE& meteor = *meteorObject;
+
 	LIGHT light{};
 	light.Enable = TRUE;
 	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
@@ -958,12 +961,12 @@ void EffectFront_DrawForPlayer(int playerIndex)
 
 	// --- 固定長配列で動的メモリ確保を排除 ---
 	struct EffectEntry { int texNo; int frame; float scale; XMFLOAT3 offset; };
-	EffectEntry entries[8]; // 最大同時8レイヤーで十分
+	EffectEntry entries[16]; // 最大同時16レイヤーに拡張
 	int entryCount = 0;
 
 	auto addEntry = [&](int texNo, int f, float s, XMFLOAT3 o)
 		{
-			if (entryCount < 8) entries[entryCount++] = { texNo, f, s, o };
+			if (entryCount < 16) entries[entryCount++] = { texNo, f, s, o };
 		};
 
 	// 進化エフェクト
@@ -994,10 +997,7 @@ void EffectFront_DrawForPlayer(int playerIndex)
 		}
 
 		// 回復エフェクト
-		if (player.isHealing)
-		{
-			addEntry(8, g_PlayerEffectAnim[playerIndex].healingFrame, 1.75f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-		}
+		if (player.isHealing)	addEntry(8, g_PlayerEffectAnim[playerIndex].healingFrame, 1.75f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
 	// スペシャルエフェクト
 	if (player.useSpecial)
@@ -1007,42 +1007,30 @@ void EffectFront_DrawForPlayer(int playerIndex)
 		XMFLOAT3 ofs(0, 0, 0);
 		switch (player.type)
 		{
-		case PlayerType::Plant:			texNo = 21;	scale = 5.0f; ofs = XMFLOAT3(0, 0, 0);
+		case PlayerType::Plant:	texNo = 21;	scale = 5.0f; ofs = XMFLOAT3(0, 0, 0);
 			SetDepthTest(false);
 			break;
 		default: break;
 		}
 		if (texNo >= 0) addEntry(texNo, g_PlayerEffectAnim[playerIndex].specialFrame, scale, ofs);
 	}
-	// 死亡エフェクト
-	if (player.isDown && player.stock <= 1)
-	{
-		addEntry(25, g_PlayerEffectAnim[playerIndex].explosionFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-	}
 	// 毒状態エフェクト
-	if (player.isPoisoned)
-	{
-		addEntry(11, g_PlayerEffectAnim[playerIndex].poisonFrame, 2.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-	}
+	if (player.isPoisoned)			addEntry(11, g_PlayerEffectAnim[playerIndex].poisonFrame, 2.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	// 被弾エフェクト
-	if (player.isAttacked)
-	{
-		addEntry(12, g_PlayerEffectAnim[playerIndex].attackedFrame, 1.2f, XMFLOAT3(0.0f, 0.5f, 0.0f));
-	}
+	if (player.isAttacked)			addEntry(12, g_PlayerEffectAnim[playerIndex].attackedFrame, 1.2f, XMFLOAT3(0.0f, 0.5f, 0.0f));
 	// スタンエフェクト
-	if (player.isStunning)
-	{
-		addEntry(12, g_PlayerEffectAnim[playerIndex].stunFrame, 2.2f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-	}
+	if (player.isStunning)			addEntry(12, g_PlayerEffectAnim[playerIndex].stunFrame, 2.2f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+	// リスポーン卵割れエフェクト
+	if (player.isEggBreaking)		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 5.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
 	// リスポーン卵エフェクト
-	if (player.isEggBreaking)	// 卵割れエフェクト
-	{
-		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 5.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-	}
-	else if (player.duringRespawn)	// 卵エフェクト
-	{
-		addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 5.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
-	}
+	else if (player.duringRespawn)	addEntry(20, g_PlayerEffectAnim[playerIndex].respawnFrame, 5.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+	// Aボタン UI
+	if (player.duringRespawn)		addEntry(11, 50, 1.0f, XMFLOAT3(1.5f, -1.0f, 0.0f));
+	
+	if (meteor.canFire)				addEntry(11, 50, 1.5f, XMFLOAT3(0.0f, 2.0f, 0.0f));
+	// 死亡エフェクト
+	if (player.isDown && player.stock <= 1)	addEntry(26, g_PlayerEffectAnim[playerIndex].explosionFrame, 3.0f, XMFLOAT3(0.0f, 0.0f, 0.0f));
+
 	// 通常色を設定
 	Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
@@ -1312,6 +1300,133 @@ void Effect_DrawForBuilding(int buildingIndex)
 	g_pContext->DrawIndexed(6, 0, 0);
 }
 
+// ===============================================
+// 隕石着弾エフェクト更新関数
+// テクスチャ番号26で0～31フレームを1回再生
+// ===============================================
+void MeteorEffectUpdate()
+{
+	// 前フレームのlanded状態を保持（着弾の立ち上がりエッジを検出）
+	static bool prevLanded[PLAYER_MAX] = { false };
+
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		GIMMICK_STATE* gimmick = GetGimmick(p);
+		if (gimmick == nullptr) continue;
+
+		bool currentLanded = gimmick->meteor.landed;
+
+		// 着弾の立ち上がりエッジ（false→true）でエフェクト再生を開始
+		if (currentLanded && !prevLanded[p])
+		{
+			g_MeteorEffectAnim[p].playing = true;
+			g_MeteorEffectAnim[p].finished = false;
+			g_MeteorEffectAnim[p].frame = 0;
+			g_MeteorEffectAnim[p].timer = 0.0f;
+			g_MeteorEffectAnim[p].pos = gimmick->meteor.position;
+		}
+
+		// 前フレームの状態を更新
+		prevLanded[p] = currentLanded;
+
+		// 再生中：フレームを進める
+		if (g_MeteorEffectAnim[p].playing)
+		{
+			g_MeteorEffectAnim[p].timer += DELTA_TIME;
+			if (g_MeteorEffectAnim[p].timer >= 0.05f)
+			{
+				g_MeteorEffectAnim[p].timer = 0.0f;
+				g_MeteorEffectAnim[p].frame++;
+
+				// 31フレームを超えたら再生終了
+				if (g_MeteorEffectAnim[p].frame > 31)
+				{
+					g_MeteorEffectAnim[p].frame = 31;
+					g_MeteorEffectAnim[p].playing = false;
+					g_MeteorEffectAnim[p].finished = true;
+				}
+			}
+		}
+	}
+}
+
+// ===============================================
+// 隕石着弾エフェクト描画関数
+// テクスチャ番号26をビルボードで着弾地点に描画
+// ===============================================
+void MeteorEffectDraw()
+{
+	if (!Loader::IsFinished) return;
+
+	for (int p = 0; p < PLAYER_MAX; ++p)
+	{
+		if (!g_MeteorEffectAnim[p].playing) continue;
+
+		int texNo = 26;	// effectDown_v2.png（ストック0・隕石爆発）
+		ID3D11ShaderResourceView* srv = g_Texture[texNo];
+		if (!srv) continue;
+
+		Shader_Begin();
+
+		// スプライトシートのUV計算（8x8シート、0～31フレーム）
+		int frame = g_MeteorEffectAnim[p].frame;
+		int col = frame % EFFECT_SPRITE_X;
+		int row = frame / EFFECT_SPRITE_X;
+		float u0 = (float)col / (float)EFFECT_SPRITE_X;
+		float v0 = (float)row / (float)EFFECT_SPRITE_Y;
+		float u1 = u0 + 1.0f / (float)EFFECT_SPRITE_X;
+		float v1 = v0 + 1.0f / (float)EFFECT_SPRITE_Y;
+
+		// 頂点データをコピーしてUVを上書き
+		Vertex2 localV[PLAYER_VERTEX];
+		CopyMemory(&localV[0], &effect_vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
+		localV[0].tex = XMFLOAT2(u0, v0);
+		localV[1].tex = XMFLOAT2(u1, v0);
+		localV[2].tex = XMFLOAT2(u0, v1);
+		localV[3].tex = XMFLOAT2(u1, v1);
+
+		// ビルボード処理（カメラに常に正対させる）
+		float scale = 4.0f;
+		XMMATRIX ScalingMatrix = XMMatrixScaling(scale, scale, scale);
+
+		XMMATRIX vm = GetViewMatrix();
+		vm.r[3].m128_f32[0] = 0.0f;
+		vm.r[3].m128_f32[1] = 0.0f;
+		vm.r[3].m128_f32[2] = 0.0f;
+		vm.r[3].m128_f32[3] = 1.0f;
+		vm = XMMatrixTranspose(vm);
+		vm.r[3].m128_f32[0] = g_MeteorEffectAnim[p].pos.x;
+		vm.r[3].m128_f32[1] = g_MeteorEffectAnim[p].pos.y + 1.0f;	// 地面から少し上
+		vm.r[3].m128_f32[2] = g_MeteorEffectAnim[p].pos.z;
+		vm.r[3].m128_f32[3] = 1.0f;
+
+		XMMATRIX WorldMatrix = ScalingMatrix * vm;
+		Shader_SetWorldMatrix(WorldMatrix);
+
+		XMMATRIX view = GetViewMatrix();
+		XMMATRIX projection = GetProjectionMatrix();
+		XMMATRIX WVP = WorldMatrix * view * projection;
+		Shader_SetMatrix(WVP);
+
+		// 頂点バッファに書き込み
+		D3D11_MAPPED_SUBRESOURCE msr;
+		g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		Vertex2* vertex = (Vertex2*)msr.pData;
+		CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
+		g_pContext->Unmap(g_VertexBuffer, 0);
+
+		UINT stride = sizeof(Vertex2);
+		UINT offset = 0;
+		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+		g_pContext->PSSetShaderResources(0, 1, &srv);
+		g_pContext->DrawIndexed(6, 0, 0);
+	}
+}
+
 //// ===============================================
 //// 建物付近に表示するエフェクト一括更新関数
 //// ===============================================
@@ -1347,6 +1462,7 @@ void Effect_DrawForBuilding(int buildingIndex)
 //				anim.hitFrame = anim.hitStartFrame;
 //				anim.hitTimer = 0.0f;
 //				anim.hitPlaying = true;
+//
 //			}
 //
 //			// フレーム進行

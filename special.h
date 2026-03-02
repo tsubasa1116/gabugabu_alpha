@@ -30,6 +30,9 @@ struct GLASS_BOX
 	XMFLOAT3 dir;				// 移動方向
 	XMFLOAT3 targetPosition;	// 目標位置
 	bool active;				// 有効状態
+	bool spawned;				// 出現済みフラグ
+	float spawnDelay;			// 出現までの遅延時間（秒）
+	int phase;					// 移動フェーズ 0:上昇 1:横移動 2:降下
 };
 
 struct SPECIAL_OBJECT

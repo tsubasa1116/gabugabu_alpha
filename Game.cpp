@@ -67,13 +67,12 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	DamageText_Initialize();
 	SkyBall_Initialize(pDevice, pContext);
 
-	g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// サウンドロード
-	PlayAudio(g_BgmID, true);		// 再生開始（ループあり）
+	//g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// サウンドロード
+	//PlayAudio(g_BgmID, true);		// 再生開始（ループあり）
 	//PlayAudio(g_BgmID);			// 再生開始（ループなし）
 	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし）
 
 	XMFLOAT4 para;
-
 	para = XMFLOAT4(0.7f, 0.7f, 0.9999f, 1.0f);
 	Light.SetAmbient(para);
 	para = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
@@ -140,6 +139,7 @@ void Game_Update()
 	Field_Update();
 	Building_UpdateAll();
 	Effect_Update();
+	MeteorEffectUpdate();
 
 	// 建物エフェクト更新（1棟ずつ）
 	int buildingCount = GetBuildingCount();
@@ -202,6 +202,7 @@ void Game_Draw()
 	}
 	Player_Draw(s_IsKonamiCodeEntered);
 	Meteor_Draw();
+	MeteorEffectDraw();
 
 	// 2D描画
 	Light.SetEnable(FALSE);

@@ -45,6 +45,8 @@ static MODEL* g_MeteorModel = NULL;
 // ギミック状態（プレイヤーごと）
 static GIMMICK_STATE g_Gimmick[PLAYER_MAX];
 
+//static const char* g_ModelName = "effectMeteo_v1";
+
 // マクロ定義（範囲描画で+Y面を使うため箱の頂点データは残す）
 #define METEOR_VERTEX (24)
 
@@ -147,9 +149,8 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
 		g_Gimmick[p].enabled = false;
-		g_Gimmick[p].cursorPos = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Gimmick[p].coolTimer = 0.0f;
-		g_Gimmick[p].canFire = true;
+		g_Gimmick[p].canFire = false;
 		g_Gimmick[p].rangeAnimFrame = 0;
 		g_Gimmick[p].rangeAnimTimer = 0.0f;
 
@@ -216,6 +217,10 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			LoadFromWICFile(L"Asset\\Texture\\uiSpecialGreen_v2.png", WIC_FLAGS_NONE, &metadata, image);
 			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_RangeTexture[3]);
 			assert(g_RangeTexture[3]);
+
+			//char modelPath[1];
+			//snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName);
+			//ModelLoad(modelPath);
 		});
 }
 
@@ -264,16 +269,8 @@ void Meteor_Finalize()
 //======================================================
 void Meteor_Update()
 {
-	// プレイヤーごとの移動キー
-	const Keyboard_Keys_tag moveUpKeys[PLAYER_MAX] = { KK_W, KK_UP, KK_T, KK_NUMPAD8 };
-	const Keyboard_Keys_tag moveDownKeys[PLAYER_MAX] = { KK_S, KK_DOWN, KK_G, KK_NUMPAD5 };
-	const Keyboard_Keys_tag moveLeftKeys[PLAYER_MAX] = { KK_A, KK_LEFT, KK_F, KK_NUMPAD4 };
-	const Keyboard_Keys_tag moveRightKeys[PLAYER_MAX] = { KK_D, KK_RIGHT, KK_H, KK_NUMPAD6 };
-
 	// プレイヤーごとの攻撃キー
 	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V, KK_NUMPAD0 };
-
-	float cursorSpeed = 3.0f * DELTA_TIME;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
@@ -286,10 +283,6 @@ void Meteor_Update()
 			if (!g_Gimmick[p].enabled)
 			{
 				g_Gimmick[p].enabled = true;
-				// 照準の初期位置をストック0になった瞬間のプレイヤー座標に設定
-				g_Gimmick[p].cursorPos.x = player.position.x;
-				g_Gimmick[p].cursorPos.y = 0.1f;
-				g_Gimmick[p].cursorPos.z = player.position.z;
 				g_Gimmick[p].coolTimer = 0.0f;
 				g_Gimmick[p].canFire = true;
 				g_Gimmick[p].rangeAnimFrame = 0;
@@ -316,44 +309,9 @@ void Meteor_Update()
 		}
 
 		// ------------------------------------------
-		// ② 照準の移動（プレイヤーと同じキー/スティック）
-		// ------------------------------------------
-		XMFLOAT2 inputDir = { 0.0f, 0.0f };
-
-		// キーボード入力
-		if (Keyboard_IsKeyDown(moveUpKeys[p]))		inputDir.y += 1.0f;
-		if (Keyboard_IsKeyDown(moveDownKeys[p]))	inputDir.y -= 1.0f;
-		if (Keyboard_IsKeyDown(moveLeftKeys[p]))	inputDir.x -= 1.0f;
-		if (Keyboard_IsKeyDown(moveRightKeys[p]))	inputDir.x += 1.0f;
-
-		// コントローラーのスティック入力
-		if (g_Input[p].LStickX != 0.0f || g_Input[p].LStickY != 0.0f)
-		{
-			inputDir.x = g_Input[p].LStickX;
-			inputDir.y = g_Input[p].LStickY;
-		}
-
-		// 入力をカメラ基準でワールド方向に変換
-		float inputLen = sqrtf(inputDir.x * inputDir.x + inputDir.y * inputDir.y);
-		if (inputLen > 0.0f)
-		{
-			// 正規化（スティックの入力量を保持）
-			if (inputLen > 1.0f)
-			{
-				inputDir.x /= inputLen;
-				inputDir.y /= inputLen;
-				inputLen = 1.0f;
-			}
-
-			XMFLOAT3 worldDir = MeteorToWorldDir(inputDir);
-			g_Gimmick[p].cursorPos.x += worldDir.x * cursorSpeed;
-			g_Gimmick[p].cursorPos.z += worldDir.z * cursorSpeed;
-		}
-
-		// ------------------------------------------
 		// クールタイム管理
 		// ------------------------------------------
-		if (!g_Gimmick[p].canFire)
+		if (!g_Gimmick[p].canFire && !player.active)
 		{
 			g_Gimmick[p].coolTimer += DELTA_TIME;
 			if (g_Gimmick[p].coolTimer >= METEOR_COOLTIME)
@@ -378,14 +336,14 @@ void Meteor_Update()
 
 			if (firePressed)
 			{
-				// 隕石を生成
+				// 隕石を生成（プレイヤーの位置を基準にする）
 				g_Gimmick[p].meteor.active = true;
 				g_Gimmick[p].meteor.landed = false;
-				g_Gimmick[p].meteor.targetPos = g_Gimmick[p].cursorPos;
+				g_Gimmick[p].meteor.targetPos = player.position;
 				g_Gimmick[p].meteor.targetPos.y = 0.0f;
-				g_Gimmick[p].meteor.position.x = g_Gimmick[p].cursorPos.x;
+				g_Gimmick[p].meteor.position.x = player.position.x;
 				g_Gimmick[p].meteor.position.y = METEOR_START_HEIGHT;
-				g_Gimmick[p].meteor.position.z = g_Gimmick[p].cursorPos.z;
+				g_Gimmick[p].meteor.position.z = player.position.z;
 				g_Gimmick[p].meteor.rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 				g_Gimmick[p].meteor.scaling = XMFLOAT3(METEOR_MODEL_SCALE, METEOR_MODEL_SCALE, METEOR_MODEL_SCALE);
 
@@ -460,6 +418,11 @@ void Meteor_Draw()
 		if (!g_Gimmick[p].enabled) continue;
 		if (g_RangeTexture[p] == NULL) continue;
 
+		// プレイヤーの位置を取得
+		PLAYEROBJECT* playerObj = GetPlayer(p);
+		if (playerObj == nullptr) continue;
+		PLAYEROBJECT& player = *playerObj;
+
 		// ------------------------------------------
 		// ① 範囲テクスチャの常時表示（アニメーション付き）
 		// ------------------------------------------
@@ -497,13 +460,13 @@ void Meteor_Draw()
 			vertex[19].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 			g_pContext->Unmap(g_VertexBuffer, 0);
 
-			// ワールド行列（照準位置にスケール = 直径4 = 半径2）
+			// ワールド行列（プレイヤーの位置にスケール = 直径4 = 半径2）
 			float diameter = METEOR_RANGE_RADIUS * 2.0f;
 			XMMATRIX world = XMMatrixScaling(diameter, 1.0f, diameter)
 				* XMMatrixTranslation(
-					g_Gimmick[p].cursorPos.x,
-					g_Gimmick[p].cursorPos.y,
-					g_Gimmick[p].cursorPos.z);
+					player.position.x,
+					0.1f,
+					player.position.z);
 
 			// WVP行列を計算してシェーダーにセット
 			XMMATRIX WVP = world * GetViewMatrix() * GetProjectionMatrix();
@@ -576,4 +539,19 @@ void Meteor_Draw()
 			}
 		}
 	}
+
+	// ------------------------------------------
+	// 描画後のステートクリーンアップ
+	// Direct2D（DamageText等）との競合を防ぐため、
+	// SRVスロット0をNULLに戻す
+	// ------------------------------------------
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+GIMMICK_STATE* GetGimmick(int playerIndex)
+{
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return nullptr;
+	return &g_Gimmick[playerIndex];
 }

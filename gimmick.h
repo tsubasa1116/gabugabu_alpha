@@ -43,7 +43,6 @@ struct METEOR_OBJECT
 struct GIMMICK_STATE
 {
 	bool enabled;			// ギミック有効フラグ
-	XMFLOAT3 cursorPos;		// 照準位置
 	float coolTimer;		// クールタイムタイマー
 	bool canFire;			// 発射可能フラグ
 	METEOR_OBJECT meteor;	// 隕石オブジェクト
@@ -57,3 +56,5 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Meteor_Finalize();
 void Meteor_Update();
 void Meteor_Draw();
+
+GIMMICK_STATE* GetGimmick(int playerIndex);
