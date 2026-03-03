@@ -173,6 +173,7 @@
     <ClCompile Include="Ready.cpp">
       <Filter>cpp</Filter>
     </ClCompile>
+    <ClCompile Include="gimmick.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attack.h">
@@ -326,6 +327,7 @@
     </ClInclude>
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="loadThread.h" />
+    <ClInclude Include="gimmick.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="cpp">

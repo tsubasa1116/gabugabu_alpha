@@ -26,7 +26,6 @@ enum GAME_PHASE
     PHASE_PLAY,			// ÉQÅ[ÉÄñ{ï“
 };
 
-
 class CAMERA
 {
 public:

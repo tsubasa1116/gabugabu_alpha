@@ -30,6 +30,9 @@ struct GLASS_BOX
 	XMFLOAT3 dir;				// 移動方向
 	XMFLOAT3 targetPosition;	// 目標位置
 	bool active;				// 有効状態
+	bool spawned;				// 出現済みフラグ
+	float spawnDelay;			// 出現までの遅延時間（秒）
+	int phase;					// 移動フェーズ 0:上昇 1:横移動 2:降下
 };
 
 struct SPECIAL_OBJECT
@@ -51,6 +54,10 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Finalize();
 void Special_Update(int playerIndex);
 void Special_Draw(int playerIndex);
+
+// 描画パス分割用（範囲表示 = プレイヤーより先、エフェクト本体 = プレイヤーより後）
+void Special_DrawRange(int playerIndex);   // 範囲表示のみ（地面に描画）
+void Special_DrawEffect(int playerIndex);  // エフェクト本体のみ（手前に描画）
 
 void Special_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
