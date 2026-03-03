@@ -43,7 +43,7 @@ static int g_SE_ID[ATTACK_SE_COUNT] = { NULL };
 #define ATTACK_VERTEX (24)
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// TODO:三角形の攻撃用の当たり判定を作り、2重に食らうのをなくす
+// TODO:三角形の攻撃用の当たり判定を作り、2重に食らうのをなくし、ヒットストップを作る
 
 static Vertex2 Attack_vdata[ATTACK_VERTEX] =
 {
@@ -384,7 +384,7 @@ void Attack_Update(int playerIndex)
 					player.breakCount_Concrete += 1;					// コンクリートを壊した数をプラス
 					break;
 
-				case BuildingType::Plant:					
+				case BuildingType::Plant:
 					player.breakCount_Plant += 1;						// 植物を壊した数をプラス
 					break;
 
@@ -415,7 +415,7 @@ void Attack_Update(int playerIndex)
 				if (player.hp > PLAYER_MAX_HP)	player.hp = PLAYER_MAX_HP;
 
 				player.isHealing = true;	// 回復中フラグを立てる
-				
+
 				// 満腹度増加
 				player.satiety += 1.0f;
 				// 満腹度の上限
@@ -597,99 +597,125 @@ void Attack_Draw(int playerIndex)
 	// 範囲チェック 0 1 2 3 以外なら return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	// DEBUG:取りあえずのコライダー
-	//{
-	//	// 参照を取る
-	//	ATTACK_OBJECT& attackObject = Attack[playerIndex];
-	//	ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
+	// 参照を取る
+	ATTACK_OBJECT& attackObject = Attack[playerIndex];
+	ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
 
-	//	// =====================
-	//	// ワールド行列の作成
-	//	// =====================
 
-	//	// スケーリング行列の作成
-	//	XMMATRIX ScalingMatrix = XMMatrixScaling
-	//	(
-	//		attackObject.scaling.x,
-	//		attackObject.scaling.y,
-	//		attackObject.scaling.z
-	//	);
+	// 1. プレイヤー情報を取得（向きや座標を使うため）
+	PLAYEROBJECT* playerPtr = GetPlayer(playerIndex);
+	if (!playerPtr) return;
+	PLAYEROBJECT& player = *playerPtr;
 
-	//	// 回転行列の作成
-	//	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
-	//	(
-	//		XMConvertToRadians(attackObject.rotation.x),
-	//		XMConvertToRadians(attackObject.rotation.y),
-	//		XMConvertToRadians(attackObject.rotation.z)
-	//	);
+	// =====================
+	// ワールド行列の作成
+	// =====================
 
-	//	// 平行移動行列の作成
-	//	XMMATRIX TranslationMatrix = XMMatrixTranslation
-	//	(
-	//		attackObject.position.x,
-	//		attackObject.position.y,
-	//		attackObject.position.z
-	//	);
+	// スケーリング行列の作成
+	XMMATRIX ScalingMatrix = XMMatrixScaling
+	(
+		attackObject.scaling.x,
+		attackObject.scaling.y,
+		attackObject.scaling.z
+	);
 
-	//	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
+	// 回転行列の作成
+	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
+	(
+		XMConvertToRadians(attackObject.rotation.x),
+		XMConvertToRadians(attackObject.rotation.y),
+		XMConvertToRadians(attackObject.rotation.z)
+	);
 
-	//	// プロジェクション行列作成
-	//	XMMATRIX projection = GetProjectionMatrix();
+	// 平行移動行列の作成
+	XMMATRIX TranslationMatrix = XMMatrixTranslation
+	(
+		attackObject.position.x,
+		attackObject.position.y,
+		attackObject.position.z
+	);
 
-	//	// ビュー行列作成
-	//	XMMATRIX view = GetViewMatrix();
+	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
 
-	//	// 最終的な変換行列を作成
-	//	XMMATRIX WVP = WorldMatrix * view * projection;
+	// プロジェクション行列作成
+	XMMATRIX projection = GetProjectionMatrix();
 
-	//	// 変換行列を頂点シェーダーへセット
-	//	Shader_SetMatrix(WVP);
+	// ビュー行列作成
+	XMMATRIX view = GetViewMatrix();
 
-	//	LIGHT light{};
-	//	light.Enable = TRUE;
-	//	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
-	//	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-	//	// 拡散光と環境光
-	//	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
-	//	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-	//	Shader_SetLight(light);
+	// 最終的な変換行列を作成
+	XMMATRIX WVP = WorldMatrix * view * projection;
 
-	//	// シェーダーを描画パイプラインへ設定
-	//	Shader_Begin();
+	// 変換行列を頂点シェーダーへセット
+	Shader_SetMatrix(WVP);
 
-	//	// 不透明で描画するためブレンドを無効化し、描画カラーのアルファを1に固定する
-	//	SetBlendState(BLENDSTATE_NONE);
-	//	Shader_SetColor(color::white);
+	LIGHT light{};
+	light.Enable = TRUE;
+	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
+	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	// 拡散光と環境光
+	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	Shader_SetLight(light);
 
-	//	// 頂点シェーダーを描画パイプラインへ設定
-	//	D3D11_MAPPED_SUBRESOURCE msr;
-	//	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	//	Vertex2* vertex = (Vertex2*)msr.pData;
+	// シェーダーを描画パイプラインへ設定
+	Shader_Begin();
 
-	//	// 頂点データを頂点バッファへコピーする
-	//	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * ATTACK_VERTEX);
+	// 不透明で描画するためブレンドを無効化し、描画カラーのアルファを1に固定する
+	SetBlendState(BLENDSTATE_NONE);
+	Shader_SetColor(color::white);
 
-	//	// コピー完了
-	//	g_pContext->Unmap(g_VertexBuffer, 0);
+	// 頂点シェーダーを描画パイプラインへ設定
+	D3D11_MAPPED_SUBRESOURCE msr;
+	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	Vertex2* vertex = (Vertex2*)msr.pData;
 
-	//	// テクスチャをセット
-	//	g_pContext->PSSetShaderResources(0, 1, &tex);
+	// 頂点データを頂点バッファへコピーする
+	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * ATTACK_VERTEX);
 
-	//	// 頂点バッファをセット
-	//	UINT stride = sizeof(Vertex2);
-	//	UINT offset = 0;
-	//	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	// コピー完了
+	g_pContext->Unmap(g_VertexBuffer, 0);
 
-	//	// インデックスバッファをセット
-	//	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	// テクスチャをセット
+	g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	//	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
-	//	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// 頂点バッファをセット
+	UINT stride = sizeof(Vertex2);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 
-	//	g_pContext->DrawIndexed(6 * 6, 0, 0);
+	// インデックスバッファをセット
+	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	//	SetBlendState(BLENDSTATE_ALPHA);
-	//}
+	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	g_pContext->DrawIndexed(6 * 6, 0, 0);
+
+	SetBlendState(BLENDSTATE_ALPHA);
+
+
+	// 2. デバッグ描画：攻撃中だけ扇形を表示する
+	if (player.isAttacking)
+	{
+		// 判定で使っているのと「全く同じ」設定で扇を作る
+		Sector debugSector;
+		debugSector.center = player.position;
+
+		// プレイヤーの向きから前方ベクトルを計算
+		float rad = XMConvertToRadians(player.rotation.y);
+		debugSector.forward = { sinf(rad), 0.0f, cosf(rad) };
+
+		// Attack_Update で設定した値と合わせるのがコツ！
+		debugSector.radius = 3.0f;
+		debugSector.angleDegree = 120.0f;
+
+		// 扇形を描画！
+		DrawDebugSector(debugSector);
+	}
+
+	// 最後に念のためブレンド状態などを戻す
+	SetBlendState(BLENDSTATE_ALPHA);
 }
 
 void AttackPlayerCollisions()
@@ -723,7 +749,7 @@ void AttackPlayerCollisions()
 		const float HITBOX_HEIGHT_SCALE = 1.0f;
 		// Player と同じ短辺/長辺定義を使う
 		const float HITBOX_SHORT = 0.35f;
-		const float HITBOX_LONG  = 0.65f;
+		const float HITBOX_LONG = 0.65f;
 
 		// 攻撃が当たる対象として他プレイヤー全員をチェック
 		for (int def = 0; def < PLAYER_MAX; ++def)
@@ -749,7 +775,7 @@ void AttackPlayerCollisions()
 			bool defFacingZDominant = fabsf(defFacingZ) >= fabsf(defFacingX);
 
 			float widthScale = defFacingZDominant ? HITBOX_SHORT : HITBOX_LONG;		// X方向スケール
-			float depthScale = defFacingZDominant ? HITBOX_LONG  : HITBOX_SHORT;	// Z方向スケール
+			float depthScale = defFacingZDominant ? HITBOX_LONG : HITBOX_SHORT;	// Z方向スケール
 
 			// 第2形態 第3形態はXとZ同じにする
 			if (defender.form == Form::Second || defender.form == Form::Third)
@@ -792,7 +818,7 @@ void AttackPlayerCollisions()
 				defender.hp -= rawDamage;
 				if (defender.hp < 0.0f) defender.hp = 0.0f;
 
-				TriggerbyHPShake(def, 8.0f,20.0f,1.5f);
+				TriggerbyHPShake(def, 8.0f, 20.0f, 1.5f);
 				TriggerVibration(def, 0.1f, 0.1f, 50);
 
 				// スタンゲージ増加
@@ -802,23 +828,89 @@ void AttackPlayerCollisions()
 				int dmgInt = static_cast<int>(rawDamage + 0.5f);
 				XMFLOAT3 hitPos = defender.position;
 				hitPos.y += defender.scaling.y + 0.3f;
-				SetDamageText(hitPos, dmgInt, TextColor::Blue);
+
+				/*TextColor dmgColor = TextColor::White;
+
+				if (def == 0)      dmgColor = TextColor::P1color;
+				else if (def == 1) dmgColor = TextColor::P2color;
+				else if (def == 2) dmgColor = TextColor::P3color;
+				else if (def == 3) dmgColor = TextColor::P4color;*/
+
+				SetDamageText(hitPos, dmgInt, TextColor::Red);
 
 				// ダメージフラグ・タイマー（アニメ/UI 用）
 				defender.isAttacked = true;
 				defender.attackedTimer = 0.0f;
 
 				// がぶがぶ音(ループなし)
-				if(defender.attackedTimer == 0.0f)	PlayAudio(g_SE_ID[1], false);
+				if (defender.attackedTimer == 0.0f)	PlayAudio(g_SE_ID[1], false);
 
 				// 再計算
 				CalculateAABB(defender.boundingBox, defender.position, defenderHitboxScaling);
 				CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
-			
+
 				attacker.isAttacking = false;	// 攻撃終了
 			}
 		}
 	}
+}
+
+void DrawDebugSector(const Sector& sector)
+{
+	const int CIRCLE_SEGMENTS = 16;
+	std::vector<Vertex2> vdata;
+
+	// --- 1. 頂点作成（扇の骨組み） ---
+	Vertex2 centerV;
+	centerV.position = sector.center;
+	centerV.position.y += 0.2f; // 地面より少し浮かせる
+	centerV.normal = { 0, 1, 0 };
+	centerV.color = { 1.0f, 0.0f, 0.0f, 1.0f }; // 赤色
+	centerV.tex = { 0, 0 };
+
+	vdata.push_back(centerV); // 中心点
+
+	float baseAngle = atan2f(sector.forward.x, sector.forward.z);
+	float halfAngle = XMConvertToRadians(sector.angleDegree * 0.5f);
+
+	for (int i = 0; i <= CIRCLE_SEGMENTS; i++) {
+		float currentAngle = (baseAngle - halfAngle) + (halfAngle * 2.0f * (float)i / CIRCLE_SEGMENTS);
+		Vertex2 v = centerV;
+		v.position.x = sector.center.x + sinf(currentAngle) * sector.radius;
+		v.position.z = sector.center.z + cosf(currentAngle) * sector.radius;
+		vdata.push_back(v);
+	}
+	vdata.push_back(centerV); // 最後に中心に戻って閉じる
+
+	// --- 2. GPUへ転送 ---
+	XMMATRIX world = XMMatrixIdentity();
+	XMMATRIX WVP = world * GetViewMatrix() * GetProjectionMatrix();
+	Shader_SetMatrix(WVP);
+
+	LIGHT light{};
+	light.Enable = FALSE; // 線なのでライティング無効
+	Shader_SetLight(light);
+
+	Shader_Begin();
+	Shader_SetColor(color::white);
+
+	D3D11_MAPPED_SUBRESOURCE msr;
+	if (SUCCEEDED(g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) {
+		// vdata.size() が ATTACK_VERTEX (24) を超えないかチェック
+		size_t count = min(vdata.size(), (size_t)ATTACK_VERTEX);
+		CopyMemory(msr.pData, vdata.data(), sizeof(Vertex2) * count);
+		g_pContext->Unmap(g_VertexBuffer, 0);
+
+		// --- 3. 描画 ---
+		UINT stride = sizeof(Vertex2);
+		UINT offset = 0;
+		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP); // 線でつなぐ
+		g_pContext->Draw((UINT)count, 0);
+	}
+
+	// トポロジーを元に戻す（重要！）
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 ATTACK_OBJECT* GetAttack(int playerIndex)

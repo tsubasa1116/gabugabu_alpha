@@ -37,20 +37,26 @@ namespace Loader {
             CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
             int taskIndex = 0;
+			// スレッドの優先度を下げる
+            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
             for (auto& task : g_tasks) 
             {
-                try {
+                try 
+                {
                     OutputDebugStringA(("タスク実行中: " + std::to_string(taskIndex) + "\n").c_str());
                     task();
                     OutputDebugStringA(("タスク完了: " + std::to_string(taskIndex) + "\n").c_str());
                     taskIndex++;
                 }
-                catch (const std::exception& e) {
+                catch (const std::exception& e) 
+                {
                     OutputDebugStringA(("タスクエラー: " + std::string(e.what()) + "\n").c_str());
                 }
-                catch (...) {
+                catch (...) 
+                {
                     OutputDebugStringA("タスクで不明なエラーが発生\n");
                 }
+                Sleep(3);
             }
 
             CoUninitialize();
