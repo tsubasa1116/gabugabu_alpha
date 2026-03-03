@@ -521,8 +521,8 @@ void Building::Update()
 		}
 	}
 
-	// 近づいた瞬間にテクスチャオフセットを+1
-	if (anyPlayerNear && !m_IsPlayerNear)
+	// ゲームプレイ中のみ近づいた瞬間にテクスチャオフセットを+1
+	if (GetGamePhase() == PHASE_PLAY && anyPlayerNear && !m_IsPlayerNear)
 	{
 		m_TexOffset = (m_TexOffset + 1) % FIELD_TEX_MAX;
 	}
@@ -538,8 +538,8 @@ void Building::Update()
 
 	// 1.カタログから自分のモデルサイズを特定
 	ModelBaseSize base;
-	if (type == BuildingType::Glass)		base = g_GlassModelSizes[m_ModelIndex];
-	else if (type == BuildingType::Concrete)		base = g_ConcreteModelSizes[m_ModelIndex];
+		 if (type == BuildingType::Glass)		base = g_GlassModelSizes[m_ModelIndex];
+	else if (type == BuildingType::Concrete)	base = g_ConcreteModelSizes[m_ModelIndex];
 	else if (type == BuildingType::Plant)		base = g_PlantModelSizes[m_ModelIndex];
 	else if (type == BuildingType::Electricity)	base = g_ElectricModelSizes[m_ModelIndex];
 	else return; // タイプ不明なら終わり

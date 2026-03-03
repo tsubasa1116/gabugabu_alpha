@@ -55,6 +55,10 @@ void Special_Finalize();
 void Special_Update(int playerIndex);
 void Special_Draw(int playerIndex);
 
+// 描画パス分割用（範囲表示 = プレイヤーより先、エフェクト本体 = プレイヤーより後）
+void Special_DrawRange(int playerIndex);   // 範囲表示のみ（地面に描画）
+void Special_DrawEffect(int playerIndex);  // エフェクト本体のみ（手前に描画）
+
 void Special_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Plant_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

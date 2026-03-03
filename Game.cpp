@@ -62,13 +62,13 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Initialize_MakeText();
 	CreateRenderTarget_MakeText();
 
+	Meteor_Initialize(pDevice, pContext);
 	Player_Initialize(pDevice, pContext);
 	Field_Initialize(pDevice, pContext);
 	Effect_Initialize(pDevice, pContext);
 	Attack_Initialize(pDevice, pContext);
 	Skill_Initialize(pDevice, pContext);
 	Special_Initialize(pDevice, pContext);
-	Meteor_Initialize(pDevice, pContext);
 	Camera_Initialize();
 	DamageText_Initialize();
 	SkyBall_Initialize(pDevice, pContext);
@@ -150,6 +150,13 @@ void Game_Finalize()
 
 //======================================================
 //	譖ｴ譁ｰ蜃ｦ逅・
+// 
+// 
+// 
+// 
+// 
+// 
+// 
 //======================================================
 void Game_Update()
 {
@@ -256,13 +263,16 @@ void Game_Draw()
 
 		SetDepthTest(TRUE);
 	}
-	Player_Draw(s_IsKonamiCodeEntered);
-	Meteor_Draw();
+
+	// 隕石: 範囲表示のみ
+	Meteor_DrawRange(s_IsKonamiCodeEntered);
 	MeteorEffectDraw();
 	if (GetGamePhase() == PHASE_COUNTDOWN || GetGamePhase() == PHASE_PLAY)
 	{
 		Player_Draw(s_IsKonamiCodeEntered);
 	}
+	// 隕石: モデルのみ
+	Meteor_DrawModel(s_IsKonamiCodeEntered);
 
 	// 2D描画
 	Light.SetEnable(FALSE);
@@ -276,8 +286,8 @@ void Game_Draw()
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
-		XMFLOAT2 pos = { cx - 380.0f, cy - 280.0f };
-		XMFLOAT2 size = { 540.0f, 150.0f };
+		XMFLOAT2 pos = { cx - 380.0f * SCREEN_ADJUST_X, cy - 280.0f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { 540.0f * SCREEN_ADJUST_X, 150.0f * SCREEN_ADJUST_Y };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[4]);
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -419,6 +429,5 @@ void Game_Draw()
 		// 謠冗判縺檎ｵゅｏ縺｣縺溘ｉ蜈・・繝薙Η繝ｼ繝昴・繝・逕ｻ髱｢菴咲ｽｮ)縺ｫ謌ｻ縺・
 		pContext->RSSetViewports(1, &vp);
 	}
-
 }
 

@@ -22,6 +22,7 @@ using namespace DirectX;
 #include "Building.h"
 #include "loadThread.h"
 #include "model.h"
+#include "debug_render.h"
 
 //======================================================
 //	グローバル変数
@@ -44,8 +45,6 @@ static MODEL* g_MeteorModel = NULL;
 
 // ギミック状態（プレイヤーごと）
 static GIMMICK_STATE g_Gimmick[PLAYER_MAX];
-
-//static const char* g_ModelName = "effectMeteo_v1";
 
 // マクロ定義（範囲描画で+Y面を使うため箱の頂点データは残す）
 #define METEOR_VERTEX (24)
@@ -158,6 +157,7 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Gimmick[p].meteor.rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Gimmick[p].meteor.scaling = XMFLOAT3(METEOR_MODEL_SCALE, METEOR_MODEL_SCALE, METEOR_MODEL_SCALE);
 		g_Gimmick[p].meteor.targetPos = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		g_Gimmick[p].meteor.collider = { XMFLOAT3(0.0f, 0.0f, 0.0f), METEOR_RANGE_RADIUS };
 		g_Gimmick[p].meteor.active = false;
 		g_Gimmick[p].meteor.landed = false;
 	}
@@ -188,10 +188,7 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		UINT* index = (UINT*)msr.pData;
 		CopyMemory(&index[0], &Meteor_idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
-	}
-
-	// 隕石FBXモデル読み込み
-	g_MeteorModel = ModelLoad("asset\\model\\effectMeteo_v1.fbx");
+	}	
 
 	// テクスチャ読み込み
 	Loader::AddTask([pDevice]()
@@ -218,9 +215,8 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_RangeTexture[3]);
 			assert(g_RangeTexture[3]);
 
-			//char modelPath[1];
-			//snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName);
-			//ModelLoad(modelPath);
+			// 隕石FBXモデル読み込み
+			g_MeteorModel = ModelLoad("asset\\model\\effectMeteo_v1.fbx");
 		});
 }
 
@@ -322,6 +318,44 @@ void Meteor_Update()
 		}
 
 		// ------------------------------------------
+		// ② 非アクティブプレイヤーの移動入力で範囲を動かす
+		// ------------------------------------------
+		if (g_Gimmick[p].canFire)
+		{
+			XMFLOAT2 moveInput = { 0.0f, 0.0f };
+
+			// コントローラー入力
+			if (g_Input[p].LStickY < 0.0f) moveInput.y += 1.0f;
+			if (g_Input[p].LStickY > 0.0f) moveInput.y -= 1.0f;
+			if (g_Input[p].LStickX < 0.0f) moveInput.x -= 1.0f;
+			if (g_Input[p].LStickX > 0.0f) moveInput.x += 1.0f;
+
+			// キーボード入力（プレイヤーごと）
+			const Keyboard_Keys_tag moveKeys[PLAYER_MAX][4] = {
+				{ KK_W, KK_S, KK_A, KK_D },
+				{ KK_UP, KK_DOWN, KK_LEFT, KK_RIGHT },
+				{ KK_T, KK_G, KK_F, KK_H },
+				{ KK_NUMPAD8, KK_NUMPAD5, KK_NUMPAD4, KK_NUMPAD6 },
+			};
+			if (Keyboard_IsKeyDown(moveKeys[p][0])) moveInput.y += 1.0f;
+			if (Keyboard_IsKeyDown(moveKeys[p][1])) moveInput.y -= 1.0f;
+			if (Keyboard_IsKeyDown(moveKeys[p][2])) moveInput.x -= 1.0f;
+			if (Keyboard_IsKeyDown(moveKeys[p][3])) moveInput.x += 1.0f;
+
+			// 入力があれば移動
+			float len = sqrtf(moveInput.x * moveInput.x + moveInput.y * moveInput.y);
+			if (len > 0.0f)
+			{
+				moveInput.x /= len;
+				moveInput.y /= len;
+
+				XMFLOAT3 worldDir = MeteorToWorldDir(moveInput);
+				float meteorSpeed = 0.05f; // 隕石範囲の移動速度
+				player.position.x += worldDir.x * meteorSpeed;
+				player.position.z += worldDir.z * meteorSpeed;
+			}
+		}
+		// ------------------------------------------
 		// ③ 攻撃入力で隕石発射
 		// ------------------------------------------
 		if (g_Gimmick[p].canFire && !g_Gimmick[p].meteor.active)
@@ -360,19 +394,56 @@ void Meteor_Update()
 			g_Gimmick[p].meteor.position.y -= METEOR_FALL_SPEED * DELTA_TIME;
 
 			// 回転演出
-			g_Gimmick[p].meteor.rotation.x += 3.0f;
-			g_Gimmick[p].meteor.rotation.z += 2.0f;
+			g_Gimmick[p].meteor.rotation.y += 3.0f;
 
-			// 着弾判定（地面に到達）
-			if (g_Gimmick[p].meteor.position.y <= g_Gimmick[p].meteor.targetPos.y)
+			// 落下中も円コライダーを毎フレーム更新（デバッグ表示用）
+			g_Gimmick[p].meteor.collider.center = g_Gimmick[p].meteor.position;
+			g_Gimmick[p].meteor.collider.radius = METEOR_RANGE_RADIUS;
+
+			// ------------------------------------------
+			// 建物との衝突判定（落下中に建物の上部で止まる）
+			// ------------------------------------------
+			bool hitBuilding = false;
+			int buildingCount = GetBuildingCount();
+			Building** buildings = GetBuildings();
+			for (int b = 0; b < buildingCount; b++)
 			{
-				g_Gimmick[p].meteor.position.y = g_Gimmick[p].meteor.targetPos.y;
+				if (buildings[b] == nullptr) continue;
+				if (!buildings[b]->isActive) continue;
+				if (buildings[b]->isDestroyed) continue;
+
+				const AABB& box = buildings[b]->GetAABB();
+
+				// 隕石の円コライダーとAABBの衝突判定
+				if (CheckCircleAABBCollision(g_Gimmick[p].meteor.collider, box))
+				{
+					// 建物の上面で着弾させる
+					g_Gimmick[p].meteor.position.y = box.Max.y;
+
+					// 建物を破壊する
+					buildings[b]->isDestroyed = true;
+					buildings[b]->isActive = false;
+					buildings[b]->m_RespawnTimer = 10.0f;
+
+					hitBuilding = true;
+					break;
+				}
+			}
+
+			// 着弾判定（地面に到達 or 建物に衝突）
+			if (hitBuilding || g_Gimmick[p].meteor.position.y <= g_Gimmick[p].meteor.targetPos.y)
+			{
+				if (!hitBuilding)
+				{
+					g_Gimmick[p].meteor.position.y = g_Gimmick[p].meteor.targetPos.y;
+				}
 				g_Gimmick[p].meteor.landed = true;
 
-				// ⑤ 当たり判定 (scaling 1.0f)
-				CalculateAABB(g_Gimmick[p].meteor.boundingBox, g_Gimmick[p].meteor.position, XMFLOAT3(1.0f, 1.0f, 1.0f));
+				// ⑤ 円コライダーを着弾位置で更新
+				g_Gimmick[p].meteor.collider.center = g_Gimmick[p].meteor.position;
+				g_Gimmick[p].meteor.collider.radius = METEOR_RANGE_RADIUS;
 
-				// 全プレイヤーとの当たり判定
+				// 全プレイヤーとの当たり判定（円 vs AABB）
 				for (int target = 0; target < PLAYER_MAX; target++)
 				{
 					PLAYEROBJECT* targetObj = GetPlayer(target);
@@ -385,8 +456,8 @@ void Meteor_Update()
 					AABB targetAABB;
 					CalculateAABB(targetAABB, targetObj->position, targetObj->scaling);
 
-					// 衝突判定
-					if (CheckAABBCollision(g_Gimmick[p].meteor.boundingBox, targetAABB))
+					// 衝突判定（円 vs AABB）
+					if (CheckCircleAABBCollision(g_Gimmick[p].meteor.collider, targetAABB))
 					{
 						// ダメージ適用
 						targetObj->hp -= METEOR_DAMAGE * targetObj->defense;
@@ -411,7 +482,7 @@ void Meteor_Update()
 //======================================================
 //	描画関数
 //======================================================
-void Meteor_Draw()
+void Meteor_Draw(bool debugDraw)
 {
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
@@ -460,13 +531,13 @@ void Meteor_Draw()
 			vertex[19].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 			g_pContext->Unmap(g_VertexBuffer, 0);
 
-			// ワールド行列（プレイヤーの位置にスケール = 直径4 = 半径2）
+			// ワールド行列（プレイヤーの位置にスケール = 直径3 = 半径1.5）
 			float diameter = METEOR_RANGE_RADIUS * 2.0f;
 			XMMATRIX world = XMMatrixScaling(diameter, 1.0f, diameter)
 				* XMMatrixTranslation(
-					player.position.x,
+					player.position.x + 0.2f,
 					0.1f,
-					player.position.z);
+					player.position.z - 0.5f);
 
 			// WVP行列を計算してシェーダーにセット
 			XMMATRIX WVP = world * GetViewMatrix() * GetProjectionMatrix();
@@ -487,10 +558,125 @@ void Meteor_Draw()
 
 			SetDepthTest(TRUE);
 		}
+	}
 
-		// ------------------------------------------
+	// ------------------------------------------
+	// デバッグ描画：隕石の当たり判定（円）
+	// ------------------------------------------
+	if (debugDraw)
+	{
+		SetDepthTest(FALSE);
+		Shader_SetMatrix(XMMatrixIdentity() * GetViewMatrix() * GetProjectionMatrix());
+		SetBlendState(BLENDSTATE_NONE);
+
+		for (int p = 0; p < PLAYER_MAX; p++)
+		{
+			if (!g_Gimmick[p].meteor.active && !g_Gimmick[p].meteor.landed) continue;
+
+			Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+			Debug_DrawCircle(
+				g_Gimmick[p].meteor.collider.center,
+				g_Gimmick[p].meteor.collider.radius,
+				XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
+		}
+
+		SetDepthTest(TRUE);
+	}
+
+	// ------------------------------------------
+	// 描画後のステートクリーンアップ
+	// ------------------------------------------
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+//======================================================
+//	範囲表示のみ（プレイヤーより先に描画）
+//======================================================
+void Meteor_DrawRange(bool debugDraw)
+{
+	for (int p = 0; p < PLAYER_MAX; p++)
+	{
+		if (!g_Gimmick[p].enabled) continue;
+		if (g_RangeTexture[p] == NULL) continue;
+
+		PLAYEROBJECT* playerObj = GetPlayer(p);
+		if (playerObj == nullptr) continue;
+		PLAYEROBJECT& player = *playerObj;
+
+		// 範囲テクスチャの常時表示（アニメーション付き）
+		{
+			SetBlendState(BLENDSTATE_ALPHA);
+			Shader_Begin();
+			SetDepthTest(FALSE);
+
+			LIGHT rangeLight{};
+			rangeLight.Enable = TRUE;
+			rangeLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+			rangeLight.Diffuse = XMFLOAT4(2.5f, 2.5f, 2.5f, 1.0f);
+			rangeLight.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+			Shader_SetLight(rangeLight);
+
+			int frame = g_Gimmick[p].rangeAnimFrame;
+			int col = frame % METEOR_RANGE_SHEET_COLS;
+			int row = frame / METEOR_RANGE_SHEET_COLS;
+			float u0 = (float)col / (float)METEOR_RANGE_SHEET_COLS;
+			float v0 = (float)row / (float)METEOR_RANGE_SHEET_ROWS;
+			float u1 = u0 + 1.0f / (float)METEOR_RANGE_SHEET_COLS;
+			float v1 = v0 + 1.0f / (float)METEOR_RANGE_SHEET_ROWS;
+
+			D3D11_MAPPED_SUBRESOURCE msr;
+			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+			Vertex2* vertex = (Vertex2*)msr.pData;
+			CopyMemory(vertex, Meteor_vdata, sizeof(Vertex2) * METEOR_VERTEX);
+			vertex[16].tex = XMFLOAT2(u0, v0);
+			vertex[17].tex = XMFLOAT2(u1, v0);
+			vertex[18].tex = XMFLOAT2(u0, v1);
+			vertex[19].tex = XMFLOAT2(u1, v1);
+			g_pContext->Unmap(g_VertexBuffer, 0);
+
+			float diameter = METEOR_RANGE_RADIUS * 2.0f;
+			XMMATRIX world = XMMatrixScaling(diameter, 1.0f, diameter)
+				* XMMatrixTranslation(
+					player.position.x + 0.2f,
+					0.1f,
+					player.position.z - 0.5f);
+
+			XMMATRIX WVP = world * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(WVP);
+
+			UINT stride = sizeof(Vertex2);
+			UINT offset = 0;
+			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+			g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+			SetBlendState(BLENDSTATE_ALPHA);
+			g_pContext->PSSetShaderResources(0, 1, &g_RangeTexture[p]);
+
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			g_pContext->Draw(4, 16);
+
+			SetDepthTest(TRUE);
+		}
+	}
+
+	// ステートクリーンアップ
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+//======================================================
+//	隕石モデルのみ（プレイヤーより後に描画）
+//======================================================
+void Meteor_DrawModel(bool debugDraw)
+{
+	for (int p = 0; p < PLAYER_MAX; p++)
+	{
+		if (!g_Gimmick[p].enabled) continue;
+
 		// 隕石の描画（FBXモデル + 外部テクスチャ）
-		// ------------------------------------------
 		if (g_Gimmick[p].meteor.active && g_MeteorModel != NULL && g_MeteorModel->AiScene != NULL)
 		{
 			METEOR_OBJECT& meteor = g_Gimmick[p].meteor;
@@ -499,6 +685,8 @@ void Meteor_Draw()
 			XMMATRIX ScalingMatrix = XMMatrixScaling(
 				meteor.scaling.x, meteor.scaling.y, meteor.scaling.z);
 
+			// FBXモデルの向き補正
+			XMMATRIX CorrectionMatrix = XMMatrixRotationX(XMConvertToRadians(-45.0f));
 			XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 				XMConvertToRadians(meteor.rotation.x),
 				XMConvertToRadians(meteor.rotation.y),
@@ -507,7 +695,7 @@ void Meteor_Draw()
 			XMMATRIX TranslationMatrix = XMMatrixTranslation(
 				meteor.position.x, meteor.position.y, meteor.position.z);
 
-			XMMATRIX world = ScalingMatrix * RotationMatrix * TranslationMatrix;
+			XMMATRIX world = ScalingMatrix * CorrectionMatrix * RotationMatrix * TranslationMatrix;
 			XMMATRIX WVP = world * GetViewMatrix() * GetProjectionMatrix();
 
 			Shader_SetMatrix(WVP);
@@ -541,9 +729,30 @@ void Meteor_Draw()
 	}
 
 	// ------------------------------------------
+	// デバッグ描画：隕石の当たり判定（円）
+	// ------------------------------------------
+	if (debugDraw)
+	{
+		SetDepthTest(FALSE);
+		Shader_SetMatrix(XMMatrixIdentity() * GetViewMatrix() * GetProjectionMatrix());
+		SetBlendState(BLENDSTATE_NONE);
+
+		for (int p = 0; p < PLAYER_MAX; p++)
+		{
+			if (!g_Gimmick[p].meteor.active && !g_Gimmick[p].meteor.landed) continue;
+
+			Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+			Debug_DrawCircle(
+				g_Gimmick[p].meteor.collider.center,
+				g_Gimmick[p].meteor.collider.radius,
+				XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
+		}
+
+		SetDepthTest(TRUE);
+	}
+
+	// ------------------------------------------
 	// 描画後のステートクリーンアップ
-	// Direct2D（DamageText等）との競合を防ぐため、
-	// SRVスロット0をNULLに戻す
 	// ------------------------------------------
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	g_pContext->PSSetShaderResources(0, 1, &nullSRV);

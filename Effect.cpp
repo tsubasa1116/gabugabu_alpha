@@ -201,7 +201,7 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(23, L"Asset\\Texture\\uiOrbit_v1.png");
 	Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
 	Effect_LoadTexture(25, L"Asset\\Texture\\effectSmork02_v1.png");
-	Effect_LoadTexture(26, L"Asset\\Texture\\effectDown_v2.png");				// ストック0・隕石爆発
+	Effect_LoadTexture(26, L"Asset\\Texture\\effectDown_v4.png");				// ストック0・隕石爆発
 	});
 
 	g_UseBloom[0] = true;
@@ -613,7 +613,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		if (!cameraFocusStarted[playerIndex])
 		{
 			// カメラフォーカス開始
-			Camera_FocusOnPlayer(playerIndex, 5.0f);
+			Camera_FocusOnPlayer(playerIndex, 3.0f);
 			cameraFocusStarted[playerIndex] = true;
 		}
 

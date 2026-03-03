@@ -12,7 +12,7 @@
 using namespace DirectX;
 
 // マクロ定義
-#define METEOR_COOLTIME			(2.0f)	// クールタイム（秒）
+#define METEOR_COOLTIME			(0.1f)	// クールタイム（秒）
 #define METEOR_RANGE_RADIUS		(1.5f)	// 技範囲（半径）
 #define METEOR_FALL_SPEED		(8.0f)	// 隕石の落下速度
 #define METEOR_START_HEIGHT		(15.0f)	// 隕石の出現高さ
@@ -34,7 +34,7 @@ struct METEOR_OBJECT
 	XMFLOAT3 rotation;		// 回転角度
 	XMFLOAT3 scaling;		// 拡大率
 	XMFLOAT3 targetPos;		// 着弾目標位置
-	AABB boundingBox;		// 当たり判定
+	Circle   collider;		// 当たり判定（円）
 	bool active;			// 有効フラグ
 	bool landed;			// 着弾フラグ
 };
@@ -55,6 +55,10 @@ struct GIMMICK_STATE
 void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Meteor_Finalize();
 void Meteor_Update();
-void Meteor_Draw();
+void Meteor_Draw(bool debugDraw = false);
+
+// 描画パス分割用
+void Meteor_DrawRange(bool debugDraw = false);	// 範囲表示のみ
+void Meteor_DrawModel(bool debugDraw = false);	// 隕石モデルのみ
 
 GIMMICK_STATE* GetGimmick(int playerIndex);

@@ -138,19 +138,29 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-7.0f, 4.0f, -6.0f);
 	player[3].position = XMFLOAT3(7.0f, 4.0f, 4.0f);
 
+	player[0].active = true;
+	player[1].active = false;
+	player[2].active = true;
+	player[3].active = true;
 
-	//player[0].type = PlayerType::Glass;
-	//player[1].type = PlayerType::Concrete;
-	//player[2].type = PlayerType::Plant;
-	//player[3].type = PlayerType::Electricity;
+	//player[0].form = Form::First;
+	//player[1].form = Form::First;
+	//player[2].form = Form::Second;
+	//player[3].form = Form::Third;
+
+	//player[1].type = PlayerType::None;
+	player[0].type = PlayerType::Glass;
+	player[1].type = PlayerType::Concrete;
+	player[2].type = PlayerType::Plant;
+	player[3].type = PlayerType::Electricity;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
-		player[p].form = Form::First;
+		//player[p].form = Form::First;
 		//player[p].form = Form::Second;
-		//player[p].form = Form::Third;
+		player[p].form = Form::Third;
 
-		player[p].type = PlayerType::None;
+		//player[p].type = PlayerType::None;
 		//player[p].type = PlayerType::Glass;
 		//player[p].type = PlayerType::Concrete;
 		//player[p].type = PlayerType::Plant;
@@ -166,9 +176,9 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].power = 0.0f;
 		player[p].speed = 0.0f;
 		player[p].defense = 1.0f;
-		player[p].stock = 3;
+		player[p].stock = 1;
 		player[p].rank = 0;
-		player[p].active = true;
+		//player[p].active = true;
 		player[p].satiety = 0.0f;
 		player[p].isAttacking = false;
 		player[p].attackTimer = 0.0f;
@@ -348,7 +358,6 @@ static void LoadTextureList(ID3D11Device* pDevice)
 				g_Texture[e.idx] = nullptr;
 			}
 			g_loadedCount++;
-
 		}
 		// 隱ｭ縺ｿ霎ｼ縺ｿ螟ｱ謨励・ nullptr 繧剃ｻ｣蜈･縺励※邯夊｡・
 		else	g_Texture[e.idx] = nullptr;
@@ -676,11 +685,8 @@ void Player_Update()
 			break;
 		}
 
-		
-		if (!player[p].active)
-		{
-			player[p].position.y = 0.0f;
-		}
+		// 隕石モード中 Y座標固定
+		if (!player[p].active)	player[p].position.y = 0.0f;
 
 		// 回復フラグの更新
 		if (player[p].isHealing)
@@ -712,7 +718,7 @@ void Player_Update()
 		//// 貅閻ｹ蠎ｦ縺・譛ｪ貅縺ｪ繧羽P繧呈ｸ帛ｰ代＆縺帙ｋ
 		//if (player[p].satiety < 1.0f)	player[p].hp -= 0.05f;
 
-		// 繝ｪ繧ｹ繝昴・繝ｳ蜃ｦ逅・
+		// リスポーン処理
 		if (player[p].duringRespawn)
 		{
 			if (GetGamePhase() == PHASE_PLAY)
@@ -720,27 +726,25 @@ void Player_Update()
 				player[p].respawnTimer += DELTA_TIME;
 
 
-				// Y蠎ｧ讓吶ｒ4縺ｫ蝗ｺ螳・
+				// Y座標を4に固定
 				player[p].position.y = 4.0f;
 
-			// 攻撃ボタン押下または5秒経過で落下開始
-			if (g_Input[p].A || Keyboard_IsKeyDownTrigger(attackKeys[p]) || player[p].respawnTimer >= 5.0f)
-			{
-				player[p].duringRespawn = false;
-				player[p].respawnTimer = 0.0f;
-				player[p].isInvincible = true;
-				player[p].invincibleTimer = 0.0f;
-				player[p].isEggBreaking = true;
-				player[p].eggBreakingTimer = 0.0f;
+				// 攻撃ボタン押下または5秒経過で落下開始
+				if (g_Input[p].A || Keyboard_IsKeyDownTrigger(attackKeys[p]) || player[p].respawnTimer >= 5.0f)
+				{
+					player[p].duringRespawn = false;
+					player[p].respawnTimer = 0.0f;
+					player[p].isInvincible = true;
+					player[p].invincibleTimer = 0.0f;
+					player[p].isEggBreaking = true;
+					player[p].eggBreakingTimer = 0.0f;
+				}
 			}
 		}
 		// 重力加速度のない簡易的な重力
-		else if (player[p].active)
-		{
-			player[p].position.y += -0.1f;
-		}
+		else if (player[p].active)	player[p].position.y += -0.1f;
 
-		// 蜊ｵ繧ｨ繝輔ぉ繧ｯ繝医′蜑ｲ繧後ｋ譎る俣
+		// 卵エフェクトが割れる時間
 		if (player[p].isEggBreaking)
 		{
 			if (player[p].eggBreakingTimer == 0.0f)	PlayAudio(g_SE_ID[3], false);
@@ -842,8 +846,9 @@ void Player_Update()
 				if (player[p].useSkill)		Skill_Update(p);	// 繧ｹ繧ｭ繝ｫ
 				if (player[p].useSpecial)	Special_Update(p);	// 繧ｹ繝壹す繝｣繝ｫ
 
-			// 現在のプレイヤー p の移動ベクトルだけをリセット
-			player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+				// 現在のプレイヤー p の移動ベクトルだけをリセット
+				player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+			}
 		}
 
 		// 非activeでも移動可 隕石用
@@ -851,70 +856,75 @@ void Player_Update()
 		{
 			XMFLOAT2 moveInput = { 0.0f, 0.0f };
 
-				// 繧ｹ繝壹す繝｣繝ｫ 繧ｳ繝ｳ繧ｯ繝ｪ繝ｼ繝井ｽｿ逕ｨ荳ｭ縺ｯ遘ｻ蜍穂ｸ榊庄
+			// ★ PHASE_PLAY以外は移動させない（隕石モード等の例外は別途対応）
+			if (GetGamePhase() != PHASE_PLAY)
+			{
+				player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+				player[p].isMoving = false;
+			}
+			else
+			{
+				// スペシャル コンクリート使用中は移動不可
 				if (player[p].useSpecial && player[p].type == PlayerType::Concrete)
 				{
 					player[p].moveDir = { 0.0f, 0.0f, 0.0f };
 					player[p].isMoving = false;
 				}
-				// 繧ｹ繝壹す繝｣繝ｫ 繧ｳ繝ｳ繧ｯ繝ｪ繝ｼ繝井ｽｿ逕ｨ荳ｭ縺ｧ縺ｪ縺代ｌ縺ｰ遘ｻ蜍募・逅・
-				else
+
+				player[p].moveInput2D = { 0.0f, 0.0f };
+
+				if (p == 0) // 繝励Ξ繧､繝､繝ｼ0 (WASD) 謾ｻ謦・Space
 				{
-					player[p].moveInput2D = { 0.0f, 0.0f };
-
-					if (p == 0) // 繝励Ξ繧､繝､繝ｼ0 (WASD) 謾ｻ謦・Space
-					{
-						if (g_Input[0].LStickY < 0.0f) { moveInput.y += 1.0f; player[0].isMoving = true; }
-						if (g_Input[0].LStickY > 0.0f) { moveInput.y -= 1.0f; player[0].isMoving = true; }
-						if (g_Input[0].LStickX < 0.0f) { moveInput.x -= 1.0f; player[0].isMoving = true; }
-						if (g_Input[0].LStickX > 0.0f) { moveInput.x += 1.0f; player[0].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_W)) { moveInput.y += 1.0f; player[0].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_S)) { moveInput.y -= 1.0f; player[0].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_A)) { moveInput.x -= 1.0f; player[0].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_D)) { moveInput.x += 1.0f; player[0].isMoving = true; }
-						if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[0].isMoving = false;
-					}
-					else if (p == 1) // 繝励Ξ繧､繝､繝ｼ1 (遏｢蜊ｰ繧ｭ繝ｼ) 謾ｻ謦・Enter
-					{
-						if (g_Input[1].LStickY < 0.0f) { moveInput.y += 1.0f; player[1].isMoving = true; }
-						if (g_Input[1].LStickY > 0.0f) { moveInput.y -= 1.0f; player[1].isMoving = true; }
-						if (g_Input[1].LStickX < 0.0f) { moveInput.x -= 1.0f; player[1].isMoving = true; }
-						if (g_Input[1].LStickX > 0.0f) { moveInput.x += 1.0f; player[1].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_UP)) { moveInput.y += 1.0f; player[1].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_DOWN)) { moveInput.y -= 1.0f; player[1].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_LEFT)) { moveInput.x -= 1.0f; player[1].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_RIGHT)) { moveInput.x += 1.0f; player[1].isMoving = true; }
-						if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[1].isMoving = false;
-					}
-					else if (p == 2) // 繝励Ξ繧､繝､繝ｼ2 (TFGH) 謾ｻ謦・V
-					{
-						if (g_Input[2].LStickY < 0.0f) { moveInput.y += 1.0f; player[2].isMoving = true; }
-						if (g_Input[2].LStickY > 0.0f) { moveInput.y -= 1.0f; player[2].isMoving = true; }
-						if (g_Input[2].LStickX < 0.0f) { moveInput.x -= 1.0f; player[2].isMoving = true; }
-						if (g_Input[2].LStickX > 0.0f) { moveInput.x += 1.0f; player[2].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_T)) { moveInput.y += 1.0f; player[2].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_G)) { moveInput.y -= 1.0f; player[2].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_F)) { moveInput.x -= 1.0f; player[2].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_H)) { moveInput.x += 1.0f; player[2].isMoving = true; }
-						if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[2].isMoving = false;
-					}
-					if (p == 3) // 繝励Ξ繧､繝､繝ｼ3 (WASD) 謾ｻ謦・Space
-					{
-						if (g_Input[3].LStickY < 0.0f) { moveInput.y += 1.0f; player[3].isMoving = true; }
-						if (g_Input[3].LStickY > 0.0f) { moveInput.y -= 1.0f; player[3].isMoving = true; }
-						if (g_Input[3].LStickX < 0.0f) { moveInput.x -= 1.0f; player[3].isMoving = true; }
-						if (g_Input[3].LStickX > 0.0f) { moveInput.x += 1.0f; player[3].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_NUMPAD8)) { moveInput.y += 1.0f; player[3].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_NUMPAD5)) { moveInput.y -= 1.0f; player[3].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_NUMPAD4)) { moveInput.x -= 1.0f; player[3].isMoving = true; }
-						if (Keyboard_IsKeyDown(KK_NUMPAD6)) { moveInput.x += 1.0f; player[3].isMoving = true; }
-						if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[3].isMoving = false;
-					}
-					player[p].moveInput2D = moveInput;
-
-					// 遘ｻ蜍輔・繧ｫ繝｡繝ｩ蝓ｺ貅悶ｒ繝ｯ繝ｼ繝ｫ繝峨↓縺吶ｋ
-					player[p].moveDir = ToWorldMoveDirByCamera(moveInput);
+					if (g_Input[0].LStickY < 0.0f) { moveInput.y += 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickY > 0.0f) { moveInput.y -= 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickX < 0.0f) { moveInput.x -= 1.0f; player[0].isMoving = true; }
+					if (g_Input[0].LStickX > 0.0f) { moveInput.x += 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_W)) { moveInput.y += 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_S)) { moveInput.y -= 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_A)) { moveInput.x -= 1.0f; player[0].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_D)) { moveInput.x += 1.0f; player[0].isMoving = true; }
+					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[0].isMoving = false;
 				}
+				else if (p == 1) // 繝励Ξ繧､繝､繝ｼ1 (遏｢蜊ｰ繧ｭ繝ｼ) 謾ｻ謦・Enter
+				{
+					if (g_Input[1].LStickY < 0.0f) { moveInput.y += 1.0f; player[1].isMoving = true; }
+					if (g_Input[1].LStickY > 0.0f) { moveInput.y -= 1.0f; player[1].isMoving = true; }
+					if (g_Input[1].LStickX < 0.0f) { moveInput.x -= 1.0f; player[1].isMoving = true; }
+					if (g_Input[1].LStickX > 0.0f) { moveInput.x += 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_UP)) { moveInput.y += 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_DOWN)) { moveInput.y -= 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_LEFT)) { moveInput.x -= 1.0f; player[1].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_RIGHT)) { moveInput.x += 1.0f; player[1].isMoving = true; }
+					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[1].isMoving = false;
+				}
+				else if (p == 2) // 繝励Ξ繧､繝､繝ｼ2 (TFGH) 謾ｻ謦・V
+				{
+					if (g_Input[2].LStickY < 0.0f) { moveInput.y += 1.0f; player[2].isMoving = true; }
+					if (g_Input[2].LStickY > 0.0f) { moveInput.y -= 1.0f; player[2].isMoving = true; }
+					if (g_Input[2].LStickX < 0.0f) { moveInput.x -= 1.0f; player[2].isMoving = true; }
+					if (g_Input[2].LStickX > 0.0f) { moveInput.x += 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_T)) { moveInput.y += 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_G)) { moveInput.y -= 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_F)) { moveInput.x -= 1.0f; player[2].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_H)) { moveInput.x += 1.0f; player[2].isMoving = true; }
+					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[2].isMoving = false;
+				}
+				if (p == 3) // 繝励Ξ繧､繝､繝ｼ3 (WASD) 謾ｻ謦・Space
+				{
+					if (g_Input[3].LStickY < 0.0f) { moveInput.y += 1.0f; player[3].isMoving = true; }
+					if (g_Input[3].LStickY > 0.0f) { moveInput.y -= 1.0f; player[3].isMoving = true; }
+					if (g_Input[3].LStickX < 0.0f) { moveInput.x -= 1.0f; player[3].isMoving = true; }
+					if (g_Input[3].LStickX > 0.0f) { moveInput.x += 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_NUMPAD8)) { moveInput.y += 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_NUMPAD5)) { moveInput.y -= 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_NUMPAD4)) { moveInput.x -= 1.0f; player[3].isMoving = true; }
+					if (Keyboard_IsKeyDown(KK_NUMPAD6)) { moveInput.x += 1.0f; player[3].isMoving = true; }
+					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[3].isMoving = false;
+				}
+				player[p].moveInput2D = moveInput;
+
+				// 遘ｻ蜍輔・繧ｫ繝｡繝ｩ蝓ｺ貅悶ｒ繝ｯ繝ｼ繝ｫ繝峨↓縺吶ｋ
+				player[p].moveDir = ToWorldMoveDirByCamera(moveInput);
 			}
 
 			// 迴ｾ蝨ｨ縺ｮ繝励Ξ繧､繝､繝ｼ p 縺縺代ｒ蜍輔°縺・
@@ -1536,7 +1546,7 @@ void Player_Update()
 		// 3. 重力をかける（浮かせた場合）
 		if (!player[p].duringRespawn || player[p].active)
 		{
-			if (player[p].position.y >= -11.0f)	player[p].velocity.y = 0.02f; // 下向きの力
+			if (player[p].position.y >= -11.0f)	player[p].velocity.y = -0.02f; // 下向きの力（負の値）
 			else								player[p].velocity.y = 0.0f;
 		}
 		else if (!player[p].active)
@@ -2008,7 +2018,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	{
 		if (player[p].active && player[p].isAttacking)	Attack_Draw(p);
 		//if (player[p].active && player[p].useSkill)		Skill_Draw(p);
-		if (player[p].active && player[p].useSpecial)	Special_Draw(p);
+		if (player[p].active && player[p].useSpecial)	Special_DrawRange(p);	// 範囲描画
 	}
 
 	LIGHT light{};
@@ -2284,11 +2294,17 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		}
 	}
 
-	// 繧ｷ繝ｫ繧ｨ繝・ヨ謠冗判繧定ｿｽ蜉
+	// シルエット描画を追加
 	for (auto& p : list) Player_DrawSilhouette(p.second);
 
-	// 3D繧ｪ繝悶ず繧ｧ繧ｯ繝医・豺ｱ蠎ｦ繝・せ繝医ｒ辟｡蜉ｹ縺ｫ縺励※謠冗判
-	SetDepthTest(false);
+	// スペシャルエフェクト本体
+	for (int p2 = 0; p2 < PLAYER_MAX; ++p2)
+	{
+		if (player[p2].active && player[p2].useSpecial)	Special_DrawEffect(p2);	// エフェクト描画
+	}
+
+	// 3Dオブジェクトの深度テストを無効にして描画
+	SetDepthTest(false); 
 }
 
 void Player_DrawHP()
