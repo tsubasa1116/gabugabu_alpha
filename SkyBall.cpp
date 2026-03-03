@@ -26,7 +26,7 @@ void SkyBall_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_SkyBall.Speed = SKYBALL_ROTATION_SPEED;
 
 	// 今回のデータはスケーリング設定で大きく表示するので大きさを適当に作る
-	g_SkyBall.Scaling = XMFLOAT3(20.0f, 20.0f, 20.0f);
+	g_SkyBall.Scaling = XMFLOAT3(30.0f, 30.0f, 30.0f);
 	g_SkyBall.Model = ModelLoad("asset\\model\\Skyv2.fbx");
 
 	if (!g_SkyBall.Model)

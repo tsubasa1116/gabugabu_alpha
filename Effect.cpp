@@ -85,6 +85,10 @@ PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
 BUILDING_EFFECT_ANIM g_BuildingEffectAnim[BUILDING_EFFECT_MAX];
 METEOR_EFFECT_ANIM g_MeteorEffectAnim[PLAYER_MAX];
 
+static bool g_UseBloom[EFFECT_TEX_MAX] = { false };
+
+//static int g_SE_ID[10] = { NULL };
+
 // テクスチャ番号ごとの設定
 static EffectConfig g_EffectConfigs[EFFECT_TEX_MAX] = {
    // max, loopS, loopE, isLoop, speed, sprintY, scaleMin, scaleMax, scaleSpeed
@@ -199,6 +203,15 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(25, L"Asset\\Texture\\effectSmork02_v1.png");
 	Effect_LoadTexture(26, L"Asset\\Texture\\effectDown_v2.png");				// ストック0・隕石爆発
 	});
+
+	g_UseBloom[0] = true;
+	g_UseBloom[1] = true;
+	g_UseBloom[2] = true;
+	g_UseBloom[3] = true;
+	g_UseBloom[4] = true;
+	g_UseBloom[5] = true;
+	g_UseBloom[6] = true;
+	g_UseBloom[7] = true;
 
 	//if (!g_isPlayerLoadingFinished && g_loadedCount == 0) return;
 	
@@ -336,7 +349,7 @@ void Effect_Update()
 //===============================================
 void Effect_Draw()
 {
-	if (!Loader::IsFinished) return;
+	//if (!Loader::IsFinished) return;
 
 	Shader_Begin();
 	Shader_BeginUI();
@@ -363,6 +376,7 @@ void Effect_Draw()
 			XMFLOAT2 pos = { effect[i].pos.x, effect[i].pos.y };
 			XMFLOAT2 size = effect[i].size;
 
+			Shader_SetColor(color::white);
 			g_pContext->PSSetShaderResources(0, 1, &tex);
 			DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
 		}
@@ -380,6 +394,24 @@ void Effect_Draw()
 			XMFLOAT2 pos = { effect[i].pos.x, effect[i].pos.y };
 			XMFLOAT2 size = effect[i].size;
 
+			//==========================================================================
+			if (g_UseBloom[texNo])
+			{
+				SetBlendState(BLENDSTATE_ADD);
+				Shader_SetBlur();
+				Shader_SetColor({ 1.0f, 1.0f, 1.0f, 0.7f });
+				XMFLOAT2 bloomSize = { effect[i].size.x * 1.1f, effect[i].size.y * 1.1f };
+				g_pContext->PSSetShaderResources(0, 1, &tex);
+				DrawSpriteUV(pos, bloomSize, color::white, uvMin, uvMax);
+			}
+			//==========================================================================
+
+
+			Shader_Begin();
+			Shader_BeginUI();
+			SetBlendState(BLENDSTATE_ALPHA);
+			Shader_SetColor(color::white);
+			
 			g_pContext->PSSetShaderResources(0, 1, &tex);
 			DrawSpriteUV(pos, size, color::white, uvMin, uvMax);
 		}
@@ -1077,6 +1109,41 @@ void EffectFront_DrawForPlayer(int playerIndex)
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		g_pContext->DrawIndexed(6, 0, 0);
+
+		//=============================================================================
+		// ブラー用だけどちょっと微妙
+		//=============================================================================
+		if (g_UseBloom[entry.texNo])
+		{
+			// 加算合成
+			SetBlendState(BLENDSTATE_ADD);
+
+			// ブラー
+			Shader_SetBlur();
+
+			// 光の滲み幅のサイズ調整
+			float bloomScale = 1.2f;
+			XMMATRIX BloomScalingMatrix = XMMatrixScaling(
+				player.scaling.x * spriteScale * entry.scale * bloomScale,
+				player.scaling.y * spriteScale * entry.scale * bloomScale,
+				player.scaling.z * spriteScale * entry.scale * bloomScale
+			);
+
+			// 大きくした行列を再セット
+			XMMATRIX BloomWorldMatrix = BloomScalingMatrix * offsetMatrix * vm;
+			Shader_SetWorldMatrix(BloomWorldMatrix);
+
+			XMMATRIX BloomWVP = BloomScalingMatrix * offsetMatrix * vm * view * projection;
+			Shader_SetMatrix(BloomWVP);
+
+			// ぼかしシェーダーでもう一度描画！
+			g_pContext->DrawIndexed(6, 0, 0);
+
+			// 次のエフェクト描画のために、設定を元に戻す
+			Shader_Begin();
+			SetBlendState(BLENDSTATE_ALPHA);
+		}
+		//=============================================================================
 	}
 }
 

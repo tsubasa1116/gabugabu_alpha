@@ -91,7 +91,7 @@ D2D1_COLOR_F D2DColor(TextColor color)
 	case TextColor::Yellow: return D2D1::ColorF(D2D1::ColorF::Yellow);
 	case TextColor::P1color: return D2D1::ColorF(D2D1::ColorF::LightCoral);
 	case TextColor::P2color: return D2D1::ColorF(D2D1::ColorF::DeepSkyBlue);
-	case TextColor::P3color: return D2D1::ColorF(D2D1::ColorF::Yellow);
+	case TextColor::P3color: return D2D1::ColorF(D2D1::ColorF::Gold);
 	case TextColor::P4color: return D2D1::ColorF(D2D1::ColorF::Lime);
 	}
 	return D2D1::ColorF(D2D1::ColorF::White);
@@ -102,7 +102,8 @@ void DrawTextEx(
 	float x, float y,
 	float fontSize,
 	const wchar_t* fontName,
-	TextColor color
+	TextColor color,
+	float alpha
 )
 {
 	// フォント作成
@@ -131,6 +132,11 @@ void DrawTextEx(
 	// 描画矩形
 	D2D1_RECT_F rect = D2D1::RectF(x, y, x + 2000, y + 300);
 	const D2D1_RECT_F baseRect = rect;
+
+	// レイヤーを作ってアルファ値を設定
+	D2D1_LAYER_PARAMETERS layerParams = D2D1::LayerParameters();
+	layerParams.opacity = alpha;
+	g_d2dContext->PushLayer(&layerParams, nullptr);
 
 #undef max
 	// アウトラインの太さ
@@ -175,6 +181,6 @@ void DrawTextEx(
 		rect,
 		brush.Get()
 	);
-
+	g_d2dContext->PopLayer();
 	EndDraw_MakeText();
 }

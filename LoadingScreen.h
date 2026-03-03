@@ -44,6 +44,9 @@ private:
     ID3D11DeviceContext* m_pContext = nullptr;  // 描画用コンテキスト
     ID3D11Device* m_pDevice = nullptr;          // デバイス
     ID3D11ShaderResourceView* m_pFadeTexture = nullptr;  // フェード用白テクスチャ
+    bool m_HasVideo;
+
+    float GetLoopSkipTime(const wchar_t* videoPath);
 };
 
 // グローバル関数
@@ -54,6 +57,7 @@ void LoadingScreen_Draw();
 
 // ロード画面付きでシーン遷移を開始
 void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath = L"asset\\movie\\road.mp4");
+void SetSceneSimple(SCENE nextScene);
 
 // ロード中かどうか
 bool IsLoading();
