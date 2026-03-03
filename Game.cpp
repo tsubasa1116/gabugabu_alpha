@@ -1,7 +1,7 @@
 //======================================================
 //	Game.cpp[]
 // 
-//	制作者：前野翼			日付：2024//
+//	制作老E��前野翼			日付！E024//
 //======================================================
 
 #include "Manager.h"
@@ -100,10 +100,10 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext);		
 	//Score_Initialize(pDevice, pContext);
 
-	//g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// サウンドロード
-	//PlayAudio(g_BgmID, true);		// 再生開始（ループあり）
-	//PlayAudio(g_BgmID);			// 再生開始（ループなし）
-	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし）
+	//g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// サウンドローチE
+	//PlayAudio(g_BgmID, true);		// 再生開始（ループあり！E
+	//PlayAudio(g_BgmID);			// 再生開始（ループなし！E
+	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし！E
 
 	XMFLOAT4 para;
 
@@ -151,7 +151,7 @@ void Game_Finalize()
 }
 
 //======================================================
-//	更新処理
+//	更新処琁E
 //======================================================
 void Game_Update()
 {
@@ -169,14 +169,14 @@ void Game_Update()
 	{
 		PlayAudio(g_BgmID, true);
 
-		// 全プレイヤーの卵を割る
+		// 全プレイヤーの卵を割めE
 		for (int i = 0; i < PLAYER_MAX; i++)
 		{
 			PLAYEROBJECT* p = GetPlayer(i);
 			if (p && p->active && p->duringRespawn)
 			{
 				p->duringRespawn = false;// 卵状態を解除
-				p->isEggBreaking = true; // 割る
+				p->isEggBreaking = true; // 割めE
 			}
 		}
 		s_GameStarted = true;
@@ -185,7 +185,7 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
-	// コマンドで使用する全てのキーの押下トリガーをチェックし、検出関数に渡す
+	// コマンドで使用する全てのキーの押下トリガーをチェチE��し、検�E関数に渡ぁE
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
 		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
@@ -199,7 +199,7 @@ void Game_Update()
 	Building_UpdateAll();
 	Effect_Update();
 
-	// 建物エフェクト更新（1棟ずつ）
+	// 建物エフェクト更新�E�E棟ずつ�E�E
 	int buildingCount = GetBuildingCount();
 	for (int i = 0; i < buildingCount; i++)
 	{
@@ -219,7 +219,7 @@ void Game_Update()
 	//ゲームシーンへ遷移
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-		// フェードアウトさせてシーンを切り替える
+		// フェードアウトさせてシーンを�Eり替える
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_WIN);
 	}
@@ -246,7 +246,7 @@ void Game_Draw()
 
 	Field_Draw(s_IsKonamiCodeEntered);
 
-	// 建物エフェクトの一括描画（3D空間）
+	// 建物エフェクト�E一括描画�E�ED空間！E
 	{
 		Shader_Begin();
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -267,14 +267,14 @@ void Game_Draw()
 	}
 
 	//2D描画
-	Light.SetEnable(FALSE);			// ライティングOFF
-	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセット
+	Light.SetEnable(FALSE);			// ライチE��ングOFF
+	Shader_SetLight(Light.Light);	// ライト構造体をシェーダーへセチE��
 	SetDepthTest(FALSE);
 
 	DamageText_Draw();
 
 	if (GetGamePhase() == PHASE_INTRO)
-	{// ミールシティ名札
+	{// ミ�EルシチE��名札
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
@@ -286,12 +286,12 @@ void Game_Draw()
 		Shader_BeginUI();
 		DrawSprite(pos, size, color::white);
 
-		//DrawTextEx(L"ミールシティ", cx - 620.0f, cy - 340.0f, 70.0f, L"FZゴンタかな", TextColor::Black);
+		//DrawTextEx(L"ミ�EルシチE��", cx - 620.0f, cy - 340.0f, 70.0f, L"FZゴンタかな", TextColor::Black);
 	}
 
-	// フェード処理
+	// フェード�E琁E
 	float fadeAlpha = 0.0f;
-	float INTRO_TIME = 3.5f; // INTRO_DURATION（Camera.cpp）と同じ数値にする
+	float INTRO_TIME = 3.5f; // INTRO_DURATION�E�Eamera.cpp�E�と同じ数値にする
 	float FADE_TIME = 0.5f;
 
 	if (GetGamePhase() == PHASE_INTRO)
@@ -308,7 +308,7 @@ void Game_Draw()
 	{
 		float timer = GetGamePhaseTimer();
 
-		// カウントダウンの序盤は徐々に明るくする（透明度 1.0 → 0.0）
+		// カウントダウンの序盤は徐、E��明るくする（透�E度 1.0 ↁE0.0�E�E
 		if (timer <= FADE_TIME)
 		{
 			fadeAlpha = 1.0f - (timer / FADE_TIME);
@@ -338,7 +338,7 @@ void Game_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		Shader_SetColor(color::white);
 
-		// 画面中央の座標を計算
+		// 画面中央の座標を計箁E
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
@@ -382,10 +382,10 @@ void Game_Draw()
 		}
 	}
 
-	// UI描画（にゅっ3）
+	// UI描画�E�にめE��3�E�E
 	if (GetGamePhase() == PHASE_PLAY)
 	{
-		// スライドインの計算
+		// スライドインの計箁E
 		float playTime = GetGamePhaseTimer();
 		float slideDuration = 0.4f;
 		float OffsetY = 0.0f;
@@ -393,13 +393,13 @@ void Game_Draw()
 		if (playTime < slideDuration)
 		{
 			float t = playTime / slideDuration;
-			float easeT = 1.0f - powf(1.0f - t, 3.0f); // 最初は速い、最後に減速
+			float easeT = 1.0f - powf(1.0f - t, 3.0f); // 最初�E速い、最後に減送E
 
-			// 画面外から定位置に向かって移動
+			// 画面外から定位置に向かって移勁E
 			OffsetY = 800.0f * (1.0f - easeT);
 		}
 
-		// ビューポート(描画領域)を一時的にずらす
+		// ビューポ�EチE描画領域)を一時的にずらぁE
 		ID3D11DeviceContext* pContext = Direct3D_GetDeviceContext();
 		UINT numViewports = 1;
 		D3D11_VIEWPORT vp;
@@ -409,16 +409,16 @@ void Game_Draw()
 
 		// ずらす用の設定を作り適用する
 		D3D11_VIEWPORT slideVp = vp;
-		slideVp.TopLeftY += OffsetY; // 画面全体をオフセット分下にずらす
+		slideVp.TopLeftY += OffsetY; // 画面全体をオフセチE��刁E��にずらぁE
 		pContext->RSSetViewports(1, &slideVp);
 	
-		// ずれた画面に対していつも通りUIを描画する
+		// ずれた画面に対してぁE��も通りUIを描画する
 		Shader_SetColor(color::white);
 		Effect_Draw();
 		Player_DrawHP();
 		Player_DrawText();
 
-		// 描画が終わったら元のビューポート(画面位置)に戻す
+		// 描画が終わったら允E�Eビューポ�EチE画面位置)に戻ぁE
 		pContext->RSSetViewports(1, &vp);
 	}
 
