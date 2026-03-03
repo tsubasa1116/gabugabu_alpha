@@ -762,7 +762,7 @@ void Player_Update(float currentDeltaTime)
 			}
 
 			// 毒タイマ�Eを進める
-			player[p].poisonTimer -= DELTA_TIME;
+			player[p].poisonTimer -= currentDeltaTime;
 
 			// 毒タイマ�EぁEになったら毒状態を解除
 			if (player[p].poisonTimer <= 0.0f)
@@ -1028,18 +1028,6 @@ void Player_Update(float currentDeltaTime)
 			}
 		}
 
-		// ダメージ色だけ�E処琁E
-		if (player[p].isDamageColor)
-		{
-			player[p].damageColorTimer += DELTA_TIME;
-
-			if (player[p].damageColorTimer >= ATTACKED_TIME)
-			{
-				player[p].isDamageColor = false;
-				player[p].damageColorTimer = 0.0f;
-			}
-		}
-
 		// 進化時の無敵処琁E
 		if (player[p].isInvincible)
 		{
@@ -1215,7 +1203,7 @@ void Player_Update(float currentDeltaTime)
 		}
 
 		// プレイヤー アニメーション更新
-		player[p].animTimer += DELTA_TIME;
+		player[p].animTimer += currentDeltaTime;
 
 		// エフェクチEアニメーション
 		Effect_UpdateForPlayer(p);

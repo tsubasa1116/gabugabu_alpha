@@ -51,7 +51,13 @@ static bool s_GameStarted = false;
 static ID3D11DeviceContext* g_pContext = NULL;
 static	ID3D11ShaderResourceView* g_Texture[6];
 
+// ここで実体を作る（1箇所だけ！）
+float g_hitStopTimer = 0.0f;
 
+// 関数の身元もここに書く
+void StartHitStop(float duration) {
+	g_hitStopTimer = duration;
+}
 
 //======================================================
 //	

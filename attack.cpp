@@ -382,7 +382,7 @@ void Attack_Update(int playerIndex)
 						//break; // ★1つ壊したらループを抜ける（複数同時破壊したい場合は消してね）
 
 						// 建物壊した時に 0.05秒くらい止める
-						StartHitStop(0.05f);
+						StartHitStop(1.0f);
 					}
 				}
 			}
@@ -456,7 +456,7 @@ void Attack_Update(int playerIndex)
 					//break; // ★1人に当てたら終わり（複数人巻き込みたい場合は消してね）
 
 					// プレイヤーに当てた時はちょっと長めに 0.1秒くらい止める
-					StartHitStop(0.1f);
+					StartHitStop(1.0f);
 				}
 			}
 		}
