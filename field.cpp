@@ -31,6 +31,9 @@ MODEL* Test = NULL;//デバッグ
 ////グローバル変数
 static	ID3D11Device* g_pDevice = NULL;
 static	ID3D11DeviceContext* g_pContext = NULL;
+
+static float g_FieldShrinkTimer = 0.0f;
+static const float FIELD_SHRINK_INTERVAL = 0.0001f; // 10秒
 ////頂点バッファ
 //static	ID3D11Buffer* g_VertexBuffer = NULL;
 ////インデックスバッファ
@@ -368,6 +371,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		{
 			Map[i].pos.x = selected[assign].wx;
 			Map[i].pos.z = selected[assign].wz;
+			Map[i].distFromCenter = selected[assign].dist;
 			Map[i].pos.y = -1.0f;
 			Map[i].isActive = true;
 			++assign;
@@ -600,10 +604,13 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 }
 
 //======================================================
-//	更新処理
+//  更新処理
 //======================================================
 void Field_Update(void)
 {
+	// ==========================================
+	// 通常のバウンディング更新
+	// ==========================================
 	int i = 0;
 	while (Map[i].no != FIELD_MAX)
 	{
@@ -613,13 +620,48 @@ void Field_Update(void)
 			continue;
 		}
 
-		Map[i].boundingBox.center = Map[i].pos;			// -1
-		Map[i].boundingBox.radius = Map[i].radius;		// 1
-		Map[i].boundingBox.height = Map[i].height;		// 3.0
-
-
+		Map[i].boundingBox.center = Map[i].pos;
+		Map[i].boundingBox.radius = Map[i].radius;
+		Map[i].boundingBox.height = Map[i].height;
 
 		i++;
+	}
+
+	// ==========================================
+	// マップ縮小処理（10秒ごと）
+	// ==========================================
+	static float g_FieldShrinkTimer = 0.0f;
+	const float FIELD_SHRINK_INTERVAL = 10.0f; // 10秒
+
+	g_FieldShrinkTimer += DELTA_TIME;
+
+	if (g_FieldShrinkTimer >= FIELD_SHRINK_INTERVAL)
+	{
+		g_FieldShrinkTimer = 0.0f;
+
+		int count = GetFieldObjectCount();
+
+		int farIndex = -1;
+		float maxDist = -1.0f;
+
+		// 一番外側のアクティブマスを探す
+		for (int j = 0; j < count; ++j)
+		{
+			if (!Map[j].isActive)
+				continue;
+
+			if (Map[j].distFromCenter > maxDist)
+			{
+				maxDist = Map[j].distFromCenter;
+				farIndex = j;
+			}
+		}
+
+		// 見つかったら1マス消す
+		if (farIndex != -1)
+		{
+			Map[farIndex].isActive = false;
+		}
 	}
 }
 

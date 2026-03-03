@@ -38,6 +38,7 @@ private:
 	// モデル＆テクスチャの番号
 	// （同じ番号で両方を管理）
 	int m_ModelIndex;
+	int m_FieldIndex;
 
 	// 種類・フェーズに応じて
 	// モデルとテクスチャを読み込む
@@ -70,10 +71,12 @@ public:
 	float m_Alpha = 1.0f;      // 1.0（不透明）～ 0.0（完全に透明）
 	bool  m_IsFading = false;  // フェードアウト中かどうかのフラグ
 
+	float m_FallSpeed = 0.0f;
+	bool  m_IsFalling = false;
 	//=================================
 	// コンストラクタ
 	//=================================
-	Building(BuildingType type, XMFLOAT3 pos, int modelIndex = 0);
+	Building(BuildingType type, XMFLOAT3 pos, int modelIndex, int fieldIndex);
 
 	// デストラクタ
 	~Building();

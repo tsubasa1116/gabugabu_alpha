@@ -54,6 +54,7 @@ struct MAPDATA
 
 	float respawnTimer;
 	float respawnTimeMax;
+	float distFromCenter;
 };
 
 //======================================================
