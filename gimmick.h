@@ -12,11 +12,11 @@
 using namespace DirectX;
 
 // マクロ定義
-#define METEOR_COOLTIME			(0.1f)	// クールタイム（秒）
+#define METEOR_COOLTIME			(5.0f)	// クールタイム（秒）
 #define METEOR_RANGE_RADIUS		(1.5f)	// 技範囲（半径）
 #define METEOR_FALL_SPEED		(8.0f)	// 隕石の落下速度
 #define METEOR_START_HEIGHT		(15.0f)	// 隕石の出現高さ
-#define METEOR_DAMAGE			(20.0f)	// 隕石のダメージ
+#define METEOR_DAMAGE			(40.0f)	// 隕石のダメージ
 
 // 範囲アニメーション定数
 #define METEOR_RANGE_SHEET_COLS	(8)		// スプライトシート列数

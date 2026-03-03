@@ -410,7 +410,7 @@ void Attack_Update(int playerIndex)
 				player.brokenHistory.push_back(type);					// 最後に破壊した建物タイプを保存
 
 				// HP回復
-				player.hp += 10.0f;
+				player.hp += HP_HEAL;
 				// HPの上限
 				if (player.hp > PLAYER_MAX_HP)	player.hp = PLAYER_MAX_HP;
 
@@ -821,7 +821,7 @@ void AttackPlayerCollisions()
 				TriggerVibration(def, 0.1f, 0.1f, 50);
 
 				// スタンゲージ増加
-				defender.stunGauge += 0.5f;
+				defender.stunGauge += 0.8f;
 
 				// ダメージ数字を表示（頭上にオフセット）
 				int dmgInt = static_cast<int>(rawDamage + 0.5f);

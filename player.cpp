@@ -619,7 +619,7 @@ void Player_Update()
 			player[p].scaling.x = 0.5f;
 			player[p].scaling.y = 0.5f;
 			player[p].scaling.z = 0.5f;
-			player[p].attack = 10.0f;
+			player[p].attack = 30.0f;
 			player[p].power = 0.3f;
 			player[p].weight = 0.5f;
 			player[p].speed = 0.07f;
@@ -630,7 +630,7 @@ void Player_Update()
 			player[p].scaling.x = 0.8f;
 			player[p].scaling.y = 0.8f;
 			player[p].scaling.z = 0.8f;
-			player[p].attack = 15.0f;
+			player[p].attack = 45.0f;
 			player[p].power = 0.4f;
 			player[p].weight = 0.6f;
 			player[p].speed = 0.06f;
@@ -641,7 +641,7 @@ void Player_Update()
 			player[p].scaling.x = 1.2f;
 			player[p].scaling.y = 1.2f;
 			player[p].scaling.z = 1.2f;
-			player[p].attack = 20.0f;
+			player[p].attack = 60.0f;
 			player[p].power = 0.5f;
 			player[p].weight = 0.7f;
 			player[p].speed = 0.05f;

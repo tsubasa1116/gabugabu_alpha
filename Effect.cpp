@@ -447,7 +447,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		}
 		if (anim.evolutionPhase == 1)
 		{
-			if (anim.evolutionTimer >= 0.03f)
+			if (anim.evolutionTimer >= 0.02f)
 			{
 				anim.evolutionTimer = 0.0f;
 				anim.evolutionFrame++;
@@ -460,7 +460,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		}
 		else if (anim.evolutionPhase == 2)
 		{
-			if (anim.evolutionTimer >= 0.03f)
+			if (anim.evolutionTimer >= 0.02f)
 			{
 				anim.evolutionTimer = 0.0f;
 				anim.evolutionFrame++;
@@ -1039,7 +1039,7 @@ void EffectFront_DrawForPlayer(int playerIndex)
 		XMFLOAT3 ofs(0, 0, 0);
 		switch (player.type)
 		{
-		case PlayerType::Plant:	texNo = 21;	scale = 5.0f; ofs = XMFLOAT3(0, 0, 0);
+		case PlayerType::Plant:	texNo = 21;	scale = 7.0f; ofs = XMFLOAT3(0, 0, 0.8f);
 			SetDepthTest(false);
 			break;
 		default: break;

@@ -350,7 +350,7 @@ void Meteor_Update()
 				moveInput.y /= len;
 
 				XMFLOAT3 worldDir = MeteorToWorldDir(moveInput);
-				float meteorSpeed = 0.05f; // è¦Î”ÍˆÍ‚ÌˆÚ“®‘¬“x
+				float meteorSpeed = 0.065f; // è¦Î”ÍˆÍ‚ÌˆÚ“®‘¬“x
 				player.position.x += worldDir.x * meteorSpeed;
 				player.position.z += worldDir.z * meteorSpeed;
 			}
