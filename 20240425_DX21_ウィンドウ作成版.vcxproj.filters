@@ -22,6 +22,7 @@
     <FxCompile Include="ps_singlegauge.hlsl">
       <Filter>hlsl</Filter>
     </FxCompile>
+    <FxCompile Include="ps_blur.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="attack.cpp">
@@ -163,6 +164,13 @@
       <Filter>外部ファイル</Filter>
     </ClCompile>
     <ClCompile Include="gamepad.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="loadThread.cpp" />
+    <ClCompile Include="SkyBall.cpp" />
+    <ClCompile Include="Win.cpp" />
+    <ClCompile Include="Ready.cpp">
       <Filter>cpp</Filter>
     </ClCompile>
   </ItemGroup>
@@ -311,6 +319,13 @@
     <ClInclude Include="gamepad.h">
       <Filter>h</Filter>
     </ClInclude>
+    <ClInclude Include="SkyBall.h" />
+    <ClInclude Include="Win.h" />
+    <ClInclude Include="Ready.h">
+      <Filter>h</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureManager.h" />
+    <ClInclude Include="loadThread.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="cpp">
@@ -330,6 +345,5 @@
     <None Include="imgui.ini">
       <Filter>外部ファイル</Filter>
     </None>
-    <None Include="Effect" />
   </ItemGroup>
 </Project>

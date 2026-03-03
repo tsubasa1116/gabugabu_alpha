@@ -7,8 +7,7 @@
 #include <SDKDDKVer.h>		// 利用できる最も上位の Windows プラットフォームが定義される
 #define WIN32_LEAN_AND_MEAN	// 32bitアプリには不要な情報を抑止してコンパイル時間を短縮
 #include <windows.h>
-#include "debug_ostream.h"	//デバッグ表示
-
+#include "debug_ostream.h"	// デバッグ表示
 #include <chrono>
 #include <algorithm>
 #include "direct3d.h"
@@ -33,10 +32,10 @@
 #include <SDL3/SDL.h>
 #include "gamepad.h"
 
-//#define		SCREEN_WIDTH	(1280)
-//#define		SCREEN_HEIGHT	(720)
-#define		SCREEN_WIDTH	(1920)
-#define		SCREEN_HEIGHT	(1080)
+#define		SCREEN_WIDTH	(1280)
+#define		SCREEN_HEIGHT	(720)
+//#define		SCREEN_WIDTH	(1920)
+//#define		SCREEN_HEIGHT	(1080)
 
 //==================================
 //グローバル変数
@@ -243,14 +242,20 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, 
 		}
 	} while (msg.message != WM_QUIT);
 	
-	Manager_Finalize();
-	UninitAudio();		// サウンドの終了
-	Shader_Finalize();	// シェーダの終了処理
+	// 初期化の逆順で解放する（依存関係を考慮）
+	
+	Manager_Finalize();		// ゲームリソース解放（テクスチャ・バッファ等）
+	Gamepad_Finalize();		// ゲームパッド解放
 
-	Gamepad_Finalize();
+	ShutdownImGui();		// ImGui解放（DX11リソースを使うので、Direct3Dより先に）
 
-	ShutdownImGui();
-	Direct3D_Finalize();
+	FinalizeSprite();		// スプライトの終了処理
+	UninitAudio();			// サウンドの終了
+	Shader_Finalize();		// シェーダの終了処理
+	Direct3D_Finalize();	// Direct3Dデバイス解放（最後に）
+
+	timeEndPeriod(1);		// タイマー精度を元に戻す
+	CoUninitialize();		// COM終了
 
 	//終了する
 	return (int)msg.wParam;

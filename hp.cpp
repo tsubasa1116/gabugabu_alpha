@@ -2,6 +2,8 @@
 #include "hp.h"
 #include <cmath> 
 #include "gauge.h"
+#include "loadThread.h"
+
 
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
@@ -10,6 +12,7 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 //プレイヤー関連変数
 static	ID3D11ShaderResourceView* g_Texture[10];
 
+
 hp HPBar[HPBER_MAX];
 
 // HPバーのスムーズ減少速度
@@ -17,6 +20,7 @@ hp HPBar[HPBER_MAX];
 #define DAMAGE_BAR_DELAY (30.0f)	// 赤バーが減り始めるまでの遅延フレーム
 #define SIZE_ADJUST	((1.88f *  (SCREEN_WIDTH / 1280.0f)))
 #define POS_ADJUST	((86.4f *  (SCREEN_WIDTH / 1280.0f)))
+
 
 // -------------------------------------------------------------
 // 初期化
@@ -43,54 +47,63 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	bar->shakeSpeed = 0.0f;
 	bar->gaugeIndex = -1;
 	bar->shakeTexNum = -1; // シェイク中の代替テクスチャなし
+	bar->deathTexNum = -1;
+
+	bar->currentType = PlayerType::None;
+	bar->isOutline = false;
 
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	TexMetadata		metadata;
-	ScratchImage	image;
+	Loader::AddTask([pDevice]()
+	{
+		TexMetadata		metadata;
+		ScratchImage	image;
+		
+		LoadFromWICFile(L"asset\\texture\\uiHpGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
+		assert(g_Texture[0]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
+		assert(g_Texture[1]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
+		assert(g_Texture[2]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
+		assert(g_Texture[3]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
+		assert(g_Texture[4]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
+		assert(g_Texture[5]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseCryRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[6]);
+		assert(g_Texture[6]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseCryBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[7]);
+		assert(g_Texture[7]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseCryYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[8]);
+		assert(g_Texture[8]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseCryGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[9]);
+		assert(g_Texture[9]);//読み込み失敗時にダイアログを表示
+
 	
-	LoadFromWICFile(L"asset\\texture\\uiHpGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
-	assert(g_Texture[0]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
-	assert(g_Texture[1]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
-	assert(g_Texture[2]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
-	assert(g_Texture[3]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
-	assert(g_Texture[4]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
-	assert(g_Texture[5]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[6]);
-	assert(g_Texture[6]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[7]);
-	assert(g_Texture[7]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[8]);
-	assert(g_Texture[8]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[9]);
-	assert(g_Texture[9]);//読み込み失敗時にダイアログを表示
-
+	});
 }
+
 
 // -------------------------------------------------------------
 // 更新
@@ -176,9 +189,10 @@ void UpdateHP(hp* bar)
 // -------------------------------------------------------------
 // 描画
 // -------------------------------------------------------------
-void DrawHP(const hp* bar, int texNum)
+void DrawHP(const hp* bar, int texNum, bool isDead)
 {
 	if (!bar->use) return;
+	//if (!Loader::IsFinished) return;
 
 	Shader_BeginUI();
 	Shader_SetColor(color::white);
@@ -198,15 +212,70 @@ void DrawHP(const hp* bar, int texNum)
 
 	XMFLOAT2 backPos = { drawPos.x - (bar->size.x / 2.0f) + backSize.x / 2.0f, drawPos.y };
 
-	// シェイク中なら代替テクスチャを使う
+	// テクスチャインデックスと色を決定
 	int backTexIndex = texNum;
-	if (bar->shakeTimer > 0.0f && bar->shakeTexNum >= 0) {
+	XMFLOAT4 backDrawColor = bar->backColor;
+
+	if (isDead)
+	{
+		// 死んだプレイヤーはテクスチャを灰色にする
+		if (bar->deathTexNum >= 0 && bar->deathTexNum < 10)
+		{
+			backTexIndex = bar->deathTexNum;
+		}
+		backDrawColor = color::gray;
+	}
+	else if (bar->shakeTimer > 0.0f && bar->shakeTexNum >= 0 && bar->shakeTexNum < 10)
+	{
+		// 生存中でシェイク中ならシェイク用テクスチャを使う
 		backTexIndex = bar->shakeTexNum;
+	}
+
+	if (bar->isOutline && !isDead)
+	{
+		const float outerScale = 1.02f; 
+
+		XMFLOAT2 outerSize = { backSize.x * outerScale, backSize.y * outerScale };
+		XMFLOAT4 outerColor = color::black;
+
+		switch (bar->currentType)
+		{
+		case PlayerType::Glass:
+			outerColor = color::sky;
+			break;
+		case PlayerType::Concrete:
+			outerColor = color::gray;
+			break;
+		case PlayerType::Plant:
+			outerColor = color::green;
+			break;
+		case PlayerType::Electricity:
+			outerColor = color::yellow;
+			break;
+		default:
+			outerColor = color::black;
+			break;
+		}
+
+		Shader_SetDrawMode(2);
+		Shader_SetColor(outerColor);
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture[backTexIndex]);
+		DrawSprite(backPos, outerSize, backDrawColor);
+
+		Shader_SetDrawMode(0);
+		Shader_SetColor(color::white);
 	}
 
 	// 背景を描画
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[backTexIndex]);
-	DrawSprite(backPos, backSize, bar->backColor);
+	DrawSprite(backPos, backSize, backDrawColor);
+
+	// 死んだらはfillバーを描画しない
+	if (isDead)
+	{
+		Shader_Begin();
+		return;
+	}
 
 	float AdjScreenX = SCREEN_ADJUST_X;
 
@@ -216,9 +285,9 @@ void DrawHP(const hp* bar, int texNum)
 		XMFLOAT2 damageUvMin = { 0.0f, 0.0f };
 		XMFLOAT2 damageUvMax = { damageRatio, 1.0f };
 
-		XMFLOAT2 damageFillSize   = { bar->size.x * damageRatio * AdjScreenX, bar->size.y };
+		XMFLOAT2 damageFillSize = { bar->size.x * damageRatio * AdjScreenX, bar->size.y };
 		XMFLOAT2 damageFillSizeOK = { damageFillSize.x / SIZE_ADJUST, damageFillSize.y };
-		XMFLOAT2 damageFillPosOK  = { drawPos.x - (bar->size.x / 2.0f) + damageFillSizeOK.x / 2.0f + POS_ADJUST, drawPos.y };
+		XMFLOAT2 damageFillPosOK = { drawPos.x - (bar->size.x / 2.0f) + damageFillSizeOK.x / 2.0f + POS_ADJUST, drawPos.y };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 		Shader_BeginHpber();
@@ -230,9 +299,9 @@ void DrawHP(const hp* bar, int texNum)
 	XMFLOAT2 uvMin = { 0.0f, 0.0f };
 	XMFLOAT2 uvMax = { ratio, 1.0f };
 
-	XMFLOAT2 fillSize =   { bar->size.x * ratio * AdjScreenX, bar->size.y };
+	XMFLOAT2 fillSize = { bar->size.x * ratio * AdjScreenX, bar->size.y };
 	XMFLOAT2 fillSizeOK = { fillSize.x / SIZE_ADJUST, fillSize.y };
-	XMFLOAT2 fillPosOK =  { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + POS_ADJUST, drawPos.y };
+	XMFLOAT2 fillPosOK = { drawPos.x - (bar->size.x / 2.0f) + fillSizeOK.x / 2.0f + POS_ADJUST, drawPos.y };
 
 	g_pContext->PSSetShaderResources(0, 1, &g_Texture[0]);
 	Shader_BeginHpber();
@@ -263,7 +332,10 @@ void SetHPValue(hp* bar, int currentHP, int maxHP)
     bar->target = newTarget;
 }
 
-// シェイク
+
+// -------------------------------------------------------------
+// HPバーシェイク
+// -------------------------------------------------------------
 void SetHPShake(hp* bar, float amplitude, float duration, float speed, int shakeTexNum)
 {
 	if (!bar) return;
@@ -286,6 +358,17 @@ void SetHPShake(hp* bar, float amplitude, float duration, float speed, int shake
 	bar->shakeTexNum = shakeTexNum; // シェイク中に使うテクスチャ（-1で無効）
 }
 
+
+// -------------------------------------------------------------
+// 死んだポレイヤー用テクスチャセット
+// -------------------------------------------------------------
+void SetDeathHP(hp* bar, int deathTexNum)
+{
+	if (!bar) return;
+	bar->deathTexNum = deathTexNum;
+}
+
+
 // -------------------------------------------------------------
 // 終了
 // -------------------------------------------------------------
@@ -294,8 +377,23 @@ void FinalizeHP(hp* bar)
 	bar->use = false;
 }
 
+
+// -------------------------------------------------------------
+// ゲった～
+// -------------------------------------------------------------
 hp* GetHPBar(int HPIndex)
 {
 	if (HPIndex < 0 || HPIndex >= HPBER_MAX) return nullptr;
 	return &HPBar[HPIndex];
+}
+
+
+// -------------------------------------------------------------
+// 属性用のアウトライン用設定
+// -------------------------------------------------------------
+void SetHPOutline(hp* bar, PlayerType type)
+{
+	if (!bar) return;
+	bar->currentType = type;
+	bar->isOutline = (type != PlayerType::None);
 }

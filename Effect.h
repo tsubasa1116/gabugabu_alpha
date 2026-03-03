@@ -8,6 +8,9 @@ using namespace DirectX;
 #include "direct3d.h"
 #include "player.h"
 
+// マクロ定義
+#define BUILDING_EFFECT_MAX (100)	// 建物エフェクトの最大数
+
 class EFFECT
 {
 public:
@@ -19,7 +22,7 @@ public:
 	int playerIndex;
 	float scaleTimer;
 	bool scaleGrowing;
-	XMFLOAT2 baseSize; 
+	XMFLOAT2 baseSize;
 };
 
 struct PLAYER_EFFECT_ANIM
@@ -35,24 +38,27 @@ struct PLAYER_EFFECT_ANIM
 	float poisonTimer = 0.0f;
 	int attackedFrame = 0;
 	float attackedTimer = 0.0f;
+	int stunFrame = 0;
+	float stunTimer = 0.0f;
 	int healingFrame = 0;
 	float healingTimer = 0.0f;
 	int respawnFrame = 0;
 	float respawnTimer = 0.0f;
 	int shadowFrame = 0;
 	float shadowTimer = 0.0f;
+	int explosionFrame = 0;
+	float explosionTimer = 0.0f;
 };
-
-static PLAYER_EFFECT_ANIM g_PlayerEffectAnim[PLAYER_MAX];
 
 struct BUILDING_EFFECT_ANIM
 {
 	int hitFrame = 0;
 	float hitTimer = 0.0f;
-	int hitPhase = 0;
+	bool hitPlaying = false;	// 再生中フラグ
+	bool hitFinished = false;	// 再生完了フラグ（1回だけ再生）
+	int hitStartFrame = 0;		// 開始フレーム
+	int hitEndFrame = 0;		// 終了フレーム
 };
-
-static BUILDING_EFFECT_ANIM g_BuildingEffectAnim[10];
 
 struct EFFECT_LAYER
 {
@@ -73,6 +79,7 @@ struct EffectConfig {
 	float scaleMin;
 	float scaleMax;
 	float scaleSpeed;
+
 };
 
 // メイン処理関数
@@ -93,3 +100,9 @@ void EffectShadow_DrawForPlayer(int playerIndex);	// プレイヤーの影エフェクト
 // 建物付近に表示するエフェクト関数
 void Effect_UpdateForBuilding(int buildingIndex);
 void Effect_DrawForBuilding(int buildingIndex);
+
+// 建物エフェクト一括処理関数（軽量版）
+void Effect_UpdateAllBuildings();
+void Effect_DrawAllBuildings();
+
+void Effect_Warmup();

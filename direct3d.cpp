@@ -31,6 +31,8 @@ static ID3D11BlendState* bState[BLENDSTATE_MAX];
 static ID3D11DepthStencilState* g_DepthStateEnable;
 static ID3D11DepthStencilState* g_DepthStateDisable;
 static ID3D11DepthStencilState* g_DepthStateReadOnly; // 深度テスト有効・書き込み無効
+static ID3D11DepthStencilState* g_DepthStateGreater;
+static ID3D11SamplerState* g_pSamplerState = nullptr; // ← 追加：グローバルに変更
 
 bool Direct3D_Initialize(HWND hWnd)
 {
@@ -59,11 +61,10 @@ bool Direct3D_Initialize(HWND hWnd)
 	pAdapter->Release(); // D3D11CreateDeviceAndSwapChain()の第１引数に渡して利用し終わったら解放する
 	*/
 
-	// UINT device_flags = 0; // 旧バージョン
 	UINT device_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT; // Direct2D-3D連携用フラグ
 
 #if defined(DEBUG) || defined(_DEBUG)
-	//device_flags |= D3D11_CREATE_DEVICE_DEBUG;
+	device_flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 	D3D_FEATURE_LEVEL levels[] = {
@@ -87,6 +88,24 @@ bool Direct3D_Initialize(HWND hWnd)
 		&feature_level,
 		&g_pDeviceContext);
 
+	// デバッグデバイスの作成に失敗した場合、デバッグフラグなしで再試行
+	if (FAILED(hr)) {
+		device_flags &= ~D3D11_CREATE_DEVICE_DEBUG;
+		hr = D3D11CreateDeviceAndSwapChain(
+			nullptr,
+			D3D_DRIVER_TYPE_HARDWARE,
+			nullptr,
+			device_flags,
+			levels,
+			ARRAYSIZE(levels),
+			D3D11_SDK_VERSION,
+			&swap_chain_desc,
+			&g_pSwapChain,
+			&g_pDevice,
+			&feature_level,
+			&g_pDeviceContext);
+	}
+
 	if (FAILED(hr)) {
 		MessageBox(hWnd, "Direct3Dの初期化に失敗しました", "エラー", MB_OK);
 		return false;
@@ -109,10 +128,9 @@ bool Direct3D_Initialize(HWND hWnd)
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	ID3D11SamplerState* samplerState = NULL;
-	g_pDevice->CreateSamplerState(&samplerDesc, &samplerState);
+	g_pDevice->CreateSamplerState(&samplerDesc, &g_pSamplerState); // ← グローバル変数に格納
 	//サンプラーをシェーダーへセット
-	g_pDeviceContext->PSSetSamplers(0, 1, &samplerState);
+	g_pDeviceContext->PSSetSamplers(0, 1, &g_pSamplerState); // ← グローバル変数を使用
 
 
 
@@ -168,19 +186,30 @@ bool Direct3D_Initialize(HWND hWnd)
 
 	g_pDeviceContext->OMSetDepthStencilState(g_DepthStateDisable, NULL); //デフォルト　深度無効
 
-	//// 深度ステンシルステート設定
-	//D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-	//ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-	//depthStencilDesc.DepthEnable = TRUE;
-	//depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	//depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	//depthStencilDesc.StencilEnable = FALSE;
-	//g_pDevice->CreateDepthStencilState(&depthStencilDesc, &g_DepthStateEnable);//深度有効ステート
+	// 深度ステンシルステート設定
+	D3D11_DEPTH_STENCIL_DESC depthStencilDescEnable;
+	ZeroMemory(&depthStencilDescEnable, sizeof(depthStencilDescEnable));
+	depthStencilDescEnable.DepthEnable = TRUE;
+	depthStencilDescEnable.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDescEnable.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStencilDescEnable.StencilEnable = FALSE;
+	g_pDevice->CreateDepthStencilState(&depthStencilDescEnable, &g_DepthStateEnable);//深度有効ステート
+
 	//depthStencilDesc.DepthEnable = FALSE;
 	//depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	//g_pDevice->CreateDepthStencilState(&depthStencilDesc, &g_DepthStateDisable);//深度無効ステート
 
 	//g_pDeviceContext->OMSetDepthStencilState(g_DepthStateDisable, NULL); //デフォルト　深度無効
+
+
+	D3D11_DEPTH_STENCIL_DESC depthStencilDescGreater;
+	ZeroMemory(&depthStencilDescGreater, sizeof(depthStencilDescGreater));
+	depthStencilDescGreater.DepthEnable = TRUE;
+	depthStencilDescGreater.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // 深度バッファに書き込まない
+	depthStencilDescGreater.DepthFunc = D3D11_COMPARISON_GREATER; // 深度値が大きい（奥）もののみ通す
+	depthStencilDescGreater.StencilEnable = FALSE;
+	g_pDevice->CreateDepthStencilState(&depthStencilDescGreater, &g_DepthStateGreater);
+
 
 	return true;
 }
@@ -199,9 +228,32 @@ void SetDepthTest(bool flg)
 
 void Direct3D_Finalize()
 {
+	// パイプラインにバインドされた全リソース参照をクリア
+	if (g_pDeviceContext) {
+		g_pDeviceContext->ClearState();
+		g_pDeviceContext->Flush();
+	}
+
 	releaseBackBuffer();
 
+	// サンプラーステートの解放を追加
+	SAFE_RELEASE(g_pSamplerState);
+
+	// ブレンドステートの解放を追加
+	for (int i = 0; i < BLENDSTATE_MAX; i++)
+	{
+		SAFE_RELEASE(bState[i]);
+	}
+
+	// 深度ステートの解放（漏れ修正）
+	SAFE_RELEASE(g_DepthStateDisable);
+	SAFE_RELEASE(g_DepthStateReadOnly);
+	SAFE_RELEASE(g_DepthStateGreater);
+	SAFE_RELEASE(g_DepthStateEnable);
+
 	if (g_pSwapChain) {
+		// フルスクリーンモードを解除してから解放
+		g_pSwapChain->SetFullscreenState(FALSE, nullptr);
 		g_pSwapChain->Release();
 		g_pSwapChain = nullptr;
 	}
@@ -210,13 +262,22 @@ void Direct3D_Finalize()
 		g_pDeviceContext->Release();
 		g_pDeviceContext = nullptr;
 	}
-	
+
+	// デバッグデバイスによるリーク検出
+#if defined(DEBUG) || defined(_DEBUG)
+	if (g_pDevice) {
+		ID3D11Debug* pDebug = nullptr;
+		if (SUCCEEDED(g_pDevice->QueryInterface(__uuidof(ID3D11Debug), (void**)&pDebug))) {
+			pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
+			pDebug->Release();
+		}
+	}
+#endif
+
 	if (g_pDevice) {
 		g_pDevice->Release();
 		g_pDevice = nullptr;
 	}
-
-	SAFE_RELEASE(g_DepthStateReadOnly);
 }
 
 void Direct3D_Clear()
@@ -228,7 +289,11 @@ void Direct3D_Clear()
 	// レンダーターゲットビューとデプスステンシルビューの設定/////////////追加
 	g_pDeviceContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
 
+	// ビューポートを毎フレーム再設定（ImGuiやDirect2Dが変更する可能性があるため）
+	g_pDeviceContext->RSSetViewports(1, &g_Viewport);
 
+	// サンプラーを毎フレーム再設定（ImGuiが変更する可能性があるため）
+	g_pDeviceContext->PSSetSamplers(0, 1, &g_pSamplerState);
 }
 
 void Direct3D_Present()
@@ -373,4 +438,16 @@ void SetBlendState(BLENDSTATE blend)
 void SetDepthReadOnly()
 {
 	g_pDeviceContext->OMSetDepthStencilState(g_DepthStateReadOnly, NULL);
+}
+
+// Greaterステートを取得する関数
+ID3D11DepthStencilState* Direct3D_GetDepthStateGreater()
+{
+	return g_DepthStateGreater;
+}
+
+// Enableステートを取得する関数
+ID3D11DepthStencilState* Direct3D_GetDepthStateEnable()
+{
+	return g_DepthStateEnable;
 }

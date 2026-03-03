@@ -41,7 +41,7 @@ private:
 
 	// 種類・フェーズに応じて
 	// モデルとテクスチャを読み込む
-	void LoadModelForPhase();
+	//void LoadModelForPhase();
 
 public:
 
@@ -63,6 +63,13 @@ public:
 	bool isActive;		// 有効フラグ
 	bool isDestroyed;	// 建物破壊フラグ
 
+	// プレイヤー接近時のテクスチャオフセット
+	int m_TexOffset;
+	bool m_IsPlayerNear;
+
+	float m_Alpha = 1.0f;      // 1.0（不透明）～ 0.0（完全に透明）
+	bool  m_IsFading = false;  // フェードアウト中かどうかのフラグ
+
 	//=================================
 	// コンストラクタ
 	//=================================
@@ -77,12 +84,25 @@ public:
 	// 描画
 	void Draw(bool s_IsKonamiCodeEntered);
 
+	void Rebirth(); // 復活
+
 	// 状態変更
-	void SetPhase(BuildingPhase phase);
+	//void SetPhase(BuildingPhase phase);
 
 	// ゲッター
 	BuildingType  GetType()  const { return type; }
 	BuildingPhase GetPhase() const { return Phase; }
+
+	const AABB& GetAABB() const { return boundingBox; }
+
+	// 追加: モデル名取得（FBX名）を返す。
+	// Building.cpp に実装を追加しています。
+	const char* GetModelName() const;
+
+	float m_RespawnTimer = { 10.0f };	// 復活までの秒数
+	float m_RebirthAnimTimer = 0.0f;
+	// 既存ファイル: Building.h
+
 };
 
 //=========================================
@@ -91,8 +111,7 @@ public:
 void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Building_Finalize();
 void Building_DrawAll(bool s_IsKonamiCodeEntered);
+void Building_UpdateAll();
 
 int GetBuildingCount();
 Building** GetBuildings();
-
-

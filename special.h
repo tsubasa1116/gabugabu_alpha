@@ -8,16 +8,18 @@
 // マクロ定義
 //#define SPECIAL_GLASS_TIME ミサイル全てのactiveがfalseになったら終了なので不要
 #define SPECIAL_CONCRETE_TIME		(1.5f)
-#define SPECIAL_PLANT_TIME			(10.0f)
+#define SPECIAL_PLANT_TIME			(5.0f)
 #define SPECIAL_ELECTRICITY_TIME	(5.0f)
 
 #define SPECIAL_GLASS_DAMAGE		(50.0f)	// ミサイル 1個あたりのダメージ量
 #define SPECIAL_CONCRETE_DAMAGE		(75.0f)	// 判定1回のみ
 #define SPECIAL_PLANT_DAMAGE		(0.1f)	// スリップダメージ
-#define SPECIAL_ELECTRICITY_DAMAGE	(40.0f)	// 雷 1個あたりのダメージ量
+#define SPECIAL_ELECTRICITY_DAMAGE	(10.0f)	// 雷 1個あたりのダメージ量
 
 #define SPECIAL_GLASSBOX_QUANTITY		(3)	// ガラス 1プレイヤーに飛ばす箱の数
-#define SPECIAL_ELECTRICITY_QUANTITY	(4)	// 電気 落雷の数
+#define SPECIAL_ELECTRICITY_QUANTITY	(6)	// 電気 落雷の数
+
+#define SPECIAL_SE_COUNT				(3)	// スペシャル SEの数 ガラスを除く
 
 // ガラススペシャル ミサイルオブジェクト
 struct GLASS_BOX
@@ -39,6 +41,12 @@ struct SPECIAL_OBJECT
 	AABB boundingBox;
 };
 
+struct PLANT_CIRCLE
+{
+	XMFLOAT3 position;
+	float radius;
+};
+
 void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Finalize();
 void Special_Update(int playerIndex);
@@ -53,10 +61,12 @@ void Special_Glass_Update(int playerIndex);
 void Special_Concrete_Update(int playerIndex);
 void Special_Plant_Update(int playerIndex);
 void Special_Electricity_Update(int playerIndex);
+void Special_Electricity_Update2(int playerIndex);
 
 void Special_Glass_Draw(int playerIndex);
 void Special_Concrete_Draw(int playerIndex);
 void Special_Plant_Draw(int playerIndex);
 void Special_Electricity_Draw(int playerIndex);
+void Special_Electricity_Draw2(int playerIndex);
 
 SPECIAL_OBJECT* GetSpecial(int playerIndex);

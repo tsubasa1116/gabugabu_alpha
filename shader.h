@@ -39,11 +39,14 @@ void Shader_SetColorLerp(const XMFLOAT4& mulColor, const XMFLOAT4& lerpColor, fl
 
 void Shader_BeginDebugColor();
 
+void Shader_SetDrawMode(int mode);
+
 void Shader_SetGaugeTextures();
 void Shader_SetOutGaugeTextures();
 void Shader_SetSkillGaugeTextures(int typeIndex);
 void Shader_SetSkillCoolGaugeTextures(int typeIndex);
 void Shader_SetSkillTextTextures(int typeIndex);
+void Shader_SetBlur();
 
 
 #endif // SHADER_H
