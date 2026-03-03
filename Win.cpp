@@ -14,6 +14,7 @@
 #include "player.h"
 #include "model.h"
 #include "input.h"
+#include "color.h"
 
 static ID3D11ShaderResourceView* g_Texture = NULL;		// 背景
 static ID3D11ShaderResourceView* g_Texture2 = NULL;		// ストライプ
@@ -44,10 +45,12 @@ const int ANIM_COLS = 8;         // 1行あたりのコマ数
 const int ANIM_ROWS = 8;        // シート全体の行数
 const int ANIM_PLAY_START = 0;  // 行内の再生開始コマ
 const int ANIM_PLAY_END = 7;    // 行内の再生終了コマ
-const float ANIM_SPEED = 0.12f; // 1フレームあたりの秒数
+const float ANIM_SPEED = 0.12f;       // 初回再生時の1フレームあたりの秒数
+const float ANIM_SPEED_LOOP = 0.3f;   // ループ部分の1フレームあたりの秒数
 static int g_AnimFrame = ANIM_PLAY_START;
 static float g_AnimTimer = 0.0f;
 static int g_AnimRow = 0;       // 再生する行番号
+static bool g_AnimLooping = false; // ループ中フラグ
 
 // 勝者情報
 static int g_WinnerIndex = -1;
@@ -302,6 +305,7 @@ void Win_Finalize()
 	g_AnimFrame = ANIM_PLAY_START;
 	g_AnimTimer = 0.0f;
 	g_AnimRow = 0;
+	g_AnimLooping = false;
 	g_SlideOffsetTop = 0.0f;
 	g_SlideOffsetBottom = 0.0f;
 
@@ -332,11 +336,21 @@ void Win_Update()
 	if (g_SlideOffsetTop > WRAP_LIMIT) g_SlideOffsetTop -= WRAP_LIMIT;
 	if (g_SlideOffsetBottom < -WRAP_LIMIT) g_SlideOffsetBottom += WRAP_LIMIT;
 
+	// ループ中かどうかで速度を切り替え
+	float currentSpeed = g_AnimLooping ? ANIM_SPEED_LOOP : ANIM_SPEED;
+
 	g_AnimTimer += DELTA_TIME;
-	if (g_AnimTimer >= ANIM_SPEED)
+	if (g_AnimTimer >= currentSpeed)
 	{
 		g_AnimTimer = 0.0f;
-		if (g_AnimFrame < ANIM_PLAY_END) g_AnimFrame++;
+		g_AnimFrame++;
+
+		// コマ7まで到達したら、コマ6に戻してコマ6→7をループ
+		if (g_AnimFrame > ANIM_PLAY_END)
+		{
+			g_AnimFrame = ANIM_PLAY_END - 1; // コマ6に戻る
+			g_AnimLooping = true;
+		}
 	}
 }
 
@@ -347,10 +361,6 @@ void Win_Draw()
 {
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
-
-	// 画面サイズ取得
-	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
-	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
 	// 頂点シェーダーに変換行列を設定（UI用：直交投影）
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
@@ -384,7 +394,7 @@ void Win_Draw()
 	}
 
 	// バナー縮小率
-	const float BANNER_SCALE = 0.7f;
+	const float BANNER_SCALE = 0.85f;
 
 	// バナーの高さ・位置
 	float bannerYTop = (float)g_TexMeta2.height * BANNER_SCALE / 2.0f;
@@ -408,7 +418,7 @@ void Win_Draw()
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture4);//g_Textureを使うように設定する
 		SetBlendState(BLENDSTATE_ALPHA);//ブレンド無し
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//スプライトの色
-		XMFLOAT2 pos = { SCREEN_WIDTH - 80, SCREEN_HEIGHT - 180 };
+		XMFLOAT2 pos = { SCREEN_WIDTH - 80, SCREEN_HEIGHT - 230 };
 		XMFLOAT2 size = { (float)g_TexMeta4.width, (float)g_TexMeta4.height };
 		DrawSprite(pos, size, col);//1枚絵を表示
 	}
@@ -429,10 +439,34 @@ void Win_Draw()
 		float u1 = (float)(frameX + 1) / (float)ANIM_COLS;
 		float v1 = (float)(frameY + 1) / (float)ANIM_ROWS;
 
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 130 };
-		XMFLOAT2 size = { frameWidth * 1.4f, frameHeight * 1.5f }; // 拡大例
-		XMFLOAT4 col = { 1, 1, 1, 1 };
+		// 形態ごとのサイズ・位置を設定
+		XMFLOAT2 pos;
+		XMFLOAT2 size;
 
+		switch (g_WinnerForm)
+		{
+		case Form::First:
+			pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 30.0f * SCREEN_ADJUST_Y };
+			size = { frameWidth * 0.8f, frameHeight * 0.8f };
+			break;
+
+		case Form::Second:
+			pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 150.0f * SCREEN_ADJUST_Y };
+			size = { frameWidth * 1.0f, frameHeight * 1.0f };
+			break;
+
+		case Form::Third:
+			pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 10.0f * SCREEN_ADJUST_Y };
+			size = { frameWidth * 0.8f, frameHeight * 0.8f };
+			break;
+
+		default:
+			pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 30.0f * SCREEN_ADJUST_Y };
+			size = { frameWidth * 0.8f, frameHeight * 0.8f };
+			break;
+		}
+
+		XMFLOAT4 col = { 1, 1, 1, 1 };
 		DrawSpriteUV(pos, size, col, XMFLOAT2(u0, v0), XMFLOAT2(u1, v1));
 	}
 
@@ -445,9 +479,6 @@ void DrawSlidingBanner(ID3D11ShaderResourceView* tex, float y, float offset, flo
 	XMFLOAT2 size = { width, height };
 	XMFLOAT4 col = { 1, 1, 1, 1 };
 	g_pContext->PSSetShaderResources(0, 1, &tex);
-
-	// 画面幅取得
-	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 
 	// この関数の繰り返し単位(width)で正規化
 	float normOffset = fmodf(offset, width);
@@ -477,8 +508,6 @@ void DrawPlayerWinCrownBanner(
 
 	// 1セットの幅（PLAYER WIN + spacing + 王冠 + spacing）
 	float setWidth = widthPlayerWin + spacing + widthCrown + spacing;
-
-	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
 
 	// この関数の繰り返し単位(setWidth)で正規化
 	float normOffset = fmodf(offset, setWidth);
