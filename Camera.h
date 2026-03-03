@@ -19,6 +19,14 @@ enum FOLLOW_MODE
     FOLLOW_ALL
 };
 
+enum GAME_PHASE
+{
+    PHASE_INTRO,		// ステージぐるぐる
+    PHASE_COUNTDOWN,	// カウントダウン
+    PHASE_PLAY,			// ゲーム本編
+};
+
+
 class CAMERA
 {
 public:
@@ -62,3 +70,6 @@ void Camera_ReturnToNormal();
 bool Camera_IsInDeathFocus();
 
 CAMERA* GetCamera();
+
+GAME_PHASE GetGamePhase();
+float GetGamePhaseTimer();

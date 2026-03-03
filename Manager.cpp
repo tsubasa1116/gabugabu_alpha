@@ -9,12 +9,13 @@
 #include "Start.h"
 #include "Setting.h"
 #include "Sound.h"
+#include "Ready.h"
 #include "Win.h"
 #include "Result.h"
 #include "fade.h"
 #include "swipe.h"
 #include "shader.h"
-#include "LoadingScreen.h"  // 追加
+#include "LoadingScreen.h"
 
 //グローバル変数
 static SCENE g_Scene = SCENE_NONE;
@@ -25,11 +26,12 @@ void Manager_Initialize()
 {
 	Fade_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 	Swipe_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
-	LoadingScreen_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());  // 追加
+	LoadingScreen_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 
 #ifdef _DEBUG
 	//DEBUG:
 	SetScene(SCENE_TITLE);
+	//SetScene(SCENE_GAME);
 	//SetScene(SCENE_GAME);
 #else
 	SetScene(SCENE_TITLE);
@@ -38,7 +40,7 @@ void Manager_Initialize()
 
 void Manager_Finalize()
 {
-	LoadingScreen_Finalize();  // 追加
+	LoadingScreen_Finalize();
 	Fade_Finalize();
 	Swipe_Finalize();
 	SetScene(SCENE_NONE);
@@ -68,6 +70,9 @@ void Manager_Update()
 		break;
 	case SCENE_SOUND:
 		Sound_Update();
+		break;
+	case SCENE_READY:
+		Ready_Update();
 		break;
 	case SCENE_GAME:
 		Game_Update();
@@ -111,6 +116,9 @@ void Manager_Draw()
 	case SCENE_SOUND:
 		Sound_Draw();
 		break;
+	case SCENE_READY:
+		Ready_Draw();
+		break;
 	case SCENE_GAME:
 		Game_Draw();
 		break;
@@ -148,6 +156,9 @@ void SetScene(SCENE scene)
 	case SCENE_SOUND:
 		Sound_Finalize();		// ← 追加
 		g_InitSoundOnce = false;	// ← 再初期化を可能にする
+		break;
+	case SCENE_READY:
+		Ready_Finalize();
 		break;
 	case SCENE_GAME:
 		Game_Finalize();
@@ -188,6 +199,9 @@ void SetScene(SCENE scene)
 			Sound_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 			g_InitSoundOnce = true;
 		}
+		break;
+	case SCENE_READY:
+		//Ready_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 		break;
 	case SCENE_GAME:
 		Game_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());

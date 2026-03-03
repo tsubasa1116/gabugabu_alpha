@@ -59,7 +59,7 @@ public:
 	AABB boundingBox;
 
 	// モデル
-	//MODEL* m_Model;
+	MODEL* m_Model;
 
 	bool isActive;		// 有効フラグ
 	bool isDestroyed;	// 建物破壊フラグ

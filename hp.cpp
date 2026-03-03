@@ -2,6 +2,7 @@
 #include "hp.h"
 #include <cmath> 
 #include "gauge.h"
+#include "loadThread.h"
 
 
 // 注意！初期化で外部から設定されるもの。Release不要。
@@ -10,6 +11,7 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 
 //プレイヤー関連変数
 static	ID3D11ShaderResourceView* g_Texture[10];
+
 
 hp HPBar[HPBER_MAX];
 
@@ -53,49 +55,53 @@ void InitializeHP(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, hp* bar,
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	TexMetadata		metadata;
-	ScratchImage	image;
+	Loader::AddTask([pDevice]()
+	{
+		TexMetadata		metadata;
+		ScratchImage	image;
+		
+		LoadFromWICFile(L"asset\\texture\\uiHpGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
+		assert(g_Texture[0]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
+		assert(g_Texture[1]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
+		assert(g_Texture[2]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
+		assert(g_Texture[3]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
+		assert(g_Texture[4]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
+		assert(g_Texture[5]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseCryRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[6]);
+		assert(g_Texture[6]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseCryBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[7]);
+		assert(g_Texture[7]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseCryYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[8]);
+		assert(g_Texture[8]);//読み込み失敗時にダイアログを表示
+
+		LoadFromWICFile(L"asset\\texture\\uiBaseCryGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
+		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[9]);
+		assert(g_Texture[9]);//読み込み失敗時にダイアログを表示
+
 	
-	LoadFromWICFile(L"asset\\texture\\uiHpGauge_v3.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[0]);
-	assert(g_Texture[0]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiEvolveEffect_v1.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[1]);
-	assert(g_Texture[1]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[2]);
-	assert(g_Texture[2]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[3]);
-	assert(g_Texture[3]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[4]);
-	assert(g_Texture[4]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[5]);
-	assert(g_Texture[5]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryRed_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[6]);
-	assert(g_Texture[6]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryBlue_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[7]);
-	assert(g_Texture[7]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryYellow_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[8]);
-	assert(g_Texture[8]);//読み込み失敗時にダイアログを表示
-
-	LoadFromWICFile(L"asset\\texture\\uiBaseCryGreen_v5.png", WIC_FLAGS_NONE, &metadata, image);//テクスチャは変更可
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[9]);
-	assert(g_Texture[9]);//読み込み失敗時にダイアログを表示
-
+	});
 }
 
 
@@ -186,6 +192,7 @@ void UpdateHP(hp* bar)
 void DrawHP(const hp* bar, int texNum, bool isDead)
 {
 	if (!bar->use) return;
+	//if (!Loader::IsFinished) return;
 
 	Shader_BeginUI();
 	Shader_SetColor(color::white);

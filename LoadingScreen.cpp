@@ -8,6 +8,12 @@
 #include "sprite.h"
 #include "fade.h"
 #include "color.h"
+#include "loadThread.h"
+#include "game.h"
+#include "title.h"
+#include "Ready.h"
+
+#include <string> 
 
 using namespace DirectX;
 
@@ -17,6 +23,7 @@ using namespace DirectX;
 static LoadingScreen* g_pLoadingScreen = nullptr;
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
+static	ID3D11ShaderResourceView* g_LoadTexture = NULL;
 
 //======================================================
 // LoadingScreenクラス
@@ -40,6 +47,7 @@ bool LoadingScreen::Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pCont
     m_FadeOutStarted = false;
     m_FadeOutCounter = 0;
     m_FadeOutDuration = 30;
+    m_HasVideo = false;
 
     // フェード用テクスチャ読み込み
     TexMetadata metadata;
@@ -48,8 +56,50 @@ bool LoadingScreen::Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pCont
     CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &m_pFadeTexture);
     assert(&m_pFadeTexture);
 
-    // 動画の初期化
-    return m_Video.Initialize(pDevice, pContext, videoPath);
+    LoadFromWICFile(L"asset\\texture\\Loading.png", WIC_FLAGS_NONE, &metadata, image);
+    CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_LoadTexture);
+    assert(&g_LoadTexture);
+
+    if (videoPath != nullptr)
+    {
+        // 動画の初期化
+        //return m_Video.Initialize(pDevice, pContext, videoPath);
+        // 初期化に成功したら m_HasVideo を true にする
+        if (m_Video.Initialize(pDevice, pContext, videoPath))
+        {
+            m_HasVideo = true;
+
+            float loopSkipTime = GetLoopSkipTime(videoPath);
+            m_Video.SetLoopSkipTime(loopSkipTime);
+        }
+    }
+
+    if (!m_HasVideo)
+    {
+        // 動画がない場合は完了させる
+		m_VideoFinished = true; 
+    }
+
+    return true;
+}
+
+// 動画パスからループスキップ時間を返すための関数
+float LoadingScreen::GetLoopSkipTime(const wchar_t* videoPath)
+{
+    if (videoPath == nullptr) return 0.0f;
+
+    std::wstring path(videoPath);
+
+    // パスに特定の文字列が含まれているかチェック
+    if (path.find(L"ready") != std::wstring::npos)
+    {
+        return 0.005f;
+    }
+    else if (path.find(L"game") != std::wstring::npos)
+    {
+        return 0.5f;
+    }
+    return 0.005f;
 }
 
 void LoadingScreen::Finalize()
@@ -88,29 +138,44 @@ void LoadingScreen::StartLoading(SCENE nextScene, std::function<void()> loadTask
 
     // 別スレッドでロード処理を実行
     m_LoadThread = std::thread([this, loadTask]()
-    {
-        // ロード処理を実行
-        if (loadTask)
         {
-            loadTask();
-        }
+            // COMの初期化
+            CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
-        // ロード完了フラグを立てる
-        m_LoadComplete = true;
-    });
+            if (loadTask)
+            {
+                loadTask(); // ここでGame_Initialize -> AddTask -> StartTaskLoadが呼ばれる
+            }
+
+            // Loaderが終わるのを待つ
+            while (!Loader::IsFinished())
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(30));
+            }
+
+            // DirectXの生成処理はスレッドセーフではない場合がある？から、
+            // ここで一旦スリープを入れてスレッドの実行タイミングをずらすと安定することがあるらしい。。。
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+            m_LoadComplete = true;
+            CoUninitialize();
+        });
 }
 
 bool LoadingScreen::Update()
 {
     if (!m_IsLoading) return false;
 
-    // 動画フレームを更新（フェードアウト中もループするようにする）
-    bool stillPlaying = m_Video.Update();
-
-    // 動画が終了したらループ再生（ロード中・フェードアウト中どちらも）
-    if (!stillPlaying || m_Video.IsFinished())
+    if (m_HasVideo)
     {
-        m_Video.Reset();
+        // 動画フレームを更新（フェードアウト中もループするようにする）
+        bool stillPlaying = m_Video.Update();
+
+        // 動画が終了したらループ再生（ロード中・フェードアウト中どちらも）
+        if (!stillPlaying || m_Video.IsFinished())
+        {
+            m_Video.ResetForLoop();
+        }
     }
 
     // フェードアウト中の場合
@@ -151,13 +216,26 @@ void LoadingScreen::Draw()
     Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
         0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 1.0f));
 
-    // 動画テクスチャを描画
-    ID3D11ShaderResourceView* pSRV = m_Video.GetShaderResourceView();
-    if (pSRV && m_pContext)
+    if (m_HasVideo)
     {
-        m_pContext->PSSetShaderResources(0, 1, &pSRV);
-        SetBlendState(BLENDSTATE_NONE);
+        // 動画テクスチャを描画
+        ID3D11ShaderResourceView* pSRV = m_Video.GetShaderResourceView();
+        if (pSRV && m_pContext)
+        {
+            m_pContext->PSSetShaderResources(0, 1, &pSRV);
+            SetBlendState(BLENDSTATE_NONE);
 
+            XMFLOAT2 pos = { SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f };
+            XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
+            XMFLOAT4 col = color::white;
+            DrawSprite(pos, size, col);
+        }
+    }
+    else
+    {
+        // 動画がない時
+        g_pContext->PSSetShaderResources(0, 1, &g_LoadTexture);
+        SetBlendState(BLENDSTATE_NONE);
         XMFLOAT2 pos = { SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f };
         XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
         XMFLOAT4 col = color::white;
@@ -263,15 +341,18 @@ SCENE GetLoadingNextScene()
 
 void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath)
 {
+
     // 既存のロード画面があれば解放
     LoadingScreen_Finalize();
+
+    Loader::Reset();
 
     // 新しいロード画面を作成
     g_pLoadingScreen = new LoadingScreen();
 
     if (!g_pLoadingScreen->Initialize(g_pDevice, g_pContext, videoPath))
     {
-        // 動画読み込み失敗の場合、通常のシーン遷移にフォールバック
+        // 動画読み込み失敗の場合は通常のシーン遷移にきりかえる
         delete g_pLoadingScreen;
         g_pLoadingScreen = nullptr;
         SetScene(nextScene);
@@ -281,21 +362,27 @@ void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath)
     // ロード処理を定義
     std::function<void()> loadTask = [nextScene]()
     {
-        switch (nextScene)
-        {
-        case SCENE_GAME:
-            std::this_thread::sleep_for(std::chrono::seconds(5));
-            break;
+            switch (nextScene)
+            {
+            case SCENE_GAME:
+                Game_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+                break;
+            case SCENE_TITLE:
+                Title_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+                break;
+            case SCENE_READY:
+                Ready_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+                break;
+            }
 
-        case SCENE_TITLE:
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            break;
-
-        default:
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
-            break;
-        }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
     };
 
     g_pLoadingScreen->StartLoading(nextScene, loadTask, true);
+}
+
+void SetSceneSimple(SCENE nextScene)
+{
+    // videoPathをnullにして動画なしの暗転にする
+    SetSceneWithLoading(nextScene, nullptr);
 }

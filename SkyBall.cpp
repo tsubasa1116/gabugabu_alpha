@@ -1,196 +1,122 @@
 // SkyBall.cpp
 
 #include <d3d11.h>
-
 #include <DirectXMath.h>
-
 using namespace DirectX;
-
 #include "direct3d.h"
-
 #include "shader.h"
-
 #include "Camera.h"
-
 #include "SkyBall.h"
 
-#define SKYBALL_ROTATION_SPEED	(10.0f / 60.0f)  // ‚PƒtƒŒ[ƒ€“–‚½‚è‚Ì‰ñ“]Šp“x
+#define SKYBALL_ROTATION_SPEED	(10.0f / 60.0f)  // ï¼‘ãƒ•ãƒ¬ãƒ¼ãƒ å½“ãŸã‚Šã®å›žè»¢è§’åº¦
 
-static SkyBallObject		g_SkyBall;	// BALLƒIƒuƒWƒFƒNƒg
-
+static SkyBallObject		g_SkyBall;	// BALLã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 static ID3D11Device* g_pDevice;
-
 static ID3D11DeviceContext* g_pContext;
 
 SkyBallObject* GetSkyBall()
-
 {
-
 	return &g_SkyBall;
-
 }
 
 void SkyBall_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
-
 {
-
-	// 3DƒIƒuƒWƒFƒNƒg‰Šú‰»
-
+	// 3Dã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆåˆæœŸåŒ–
 	g_SkyBall.Position = XMFLOAT3(0, 0, 0);
-
 	g_SkyBall.Rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-
 	g_SkyBall.Speed = SKYBALL_ROTATION_SPEED;
 
-	// ¡‰ñ‚Ìƒf[ƒ^‚ÍƒXƒP[ƒŠƒ“ƒOÝ’è‚Å‘å‚«‚­•\Ž¦‚·‚é‚Ì‚Å‘å‚«‚³‚ð“K“–‚Éì‚é
+	// ä»Šå›žã®ãƒ‡ãƒ¼ã‚¿ã¯ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°è¨­å®šã§å¤§ããè¡¨ç¤ºã™ã‚‹ã®ã§å¤§ãã•ã‚’é©å½“ã«ä½œã‚‹
 
 	g_SkyBall.Scaling = XMFLOAT3(20.0f, 20.0f, 20.0f);
 
 	g_SkyBall.Model = ModelLoad("asset\\model\\Modelsky01_v6.fbx");
 
 	if (!g_SkyBall.Model)
-
 	{
-
-		OutputDebugStringA("SkyBall_Initialize: ƒ‚ƒfƒ‹ƒ[ƒhŽ¸”s\n");
-
+		OutputDebugStringA("SkyBall_Initialize: ãƒ¢ãƒ‡ãƒ«ãƒ­ãƒ¼ãƒ‰å¤±æ•—\n");
 	}
-
 	else
-
 	{
-
 		char buf[256];
-
-		snprintf(buf, sizeof(buf), "SkyBall_Initialize: ƒ‚ƒfƒ‹ƒ[ƒhŠ®—¹ meshes=%u textures=%u\n",
-
+		snprintf(buf, sizeof(buf), "SkyBall_Initialize: ãƒ¢ãƒ‡ãƒ«ãƒ­ãƒ¼ãƒ‰å®Œäº† meshes=%u textures=%u\n",
 			g_SkyBall.Model->AiScene ? g_SkyBall.Model->AiScene->mNumMeshes : 0,
-
 			g_SkyBall.Model->AiScene ? g_SkyBall.Model->AiScene->mNumTextures : 0);
-
 		OutputDebugStringA(buf);
-
 	}
-
 }
 
 void SkyBall_Finalize()
-
 {
-
 	ModelRelease(g_SkyBall.Model);
-
 	g_SkyBall.Model = nullptr;
-
 }
 
 void SkyBall_Update()
-
 {
-
-	// ƒJƒƒ‰‚ÌˆÊ’u‚ðŽæ“¾‚µ‚ÄÀ•W‚ðŒˆ‚ß‚é
-
-	// ¡‰ñ‚ÍƒJƒƒ‰‚Æ“¯‚¶À•W‚Å•\Ž¦‚µ‚Ä‚¨‚­
-
+	// ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã‚’å–å¾—ã—ã¦åº§æ¨™ã‚’æ±ºã‚ã‚‹
+	// ä»Šå›žã¯ã‚«ãƒ¡ãƒ©ã¨åŒã˜åº§æ¨™ã§è¡¨ç¤ºã—ã¦ãŠã
 	g_SkyBall.Position = GetCameraPosition();
 
-	// “K“–‚É‰ñ“]‚³‚¹‚é
-
+	// é©å½“ã«å›žè»¢ã•ã›ã‚‹
 	g_SkyBall.Rotation.y += g_SkyBall.Speed;
 
 	return;
-
 }
 
 void SkyBall_Draw()
-
 {
-
-	// •½sˆÚ“®s—ñì¬
-
+	// å¹³è¡Œç§»å‹•è¡Œåˆ—ä½œæˆ
 	XMMATRIX	TranslationMatrix =
-
 		XMMatrixTranslation(
-
 			g_SkyBall.Position.x,
-
 			g_SkyBall.Position.y,
-
 			g_SkyBall.Position.z
-
 		);
-
-	// ‰ñ“]s—ñì¬
-
+	// å›žè»¢è¡Œåˆ—ä½œæˆ
 	XMMATRIX	 RotationMatrix =
-
 		XMMatrixRotationRollPitchYaw(
-
 			XMConvertToRadians(g_SkyBall.Rotation.x),
-
 			XMConvertToRadians(g_SkyBall.Rotation.y),
-
 			XMConvertToRadians(g_SkyBall.Rotation.z)
-
 		);
-
-	// ƒXƒP[ƒŠƒ“ƒOs—ñì¬
-
+	// ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°è¡Œåˆ—ä½œæˆ
 	XMMATRIX	 ScalingMatrix =
-
 		XMMatrixScaling(
-
 			g_SkyBall.Scaling.x,
-
 			g_SkyBall.Scaling.y,
-
 			g_SkyBall.Scaling.z
-
 		);
-
-	// ƒ[ƒ‹ƒhs—ñì¬
-
+	// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ä½œæˆ
 	XMMATRIX	world =
-
 		ScalingMatrix *
-
 		RotationMatrix *
-
 		TranslationMatrix;
 
 	CAMERA* camera = GetCamera();
 
 	XMMATRIX oldProjection = camera->projection;
 
-	// “§Ž‹“Š‰e
-
+	// é€è¦–æŠ•å½±
 	camera->projection = XMMatrixPerspectiveFovLH(
-
 		XMConvertToRadians(60.0f),
-
 		camera->aspect,
-
 		0.1f,
-
 		1000.0f
-
 	);
 
 	XMMATRIX	view = GetViewMatrix();
-
 	//XMMATRIX	projection = GetProjectionMatrix();
-
 	XMMATRIX	wvp = world * view * camera->projection;
 
-	// WVPs—ñ‚ðƒZƒbƒg
+	// WVPè¡Œåˆ—ã‚’ã‚»ãƒƒãƒˆ
 
 	Shader_SetMatrix(wvp);
 
-	// ƒ‚ƒfƒ‹•\Ž¦
+	// ãƒ¢ãƒ‡ãƒ«è¡¨ç¤º
 
 	ModelDraw(g_SkyBall.Model);
 
 	camera->projection = oldProjection;
-
 }
 
