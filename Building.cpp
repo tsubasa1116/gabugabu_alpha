@@ -235,21 +235,21 @@ void Building_DrawAll(bool s_IsKonamiCodeEntered)
 //=========================================
 // コンストラクタ
 //=========================================
-Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex)
+Building::Building(BuildingType type, XMFLOAT3 pos, int modelIndex, int fieldIndex)
 	: type(type),
 	position(pos),
 	Phase(BuildingPhase::New),
 	boundingBox({}),
-	//m_Model(nullptr),
 	isActive(true),
 	isDestroyed(false),
 	m_ModelIndex(modelIndex),
+	m_FieldIndex(fieldIndex),   // ★追加
 	m_TexOffset(0),
 	m_IsPlayerNear(false)
 {
-	// 初期トランスフォーム
 	scaling = { 1.5f, 1.5f, 1.5f };
 	rotation = { 0.0f, 0.0f, 0.0f };
+
 
 	// モデル番号の範囲チェック
 	switch (type)
@@ -373,7 +373,7 @@ void Building_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		int modelIndex = map[i].variant;
 
 		// 建物生成（buildingsに追加していく）
-		Buildings[BuildingCount++] = new Building(type, map[i].pos, modelIndex);
+		Buildings[BuildingCount++] = new Building(type, map[i].pos, modelIndex, i);
 
 		if (BuildingCount >= 100) break;
 	}
@@ -428,6 +428,13 @@ void Building::Rebirth()
 //=========================================
 void Building::Update()
 {
+	MAPDATA* map = GetFieldObjects();
+
+	if (!map[m_FieldIndex].isActive && !m_IsFalling)
+	{
+		m_IsFalling = true;
+		m_FallSpeed = 0.0f;
+	}
 	// --- 復活（消えていく）処理 ---
 	if (this->isDestroyed)
 	{
@@ -558,6 +565,21 @@ void Building::Update()
 
 	// CalculateAABBをここで呼ぶ（インスタンスごとの計算）
 	CalculateAABB(this->boundingBox, currentPos, actualSize);
+
+	if (m_IsFalling)
+	{
+		// 重力加速
+		m_FallSpeed += 0.06f * DELTA_TIME;
+
+		// 下に移動
+		position.y -= m_FallSpeed;
+
+		// 一定距離落ちたら消す
+		if (position.y < -20.0f)
+		{
+			isActive = false;
+		}
+	}
 }
 
 //=========================================
