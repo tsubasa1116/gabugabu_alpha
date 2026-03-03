@@ -2455,7 +2455,7 @@ void Player_Respawn(int playerIndex)
 	if (playerIndex == 3) player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 }
 
-inline void LoopRange(int& animFrame, int start, int count, int advance)
+void LoopRange(int& animFrame, int start, int count, int advance)
 {
 	int relative = (animFrame - start + advance) % count;
 	if (relative < 0) relative += count;

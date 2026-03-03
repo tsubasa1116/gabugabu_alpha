@@ -187,3 +187,4 @@ bool Player_CanUseSpecial(int playerIndex);
 
 void Player_Warmup();
 
+void LoopRange(int& animFrame, int start, int count, int advance);

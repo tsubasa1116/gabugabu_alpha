@@ -20,6 +20,7 @@ using namespace DirectX;
 #include "color.h"
 #include "gamepad.h"
 #include "Audio.h"
+#include "game.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -216,13 +217,6 @@ static UINT Attack_idxdata[6 * 6]
 	20, 21, 22, 22, 21, 23, // -Y面
 };
 
-// グローバル変数か、管理クラスのメンバ変数として用意
-float g_hitStopTimer = 0.0f;
-
-// ヒットストップを開始する関数
-void StartHitStop(float duration) {
-	g_hitStopTimer = duration;
-}
 
 void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {

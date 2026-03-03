@@ -51,13 +51,7 @@ static bool s_GameStarted = false;
 static ID3D11DeviceContext* g_pContext = NULL;
 static	ID3D11ShaderResourceView* g_Texture[6];
 
-// グローバル変数か、管理クラスのメンバ変数として用意
-float g_hitStopTimer = 0.0f;
 
-// ヒットストップを開始する関数
-void StartHitStop(float duration) {
-	g_hitStopTimer = duration;
-}
 
 //======================================================
 //	
