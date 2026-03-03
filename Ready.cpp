@@ -83,6 +83,7 @@ static float g_TextPopOutElapsed = -1.0f; // -1 = 未開始
 static std::chrono::steady_clock::time_point g_ReadyLastTime;
 
 static bool g_ReadyInitialized = false;
+static bool g_IsWarmedUp = false;
 
 // イージング（サインのイーズアウト）
 static inline float EaseOutSine(float t) {
@@ -108,6 +109,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_ReadySlideElapsed = -1.0f;
 	g_AllJoinedTriggered = false;
 	g_TextPopOutElapsed = -1.0f;
+	g_IsWarmedUp = false;
 
 	// 時間初期化
 	g_ReadyLastTime = std::chrono::steady_clock::now();
@@ -305,8 +307,39 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		});
 
 		Loader::StartTaskLoad();
+		g_ReadyInitialized = true;
 
 }
+
+
+void Ready_Warmup()
+{
+	if (!g_pContext) return;
+
+	// 全テクスチャを配列にまとめる
+	ID3D11ShaderResourceView* textures[] = {
+		g_Texture,  g_Texture2,  g_Texture3,  g_Texture4,  g_Texture5,
+		g_Texture6,  g_Texture7,  g_Texture8,  g_Texture9,  g_Texture10,
+		g_Texture11, g_Texture12, g_Texture13, g_Texture14, g_Texture15,
+		g_Texture16, g_Texture17, g_Texture18, g_Texture19
+	};
+
+	for (auto tex : textures)
+	{
+		if (tex)
+		{
+			// スロット0にセットして、0ポリゴン描画（バインドを強制する）
+			g_pContext->PSSetShaderResources(0, 1, &tex);
+			g_pContext->Draw(0, 0);
+		}
+	}
+
+
+	// 終わったらスロットを空にしておく
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
+}
+
 void Ready_Finalize()
 {
 	//テクスチャの解放など
@@ -388,6 +421,13 @@ void Ready_Update()
 
 void Ready_Draw()
 {
+	if (!Loader::IsFinished) return;
+
+	if (!g_IsWarmedUp)
+	{
+		Ready_Warmup();
+		g_IsWarmedUp = true;
+	}
 
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();

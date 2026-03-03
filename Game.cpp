@@ -39,7 +39,7 @@ LIGHTOBJECT Light;
 //======================================================
 //
 //======================================================
-static int g_BgmID = NULL;
+static int g_BgmID[3];
 bool input2 = false;
 
 // コマンドが入力されたときに立つフラグ
@@ -47,6 +47,7 @@ static bool s_IsKonamiCodeEntered = false;
 static bool g_GameInitialized = false;
 static bool g_IsFirstFrame = true;
 static bool s_GameStarted = false;
+static bool s_IsCountSound = false;
 
 static ID3D11DeviceContext* g_pContext = NULL;
 static	ID3D11ShaderResourceView* g_Texture[6];
@@ -143,11 +144,12 @@ void Game_Finalize()
 	//P_Finalize();
 	//Score_Finalize();
 
-	UnloadAudio(g_BgmID);
+	UnloadAudio(g_BgmID[0]);
 	DamageText_Finalize();
 	g_GameInitialized = false;
 	s_GameStarted = false;
 	Loader::Reset();
+	s_IsCountSound = false;
 }
 
 //======================================================
@@ -160,14 +162,14 @@ void Game_Update()
 		Player_Warmup();
 		Effect_Warmup();
 
-		g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");
+		g_BgmID[0] = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");
 
 		g_IsFirstFrame = false;
 	}
 
 	if (GetGamePhase() == PHASE_PLAY && !s_GameStarted)
 	{
-		PlayAudio(g_BgmID, true);
+		PlayAudio(g_BgmID[0], true);
 
 		// 全プレイヤーの卵を割めE
 		for (int i = 0; i < PLAYER_MAX; i++)
@@ -346,6 +348,13 @@ void Game_Draw()
 		XMFLOAT2 size = { 300.0f, 300.0f };
 		XMFLOAT2 sizeGO = { 600.0f, 300.0f };
 
+
+		if (!s_IsCountSound)
+		{
+			s_IsCountSound = true;
+			g_BgmID[1] = LoadAudio("asset\\Audio\\Countdown.wav");
+			PlayAudio(g_BgmID[1], false);
+		}	
 		if (count == 3)
 		{
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[3]);

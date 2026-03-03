@@ -201,6 +201,7 @@ bool LoadingScreen::Update()
         m_FadeOutCounter = 0;
     }
 
+
     return true;  // ‚Ü‚¾ƒ[ƒh’†
 }
 
