@@ -15,6 +15,7 @@
 #include "swipe.h"
 #include "shader.h"
 #include "input.h"
+#include "color.h"
 
 #include <chrono>
 #include <cmath>
@@ -78,6 +79,10 @@ static bool g_AllJoinedTriggered = false;  // 全員参加検知済みフラグ
 static constexpr float TEXT_POPOUT_DURATION = 0.3f; // ポップアウト所要時間（秒）
 static float g_TextPopOutElapsed = -1.0f; // -1 = 未開始
 
+// 全員参加後の自動遷移タイマー
+static constexpr float AUTO_TRANSITION_DELAY = 2.0f; // 全員OK後の待機時間（秒）
+static float g_AutoTransitionTimer = -1.0f;           // -1 = 未開始
+
 // 時間管理
 static std::chrono::steady_clock::time_point g_ReadyLastTime;
 
@@ -103,6 +108,9 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_ReadySlideElapsed = -1.0f;
 	g_AllJoinedTriggered = false;
 	g_TextPopOutElapsed = -1.0f;
+
+	// 自動遷移タイマー初期化
+	g_AutoTransitionTimer = -1.0f;
 
 	// 時間初期化
 	g_ReadyLastTime = std::chrono::steady_clock::now();
@@ -342,7 +350,7 @@ void Ready_Update()
 			g_OKPopElapsed[i] += dt;
 	}
 
-	// 全員参加したら準備完了スライド開始 & テキストポップアウト開始
+	// 全員参加したら準備完了スライド開始 & テキストポップアウト開始 & 自動遷移タイマー開始
 	if (!g_AllJoinedTriggered &&
 		g_PlayerJoined[0] && g_PlayerJoined[1] &&
 		g_PlayerJoined[2] && g_PlayerJoined[3])
@@ -350,6 +358,7 @@ void Ready_Update()
 		g_AllJoinedTriggered = true;
 		g_ReadySlideElapsed = 0.0f;
 		g_TextPopOutElapsed = 0.0f;
+		g_AutoTransitionTimer = 0.0f;
 	}
 
 	// 準備完了スライドタイマー進行
@@ -360,16 +369,16 @@ void Ready_Update()
 	if (g_TextPopOutElapsed >= 0.0f)
 		g_TextPopOutElapsed += dt;
 
-	//キー入力チェック
-	//スタートボタンが押されたらシーンを切り替え
-	//フェード処理中はキーを受け付けない
-	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
+	// 全員参加後、2秒経過で自動遷移
+	if (g_AutoTransitionTimer >= 0.0f)
 	{
-		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
+		g_AutoTransitionTimer += dt;
+
+		if (g_AutoTransitionTimer >= AUTO_TRANSITION_DELAY && (GetFadeState() == FADE_NONE) && !IsLoading())
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
-
 			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\road.mp4");
+			g_AutoTransitionTimer = -1.0f; // 二重呼び出し防止
 		}
 	}
 }
@@ -378,10 +387,6 @@ void Ready_Draw()
 {
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
-
-	// 画面サイズ取得
-	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
-	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
 	// 頂点シェーダーに変換行列を設定
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
@@ -410,7 +415,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta2.width * 0.08f, (float)g_TexMeta2.height * 0.08f };
+		XMFLOAT2 size = { (float)g_TexMeta2.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta2.height * 0.08f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -420,8 +425,8 @@ void Ready_Draw()
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture8);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 110 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta8.width * 0.08f, (float)g_TexMeta8.height * 0.08f };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 110 * SCREEN_ADJUST_Y }; // 位置はお好みで
+		XMFLOAT2 size = { (float)g_TexMeta8.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta8.height * 0.08f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -431,8 +436,8 @@ void Ready_Draw()
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture4);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2 + 50, SCREEN_HEIGHT / 2 + 30 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta4.width * 0.08f, (float)g_TexMeta4.height * 0.08f };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2 + 50, SCREEN_HEIGHT / 2 + 30 * SCREEN_ADJUST_Y }; // 位置はお好みで
+		XMFLOAT2 size = { (float)g_TexMeta4.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta4.height * 0.08f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -442,8 +447,8 @@ void Ready_Draw()
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture5);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2 , SCREEN_HEIGHT / 2 + 33 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta5.width * 0.08f, (float)g_TexMeta5.height * 0.08f };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2 , SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // 位置はお好みで
+		XMFLOAT2 size = { (float)g_TexMeta5.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta5.height * 0.08f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -453,8 +458,8 @@ void Ready_Draw()
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture6);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 33 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta6.width * 0.08f, (float)g_TexMeta6.height * 0.08f };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // 位置はお好みで
+		XMFLOAT2 size = { (float)g_TexMeta6.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta6.height * 0.08f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -464,8 +469,8 @@ void Ready_Draw()
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture7);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 33 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta7.width * 0.08f, (float)g_TexMeta7.height * 0.08f };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // 位置はお好みで
+		XMFLOAT2 size = { (float)g_TexMeta7.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.08f * SCREEN_ADJUST_Y};
 		DrawSprite(pos, size, col);
 	}
 
@@ -476,7 +481,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 30 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta11.width * 0.08f, (float)g_TexMeta11.height * 0.08f };
+		XMFLOAT2 size = { (float)g_TexMeta11.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta11.height * 0.08f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -487,7 +492,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2 , SCREEN_HEIGHT / 2 + 33 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta12.width * 0.08f, (float)g_TexMeta12.height * 0.08f };
+		XMFLOAT2 size = { (float)g_TexMeta12.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta12.height * 0.08f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -498,7 +503,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 25 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta13.width * 0.08f, (float)g_TexMeta13.height * 0.08f };
+		XMFLOAT2 size = { (float)g_TexMeta13.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta13.height * 0.08f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -508,8 +513,8 @@ void Ready_Draw()
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture14);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 28 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta14.width * 0.08f, (float)g_TexMeta14.height * 0.08f };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 28  }; // 位置はお好みで
+		XMFLOAT2 size = { (float)g_TexMeta14.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta14.height * 0.08f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -520,7 +525,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta3.width * 0.08f, (float)g_TexMeta3.height * 0.08f };
+		XMFLOAT2 size = { (float)g_TexMeta3.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta3.height * 0.08f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -545,8 +550,8 @@ void Ready_Draw()
 				g_pContext->PSSetShaderResources(0, 1, &g_Texture10);
 				SetBlendState(BLENDSTATE_ALPHA);
 				XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, alpha };
-				XMFLOAT2 pos = { posX, SCREEN_HEIGHT / 2 + 4 };
-				XMFLOAT2 size = { (float)g_TexMeta9.width * 0.08f, (float)g_TexMeta9.height * 0.012f };
+				XMFLOAT2 pos = { posX * SCREEN_ADJUST_X, SCREEN_HEIGHT / 2 + 4 * SCREEN_ADJUST_Y };
+				XMFLOAT2 size = { (float)g_TexMeta9.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta9.height * 0.012f * SCREEN_ADJUST_Y };
 				DrawSprite(pos, size, col);
 			}
 		}
@@ -556,54 +561,11 @@ void Ready_Draw()
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture10);
 			SetBlendState(BLENDSTATE_ALPHA);
 			XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-			XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 4 };
-			XMFLOAT2 size = { (float)g_TexMeta9.width * 0.08f, (float)g_TexMeta9.height * 0.012f };
+			XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 4 * SCREEN_ADJUST_Y };
+			XMFLOAT2 size = { (float)g_TexMeta9.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta9.height * 0.012f * SCREEN_ADJUST_Y };
 			DrawSprite(pos, size, col);
 		}
 	}
-
-	// 吹き出し描画
-	if (g_Texture9)
-	{
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture9);
-		SetBlendState(BLENDSTATE_ALPHA);
-		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f, (float)g_TexMeta7.height * 0.078f };
-		DrawSprite(pos, size, col);
-	}
-
-	// 描画
-	if (g_Texture9)
-	{
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture9);
-		SetBlendState(BLENDSTATE_ALPHA);
-		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f, (float)g_TexMeta7.height * 0.078f };
-		DrawSprite(pos, size, col);
-	}
-
-	// 吹き出し描画
-	if (g_Texture9)
-	{
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture9);
-		SetBlendState(BLENDSTATE_ALPHA);
-		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f, (float)g_TexMeta7.height * 0.078f };
-		DrawSprite(pos, size, col);
-	}
-
-	// OKテクスチャ・位置の定義（1P?4P）
-	ID3D11ShaderResourceView* okTextures[4] = { g_Texture15, g_Texture16, g_Texture17, g_Texture18 };
-	TexMetadata* okMetas[4] = { &g_TexMeta15, &g_TexMeta16, &g_TexMeta17, &g_TexMeta18 };
-	XMFLOAT2 okPositions[4] = {
-		{ SCREEN_WIDTH / 2 - 505, SCREEN_HEIGHT / 2 - 250 },
-		{ SCREEN_WIDTH / 2 + 505, SCREEN_HEIGHT / 2 - 250 },
-		{ SCREEN_WIDTH / 2 - 515, SCREEN_HEIGHT / 2 + 130 },
-		{ SCREEN_WIDTH / 2 + 510, SCREEN_HEIGHT / 2 + 130 }
-	};
 
 	// 準備完了描画（全員参加で左からスライドイン）
 	if (g_ReadySlideElapsed >= 0.0f && g_Texture19)
@@ -620,10 +582,54 @@ void Ready_Draw()
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture19);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, e };
-		XMFLOAT2 pos = { posX, SCREEN_HEIGHT / 2 + 4 };
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.08f, (float)g_TexMeta9.height * 0.012f };
+		XMFLOAT2 pos = { posX , SCREEN_HEIGHT / 2 + 4 * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta9.height * 0.012f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
+
+	// 吹き出し描画
+	if (g_Texture9)
+	{
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture9);
+		SetBlendState(BLENDSTATE_ALPHA);
+		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // 位置はお好みで
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.078f * SCREEN_ADJUST_Y };
+		DrawSprite(pos, size, col);
+	}
+
+	// 描画
+	if (g_Texture9)
+	{
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture9);
+		SetBlendState(BLENDSTATE_ALPHA);
+		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // 位置はお好みで
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.078f * SCREEN_ADJUST_Y };
+		DrawSprite(pos, size, col);
+	}
+
+	// 吹き出し描画
+	if (g_Texture9)
+	{
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture9);
+		SetBlendState(BLENDSTATE_ALPHA);
+		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // 位置はお好みで
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.078f * SCREEN_ADJUST_Y };
+		DrawSprite(pos, size, col);
+	}
+
+	// OKテクスチャ・位置の定義（1P?4P）
+	ID3D11ShaderResourceView* okTextures[4] = { g_Texture15, g_Texture16, g_Texture17, g_Texture18 };
+	TexMetadata* okMetas[4] = { &g_TexMeta15, &g_TexMeta16, &g_TexMeta17, &g_TexMeta18 };
+	XMFLOAT2 okPositions[4] = {
+		{ SCREEN_WIDTH / 2 - 505 * SCREEN_ADJUST_X, SCREEN_HEIGHT / 2 - 250 * SCREEN_ADJUST_Y },
+		{ SCREEN_WIDTH / 2 + 505 * SCREEN_ADJUST_X, SCREEN_HEIGHT / 2 - 250 * SCREEN_ADJUST_Y },
+		{ SCREEN_WIDTH / 2 - 515 * SCREEN_ADJUST_X, SCREEN_HEIGHT / 2 + 130 * SCREEN_ADJUST_Y },
+		{ SCREEN_WIDTH / 2 + 510 * SCREEN_ADJUST_X, SCREEN_HEIGHT / 2 + 130 * SCREEN_ADJUST_Y }
+	};
+
 
 	// １Ｐ～４ＰＯＫ描画（ポップイン付き）
 	for (int i = 0; i < 4; i++)

@@ -1,4 +1,4 @@
-﻿// Win.h
+// Win.h
 #pragma once
 
 #include "direct3d.h"
