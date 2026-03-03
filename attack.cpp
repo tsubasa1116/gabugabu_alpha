@@ -694,24 +694,24 @@ void Attack_Draw(int playerIndex)
 
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	//// 2. デバッグ描画：攻撃中だけ扇形を表示する
-	//if (player.isAttacking)
-	//{
-	//	// 判定で使っているのと「全く同じ」設定で扇を作る
-	//	Sector debugSector;
-	//	debugSector.center = player.position;
+	// 2. デバッグ描画：攻撃中だけ扇形を表示する
+	if (player.isAttacking)
+	{
+		// 判定で使っているのと「全く同じ」設定で扇を作る
+		Sector debugSector;
+		debugSector.center = player.position;
 
-	//	// プレイヤーの向きから前方ベクトルを計算
-	//	float rad = XMConvertToRadians(player.rotation.y);
-	//	debugSector.forward = { sinf(rad), 0.0f, cosf(rad) };
+		// プレイヤーの向きから前方ベクトルを計算
+		float rad = XMConvertToRadians(player.rotation.y);
+		debugSector.forward = { sinf(rad), 0.0f, cosf(rad) };
 
-	//	// Attack_Update で設定した値と合わせるのがコツ！
-	//	debugSector.radius = 3.0f;
-	//	debugSector.angleDegree = 120.0f;
+		// Attack_Update で設定した値と合わせるのがコツ！
+		debugSector.radius = 3.0f;
+		debugSector.angleDegree = 120.0f;
 
-	//	// 扇形を描画！
-	//	DrawDebugSector(debugSector);
-	//}
+		// 扇形を描画！
+		DrawDebugSector(debugSector);
+	}
 
 	// 最後に念のためブレンド状態などを戻す
 	SetBlendState(BLENDSTATE_ALPHA);
