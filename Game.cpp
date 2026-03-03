@@ -30,6 +30,7 @@
 #include "loadThread.h"
 #include "shader.h"
 #include "color.h"
+#include "gimmick.h"
 
 //======================================================
 //	æ§‹é€ è¬¡å®£è¨€
@@ -42,7 +43,7 @@ LIGHTOBJECT Light;
 static int g_BgmID = NULL;
 bool input2 = false;
 
-// ã‚³ãƒãƒ³ãƒ‰ãŒå…¥åŠ›ã•ã‚ŒãŸã¨ãã«ç«‹ã¤ãƒ•ãƒ©ã‚°
+// ƒRƒ}ƒ“ƒh‚ª“ü—Í‚³‚ê‚½‚Æ‚«‚É—§‚Âƒtƒ‰ƒO
 static bool s_IsKonamiCodeEntered = false;
 static bool g_GameInitialized = false;
 static bool g_IsFirstFrame = true;
@@ -69,6 +70,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Initialize_MakeText();
 	CreateRenderTarget_MakeText();
 
+	Meteor_Initialize(pDevice, pContext);
 	Player_Initialize(pDevice, pContext);
 	Field_Initialize(pDevice, pContext);
 	Effect_Initialize(pDevice, pContext);
@@ -114,7 +116,6 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//PlayAudio(g_BgmID, false);	// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼E
 
 	XMFLOAT4 para;
-
 	para = XMFLOAT4(0.7f, 0.7f, 0.9999f, 1.0f);
 	Light.SetAmbient(para);
 	para = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
@@ -144,12 +145,9 @@ void Game_Finalize()
 	Attack_Finalize();
 	Skill_Finalize();
 	Special_Finalize();
+	Meteor_Finalize();
 	SkyBall_Finalize();
 	//Building_Finalize();
-
-	//BallFinalize();
-	//P_Finalize();
-	//Score_Finalize();
 
 	UnloadAudio(g_BgmID);
 	DamageText_Finalize();
@@ -190,14 +188,13 @@ void Game_Update()
 		s_GameStarted = true;
 	}
 
-
 	// ------------------------------------
 	// 
 	// ------------------------------------
 	// ã‚³ãƒãƒ³ãƒ‰ã§ä½¿ç”¨ã™ã‚‹å…¨ã¦ã®ã‚­ãƒ¼ã®æŠ¼ä¸‹ãƒˆãƒªã‚¬ãƒ¼ã‚’ãƒã‚§ãƒE‚¯ã—ã€æ¤œåEé–¢æ•°ã«æ¸¡ãE
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
-		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
+		if (!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
 		else						s_IsKonamiCodeEntered = false;
 	}
 
@@ -214,11 +211,15 @@ void Game_Update()
 	// 
 	// ------------------------------------
 	Player_Update(currentDeltaTime);
+
+	Player_Update();
+	Meteor_Update();
 	Field_Update();
 	Building_UpdateAll();
 	Effect_Update();
+	MeteorEffectUpdate();
 
-	// å»ºç‰©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°EEæ£Ÿãšã¤EE
+	// Œš•¨ƒGƒtƒFƒNƒgXVi1“‚¸‚Âj
 	int buildingCount = GetBuildingCount();
 	for (int i = 0; i < buildingCount; i++)
 	{
@@ -230,12 +231,9 @@ void Game_Update()
 	Gauge_Update();
 	Camera_Update();
 	SkyBall_Update();
-	//BallUpdate();
-	//P_Update();
-	//Score_Update();
 	DamageText_Update();
 
-	//ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³ã¸é·ç§»
+	//ƒQ[ƒ€ƒV[ƒ“‚Ö‘JˆÚ
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
 		// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã•ã›ã¦ã‚·ãƒ¼ãƒ³ã‚’åEã‚Šæ›¿ãˆã‚‹
@@ -280,14 +278,20 @@ void Game_Draw()
 
 		SetDepthTest(TRUE);
 	}
+
+	// è¦Î: ”ÍˆÍ•\¦‚Ì‚İ
+	Meteor_DrawRange(s_IsKonamiCodeEntered);
+	MeteorEffectDraw();
 	if (GetGamePhase() == PHASE_COUNTDOWN || GetGamePhase() == PHASE_PLAY)
 	{
 		Player_Draw(s_IsKonamiCodeEntered);
 	}
+	// è¦Î: ƒ‚ƒfƒ‹‚Ì‚İ
+	Meteor_DrawModel(s_IsKonamiCodeEntered);
 
-	//2Dæç”»
-	Light.SetEnable(FALSE);			// ãƒ©ã‚¤ãƒE‚£ãƒ³ã‚°OFF
-	Shader_SetLight(Light.Light);	// ãƒ©ã‚¤ãƒˆæ§‹é€ ä½“ã‚’ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¸ã‚»ãƒEƒˆ
+	// 2D•`‰æ
+	Light.SetEnable(FALSE);
+	Shader_SetLight(Light.Light);
 	SetDepthTest(FALSE);
 
 	DamageText_Draw();
@@ -297,8 +301,8 @@ void Game_Draw()
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
-		XMFLOAT2 pos = { cx - 380.0f, cy - 280.0f };
-		XMFLOAT2 size = { 540.0f, 150.0f };
+		XMFLOAT2 pos = { cx - 380.0f * SCREEN_ADJUST_X, cy - 280.0f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { 540.0f * SCREEN_ADJUST_X, 150.0f * SCREEN_ADJUST_Y };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[4]);
 		SetBlendState(BLENDSTATE_ALPHA);

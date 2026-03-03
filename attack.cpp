@@ -647,7 +647,6 @@ void Attack_Draw(int playerIndex)
 
 	SetBlendState(BLENDSTATE_ALPHA);
 
-
 	// 2. デバッグ描画：攻撃中だけ扇形を表示する
 	if (player.isAttacking)
 	{

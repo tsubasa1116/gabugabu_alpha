@@ -180,6 +180,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="gamepad.cpp" />
     <ClCompile Include="gauge.cpp" />
+    <ClCompile Include="gimmick.cpp" />
     <ClCompile Include="hp.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
@@ -235,6 +236,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="Game.h" />
     <ClInclude Include="gamepad.h" />
     <ClInclude Include="gauge.h" />
+    <ClInclude Include="gimmick.h" />
     <ClInclude Include="hp.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
