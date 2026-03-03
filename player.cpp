@@ -38,6 +38,7 @@ using namespace DirectX;
 #include <algorithm>
 #include <cstring> // 霑ｽ蜉・嘖trcmp 縺ｮ縺溘ａ
 #include "loadThread.h"
+#include "cutin.h"
 
 
 //======================================================
@@ -86,6 +87,9 @@ static bool g_specialInitialize[PLAYER_MAX] = { false };
 static std::vector<int> g_deathOrder;	// 豁ｻ莠｡縺励◆繝励Ξ繧､繝､繝ｼ縺ｮ繧､繝ｳ繝・ャ繧ｯ繧ｹ・亥・縺ｫ豁ｻ繧薙□閠・′蜈磯ｭ・・
 
 static int g_SE_ID[PLAYER_SE_COUNT] = { NULL };
+
+static bool g_isWaitWin = false;
+static float g_winTimer = 0.0f;
 
 // 鬆らせ驟榊・
 static Vertex2 vdata[PLAYER_VERTEX] =
@@ -166,7 +170,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].power = 0.0f;
 		player[p].speed = 0.0f;
 		player[p].defense = 1.0f;
-		player[p].stock = 3;
+		player[p].stock = 1;
 		player[p].rank = 0;
 		player[p].active = true;
 		player[p].satiety = 0.0f;
@@ -303,6 +307,9 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_SE_ID[1] = LoadAudio("asset\\Audio\\Roar_Form_Third.wav");	// 騾ｲ蛹門ｾ後・蜥・動 隨ｬ3蠖｢諷・
 	g_SE_ID[2] = LoadAudio("asset\\Audio\\Transform.wav");			// 螟芽ｺｫ
 	g_SE_ID[3] = LoadAudio("asset\\Audio\\EggBreaking.wav");		// 蜊ｵ蜑ｲ繧後ｋ
+
+	g_isWaitWin = false;
+	g_winTimer = 0.0f;
 }
 
 static void LoadTextureList(ID3D11Device* pDevice)
@@ -824,8 +831,8 @@ void Player_Update()
 				if (player[p].form == Form::Third && Keyboard_IsKeyDownTrigger(specialKeys[p]))	player[p].useSpecial = true;
 
 				// 繝懊ち繝ｳ蜈･蜉帙ｒ繝√ぉ繝・け縺励※繧ｹ繝壹す繝｣繝ｫ菴ｿ逕ｨ繝輔Λ繧ｰ繧堤ｫ九※繧・
-				if (player[p].form == Form::Third && g_Input[p].ZR)	player[p].useSpecial = true;
-
+				if (player[p].form == Form::Third && g_Input[p].ZR) player[p].useSpecial = true;
+				
 				// 繝輔Λ繧ｰ縺檎ｫ九▲縺溘ｉ譖ｴ譁ｰ蜃ｦ逅・ｒ蜻ｼ縺ｳ蜃ｺ縺・
 				if (player[p].isAttacking)	Attack_Update(p);	// 謾ｻ謦・
 				if (player[p].useSkill)		Skill_Update(p);	// 繧ｹ繧ｭ繝ｫ
@@ -1698,6 +1705,7 @@ void Player_Update()
 	// 繝励Ξ繧､繝､繝ｼ蜷悟｣ｫ縺ｮ謾ｻ謦・愛螳・
 	AttackPlayerCollisions();
 	//ImGui::End();
+	Player_CheckWin();
 }
 
 //======================================================
@@ -2175,6 +2183,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 
 		// 繧ｨ繝輔ぉ繧ｯ繝域緒逕ｻ ・医・繝ｬ繧､繝､繝ｼ縺ｮ謇句燕・・
 		EffectFront_DrawForPlayer(idx);
+
 	};
 
 	// -----------------------------------
@@ -2249,6 +2258,9 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 
 	// 3D繧ｪ繝悶ず繧ｧ繧ｯ繝医・豺ｱ蠎ｦ繝・せ繝医ｒ辟｡蜉ｹ縺ｫ縺励※謠冗判
 	SetDepthTest(false);
+
+	Shader_BeginUI();
+	Shader_Begin();
 }
 
 void Player_DrawHP()
@@ -2352,7 +2364,7 @@ void Player_DrawHP()
 		if (Player_CanUseSpecial(i))
 		{
 			Shader_SetColor(color::white);
-			Effect_Set(24, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (100.0f * SCREEN_ADJUST_Y) }, { (162.0f * SCREEN_ADJUST_X), (60.0f * SCREEN_ADJUST_Y) }, i);
+			Effect_Set(24, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (95.0f * SCREEN_ADJUST_Y) }, { (190.0f * SCREEN_ADJUST_X), (69.0f * SCREEN_ADJUST_Y) }, i);
 		}
 		if (!Player_CanUseSpecial(i))
 		{
@@ -2556,12 +2568,36 @@ static void Ranking(int playerIndex)
 				break;
 			}
 		}
+		//if((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A))
+		//{
+		//	// 蜍晁・｢ｺ螳・竊・SCENE_WIN 縺ｸ驕ｷ遘ｻ
+		//	if (GetFadeState() == FADE_NONE)
+		//	{
+		//		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 0.0f);
+		//		SetFade(60, color, FADE_OUT, SCENE_WIN);
+		//	}
+		//}
+		g_isWaitWin = true;
+		g_winTimer = 0.0f;
+	}
+}
 
-		// 蜍晁・｢ｺ螳・竊・SCENE_WIN 縺ｸ驕ｷ遘ｻ
+void Player_CheckWin()
+{
+	if (!g_isWaitWin) return;
+
+	g_winTimer += DELTA_TIME;
+
+	/*if (Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A)*/
+	if (g_winTimer >= 3.0f)
+	{
+		// ゲーム終了から勝利画面へ遷移
 		if (GetFadeState() == FADE_NONE)
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 0.0f);
 			SetFade(60, color, FADE_OUT, SCENE_WIN);
+			g_isWaitWin = false;  // 遷移開始後はフラグを下ろす
+			g_winTimer = 0.0f;
 		}
 	}
 }

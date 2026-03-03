@@ -36,6 +36,9 @@ public:
 	// ループ再生（スキップ時間を適用してリセット）
 	void ResetForLoop();
 
+	// テクスチャ（SRV）を取得する
+	ID3D11ShaderResourceView* GetSRV() const { return m_pSRV.Get(); }
+
 private:
 	// テクスチャにフレームデータを書き込む
 	void WriteFrameToTexture(IMFSample* pSample);

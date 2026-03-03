@@ -170,6 +170,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="Building.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="collider.cpp" />
+    <ClCompile Include="cutin.cpp" />
     <ClCompile Include="DamageText.cpp" />
     <ClCompile Include="debug_ostream.cpp" />
     <ClCompile Include="debug_render.cpp" />
@@ -225,6 +226,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="Camera.h" />
     <ClInclude Include="collider.h" />
     <ClInclude Include="color.h" />
+    <ClInclude Include="cutin.h" />
     <ClInclude Include="DamageText.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_render.h" />

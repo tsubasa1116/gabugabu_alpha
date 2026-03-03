@@ -30,9 +30,10 @@
 #include "loadThread.h"
 #include "shader.h"
 #include "color.h"
+#include "cutin.h"
 
 //======================================================
-//	ÊßãÈÄ†Ë¨°ÂÆ£Ë®Ä
+// 
 //======================================================
 LIGHTOBJECT Light;
 
@@ -42,7 +43,6 @@ LIGHTOBJECT Light;
 static int g_BgmID[3];
 bool input2 = false;
 
-// „Ç≥„Éû„É≥„Éâ„ÅåÂÖ•Âäõ„Åï„Çå„Åü„Å®„Åç„Å´Á´ã„Å§„Éï„É©„Ç∞
 static bool s_IsKonamiCodeEntered = false;
 static bool g_GameInitialized = false;
 static bool g_IsFirstFrame = true;
@@ -51,6 +51,21 @@ static bool s_IsCountSound = false;
 
 static ID3D11DeviceContext* g_pContext = NULL;
 static	ID3D11ShaderResourceView* g_Texture[6];
+
+static int s_OldCount = -1;
+static float s_CountAnimeTimer = 0.0f;
+
+// ÉJÉEÉìÉgÉ_ÉEÉìópÇ¢Å[Ç∂ÇÒÇÆ
+static inline float EaseCountDown(float t)
+{
+	const float bounceScale = 0.7f;          // íµÇÀï‘ÇËÇÃã≠Ç≥
+	const float bounce = bounceScale + 1.0f; // íµÇÀï‘ÇËÇÃëÂÇ´Ç≥Çí≤êÆÇ∑ÇÈ
+	float timeAdj = t - 1.0f;                // éûä‘Çí≤êÆÇµÇƒ-1Ç©ÇÁ0ÇÃîÕàÕÇ≈ïœâªÇ≥ÇπÇÈ
+
+	// f(t) = 1 + C3(bounceScale - 1)^3 + C1(bounce - 1)^2
+	return 1.0f + bounceScale * powf(timeAdj, 3.0f) + bounce * powf(timeAdj, 2.0f);
+}
+
 
 //======================================================
 //	
@@ -71,6 +86,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Camera_Initialize();
 	DamageText_Initialize();
 	SkyBall_Initialize(pDevice, pContext);
+	Cutin_Initialize();
 
 	g_pContext = pContext;
 
@@ -138,6 +154,7 @@ void Game_Finalize()
 	Skill_Finalize();
 	Special_Finalize();
 	SkyBall_Finalize();
+	Cutin_Finalize();
 	//Building_Finalize();
 
 	//BallFinalize();
@@ -200,6 +217,7 @@ void Game_Update()
 	Field_Update();
 	Building_UpdateAll();
 	Effect_Update();
+	Cutin_Update();
 
 	// Âª∫Áâ©„Ç®„Éï„Çß„ÇØ„ÉàÊõ¥Êñ∞ÅEÅEÊ£ü„Åö„Å§ÅEÅE
 	int buildingCount = GetBuildingCount();
@@ -227,6 +245,7 @@ void Game_Update()
 	}
 }
 
+
 //======================================================
 //
 //======================================================
@@ -248,7 +267,7 @@ void Game_Draw()
 
 	Field_Draw(s_IsKonamiCodeEntered);
 
-	// Âª∫Áâ©„Ç®„Éï„Çß„ÇØ„Éà„ÅE‰∏ÄÊã¨ÊèèÁîªÅEÅEDÁ©∫ÈñìÔºÅE
+	// åöï®ÇÃï`âÊ
 	{
 		Shader_Begin();
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -274,6 +293,7 @@ void Game_Draw()
 	SetDepthTest(FALSE);
 
 	DamageText_Draw();
+	Cutin_Draw();
 
 	if (GetGamePhase() == PHASE_INTRO)
 	{// „Éü„ÅE„É´„Ç∑„ÉÅEÇ£ÂêçÊú≠
@@ -355,39 +375,42 @@ void Game_Draw()
 			g_BgmID[1] = LoadAudio("asset\\Audio\\Countdown.wav");
 			PlayAudio(g_BgmID[1], false);
 		}	
+
+		if (s_OldCount != count)
+		{// ÉJÉEÉìÉgÇ™ïœÇÌÇ¡ÇΩÇÁÉAÉjÉÅÅ[ÉVÉáÉìÇÉäÉZÉbÉg
+			s_OldCount = count;
+			s_CountAnimeTimer = 0.0f;
+		}
+
+		// É^ÉCÉ}Å[ÇêiÇﬂÇÈ
+		s_CountAnimeTimer += (1.0f / 60.0f) * 3.5f; // *Ç≈ÉAÉjÉÅÅ[ÉVÉáÉìë¨ìxÇí≤êﬂ
+		if (s_CountAnimeTimer > 1.0f) s_CountAnimeTimer = 1.0f;
+
+		// ÉAÉjÉÅÅ[ÉVÉáÉìåWêîÇåvéZ
+		float animScale = EaseCountDown(s_CountAnimeTimer);
+		XMFLOAT2 animaSize = { size.x * animScale, size.y * animScale };
+		XMFLOAT2 animaSizeGO = { sizeGO.x * animScale, sizeGO.y * animScale };
+
 		if (count == 3)
 		{
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[3]);
-			DrawSprite(pos, size, color::white);
-
-			/*wchar_t text[8];
-			swprintf_s(text, L"%d", count);
-			DrawTextEx(text, cx - 30.0f, cy - 50.0f, 150.0f, L"FZ„Ç¥„É≥„Çø„Åã„Å™", TextColor::P4color);*/
+			DrawSprite(pos, animaSize, color::white);
 		}
 		else if (count == 2)
 		{
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[2]);
-			DrawSprite(pos, size, color::white);
+			DrawSprite(pos, animaSize, color::white);
 
-			/*wchar_t text[8];
-			swprintf_s(text, L"%d", count);
-			DrawTextEx(text, cx - 30.0f, cy - 50.0f, 150.0f, L"FZ„Ç¥„É≥„Çø„Åã„Å™", TextColor::P3color);*/
 		}
 		else if (count == 1)
 		{
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[1]);
-			DrawSprite(pos, size, color::white);
-
-			/*wchar_t text[8];
-			swprintf_s(text, L"%d", count);
-			DrawTextEx(text, cx - 20.0f, cy - 50.0f, 150.0f, L"FZ„Ç¥„É≥„Çø„Åã„Å™", TextColor::P2color);*/
+			DrawSprite(pos, animaSize, color::white);
 		}
 		else if (count == 0)
 		{
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[5]);
-			DrawSprite(pos, sizeGO, color::white);
-
-			/*DrawTextEx(L"GO!", cx - 180.0f, cy - 50.0f, 150.0f, L"FZ„Ç¥„É≥„Çø„Åã„Å™", TextColor::P1color);*/
+			DrawSprite(pos, animaSizeGO, color::white);
 		}
 	}
 

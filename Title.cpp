@@ -14,6 +14,7 @@
 #include <cmath>
 #include "VideoTexture.h"
 #include "color.h"
+#include "input.h"
 
 static VideoTexture g_VideoTex;
 
@@ -112,12 +113,12 @@ void Title_Update()
 	g_TitleElapsed += dt;
 
 	// キー入力チェック（フェード中は受け付けない）
-	if (Keyboard_IsKeyDownTrigger(KK_SPACE) && (GetSwipeState() == SWIPE_NONE))
+	if ((Keyboard_IsKeyDownTrigger(KK_SPACE) || g_Input->Plus) && (GetSwipeState() == SWIPE_NONE))
 	{
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetSwipe(40.0f, color, SWIPE_OUT, SCENE_SOUND);
 	}
-	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
+	if ((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A) && (GetFadeState() == FADE_NONE))
 	{
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_START);

@@ -132,7 +132,7 @@ static void Effect_LoadTexture(int i, const wchar_t* num)
 	ScratchImage image{};
 	HRESULT hr = LoadFromWICFile(num, WIC_FLAGS_NONE, &metadata, image);
 
-	// ★追加：エラーの正体（HRESULT）をメッセージボックスで強制表示させる
+	// エラーの正体（HRESULT）をメッセージボックスで強制表示させる
 	if (FAILED(hr))
 	{
 		wchar_t errorMsg[512];
@@ -198,7 +198,8 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Effect_LoadTexture(22, L"Asset\\Texture\\uiPoison_vx.png");
 	Effect_LoadTexture(23, L"Asset\\Texture\\uiOrbit_v1.png");
 	Effect_LoadTexture(24, L"Asset\\Texture\\special.png");
-	Effect_LoadTexture(25, L"Asset\\Texture\\effectDown_v1.png");
+	Effect_LoadTexture(25, L"Asset\\Texture\\effectDown_v1.png"); 
+	Effect_LoadTexture(26, L"Asset\\Texture\\uiCut_v1.png");
 
 	});
 
@@ -228,22 +229,28 @@ void Effect_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	// インデックスバッファ作成
 	{
-		D3D11_BUFFER_DESC	bd;
-		ZeroMemory(&bd, sizeof(bd));	// 0でクリア
-		bd.Usage = D3D11_USAGE_DYNAMIC;
+		D3D11_BUFFER_DESC bd;
+		ZeroMemory(&bd, sizeof(bd));
+		// 中身が変わらないデータなのでIMMUTABLEにして高速・安全化
+		bd.Usage = D3D11_USAGE_IMMUTABLE;
 		bd.ByteWidth = sizeof(UINT) * 6;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
+		bd.CPUAccessFlags = 0; // CPUからのアクセスは不要
 
-		// インデックスバッファへ書き込み
-		D3D11_MAPPED_SUBRESOURCE msr;
-		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-		UINT* index = (UINT*)msr.pData;
+		// バッファを作ると同時に初期データを流し込む
+		D3D11_SUBRESOURCE_DATA initData;
+		ZeroMemory(&initData, sizeof(initData));
+		initData.pSysMem = effect_idxdata; // 流し込むデータ
 
-		// インデックスデータをバッファへコピー
-		CopyMemory(&index[0], &effect_idxdata[0], sizeof(UINT) * 6);
-		pContext->Unmap(g_IndexBuffer, 0);
+		// 作成と同時に書き込むのでMapは不要
+		HRESULT hr = pDevice->CreateBuffer(&bd, &initData, &g_IndexBuffer);
+
+		// 失敗した場合はエラーを出して止める（安全対策）
+		if (FAILED(hr))
+		{
+			MessageBoxW(NULL, L"Effectのインデックスバッファ作成に失敗しました！", L"エラー", MB_OK | MB_ICONERROR);
+			assert(SUCCEEDED(hr));
+		}
 	}
 	// デバッグレンダラー初期化 
 	Debug_Initialize(pDevice, pContext);

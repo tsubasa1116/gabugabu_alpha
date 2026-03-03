@@ -408,15 +408,15 @@ void Ready_Update()
 	//キー入力チェック
 	//スタートボタンが押されたらシーンを切り替え
 	//フェード処理中はキーを受け付けない
-	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
+	if ((Keyboard_IsKeyDownTrigger(KK_ENTER) || (g_Input->X) )&& (GetFadeState() == FADE_NONE) && !IsLoading())
 	{
-		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
+		if(g_AllJoinedTriggered)
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
-
 			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\gameLoad.mp4");
 		}
 	}
+	
 }
 
 void Ready_Draw()
