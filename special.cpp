@@ -30,7 +30,7 @@ static ID3D11Buffer* g_VertexBuffer;
 static ID3D11Buffer* g_IndexBuffer;
 
 // テクスチャ変数
-static ID3D11ShaderResourceView* g_Special_Texture[10];
+static ID3D11ShaderResourceView* g_Special_Texture[11];
 
 // オブジェクト
 static SPECIAL_OBJECT Special[PLAYER_MAX];
@@ -318,8 +318,6 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"Asset\\Texture\\effectHit02_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[10]);
 	assert(g_Special_Texture[10]);
-
-
 	});
 
 	// インデックスバッファ作成
