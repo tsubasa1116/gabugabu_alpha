@@ -1489,17 +1489,11 @@ void Player_Update()
 		float radFacing = XMConvertToRadians(player[p].rotation.y);
 		float facingX = sinf(radFacing);
 		float facingZ = cosf(radFacing);
-		bool facingZDominant = fabsf(facingZ) >= fabsf(facingX);
+		bool facingZDominant = fabsf(facingZ) <= fabsf(facingX);
 
 		float widthScale = facingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X方向スケール
 		float depthScale = facingZDominant ? HITBOX_LONG : HITBOX_SHORT;	// Z方向スケール
 
-		// 第2形態 第3形態はXとZ同じにする
-		if (player[p].form == Form::Second || player[p].form == Form::Third)
-		{
-			widthScale = 0.25f;
-			depthScale = 0.25f;
-		}
 
 		XMFLOAT3 hitboxScaling = XMFLOAT3
 		(
