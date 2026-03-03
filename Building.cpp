@@ -565,7 +565,7 @@ void Building::Update()
 //=========================================
 void Building::Draw(bool s_IsKonamiCodeEntered)
 {
-	if (!Loader::IsFinished) return;
+	//if (!Loader::IsFinished) return;
 	if (!m_Model) return;
 	// カタログから対象のモデルを取得
 	MODEL* pTarget = nullptr;

@@ -19,6 +19,7 @@
 #include <chrono>
 #include <cmath>
 #include "LoadingScreen.h"
+#include "loadThread.h"
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//テクスチャ１枚を表すオブジェクト
 static	ID3D11ShaderResourceView* g_Texture2 = NULL;
@@ -81,6 +82,8 @@ static float g_TextPopOutElapsed = -1.0f; // -1 = 未開始
 // 時間管理
 static std::chrono::steady_clock::time_point g_ReadyLastTime;
 
+static bool g_ReadyInitialized = false;
+
 // イージング（サインのイーズアウト）
 static inline float EaseOutSine(float t) {
 	if (t <= 0.0f) return 0.0f;
@@ -90,6 +93,8 @@ static inline float EaseOutSine(float t) {
 
 void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
+	if (g_ReadyInitialized) return;
+
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
@@ -107,194 +112,199 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// 時間初期化
 	g_ReadyLastTime = std::chrono::steady_clock::now();
 
-	//白テクスチャ読み込み
-	{
-		TexMetadata		metadata;
-		ScratchImage	image;
-		LoadFromWICFile(L"asset\\texture\\white.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-		assert(g_Texture);//読み込み失敗時にダイアログを表示
-	}
+	Loader::AddTask([pDevice]()
+		{
+			//白テクスチャ読み込み
+			{
+				TexMetadata		metadata;
+				ScratchImage	image;
+				LoadFromWICFile(L"asset\\texture\\white.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
+				assert(g_Texture);//読み込み失敗時にダイアログを表示
+			}
 
-	// 背景読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\ready_color.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture2);
-		g_TexMeta2 = metadata;
-		assert(g_Texture2);
-	}
+			// 背景読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\ready_color.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture2);
+				g_TexMeta2 = metadata;
+				assert(g_Texture2);
+			}
 
-	// 黒枠読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\blackLine.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture3);
-		g_TexMeta3 = metadata;
-		assert(g_Texture3);
-	}
+			// 黒枠読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\blackLine.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture3);
+				g_TexMeta3 = metadata;
+				assert(g_Texture3);
+			}
 
-	// 1Ｐシルエット読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\character1OFF.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture4);
-		g_TexMeta4 = metadata;
-		assert(g_Texture4);
-	}
+			// 1Ｐシルエット読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\character1OFF.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture4);
+				g_TexMeta4 = metadata;
+				assert(g_Texture4);
+			}
 
-	// ２Ｐシルエット読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\character2OFF.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture5);
-		g_TexMeta5 = metadata;
-		assert(g_Texture5);
-	}
+			// ２Ｐシルエット読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\character2OFF.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture5);
+				g_TexMeta5 = metadata;
+				assert(g_Texture5);
+			}
 
-	// ３Ｐシルエット読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\character3OFF.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture6);
-		g_TexMeta6 = metadata;
-		assert(g_Texture6);
-	}
+			// ３Ｐシルエット読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\character3OFF.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture6);
+				g_TexMeta6 = metadata;
+				assert(g_Texture6);
+			}
 
-	// ４Ｐシルエット読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\character4OFF.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture7);
-		g_TexMeta7 = metadata;
-		assert(g_Texture7);
-	}
+			// ４Ｐシルエット読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\character4OFF.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture7);
+				g_TexMeta7 = metadata;
+				assert(g_Texture7);
+			}
 
-	// プレイヤーナンバー読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\playerNumber.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture8);
-		g_TexMeta8 = metadata;
-		assert(g_Texture8);
-	}
+			// プレイヤーナンバー読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\playerNumber.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture8);
+				g_TexMeta8 = metadata;
+				assert(g_Texture8);
+			}
 
-	// 吹き出し読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\hukidashi.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture9);
-		g_TexMeta9 = metadata;
-		assert(g_Texture9);
-	}
+			// 吹き出し読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\hukidashi.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture9);
+				g_TexMeta9 = metadata;
+				assert(g_Texture9);
+			}
 
-	// 吹き出し読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\ready1.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture10);
-		g_TexMeta10 = metadata;
-		assert(g_Texture10);
-	}
+			// 吹き出し読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\ready1.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture10);
+				g_TexMeta10 = metadata;
+				assert(g_Texture10);
+			}
 
-	// １Ｐキャラクター読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\character1ON.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture11);
-		g_TexMeta11 = metadata;
-		assert(g_Texture11);
-	}
+			// １Ｐキャラクター読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\character1ON.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture11);
+				g_TexMeta11 = metadata;
+				assert(g_Texture11);
+			}
 
-	// ２Ｐキャラクター読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\character2ON.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture12);
-		g_TexMeta12 = metadata;
-		assert(g_Texture12);
-	}
+			// ２Ｐキャラクター読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\character2ON.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture12);
+				g_TexMeta12 = metadata;
+				assert(g_Texture12);
+			}
 
-	// ３Ｐキャラクター読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\character3ON.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture13);
-		g_TexMeta13 = metadata;
-		assert(g_Texture13);
-	}
+			// ３Ｐキャラクター読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\character3ON.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture13);
+				g_TexMeta13 = metadata;
+				assert(g_Texture13);
+			}
 
-	// ４Ｐキャラクター読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\character4ON.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture14);
-		g_TexMeta14 = metadata;
-		assert(g_Texture14);
-	}
+			// ４Ｐキャラクター読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\character4ON.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture14);
+				g_TexMeta14 = metadata;
+				assert(g_Texture14);
+			}
 
-	// １ＰＯＫ読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture15);
-		g_TexMeta15 = metadata;
-		assert(g_Texture15);
-	}
+			// １ＰＯＫ読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture15);
+				g_TexMeta15 = metadata;
+				assert(g_Texture15);
+			}
 
-	// ２ＰＯＫ読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture16);
-		g_TexMeta16 = metadata;
-		assert(g_Texture16);
-	}
+			// ２ＰＯＫ読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture16);
+				g_TexMeta16 = metadata;
+				assert(g_Texture16);
+			}
 
-	// ３ＰＯＫ読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture17);
-		g_TexMeta17 = metadata;
-		assert(g_Texture17);
-	}
+			// ３ＰＯＫ読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture17);
+				g_TexMeta17 = metadata;
+				assert(g_Texture17);
+			}
 
-	// ４ＰＯＫ読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture18);
-		g_TexMeta18 = metadata;
-		assert(g_Texture18);
-	}
+			// ４ＰＯＫ読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture18);
+				g_TexMeta18 = metadata;
+				assert(g_Texture18);
+			}
 
-	// 準備完了読み込み
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICFile(L"asset\\texture\\everyoneOK.png", WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture19);
-		g_TexMeta19 = metadata;
-		assert(g_Texture19);
-	}
+			// 準備完了読み込み
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				LoadFromWICFile(L"asset\\texture\\everyoneOK.png", WIC_FLAGS_NONE, &metadata, image);
+				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture19);
+				g_TexMeta19 = metadata;
+				assert(g_Texture19);
+			}
+		});
+
+		Loader::StartTaskLoad();
 
 }
 void Ready_Finalize()
@@ -319,6 +329,8 @@ void Ready_Finalize()
 	SAFE_RELEASE(g_Texture17);
 	SAFE_RELEASE(g_Texture18);
 	SAFE_RELEASE(g_Texture19);
+
+	g_ReadyInitialized = false;
 }
 
 void Ready_Update()
@@ -369,13 +381,14 @@ void Ready_Update()
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
-			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\road.mp4");
+			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\gameLoad.mp4");
 		}
 	}
 }
 
 void Ready_Draw()
 {
+
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
 

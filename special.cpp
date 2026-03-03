@@ -1214,6 +1214,27 @@ void Special_Concrete_Draw(int playerIndex)
 
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		g_pContext->Draw(4, 16); // +Y面
+
+		// 加算合成
+		SetBlendState(BLENDSTATE_ADD);
+
+		Shader_SetBlur();
+		Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.6f));
+
+		float bloomScale = 1.05f;
+		XMMATRIX bloomWorldMatrix =
+			XMMatrixScaling(20.0f * bloomScale, 1.0f, 20.0f * bloomScale) *
+			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+			XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
+
+		XMMATRIX bloomWVP = bloomWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(bloomWVP);
+
+		g_pContext->Draw(4, 16);
+
+		// 設定を戻す
+		Shader_Begin();
+		SetBlendState(BLENDSTATE_ALPHA);
 	}
 }
 
@@ -1602,6 +1623,26 @@ void Special_Electricity_Draw2(int playerIndex)
 			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			g_pContext->Draw(4, 0);	// -Z面の4頂点 (0, 1, 2, 3)
 
+			// 加算合成
+			SetBlendState(BLENDSTATE_ADD);
+
+			Shader_SetBlur();
+
+			float bloomScale = 1.3f;
+			XMMATRIX bloomLightningWorldMatrix =
+				XMMatrixScaling(2.0f * bloomScale, length * 1.1f, 2.0f) *
+				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+				XMMatrixTranslation(target.x + 0.5f, 4.0f, target.z + 0.1f);
+
+			XMMATRIX bloomLightningWVP = bloomLightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(bloomLightningWVP);
+
+			g_pContext->Draw(4, 0);
+
+			// 設定を戻す
+			Shader_Begin();
+			SetBlendState(BLENDSTATE_ALPHA);
+
 			//// --- 3. 追加のエフェクト描画 (g_Special_Texture[8] の 19~23番) ---
 			//{
 			//	// ★ポイント1: 速度調整 / 3 でゆっくりにする。数字を大きくするほど遅くなる
@@ -1698,6 +1739,27 @@ void Special_Electricity_Draw2(int playerIndex)
 				g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[9]);
 				g_pContext->Draw(4, 16);
 
+				// 加算合成
+				SetBlendState(BLENDSTATE_ADD);
+
+				Shader_SetBlur();
+				Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.8f));
+
+				float bloomScale = 1.05f;
+				XMMATRIX bloomCircleWorldMatrix =
+					XMMatrixScaling(8.0f * bloomScale, 8.0f, 8.0f * bloomScale) *
+					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+					XMMatrixTranslation(target.x, target.y - 1.95f, target.z);
+
+				XMMATRIX bloomCircleWVP = bloomCircleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+				Shader_SetMatrix(bloomCircleWVP);
+
+				g_pContext->Draw(4, 16);
+
+				// 設定を戻す
+				Shader_Begin();
+				SetBlendState(BLENDSTATE_ALPHA);
+
 				// 描画後にカラーをリセット
 				//Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 			}
@@ -1746,6 +1808,27 @@ void Special_Electricity_Draw2(int playerIndex)
 				// 4. テクスチャ[8]をセットして描画！
 				g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[10]);
 				g_pContext->Draw(4, 16);
+
+				// 加算合成
+				SetBlendState(BLENDSTATE_ADD);
+
+				Shader_SetBlur();
+				Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.8f));
+
+				float bloomScale = 1.05f;
+				XMMATRIX bloomCircleWorldMatrix =
+					XMMatrixScaling(7.0f * bloomScale, 7.0f, 7.0f * bloomScale) *
+					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+					XMMatrixTranslation(target.x, target.y - 1.85f, target.z);
+
+				XMMATRIX bloomCircleWVP = bloomCircleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+				Shader_SetMatrix(bloomCircleWVP);
+
+				g_pContext->Draw(4, 16);
+
+				// 設定を戻す
+				Shader_Begin();
+				SetBlendState(BLENDSTATE_ALPHA);
 
 				// 描画後にカラーをリセット
 				//Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));

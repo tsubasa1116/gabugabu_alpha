@@ -42,6 +42,7 @@ void DrawTextEx(
 	float x, float y,
 	float fontSize,
 	const wchar_t* fontName,
-	TextColor color
+	TextColor color,
+	float alpha = 1.0f
 );
 D2D1_COLOR_F D2DColor(TextColor color);

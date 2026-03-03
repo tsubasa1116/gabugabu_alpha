@@ -10,6 +10,8 @@
 #include "Player.h"
 #include "input.h"
 #include "imgui.h"
+#include "makeText.h"
+#include "color.h"
 
 // グローバル変数
 static CAMERA   CameraObject;
@@ -18,10 +20,10 @@ static XMFLOAT3 s_TargetPos;              // 目標カメラ位置
 static XMFLOAT3 s_TargetAt;               // 目標注視点位置
 static float    s_TargetFov = 45.0f;      // 目標fov
 static bool     s_IsLerping = false;      // 目標と現在が十分に離れているか
-const float     SMOOTH_FACTOR = 0.5f;     // 1フレームあたりの進行率で、大きいほど速く追従する
-const float     FOV_SMOOTH_FACTOR = 0.15f;// fovの追従速度
+const float     SMOOTH_FACTOR = 0.35f;     // 1フレームあたりの進行率で、大きいほど速く追従する
+const float     FOV_SMOOTH_FACTOR = 0.08f;// fovの追従速度
 const float     TARGET_EPSILON = 0.001f;  // 目標到達判定の閾値(しきいち)
-static float     margin = 25.0f;
+static float     margin = 23.0f;
 
 // カメラシェイク用
 static bool     s_IsShaking = false;      // シェイク中かどうか
@@ -39,7 +41,7 @@ static XMFLOAT3 s_BeforeFocusAt;              // フォーカス前の注視点
 static float    s_BeforeFocusFov;             // フォーカス前のfov
 static CAMERAMODE s_BeforeFocusMode;          // フォーカス前のカメラモード
 static int       s_TargetIndex = 0;           // フォーカスするプレイヤー
-static int       s_CenterTarget = 0;	      // 中心計算に使用するプレイヤーの数
+static int       s_CenterTarget = 4;	      // 中心計算に使用するプレイヤーの数
 static bool      s_ShowImgui = true;          // Imgui表示フラグ
 static int       s_FollowMode = FOLLOW_ALL;   // フォローモード
 
@@ -48,6 +50,13 @@ static float     s_RotateRadius = 10.0f;      // 周回半径
 static float     s_RotateSpeed = 1.0f;        // 周回速度（ラジアン／秒）
 static float     s_RotateHeight = 13.3f;      // カメラ高さ
 static float     s_RotateAngle = 0.0f;
+
+static GAME_PHASE s_GamePhase = PHASE_INTRO;
+static float s_PhaseTimer = 0.0f;
+const float INTRO_DURATION = 3.5f;      // カメラがぐるぐる回る時間
+const float COUNTDOWN_DURATION = 4.0f;  // カウントダウンの時間
+
+static bool s_CameraSnap = false;
 
 CAMERAMODE cameraMode = CAMERAMODE_MANUAL;
 
@@ -100,7 +109,11 @@ void Camera_Initialize()
 	s_ShakeTimer = 0.0f;
 	s_ShakeOffset = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
-	cameraMode = CAMERAMODE_MANUAL;
+	s_GamePhase = PHASE_INTRO;
+	s_PhaseTimer = 0.0f;
+
+	cameraMode = CAMERAMODE_AUTO;
+	//cameraMode = CAMERAMODE_MANUAL;
 }
 
 void Camera_Finalize()
@@ -450,6 +463,52 @@ void Camera_UpdateAuto()
 	// 注視点は中心（目標に設定する）
 	s_TargetAt = center;
 
+	if (s_GamePhase == PHASE_INTRO)
+	{
+		/*float cx = SCREEN_WIDTH / 2.0f;
+		float cy = SCREEN_HEIGHT / 2.0f;
+		DrawTextEx(L"ミールシティ", cx - 20.0f, cy - 50.0f, 150.0f, L"Impact", TextColor::Blue);*/
+
+		s_PhaseTimer += 1.0f / 60.0f;
+
+		// ぐるぐる回るカメラの計算
+		float radius = 20.0f; // 円の半径
+		float height = 15.0f; // カメラの高さ
+		float speed = 0.5f;   // 回転スピード
+		float angle = s_PhaseTimer * speed;
+
+		// 視点と位置を上書き
+		s_TargetAt = center;
+		s_TargetPos = XMFLOAT3(center.x + cosf(angle) * radius, center.y + height, center.z + sinf(angle) * radius);
+		s_TargetFov = 50.0f; // イントロは広角で見せる
+
+		// 時間が来たらカウントダウンへ移行
+		if (s_PhaseTimer >= INTRO_DURATION)
+		{
+			s_GamePhase = PHASE_COUNTDOWN;
+			s_PhaseTimer = 0.0f;
+
+			s_CameraSnap = true;
+			return;
+		}
+		return;
+	}
+	else if (s_GamePhase == PHASE_COUNTDOWN)
+	{
+		s_PhaseTimer += 1.0f / 60.0f;
+
+		if (s_PhaseTimer >= COUNTDOWN_DURATION)
+		{
+			s_GamePhase = PHASE_PLAY;
+			s_PhaseTimer = 0.0f;
+		}
+	}
+	else if (s_GamePhase == PHASE_PLAY)
+	{
+		// UI演出ためにタイマーを進める
+		s_PhaseTimer += 1.0f / 60.0f;
+	}
+
 	// Rotateが有効なら角度を進めて位置を円運動に設定
 	if (s_RotateEnabled)
 	{
@@ -515,6 +574,14 @@ void Camera_UpdateAuto()
 			s_ShakeOffset.z = RandomFloat() * currentIntensity;
 		}
 	}
+
+	if (s_CameraSnap)
+	{
+		CameraObject.position = s_TargetPos;
+		CameraObject.atPosition = s_TargetAt;
+		CameraObject.fov = s_TargetFov;
+		s_CameraSnap = false; // 1回ワープしたらフラグを下ろす
+	}
 }
 
 
@@ -575,6 +642,15 @@ DirectX::XMFLOAT3 GetCameraPosition()
 	return DirectX::XMFLOAT3();
 }
 
+static void Camera_StopShake()
+{
+	s_IsShaking = false;
+	s_ShakeIntensity = 0.0f;
+	s_ShakeDuration = 0.0f;
+	s_ShakeTimer = 0.0f;
+	s_ShakeOffset = XMFLOAT3(0.0f, 0.0f, 0.0f);
+}
+
 // 死亡時のカメラフォーカス開始
 void Camera_FocusOnPlayer(int playerIndex, float duration)
 {
@@ -585,6 +661,8 @@ void Camera_FocusOnPlayer(int playerIndex, float duration)
 	s_BeforeFocusAt = CameraObject.atPosition;
 	s_BeforeFocusFov = CameraObject.fov;
 	s_BeforeFocusMode = cameraMode;
+
+	Camera_StopShake();
 
 	// フォーカスモードに切り替え（オートカメラのままのまま）
 	s_IsDeathFocus = true;
@@ -605,12 +683,10 @@ void Camera_ReturnToNormal()
 }
 
 // 死亡フォーカス中かどうか
-bool Camera_IsInDeathFocus()
-{
-	return s_IsDeathFocus;
-}
+bool Camera_IsInDeathFocus() { return s_IsDeathFocus; }
 
-CAMERA* GetCamera()
-{
-	return &CameraObject;
-}
+CAMERA* GetCamera() { return &CameraObject; }
+
+GAME_PHASE GetGamePhase() { return s_GamePhase; }
+
+float GetGamePhaseTimer() { return s_PhaseTimer; }

@@ -441,7 +441,7 @@ void Field_Finalize(void)
 //======================================================
 void Field_Draw(bool s_IsKonamiCodeEntered)
 {
-	if (!Loader::IsFinished) return;
+	//if (!Loader::IsFinished) return;
 
 	static bool input2 = false;
 
