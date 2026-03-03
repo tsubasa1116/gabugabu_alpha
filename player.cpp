@@ -138,10 +138,10 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	player[2].position = XMFLOAT3(-7.0f, 4.0f, -6.0f);
 	player[3].position = XMFLOAT3(7.0f, 4.0f, 4.0f);
 
-	player[0].active = true;
-	player[1].active = false;
-	player[2].active = true;
-	player[3].active = true;
+	//player[0].active = true;
+	//player[1].active = false;
+	//player[2].active = true;
+	//player[3].active = true;
 
 	//player[0].form = Form::First;
 	//player[1].form = Form::First;
@@ -149,18 +149,18 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//player[3].form = Form::Third;
 
 	//player[1].type = PlayerType::None;
-	player[0].type = PlayerType::Glass;
-	player[1].type = PlayerType::Concrete;
-	player[2].type = PlayerType::Plant;
-	player[3].type = PlayerType::Electricity;
+	//player[0].type = PlayerType::Glass;
+	//player[1].type = PlayerType::Concrete;
+	//player[2].type = PlayerType::Plant;
+	//player[3].type = PlayerType::Electricity;
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
-		//player[p].form = Form::First;
+		player[p].form = Form::First;
 		//player[p].form = Form::Second;
-		player[p].form = Form::Third;
+		//player[p].form = Form::Third;
 
-		//player[p].type = PlayerType::None;
+		player[p].type = PlayerType::None;
 		//player[p].type = PlayerType::Glass;
 		//player[p].type = PlayerType::Concrete;
 		//player[p].type = PlayerType::Plant;
@@ -176,9 +176,9 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].power = 0.0f;
 		player[p].speed = 0.0f;
 		player[p].defense = 1.0f;
-		player[p].stock = 1;
+		player[p].stock = 3;
 		player[p].rank = 0;
-		//player[p].active = true;
+		player[p].active = true;
 		player[p].satiety = 0.0f;
 		player[p].isAttacking = false;
 		player[p].attackTimer = 0.0f;
@@ -210,7 +210,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].respawnTimer = 0.0f;
 		player[p].isEggBreaking = false;
 		player[p].eggBreakingTimer = 0.0f;
-		player[p].lastDir = PlayerDir::Down; // 豁｣髱｢
+		player[p].lastDir = PlayerDir::Down; // 正面
 		player[p].isMoving = false;
 		player[p].isShadowEnabled = false;
 		player[p].evolutionGauge = 0.0f;
@@ -475,7 +475,6 @@ static inline XMFLOAT3 ToWorldMoveDirByCamera(const XMFLOAT2& input)
 	worldDir.z = right.z * input.x + forward.z * input.y;
 	return worldDir;
 }
-
 
 void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 {
@@ -1076,7 +1075,7 @@ void Player_Update()
 		}
 
 		// ==========================================================
-		// 繝励Ξ繧､繝､繝ｼ 繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ譖ｴ譁ｰ
+		// プレイヤーアニメーション更新
 		// ==========================================================
 		
 		// 繧ｹ繧ｭ繝ｫ髢句ｧ区凾縺ｮ繝輔Ξ繝ｼ繝蛻晄悄蛹厄ｼ医い繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ譖ｴ譁ｰ繧ｿ繧､繝溘Φ繧ｰ縺ｫ萓晏ｭ倥＠縺ｪ縺・ｼ・

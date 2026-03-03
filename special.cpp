@@ -624,8 +624,8 @@ void Special_Glass_Update(int playerIndex)
 		g_animFrame[playerIndex] = 0;		// アニメーションリセット
 		g_animTimer[playerIndex] = 0.0f;
 		initialized[playerIndex] = false;	// 次回のスペシャル使用時に再初期化するため
-		//player.form = Form::First;			// 変身形態を第1形態に戻す
-		//player.type = PlayerType::None;		// タイプをリセット
+		player.form = Form::First;			// 変身形態を第1形態に戻す
+		player.type = PlayerType::None;		// タイプをリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
 		Effect_ClearUI(playerIndex);		// エフェクトクリア
@@ -831,8 +831,8 @@ void Special_Concrete_Update(int playerIndex)
 		g_animTimer[playerIndex] = 0.0f;
 		player.animFrame = 0;
 		player.animTimer = 0.0f;
-		//player.form = Form::First;
-		//player.type = PlayerType::None;
+		player.form = Form::First;
+		player.type = PlayerType::None;
 		player.defense = 1.0f;
 		player.useSkill = false;
 		player.useSpecial = false;
@@ -918,8 +918,8 @@ void Special_Plant_Update(int playerIndex)
 		player.specialTimer = 0.0f;
 		g_animFrame[playerIndex] = 0;
 		g_animTimer[playerIndex] = 0.0f;
-		//player.form = Form::First;									// 変身形態を第1形態に戻す
-		//player.type = PlayerType::None;								// タイプをリセット
+		player.form = Form::First;									// 変身形態を第1形態に戻す
+		player.type = PlayerType::None;								// タイプをリセット
 		player.evolutionGaugeRate = PLAYER_EVOLUTION_GAUGE_RATE;	// スキルの進化ゲージバフもリセット
 		player.useSkill = false;									// スキル解除
 		Effect_Clear(playerIndex);									// エフェクトクリア
@@ -1020,8 +1020,8 @@ void Special_Electricity_Update(int playerIndex)
 		g_animFrame[playerIndex] = 0;		// アニメーションリセット
 		g_animTimer[playerIndex] = 0.0f;
 		initialized[playerIndex] = false;	// 次回のスペシャル使用時に再初期化するため
-		//player.form = Form::First;			// 変身形態を第1形態に戻す
-		//player.type = PlayerType::None;		// タイプをリセット
+		player.form = Form::First;			// 変身形態を第1形態に戻す
+		player.type = PlayerType::None;		// タイプをリセット
 		player.speed = 0.06f;				// スキルのスピードバフもリセット
 		player.useSkill = false;			// スキル解除
 		player.useSpecial = false;			// スペシャル解除
