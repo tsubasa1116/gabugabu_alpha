@@ -75,6 +75,7 @@ bool VideoTexture::Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pConte
 	m_StartTime = std::chrono::steady_clock::now();   // 再生開始時刻を記録
 	m_LastTimestamp = 0;                              // 最後に表示したフレームのタイムスタンプ
 	m_PlaybackSpeed = 1.0f;
+	m_LoopSkipTime = 0.0;
 
 	m_Initialized = true;
 	m_Finished = false;
@@ -226,6 +227,28 @@ void VideoTexture::Reset()
 		// 再生制御をリセット
 		m_StartTime = std::chrono::steady_clock::now();
 		m_LastTimestamp = 0;
+		m_Finished = false;
+	}
+}
+
+void VideoTexture::ResetForLoop()
+{
+	if (m_pReader)
+	{
+		// スキップ時間を100ナノ秒単位に変換
+		LONGLONG skipTime = static_cast<LONGLONG>(m_LoopSkipTime * 10000000.0);
+
+		// 動画の再生位置をスキップ時間の位置に設定
+		PROPVARIANT var;
+		PropVariantInit(&var);
+		var.vt = VT_I8;
+		var.hVal.QuadPart = skipTime;
+		m_pReader->SetCurrentPosition(GUID_NULL, var);
+		PropVariantClear(&var);
+
+		// 再生制御をリセット（スキップ分を考慮）
+		m_StartTime = std::chrono::steady_clock::now();
+		m_LastTimestamp = skipTime;
 		m_Finished = false;
 	}
 }

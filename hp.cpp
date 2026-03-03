@@ -192,7 +192,7 @@ void UpdateHP(hp* bar)
 void DrawHP(const hp* bar, int texNum, bool isDead)
 {
 	if (!bar->use) return;
-	if (!Loader::IsFinished) return;
+	//if (!Loader::IsFinished) return;
 
 	Shader_BeginUI();
 	Shader_SetColor(color::white);

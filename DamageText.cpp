@@ -46,7 +46,7 @@ void SetDamageText(const XMFLOAT3& worldPos, int damage, TextColor color)
 	e.text = std::to_wstring(damage);
 	e.worldPos = worldPos;
 	e.vy = 0.05f; // 上にゆっくり移動
-	e.flame = 100.0f; // フレーム数で消す
+	e.flame = 70.0f; // フレーム数で消す
 	e.size = 36.0f;
 	e.color = color;
 	e.alive = true;
@@ -93,7 +93,7 @@ static bool WorldToScreen(const XMFLOAT3& wp, float& outX, float& outY)
 void DamageText_Update()
 {
 	// フレーム毎更新（移動・寿命）
-	for (size_t i = 0; i < g_DamageList.size(); )
+	for (size_t i = 0; i < g_DamageList.size();)
 	{
 		auto& e = g_DamageList[i];
 		// ワールド上で上へ移動
@@ -132,10 +132,18 @@ void DamageText_Draw()
 	for (auto& e : g_DamageList)
 	{
 		// フェードアウト効果（lifeに応じて文字サイズを少し縮小する、または色を変えるなどはここで調整可能）
-		float size = e.size * (0.8f + 0.2f * (e.flame / 60.0f)); // life に応じてわずかに変化
+		float size = e.size; // life に応じてわずかに変化
 
 		// 画面外のものはスキップ
 		if (e.screenX < -1000.0f || e.screenY < -1000.0f) continue;
+
+		float alpha = 1.0f; // 基本は完全に不透明
+
+		// 残り寿命が 50フレーム を切ったら、徐々に透明(0.0)にしていく
+		if (e.flame <= 50.0f)
+		{
+			alpha = e.flame / 50.0f;
+		}
 
 		DrawTextEx(
 			e.text.c_str(),
@@ -143,7 +151,8 @@ void DamageText_Draw()
 			e.screenY,
 			size,
 			L"Impact",
-			e.color
+			e.color,
+			alpha
 		);
 	}
 }
