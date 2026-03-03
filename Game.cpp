@@ -51,6 +51,14 @@ static bool s_GameStarted = false;
 static ID3D11DeviceContext* g_pContext = NULL;
 static	ID3D11ShaderResourceView* g_Texture[6];
 
+// グローバル変数か、管理クラスのメンバ変数として用意
+float g_hitStopTimer = 0.0f;
+
+// ヒットストップを開始する関数
+void StartHitStop(float duration) {
+	g_hitStopTimer = duration;
+}
+
 //======================================================
 //	
 //======================================================
@@ -182,6 +190,7 @@ void Game_Update()
 		s_GameStarted = true;
 	}
 
+
 	// ------------------------------------
 	// 
 	// ------------------------------------
@@ -191,10 +200,20 @@ void Game_Update()
 		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
 		else						s_IsKonamiCodeEntered = false;
 	}
+
+	float currentDeltaTime = DELTA_TIME;
+
+	// ヒットストップ中ならタイマーを減らして、DELTA_TIMEを0にする
+	if (g_hitStopTimer > 0.0f) {
+		g_hitStopTimer -= DELTA_TIME;
+		currentDeltaTime = 0.0f; // 時を止める！
+	}
+
+	// プレイヤーや建物の更新には currentDeltaTime を使うようにする
 	// ------------------------------------
 	// 
 	// ------------------------------------
-	Player_Update();
+	Player_Update(currentDeltaTime);
 	Field_Update();
 	Building_UpdateAll();
 	Effect_Update();

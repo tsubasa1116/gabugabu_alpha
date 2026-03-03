@@ -34,8 +34,8 @@ struct Sector {
 	XMFLOAT3 center;		// 扇の起点（プレイヤー足元）
 	XMFLOAT3 forward;		// プレイヤーの向いている方向（正規ベクトル）
 
-	float radius = 3.0f;			// 扇の半径（攻撃の届く距離）
-	float angleDegree = 45.0f;		// 扇の「全角」（例：90度なら左右に45度ずつ）
+	float radius = 2.0f;			// 扇の半径（攻撃の届く距離）
+	float angleDegree = 90.0f;		// 扇の「全角」（例：90度なら左右に45度ずつ）
 };
 
 //======================================================

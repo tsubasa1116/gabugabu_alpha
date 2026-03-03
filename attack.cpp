@@ -216,6 +216,14 @@ static UINT Attack_idxdata[6 * 6]
 	20, 21, 22, 22, 21, 23, // -Y面
 };
 
+// グローバル変数か、管理クラスのメンバ変数として用意
+float g_hitStopTimer = 0.0f;
+
+// ヒットストップを開始する関数
+void StartHitStop(float duration) {
+	g_hitStopTimer = duration;
+}
+
 void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	for (int p = 0; p < PLAYER_MAX; p++)
@@ -348,35 +356,40 @@ void Attack_Update(int playerIndex)
 
 			if (CheckAABBSectorCollision(buildingObjects[i]->boundingBox, attackSector))
 			{
-				// 攻撃キーが押されていれば破壊！
-				if (isAttackKeyPressed)
-				{
-					BuildingType type = buildingObjects[i]->type;
+				if (isAttackKeyPressed) {
+					// 攻撃キーが押されていれば破壊！
+					if (isAttackKeyPressed)
+					{
+						BuildingType type = buildingObjects[i]->type;
 
-					// 壊した種類をカウント
-					switch (type) {
-					case BuildingType::Glass:		player.breakCount_Glass += 1;		break;
-					case BuildingType::Concrete:	player.breakCount_Concrete += 1;	break;
-					case BuildingType::Plant:		player.breakCount_Plant += 1;		break;
-					case BuildingType::Electricity:	player.breakCount_Electricity += 1;	break;
+						// 壊した種類をカウント
+						switch (type) {
+						case BuildingType::Glass:		player.breakCount_Glass += 1;		break;
+						case BuildingType::Concrete:	player.breakCount_Concrete += 1;	break;
+						case BuildingType::Plant:		player.breakCount_Plant += 1;		break;
+						case BuildingType::Electricity:	player.breakCount_Electricity += 1;	break;
+						}
+
+						buildingObjects[i]->isActive = false;
+						buildingObjects[i]->isDestroyed = true;
+						player.brokenHistory.push_back(type);
+						player.evolutionGauge += player.evolutionGaugeRate;
+
+						// HPと満腹度を回復（上限を超えないように min を使うと1行で書けるよ！）
+						player.hp = min(player.hp + 10.0f, PLAYER_MAX_HP);
+						player.satiety = min(player.satiety + 1.0f, PLAYER_MAX_SATIETY);
+						player.isHealing = true;
+
+						//// ヒットしたので攻撃終了
+						//player.isAttacking = false;
+						//player.attackTimer = 0.0f;
+
+						CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
+						//break; // ★1つ壊したらループを抜ける（複数同時破壊したい場合は消してね）
+
+						// 建物壊した時に 0.05秒くらい止める
+						StartHitStop(0.05f);
 					}
-
-					buildingObjects[i]->isActive = false;
-					buildingObjects[i]->isDestroyed = true;
-					player.brokenHistory.push_back(type);
-					player.evolutionGauge += player.evolutionGaugeRate;
-
-					// HPと満腹度を回復（上限を超えないように min を使うと1行で書けるよ！）
-					player.hp = min(player.hp + 10.0f, PLAYER_MAX_HP);
-					player.satiety = min(player.satiety + 1.0f, PLAYER_MAX_SATIETY);
-					player.isHealing = true;
-
-					//// ヒットしたので攻撃終了
-					//player.isAttacking = false;
-					//player.attackTimer = 0.0f;
-
-					CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
-					//break; // ★1つ壊したらループを抜ける（複数同時破壊したい場合は消してね）
 				}
 			}
 		}
@@ -447,6 +460,9 @@ void Attack_Update(int playerIndex)
 					//player.isAttacking = false;
 					//player.attackTimer = 0.0f;
 					//break; // ★1人に当てたら終わり（複数人巻き込みたい場合は消してね）
+
+					// プレイヤーに当てた時はちょっと長めに 0.1秒くらい止める
+					StartHitStop(0.1f);
 				}
 			}
 		}

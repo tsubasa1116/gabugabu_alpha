@@ -165,7 +165,7 @@ struct PLAYEROBJECT
 void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 static void LoadTextureList(ID3D11Device* pDevice);
 void Player_Finalize();
-void Player_Update();
+void Player_Update(float currentDeltaTime);
 void Player_Draw(bool s_IsKonamiCodeEntered);
 void Player_DrawHP();
 
