@@ -14,7 +14,7 @@ using namespace DirectX;
 
 #include "SkyBall.h"
 
-#define SKYBALL_ROTATION_SPEED	(2.0f / 60.0f)  // １フレーム当たりの回転角度
+#define SKYBALL_ROTATION_SPEED	(10.0f / 60.0f)  // １フレーム当たりの回転角度
 
 static SkyBallObject		g_SkyBall;	// BALLオブジェクト
 
@@ -46,7 +46,7 @@ void SkyBall_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	g_SkyBall.Scaling = XMFLOAT3(20.0f, 20.0f, 20.0f);
 
-	g_SkyBall.Model = ModelLoad("asset\\model\\Skyv2.fbx");
+	g_SkyBall.Model = ModelLoad("asset\\model\\Modelsky01_v6.fbx");
 
 	if (!g_SkyBall.Model)
 
