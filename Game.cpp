@@ -1,7 +1,7 @@
 //======================================================
 //	Game.cpp[]
 // 
-//	§ìÒF‘O–ì—ƒ			“ú•tF2024//
+//	åˆ¶ä½œè€E¼šå‰é‡ç¿¼			æ—¥ä»˜ï¼E024//
 //======================================================
 
 #include "Manager.h"
@@ -33,7 +33,7 @@
 #include "gimmick.h"
 
 //======================================================
-//	\‘¢—wéŒ¾
+//	æ§‹é€ è¬¡å®£è¨€
 //======================================================
 LIGHTOBJECT Light;
 
@@ -102,10 +102,10 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext);		
 	//Score_Initialize(pDevice, pContext);
 
-	//g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// ƒTƒEƒ“ƒhƒ[ƒh
-	//PlayAudio(g_BgmID, true);		// Ä¶ŠJniƒ‹[ƒv‚ ‚èj
-	//PlayAudio(g_BgmID);			// Ä¶ŠJniƒ‹[ƒv‚È‚µj
-	//PlayAudio(g_BgmID, false);	// Ä¶ŠJniƒ‹[ƒv‚È‚µj
+	//g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// ã‚µã‚¦ãƒ³ãƒ‰ãƒ­ãƒ¼ãƒE
+	//PlayAudio(g_BgmID, true);		// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ã‚ã‚Šï¼E
+	//PlayAudio(g_BgmID);			// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼E
+	//PlayAudio(g_BgmID, false);	// å†ç”Ÿé–‹å§‹ï¼ˆãƒ«ãƒ¼ãƒ—ãªã—ï¼E
 
 	XMFLOAT4 para;
 	para = XMFLOAT4(0.7f, 0.7f, 0.9999f, 1.0f);
@@ -149,7 +149,7 @@ void Game_Finalize()
 }
 
 //======================================================
-//	XVˆ—
+//	æ›´æ–°å‡¦çE
 //======================================================
 void Game_Update()
 {
@@ -167,14 +167,14 @@ void Game_Update()
 	{
 		PlayAudio(g_BgmID, true);
 
-		// ‘SƒvƒŒƒCƒ„[‚Ì—‘‚ğŠ„‚é
+		// å…¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®åµã‚’å‰²ã‚E
 		for (int i = 0; i < PLAYER_MAX; i++)
 		{
 			PLAYEROBJECT* p = GetPlayer(i);
 			if (p && p->active && p->duringRespawn)
 			{
-				p->duringRespawn = false;// —‘ó‘Ô‚ğ‰ğœ
-				p->isEggBreaking = true; // Š„‚é
+				p->duringRespawn = false;// åµçŠ¶æ…‹ã‚’è§£é™¤
+				p->isEggBreaking = true; // å‰²ã‚E
 			}
 		}
 		s_GameStarted = true;
@@ -183,7 +183,7 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
-	// ƒRƒ}ƒ“ƒh‚Åg—p‚·‚é‘S‚Ä‚ÌƒL[‚Ì‰Ÿ‰ºƒgƒŠƒK[‚ğƒ`ƒFƒbƒN‚µAŒŸoŠÖ”‚É“n‚·
+	// ã‚³ãƒãƒ³ãƒ‰ã§ä½¿ç”¨ã™ã‚‹å…¨ã¦ã®ã‚­ãƒ¼ã®æŠ¼ä¸‹ãƒˆãƒªã‚¬ãƒ¼ã‚’ãƒã‚§ãƒE‚¯ã—ã€æ¤œåEé–¢æ•°ã«æ¸¡ãE
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
 		if (!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
@@ -214,7 +214,7 @@ void Game_Update()
 	//ƒQ[ƒ€ƒV[ƒ“‚Ö‘JˆÚ
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-		// ƒtƒF[ƒhƒAƒEƒg‚³‚¹‚ÄƒV[ƒ“‚ğØ‚è‘Ö‚¦‚é
+		// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã•ã›ã¦ã‚·ãƒ¼ãƒ³ã‚’åEã‚Šæ›¿ãˆã‚‹
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_WIN);
 	}
@@ -241,7 +241,7 @@ void Game_Draw()
 
 	Field_Draw(s_IsKonamiCodeEntered);
 
-	// Œš•¨ƒGƒtƒFƒNƒg‚ÌˆêŠ‡•`‰æi3D‹óŠÔj
+	// å»ºç‰©ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãEä¸€æ‹¬æç”»EEDç©ºé–“ï¼E
 	{
 		Shader_Begin();
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -272,7 +272,7 @@ void Game_Draw()
 	DamageText_Draw();
 
 	if (GetGamePhase() == PHASE_INTRO)
-	{// ƒ~[ƒ‹ƒVƒeƒB–¼D
+	{// ãƒŸãEãƒ«ã‚·ãƒE‚£åæœ­
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
@@ -284,12 +284,12 @@ void Game_Draw()
 		Shader_BeginUI();
 		DrawSprite(pos, size, color::white);
 
-		//DrawTextEx(L"ƒ~[ƒ‹ƒVƒeƒB", cx - 620.0f, cy - 340.0f, 70.0f, L"FZƒSƒ“ƒ^‚©‚È", TextColor::Black);
+		//DrawTextEx(L"ãƒŸãEãƒ«ã‚·ãƒE‚£", cx - 620.0f, cy - 340.0f, 70.0f, L"FZã‚´ãƒ³ã‚¿ã‹ãª", TextColor::Black);
 	}
 
-	// ƒtƒF[ƒhˆ—
+	// ãƒ•ã‚§ãƒ¼ãƒ‰åEçE
 	float fadeAlpha = 0.0f;
-	float INTRO_TIME = 3.5f; // INTRO_DURATIONiCamera.cppj‚Æ“¯‚¶”’l‚É‚·‚é
+	float INTRO_TIME = 3.5f; // INTRO_DURATIONEEamera.cppE‰ã¨åŒã˜æ•°å€¤ã«ã™ã‚‹
 	float FADE_TIME = 0.5f;
 
 	if (GetGamePhase() == PHASE_INTRO)
@@ -306,7 +306,7 @@ void Game_Draw()
 	{
 		float timer = GetGamePhaseTimer();
 
-		// ƒJƒEƒ“ƒgƒ_ƒEƒ“‚Ì˜”Õ‚Í™X‚É–¾‚é‚­‚·‚éi“§–¾“x 1.0 ¨ 0.0j
+		// ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³ã®åºç›¤ã¯å¾ã€E«æ˜ã‚‹ãã™ã‚‹ï¼ˆé€æEåº¦ 1.0 â†E0.0EE
 		if (timer <= FADE_TIME)
 		{
 			fadeAlpha = 1.0f - (timer / FADE_TIME);
@@ -336,7 +336,7 @@ void Game_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		Shader_SetColor(color::white);
 
-		// ‰æ–Ê’†‰›‚ÌÀ•W‚ğŒvZ
+		// ç”»é¢ä¸­å¤®ã®åº§æ¨™ã‚’è¨ˆç®E
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
@@ -351,7 +351,7 @@ void Game_Draw()
 
 			/*wchar_t text[8];
 			swprintf_s(text, L"%d", count);
-			DrawTextEx(text, cx - 30.0f, cy - 50.0f, 150.0f, L"FZƒSƒ“ƒ^‚©‚È", TextColor::P4color);*/
+			DrawTextEx(text, cx - 30.0f, cy - 50.0f, 150.0f, L"FZã‚´ãƒ³ã‚¿ã‹ãª", TextColor::P4color);*/
 		}
 		else if (count == 2)
 		{
@@ -360,7 +360,7 @@ void Game_Draw()
 
 			/*wchar_t text[8];
 			swprintf_s(text, L"%d", count);
-			DrawTextEx(text, cx - 30.0f, cy - 50.0f, 150.0f, L"FZƒSƒ“ƒ^‚©‚È", TextColor::P3color);*/
+			DrawTextEx(text, cx - 30.0f, cy - 50.0f, 150.0f, L"FZã‚´ãƒ³ã‚¿ã‹ãª", TextColor::P3color);*/
 		}
 		else if (count == 1)
 		{
@@ -369,21 +369,21 @@ void Game_Draw()
 
 			/*wchar_t text[8];
 			swprintf_s(text, L"%d", count);
-			DrawTextEx(text, cx - 20.0f, cy - 50.0f, 150.0f, L"FZƒSƒ“ƒ^‚©‚È", TextColor::P2color);*/
+			DrawTextEx(text, cx - 20.0f, cy - 50.0f, 150.0f, L"FZã‚´ãƒ³ã‚¿ã‹ãª", TextColor::P2color);*/
 		}
 		else if (count == 0)
 		{
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture[5]);
 			DrawSprite(pos, sizeGO, color::white);
 
-			/*DrawTextEx(L"GO!", cx - 180.0f, cy - 50.0f, 150.0f, L"FZƒSƒ“ƒ^‚©‚È", TextColor::P1color);*/
+			/*DrawTextEx(L"GO!", cx - 180.0f, cy - 50.0f, 150.0f, L"FZã‚´ãƒ³ã‚¿ã‹ãª", TextColor::P1color);*/
 		}
 	}
 
-	// UI•`‰æi‚É‚ã‚Á3j
+	// UIæç”»Eˆã«ã‚E£3EE
 	if (GetGamePhase() == PHASE_PLAY)
 	{
-		// ƒXƒ‰ƒCƒhƒCƒ“‚ÌŒvZ
+		// ã‚¹ãƒ©ã‚¤ãƒ‰ã‚¤ãƒ³ã®è¨ˆç®E
 		float playTime = GetGamePhaseTimer();
 		float slideDuration = 0.4f;
 		float OffsetY = 0.0f;
@@ -391,32 +391,32 @@ void Game_Draw()
 		if (playTime < slideDuration)
 		{
 			float t = playTime / slideDuration;
-			float easeT = 1.0f - powf(1.0f - t, 3.0f); // Å‰‚Í‘¬‚¢AÅŒã‚ÉŒ¸‘¬
+			float easeT = 1.0f - powf(1.0f - t, 3.0f); // æœ€åˆãEé€Ÿã„ã€æœ€å¾Œã«æ¸›é€E
 
-			// ‰æ–ÊŠO‚©‚ç’èˆÊ’u‚ÉŒü‚©‚Á‚ÄˆÚ“®
+			// ç”»é¢å¤–ã‹ã‚‰å®šä½ç½®ã«å‘ã‹ã£ã¦ç§»å‹E
 			OffsetY = 800.0f * (1.0f - easeT);
 		}
 
-		// ƒrƒ…[ƒ|[ƒg(•`‰æ—Ìˆæ)‚ğˆê“I‚É‚¸‚ç‚·
+		// ãƒ“ãƒ¥ãƒ¼ãƒãEãƒEæç”»é ˜åŸŸ)ã‚’ä¸€æ™‚çš„ã«ãšã‚‰ãE
 		ID3D11DeviceContext* pContext = Direct3D_GetDeviceContext();
 		UINT numViewports = 1;
 		D3D11_VIEWPORT vp;
 
-		// Œ»İ‚Ìİ’è‚ğ•Û‘¶‚µ‚Ä‚¨‚­
+		// ç¾åœ¨ã®è¨­å®šã‚’ä¿å­˜ã—ã¦ãŠã
 		pContext->RSGetViewports(&numViewports, &vp);
 
-		// ‚¸‚ç‚·—p‚Ìİ’è‚ğì‚è“K—p‚·‚é
+		// ãšã‚‰ã™ç”¨ã®è¨­å®šã‚’ä½œã‚Šé©ç”¨ã™ã‚‹
 		D3D11_VIEWPORT slideVp = vp;
-		slideVp.TopLeftY += OffsetY; // ‰æ–Ê‘S‘Ì‚ğƒIƒtƒZƒbƒg•ª‰º‚É‚¸‚ç‚·
+		slideVp.TopLeftY += OffsetY; // ç”»é¢å…¨ä½“ã‚’ã‚ªãƒ•ã‚»ãƒEƒˆåˆE¸‹ã«ãšã‚‰ãE
 		pContext->RSSetViewports(1, &slideVp);
 	
-		// ‚¸‚ê‚½‰æ–Ê‚É‘Î‚µ‚Ä‚¢‚Â‚à’Ê‚èUI‚ğ•`‰æ‚·‚é
+		// ãšã‚ŒãŸç”»é¢ã«å¯¾ã—ã¦ãE¤ã‚‚é€šã‚ŠUIã‚’æç”»ã™ã‚‹
 		Shader_SetColor(color::white);
 		Effect_Draw();
 		Player_DrawHP();
 		Player_DrawText();
 
-		// •`‰æ‚ªI‚í‚Á‚½‚çŒ³‚Ìƒrƒ…[ƒ|[ƒg(‰æ–ÊˆÊ’u)‚É–ß‚·
+		// æç”»ãŒçµ‚ã‚ã£ãŸã‚‰å…EEãƒ“ãƒ¥ãƒ¼ãƒãEãƒEç”»é¢ä½ç½®)ã«æˆ»ãE
 		pContext->RSSetViewports(1, &vp);
 	}
 
