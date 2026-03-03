@@ -212,7 +212,6 @@ void Game_Update()
 	// ------------------------------------
 	Player_Update(currentDeltaTime);
 
-	Player_Update();
 	Meteor_Update();
 	Field_Update();
 	Building_UpdateAll();
