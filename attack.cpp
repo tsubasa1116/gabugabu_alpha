@@ -385,7 +385,7 @@ void Attack_Update(int playerIndex)
 						//// ヒットしたので攻撃終了
 						//player.isAttacking = false;
 						//player.attackTimer = 0.0f;
-						player.hasHit = true;
+						//player.hasHit = true;
 						player.isAttacking = false; // 攻撃終了
 
 
@@ -469,7 +469,7 @@ void Attack_Update(int playerIndex)
 					//// ヒットしたので攻撃終了
 					//player.isAttacking = false;
 					//player.attackTimer = 0.0f;
-					player.hasHit = true;
+					//player.hasHit = true;
 					player.isAttacking = false; // 攻撃終了
 					//break; // ★1人に当てたら終わり（複数人巻き込みたい場合は消してね）
 

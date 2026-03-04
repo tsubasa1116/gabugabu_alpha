@@ -842,7 +842,7 @@ void Player_Update(/*float currentDeltaTime*/)
 				if (player[p].form == Form::Third && g_Input[p].ZR)	player[p].useSpecial = true;
 
 				// フラグが立ったら更新処理を呼び出す
-				if (player[p].isAttacking)	Attack_Update(p);	player[p].hasHit = false;// 攻撃
+				if (player[p].isAttacking)	Attack_Update(p);	//player[p].hasHit = false;// 攻撃
 				if (player[p].useSkill)		Skill_Update(p);	// スキル
 				if (player[p].useSpecial)	Special_Update(p);	// スペシャル
 

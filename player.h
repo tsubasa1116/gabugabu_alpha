@@ -131,7 +131,7 @@ struct PLAYEROBJECT
 	bool isEggBreaking;		// 卵エフェクトが割れ始める瞬間
 	float eggBreakingTimer;	// 卵エフェクトのタイマー
 
-	bool hasHit; // 今回の攻撃で既にダメージを与えたら true にする
+	//bool hasHit; // 今回の攻撃で既にダメージを与えたら true にする
 
 	// ここで実体を作る（1箇所だけ！）
 	float g_hitStopTimer = 0.0f;
