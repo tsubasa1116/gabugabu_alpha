@@ -883,8 +883,8 @@ void Special_Plant_Update(int playerIndex)
 	if (player.specialTimer >= 1.0f) player.specialAnimation = false;		
 
 
-	// 半径2.5fの円形当たり判定を作成
-	g_PlantCircle[playerIndex].radius = 2.5f;
+	// 円形当たり判定を作成
+	g_PlantCircle[playerIndex].radius = SPECIAL_PLANT_RADIUS;
 	Circle circle = { player.position, g_PlantCircle[playerIndex].radius }; // 円の中心と半径を設定
 
 	if (!g_plantInitialized[playerIndex])
@@ -1340,7 +1340,7 @@ void Special_Plant_Draw(int playerIndex)
 
 	// 攻撃範囲の描画
 	XMMATRIX rangeWorldMatrix =
-		XMMatrixScaling(5.0f, 1.0f, 5.0f) * // 半径2.5の円を表現するためにスケールを5倍に設定
+		XMMatrixScaling(8.0f, 1.0f, 8.0f) *
 		XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 		XMMatrixTranslation(player.position.x + 0.2f, 0.1f, player.position.z - 0.5f); // Y座標を少し上げて地面と重ならないようにする
 
@@ -1581,8 +1581,8 @@ void Special_Electricity_Update2(int playerIndex)
 		// タイマーもリセット
 		for (int i = 0; i < PLAYER_MAX; i++) nextHitTimer[i] = 0.0f;
 
-		//player.form = Form::First;
-		//player.type = PlayerType::None;
+		player.form = Form::First;
+		player.type = PlayerType::None;
 		player.speed = 0.06f;
 		player.useSkill = false;
 		player.useSpecial = false;
@@ -2130,7 +2130,7 @@ void Special_DrawRange(int playerIndex)
 	{
 		// 植物: 範囲円（+Y面）
 		XMMATRIX rangeWorldMatrix =
-			XMMatrixScaling(5.0f, 1.0f, 5.0f) *
+			XMMatrixScaling(SPECIAL_PLANT_RADIUS * 2.0f, 1.0f, SPECIAL_PLANT_RADIUS * 2.0f) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 			XMMatrixTranslation(player.position.x + 0.2f, 0.1f, player.position.z - 0.5f);
 

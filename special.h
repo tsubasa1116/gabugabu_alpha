@@ -11,13 +11,14 @@
 #define SPECIAL_PLANT_TIME			(5.0f)
 #define SPECIAL_ELECTRICITY_TIME	(5.0f)
 
-#define SPECIAL_GLASS_DAMAGE		(50.0f)	// ミサイル 1個あたりのダメージ量
+#define SPECIAL_GLASS_DAMAGE		(100.0f)// ミサイル 1個あたりのダメージ量
 #define SPECIAL_CONCRETE_DAMAGE		(75.0f)	// 判定1回のみ
-#define SPECIAL_PLANT_DAMAGE		(0.1f)	// スリップダメージ
-#define SPECIAL_ELECTRICITY_DAMAGE	(10.0f)	// 雷 1個あたりのダメージ量
+#define SPECIAL_PLANT_DAMAGE		(0.15f)	// スリップダメージ
+#define SPECIAL_ELECTRICITY_DAMAGE	(20.0f)	// 雷 1個あたりのダメージ量
 
 #define SPECIAL_GLASSBOX_QUANTITY		(3)	// ガラス 1プレイヤーに飛ばす箱の数
 #define SPECIAL_ELECTRICITY_QUANTITY	(6)	// 電気 落雷の数
+#define SPECIAL_PLANT_RADIUS		(4.0f)	// 植物 範囲 半径
 
 #define SPECIAL_SE_COUNT				(3)	// スペシャル SEの数 ガラスを除く
 

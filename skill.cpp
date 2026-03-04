@@ -528,8 +528,8 @@ void Skill_Plant_Update(int playerIndex)
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;
 
-	// スキル効果：進化ゲージ2倍（デフォルトは1）
-	player.evolutionGaugeRate = 0.6f;
+	// スキル効果：進化ゲージ2倍
+	player.evolutionGaugeRate = 0.5f;
 
 	// スキルの効果時間が経過したらスキル終了
 	if (player.skillTimer >= SKILL_PLANT_TIME)
