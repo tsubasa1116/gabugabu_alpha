@@ -139,7 +139,7 @@ static ModelBaseSize g_PlantModelSizes[COUNT(g_PlantModels)] = {
 
 static ModelBaseSize g_ElectricModelSizes[COUNT(g_ElectricModels)] = {
 	{1.4f, 2.0f, 0.9f},		// singou
-	{1.5f, 3.0f, 1.5f},		// taw-
+	{1.5f, 7.0f, 1.5f},		// taw-
 	{3.9f, 2.5f, 1.6f},		// raibu
 	{1.0f, 3.5f, 1.1f},		// propsElectricitySub03_v9
 	{1.0f, 2.8f, 1.0f}		// propsElectricitySub02_v9
@@ -430,11 +430,12 @@ void Building::Update()
 {
 	MAPDATA* map = GetFieldObjects();
 
-	if (!map[m_FieldIndex].isActive && !m_IsFalling)
+	if (!map[m_FieldIndex].isActive && !m_IsFalling && !m_IsShaking)
 	{
-		m_IsFalling = true;
-		m_FallSpeed = 0.0f;
+		m_IsShaking = true;
+		m_ShakeTimer = 2.0f;   
 	}
+
 	// --- 復活（消えていく）処理 ---
 	if (this->isDestroyed)
 	{
@@ -533,6 +534,7 @@ void Building::Update()
 	{
 		m_TexOffset = (m_TexOffset + 1) % FIELD_TEX_MAX;
 	}
+
 	// 離れた瞬間にテクスチャオフセットをリセット
 	else if (!anyPlayerNear && m_IsPlayerNear)
 	{
@@ -566,20 +568,56 @@ void Building::Update()
 	// CalculateAABBをここで呼ぶ（インスタンスごとの計算）
 	CalculateAABB(this->boundingBox, currentPos, actualSize);
 
+	// ============================
+// 振動処理（落ちる前）
+// ============================
+	if (m_IsShaking)
+	{
+		m_ShakeTimer += DELTA_TIME;
+
+		float shakePower =0.2f;    // 揺れ幅
+		float shakeSpeed = 40.0f;   // 揺れ速度
+
+		// 円を描くように細かく振動
+		position.x += sin(m_ShakeTimer * shakeSpeed) * shakePower;
+		position.z += cos(m_ShakeTimer * shakeSpeed) * shakePower;
+
+		// 1秒震えたら落下開始
+		if (m_ShakeTimer >= 3.0f)
+		{
+			m_IsShaking = false;
+			m_IsFalling = true;
+			m_FallSpeed = 0.0f;
+			m_FallTimer = 0.0f;   // ★追加（後述）
+		}
+	}
+
+
+	// ============================
+	// 落下処理
+	// ============================
 	if (m_IsFalling)
 	{
-		// 重力加速
-		m_FallSpeed += 0.06f * DELTA_TIME;
+		m_FallTimer += DELTA_TIME;
 
-		// 下に移動
+		float shakeAmount = 2.0f;
+		float shakeSpeed = 10.0f;
+
+		position.x += sin(m_FallTimer * shakeSpeed) * shakeAmount * DELTA_TIME;
+		position.z += cos(m_FallTimer * shakeSpeed) * shakeAmount * DELTA_TIME;
+
+		// ★ Field と同じ落下ロジック
+		m_FallSpeed += 0.2f * DELTA_TIME;
 		position.y -= m_FallSpeed;
 
-		// 一定距離落ちたら消す
 		if (position.y < -20.0f)
 		{
 			isActive = false;
+			m_IsFalling = false;
 		}
 	}
+
+	
 }
 
 //=========================================
