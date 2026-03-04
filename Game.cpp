@@ -82,6 +82,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Meteor_Initialize(pDevice, pContext);
 	Player_Initialize(pDevice, pContext);
 	Field_Initialize(pDevice, pContext);
+	Building_Initialize(pDevice, pContext);
 	Effect_Initialize(pDevice, pContext);
 	Attack_Initialize(pDevice, pContext);
 	Skill_Initialize(pDevice, pContext);

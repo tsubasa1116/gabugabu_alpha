@@ -908,7 +908,7 @@ void Player_Update(/*float currentDeltaTime*/)
 						if (Keyboard_IsKeyDown(KK_H)) { moveInput.x += 1.0f; player[2].isMoving = true; }
 						if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[2].isMoving = false;
 					}
-					if (p == 3) // プレイヤー3 (テンキー) 攻撃:Numpad0
+					else if (p == 3) // プレイヤー3 (テンキー) 攻撃:Numpad0
 					{
 						if (g_Input[3].LStickY < 0.0f) { moveInput.y += 1.0f; player[3].isMoving = true; }
 						if (g_Input[3].LStickY > 0.0f) { moveInput.y -= 1.0f; player[3].isMoving = true; }
@@ -1728,11 +1728,9 @@ void Player_Update(/*float currentDeltaTime*/)
 
 			if (&HPBar[p])	SetHPOutline(&HPBar[p], player[p].type);
 		}
-
-	// プレイヤー同士の攻撃判定
-	AttackPlayerCollisions();
-	//ImGui::End();
+	}
 	Player_CheckWin();
+	AttackPlayerCollisions();
 }
 
 //======================================================
