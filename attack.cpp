@@ -445,8 +445,10 @@ void Attack_Update(int playerIndex)
 					float rawDamage = player.attack * defender.defense;
 					defender.hp = max(defender.hp - rawDamage, 0.0f); // 0未満にならないように
 
-					TriggerbyHPShake(def, 8.0f, 20.0f, 1.5f);
-					defender.stunGauge += 0.5f;
+				// HP回復
+				player.hp += HP_HEAL;
+				// HPの上限
+				if (player.hp > PLAYER_MAX_HP)	player.hp = PLAYER_MAX_HP;
 
 					// ダメージ文字
 					XMFLOAT3 hitPos = defender.position;
@@ -781,7 +783,7 @@ void AttackPlayerCollisions()
 				TriggerVibration(def, 0.1f, 0.1f, 50);
 
 				// スタンゲージ増加
-				defender.stunGauge += 0.5f;
+				defender.stunGauge += 0.8f;
 
 				// ダメージ数字を表示（頭上にオフセット）
 				int dmgInt = static_cast<int>(rawDamage + 0.5f);

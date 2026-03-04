@@ -630,46 +630,46 @@ void Player_Update(/*float currentDeltaTime*/)
 			}
 			else	player[p].isOnScreen = false;
 
-			// -------------------------------------------------------------
-			// 変身
-			// -------------------------------------------------------------
-			switch (player[p].form)
-			{
-			case Form::First:	// 第1形態
-				player[p].scaling.x = 0.5f;
-				player[p].scaling.y = 0.5f;
-				player[p].scaling.z = 0.5f;
-				player[p].attack = 10.0f;
-				player[p].power = 0.3f;
-				player[p].weight = 0.5f;
-				player[p].speed = 0.07f;
-				player[p].isTypeFixed = false;	// スキルクールタイムUIの表示に使用
-				break;
+		// -------------------------------------------------------------
+		// 変身
+		// -------------------------------------------------------------
+		switch (player[p].form)
+		{
+		case Form::First:	// 第1形態
+			player[p].scaling.x = 0.5f;
+			player[p].scaling.y = 0.5f;
+			player[p].scaling.z = 0.5f;
+			player[p].attack = 30.0f;
+			player[p].power = 0.3f;
+			player[p].weight = 0.5f;
+			player[p].speed = 0.07f;
+			player[p].isTypeFixed = false;	// スキルクールタイムUIの表示に使用
+			break;
 
-			case Form::Second:	// 第2形態
-				player[p].scaling.x = 0.8f;
-				player[p].scaling.y = 0.8f;
-				player[p].scaling.z = 0.8f;
-				player[p].attack = 15.0f;
-				player[p].power = 0.4f;
-				player[p].weight = 0.6f;
-				player[p].speed = 0.06f;
-				player[p].isTypeFixed = true;
-				break;
+		case Form::Second:	// 第2形態
+			player[p].scaling.x = 0.8f;
+			player[p].scaling.y = 0.8f;
+			player[p].scaling.z = 0.8f;
+			player[p].attack = 45.0f;
+			player[p].power = 0.4f;
+			player[p].weight = 0.6f;
+			player[p].speed = 0.06f;
+			player[p].isTypeFixed = true;
+			break;
 
-			case Form::Third:	// 第3形態
-				player[p].scaling.x = 1.2f;
-				player[p].scaling.y = 1.2f;
-				player[p].scaling.z = 1.2f;
-				player[p].attack = 20.0f;
-				player[p].power = 0.5f;
-				player[p].weight = 0.7f;
-				player[p].speed = 0.05f;
-				player[p].isTypeFixed = true;
-				break;
-			default:
-				break;
-			}
+		case Form::Third:	// 第3形態
+			player[p].scaling.x = 1.2f;
+			player[p].scaling.y = 1.2f;
+			player[p].scaling.z = 1.2f;
+			player[p].attack = 60.0f;
+			player[p].power = 0.5f;
+			player[p].weight = 0.7f;
+			player[p].speed = 0.05f;
+			player[p].isTypeFixed = true;
+			break;
+		default:
+			break;
+		}
 
 			// 非アクティブ時は Y座標を固定
 			if (!player[p].active)	player[p].position.y = 0.0f;
