@@ -453,7 +453,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		}
 		if (anim.evolutionPhase == 1)
 		{
-			if (anim.evolutionTimer >= 0.02f)
+			if (anim.evolutionTimer >= 0.015f)
 			{
 				anim.evolutionTimer = 0.0f;
 				anim.evolutionFrame++;
@@ -466,7 +466,7 @@ void Effect_UpdateForPlayer(int playerIndex)
 		}
 		else if (anim.evolutionPhase == 2)
 		{
-			if (anim.evolutionTimer >= 0.02f)
+			if (anim.evolutionTimer >= 0.015f)
 			{
 				anim.evolutionTimer = 0.0f;
 				anim.evolutionFrame++;
@@ -1045,8 +1045,15 @@ void EffectFront_DrawForPlayer(int playerIndex)
 		XMFLOAT3 ofs(0, 0, 0);
 		switch (player.type)
 		{
-		case PlayerType::Plant:	texNo = 21;	scale = 7.0f; ofs = XMFLOAT3(0, 0, 0.8f);
-			SetDepthTest(false);
+		case PlayerType::Plant:
+			// 1秒遅延して表示する（specialTimer が開始からの秒数を保持）
+			if (player.specialTimer >= 0.5f)
+			{
+				texNo = 21;
+				scale = 9.0f;
+				ofs = XMFLOAT3(0, 1.4f, 0);
+				SetDepthTest(false);
+			}
 			break;
 		default: break;
 		}
@@ -1172,16 +1179,16 @@ void EffectShadow_DrawForPlayer(int playerIndex)
 	float groundY = 0.0f;
 
 	// 影の位置
-	XMFLOAT3 shadowPos(player.position.x, groundY + 0.5f, player.position.z - 0.3f);
+	XMFLOAT3 shadowPos(player.position.x, groundY + 1.0f, player.position.z - 0.3f);
 
 	// 影のワールド行列（XZ平面に平行、回転なし）
 	XMMATRIX ScalingMatrix;
 
 	float shadowScaling_x = player.scaling.x;
-	float shadowScaling_z = player.scaling.z;
+	float shadowScaling_z = player.scaling.y;
 
-	if (player.duringRespawn)	ScalingMatrix = XMMatrixScaling(shadowScaling_x += 2.0f, 1.0f, shadowScaling_z += 6.0f);
-	else						ScalingMatrix = XMMatrixScaling(shadowScaling_x, 1.0f, shadowScaling_z);
+	if (player.duringRespawn)	ScalingMatrix = XMMatrixScaling(shadowScaling_x + 2.0f, shadowScaling_x, 0.0f);
+	else						ScalingMatrix = XMMatrixScaling(shadowScaling_x, shadowScaling_x, 0.0f);
 
 	XMMATRIX TranslationMatrix = XMMatrixTranslation(shadowPos.x + 0.2f, shadowPos.y, shadowPos.z);
 	XMMATRIX WorldMatrix = ScalingMatrix * TranslationMatrix;
@@ -1397,6 +1404,12 @@ void MeteorEffectUpdate()
 			g_MeteorEffectAnim[p].frame = 0;
 			g_MeteorEffectAnim[p].timer = 0.0f;
 			g_MeteorEffectAnim[p].pos = gimmick->meteor.position;
+
+			// プレイヤーに命中した場合はY=-0.5f、それ以外は着弾位置をそのまま使用
+			if (gimmick->hitPlayer)
+			{
+				g_MeteorEffectAnim[p].pos.y = -0.5f;
+			}
 		}
 
 		// 前フレームの状態を更新
@@ -1440,6 +1453,9 @@ void MeteorEffectDraw()
 		if (!srv) continue;
 
 		Shader_Begin();
+
+		// 深度書き込みを無効化
+		SetDepthTest(false);
 
 		// スプライトシートのUV計算（8x8シート、0～31フレーム）
 		int frame = g_MeteorEffectAnim[p].frame;
@@ -1497,6 +1513,8 @@ void MeteorEffectDraw()
 		Shader_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 		g_pContext->PSSetShaderResources(0, 1, &srv);
 		g_pContext->DrawIndexed(6, 0, 0);
+
+		SetDepthTest(true);
 	}
 }
 
