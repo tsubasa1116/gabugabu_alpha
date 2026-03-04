@@ -9,6 +9,7 @@
 #include "Title.h"
 #include "fade.h"
 #include "swipe.h"
+#include "transition.h"
 #include "shader.h"
 #include <chrono>
 #include <cmath>
@@ -20,6 +21,10 @@ static VideoTexture g_VideoTex;
 static	ID3D11ShaderResourceView* g_Texture = NULL;		// 背景
 static	ID3D11ShaderResourceView* g_Texture2 = NULL;	// ゲームロゴ
 static	ID3D11ShaderResourceView* g_Texture3 = NULL;	// はじめるボタン
+static	ID3D11ShaderResourceView* g_Texture4 = NULL;	// はじめるボタン
+static	ID3D11ShaderResourceView* g_Texture5 = NULL;	// はじめるボタン
+static	ID3D11ShaderResourceView* g_Texture6 = NULL;	// はじめるボタン
+static	ID3D11ShaderResourceView* g_Texture7 = NULL;	// はじめるボタン
 static	DirectX::TexMetadata g_Metadata3{};
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
@@ -32,6 +37,8 @@ static float g_TitleElapsed = 0.0f;
 static constexpr float LOGO_POP_DURATION = 0.8f;      // ロゴのポップ所要時間（秒）
 static constexpr float BUTTON_POP_DURATION = 0.8f;  // ボタンのポップ所要時間（秒）
 static constexpr float BUTTON_DELAY_AFTER_LOGO = 0.3f; // ロゴ完了からボタン開始までの遅延（秒）
+static constexpr float ICON_POP_DURATION = 0.6f;       // アイコンのポップイン所要時間（秒）
+static constexpr float ICON_DELAY_AFTER_LOGO = 0.2f;   // ロゴ完了からアイコン開始までの遅延（秒）
 
 // イージング（サインのイーズアウト）
 static inline float EaseOutSine(float t) {
@@ -53,7 +60,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
-		LoadFromWICFile(L"asset\\texture\\uiStart_v2.png", WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(L"asset\\texture\\uiStart_v3.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
 		assert(g_Texture);//読み込み失敗時にダイアログを表示
 	}
@@ -62,7 +69,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata2;
 		ScratchImage	image2;
-		LoadFromWICFile(L"asset\\texture\\titleLogo_v3.png", WIC_FLAGS_NONE, &metadata2, image2);
+		LoadFromWICFile(L"asset\\texture\\TitleLogoBlur.png", WIC_FLAGS_NONE, &metadata2, image2);
 		CreateShaderResourceView(pDevice, image2.GetImages(), image2.GetImageCount(), metadata2, &g_Texture2);
 		assert(g_Texture2);//読み込み失敗時にダイアログを表示
 	}
@@ -79,6 +86,42 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Metadata3 = metadata3;
 	}
 
+	// 電気ボタン
+	{
+		TexMetadata		metadata4;
+		ScratchImage	image4;
+		LoadFromWICFile(L"asset\\texture\\light.png", WIC_FLAGS_NONE, &metadata4, image4);
+		CreateShaderResourceView(pDevice, image4.GetImages(), image4.GetImageCount(), metadata4, &g_Texture4);
+		assert(g_Texture4);//読み込み失敗時にダイアログを表示
+	}
+
+	// 植物ボタン
+	{
+		TexMetadata		metadata5;
+		ScratchImage	image5;
+		LoadFromWICFile(L"asset\\texture\\tree.png", WIC_FLAGS_NONE, &metadata5, image5);
+		CreateShaderResourceView(pDevice, image5.GetImages(), image5.GetImageCount(), metadata5, &g_Texture5);
+		assert(g_Texture5);//読み込み失敗時にダイアログを表示
+	}
+
+	// 植物ボタン
+	{
+		TexMetadata		metadata6;
+		ScratchImage	image6;
+		LoadFromWICFile(L"asset\\texture\\concreat.png", WIC_FLAGS_NONE, &metadata6, image6);
+		CreateShaderResourceView(pDevice, image6.GetImages(), image6.GetImageCount(), metadata6, &g_Texture6);
+		assert(g_Texture6);//読み込み失敗時にダイアログを表示
+	}
+
+	// 植物ボタン
+	{
+		TexMetadata		metadata7;
+		ScratchImage	image7;
+		LoadFromWICFile(L"asset\\texture\\ice.png", WIC_FLAGS_NONE, &metadata7, image7);
+		CreateShaderResourceView(pDevice, image7.GetImages(), image7.GetImageCount(), metadata7, &g_Texture7);
+		assert(g_Texture7);//読み込み失敗時にダイアログを表示
+	}
+
 	//フェードインのセット（初期入力はここで無視しても良い）
 	if (Keyboard_IsKeyDown(KK_SPACE))
 	{
@@ -90,7 +133,6 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(60.0f, color, FADE_IN, SCENE_START);
 	}
-
 
 }
 
@@ -117,10 +159,10 @@ void Title_Update()
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetSwipe(40.0f, color, SWIPE_OUT, SCENE_SOUND);
 	}
-	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
+	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetTransitionState() == TRANSITION_NONE))
 	{
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_START);
+		SetTransition(40.0f, color, TRANSITION_OUT, SCENE_START);
 	}
 }
 
@@ -150,6 +192,54 @@ void Title_Draw()
 		DrawSprite(pos, size, col);
 	}
 
+	// 属性アイコン（ロゴの後に左右からスライドイン）
+	{
+		// テクスチャ・スライド方向の定義
+		// g_Texture4(電気), g_Texture6(コンクリ) → 左から
+		// g_Texture5(植物), g_Texture7(ガラス)   → 右から
+		ID3D11ShaderResourceView* iconTextures[4] = { g_Texture4, g_Texture5, g_Texture6, g_Texture7 };
+		bool fromLeft[4] = { true, false, true, false };
+
+		float iconSize = SCREEN_HEIGHT * 0.15f; // アイコンサイズ
+
+		// 各アイコンの最終位置（左右の画面端ぴったり）
+		float halfIcon = iconSize * 10.0f / 2.0f; // 描画サイズの半分
+		XMFLOAT2 iconEndPos[4] = {
+			{ halfIcon,                  SCREEN_HEIGHT * 0.55f },  // 電気：左端
+			{ SCREEN_WIDTH - halfIcon,   SCREEN_HEIGHT * 0.55f },  // 植物：右端
+			{ halfIcon,                  SCREEN_HEIGHT * 0.45f },  // コンクリ：左端
+			{ SCREEN_WIDTH - halfIcon,   SCREEN_HEIGHT * 0.45f },  // ガラス：右端
+		};
+
+		float iconStart = LOGO_POP_DURATION + ICON_DELAY_AFTER_LOGO;
+
+		for (int i = 0; i < 4; i++)
+		{
+			if (!iconTextures[i]) continue;
+
+			float tIcon = (g_TitleElapsed - iconStart) / ICON_POP_DURATION;
+			if (tIcon < 0.0f) tIcon = 0.0f;
+			if (tIcon > 1.0f) tIcon = 1.0f;
+			float eIcon = EaseOutSine(tIcon);
+
+			// スライド開始位置（左からなら画面左外、右からなら画面右外）
+			float startX = fromLeft[i] ? -iconSize : SCREEN_WIDTH + iconSize;
+			float endX = iconEndPos[i].x;
+			float posX = startX + (endX - startX) * eIcon;
+			float posY = iconEndPos[i].y;
+			float iconAlpha = eIcon;
+
+			g_pContext->PSSetShaderResources(0, 1, &iconTextures[i]);
+			SetBlendState(BLENDSTATE_ALPHA);
+			XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, iconAlpha };
+			XMFLOAT2 pos = { posX, posY };
+			XMFLOAT2 size = { iconSize * 10.0f, iconSize * 10.0f };
+			DrawSprite(pos, size, col);
+		}
+
+		SetBlendState(BLENDSTATE_NONE);
+	}
+
 	// ロゴ（ポップイン）
 	if (g_Texture2)
 	{
@@ -165,7 +255,7 @@ void Title_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 
 		XMFLOAT2 baseLogoSize = { SCREEN_WIDTH * 0.55f, SCREEN_HEIGHT * 0.55f };
-		XMFLOAT2 logoSize = { baseLogoSize.x * logoScale * 1.5f, baseLogoSize.y * logoScale * 2.0f };
+		XMFLOAT2 logoSize = { baseLogoSize.x * logoScale * 1.0f, baseLogoSize.y * logoScale * 1.0f };
 		XMFLOAT2 logoPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.4f };
 
 		// DrawSprite は中心位置基準を想定しているのでそのまま渡す
@@ -175,8 +265,7 @@ void Title_Draw()
 		SetBlendState(BLENDSTATE_NONE);
 	}
 
-	// はじめるボタン（ロゴの後にポップイン）
-	if (g_Texture3)
+	// はじめるボタン（ロゴの後にポップイン）	if (g_Texture3)
 	{
 		// ボタンアニメ進行（開始遅延を考慮）
 		float buttonStart = LOGO_POP_DURATION + BUTTON_DELAY_AFTER_LOGO;

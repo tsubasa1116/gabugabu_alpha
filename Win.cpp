@@ -41,7 +41,7 @@ static float g_SlideOffsetBottom = 0.0f;
 const float SLIDE_SPEED = 2.0f;
 
 // アニメーション設定
-const int ANIM_COLS = 8;         // 1行あたりのコマ数
+const int ANIM_COLS = 8;        // 1行あたりのコマ数
 const int ANIM_ROWS = 8;        // シート全体の行数
 const int ANIM_PLAY_START = 0;  // 行内の再生開始コマ
 const int ANIM_PLAY_END = 7;    // 行内の再生終了コマ
