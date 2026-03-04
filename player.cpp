@@ -45,6 +45,7 @@ using namespace DirectX;
 #include <cstring> // 追加：strcmp のため
 #include "loadThread.h"
 #include "gimmick.h"
+#include "cutin.h"
 
 //======================================================
 //	マクロ定義
@@ -92,6 +93,9 @@ static bool g_specialInitialize[PLAYER_MAX] = { false };
 static std::vector<int> g_deathOrder;	// 死亡したプレイヤーのインデックス（先に死んだ者が先頭）
 
 static int g_SE_ID[PLAYER_SE_COUNT] = { NULL };
+
+static bool g_isWaitWin = false;
+static float g_winTimer = 0.0f;
 
 // 頂点配列
 static Vertex2 vdata[PLAYER_VERTEX] =
@@ -172,7 +176,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].power = 0.0f;
 		player[p].speed = 0.0f;
 		player[p].defense = 1.0f;
-		player[p].stock = 3;
+		player[p].stock = 1;
 		player[p].rank = 0;
 		player[p].active = true;
 		player[p].satiety = 0.0f;
@@ -290,10 +294,13 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_deathOrder.clear();
 
 	// SEの初期化
-	g_SE_ID[0] = LoadAudio("asset\\Audio\\Roar_Form_Second.wav");	// 進化後の咆哮 第2形態
-	g_SE_ID[1] = LoadAudio("asset\\Audio\\Roar_Form_Third.wav");	// 進化後の咆哮 第3形態
-	g_SE_ID[2] = LoadAudio("asset\\Audio\\Transform.wav");			// 変身
-	g_SE_ID[3] = LoadAudio("asset\\Audio\\EggBreaking.wav");		// 卵割れる
+	g_SE_ID[0] = LoadAudio("asset\\Audio\\Roar_Form_Second.wav");	// 騾ｲ蛹門ｾ後・蜥・動 隨ｬ2蠖｢諷・
+	g_SE_ID[1] = LoadAudio("asset\\Audio\\Roar_Form_Third.wav");	// 騾ｲ蛹門ｾ後・蜥・動 隨ｬ3蠖｢諷・
+	g_SE_ID[2] = LoadAudio("asset\\Audio\\Transform.wav");			// 螟芽ｺｫ
+	g_SE_ID[3] = LoadAudio("asset\\Audio\\EggBreaking.wav");		// 蜊ｵ蜑ｲ繧後ｋ
+
+	g_isWaitWin = false;
+	g_winTimer = 0.0f;
 }
 
 static void LoadTextureList(ID3D11Device* pDevice)
@@ -743,26 +750,36 @@ void Player_Update(/*float currentDeltaTime*/)
 				}
 			}
 
-			// 毒状態の処理
-			if (player[p].poisonTimer > 0.0f)
+		// 毒状態の処理
+		// 毒状態の処理
+		if (player[p].poisonTimer > 0.0f)
+		{
+			if (!player[p].isPoisoned)
 			{
-				// 無敵中はダメージを与えないが、ここでループを抜けない（以降の物理・当たり判定は実行する）
-				if (!player[p].isInvincible)
-				{
-					// 毒状態の間、ダメージを与える
-					player[p].hp -= SPECIAL_PLANT_DAMAGE * player[p].defense;
-				}
+				player[p].isPoisoned = true;
+				// 毒開始時：大きくガタガタ揺らす（今まで通り）
+				TriggerbyHPShake(p, 8.0f, 20.0f, 1.5f);
+			}
+
+			TriggerbyHPShake(p, 3.5f, 2.0f, 1.0f);
+
+			if (!player[p].isInvincible)
+			{
+				player[p].hp -= SPECIAL_PLANT_DAMAGE * player[p].defense;
+			}
 
 				// 豈偵ち繧､繝槭・繧帝ｲ繧√ｋ
 				player[p].poisonTimer -= currentDeltaTime;
 
-				// 毒タイマーが0になったら毒状態を解除
-				if (player[p].poisonTimer <= 0.0f)
-				{
-					player[p].isPoisoned = false;
-					player[p].poisonTimer = 0.0f;
-				}
+			if (player[p].poisonTimer <= 0.0f)
+			{
+				player[p].isPoisoned = false;
+				player[p].poisonTimer = 0.0f;
+
+				// 毒が切れたらシェイクを止めてテクスチャを元に戻す
+				TriggerbyHPShake(p, 0.0f, 0.0f, 0.0f);
 			}
+		}
 
 			// スタンゲージが最大でスタンフラグを立てる
 			if (player[p].stunGauge >= STUNGAUGE_MAX)
@@ -1007,17 +1024,29 @@ void Player_Update(/*float currentDeltaTime*/)
 				// ダメージタイマー更新
 				player[p].attackedTimer += DELTA_TIME;
 
-				// プレイヤー毎のダメージ時間が経過したらダメージ終了
-				if (player[p].attackedTimer >= ATTACKED_TIME)
-				{
-					player[p].isAttacked = false;
-					player[p].attackedTimer = 0.0f;
-				}
-			}
-			// 繝繝｡繝ｼ繧ｸ濶ｲ縺縺代・蜃ｦ逅・
-			if (player[p].isDamageColor)
+			// プレイヤー毎のダメージ時間が経過したらダメージ終了
+			if (player[p].attackedTimer >= ATTACKED_TIME)
 			{
-				player[p].damageColorTimer += DELTA_TIME;
+				player[p].isAttacked = false;
+				player[p].attackedTimer = 0.0f;
+			}
+		}
+		// ダメージ色だけの処理
+		if (player[p].isDamageColor)
+		{
+			player[p].damageColorTimer += DELTA_TIME;
+
+			if (player[p].damageColorTimer >= ATTACKED_TIME)
+			{
+				player[p].isDamageColor = false;
+				player[p].damageColorTimer = 0.0f;
+			}
+		}
+
+		// ダメージ色だけの処理
+		if (player[p].isDamageColor)
+		{
+			player[p].damageColorTimer += DELTA_TIME;
 
 				if (player[p].damageColorTimer >= ATTACKED_TIME)
 				{
@@ -1702,7 +1731,8 @@ void Player_Update(/*float currentDeltaTime*/)
 
 	// プレイヤー同士の攻撃判定
 	AttackPlayerCollisions();
-	}
+	//ImGui::End();
+	Player_CheckWin();
 }
 
 //======================================================
@@ -2277,6 +2307,9 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 
 	// 3Dオブジェクトの深度テストを無効にして描画
 	SetDepthTest(false);
+
+	Shader_BeginUI();
+	Shader_Begin();
 }
 
 void Player_DrawHP()
@@ -2380,7 +2413,7 @@ void Player_DrawHP()
 		if (Player_CanUseSpecial(i))
 		{
 			Shader_SetColor(color::white);
-			Effect_Set(24, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (100.0f * SCREEN_ADJUST_Y) }, { (162.0f * SCREEN_ADJUST_X), (60.0f * SCREEN_ADJUST_Y) }, i);
+			Effect_Set(24, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (95.0f * SCREEN_ADJUST_Y) }, { (190.0f * SCREEN_ADJUST_X), (69.0f * SCREEN_ADJUST_Y) }, i);
 		}
 		if (!Player_CanUseSpecial(i))
 		{
@@ -2576,12 +2609,36 @@ static void Ranking(int playerIndex)
 				break;
 			}
 		}
+		//if((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A))
+		//{
+		//	// 蜍晁・｢ｺ螳・竊・SCENE_WIN 縺ｸ驕ｷ遘ｻ
+		//	if (GetFadeState() == FADE_NONE)
+		//	{
+		//		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 0.0f);
+		//		SetFade(60, color, FADE_OUT, SCENE_WIN);
+		//	}
+		//}
+		g_isWaitWin = true;
+		g_winTimer = 0.0f;
+	}
+}
 
-		// 勝者確定 → SCENE_WIN へ遷移
+void Player_CheckWin()
+{
+	if (!g_isWaitWin) return;
+
+	g_winTimer += DELTA_TIME;
+
+	/*if (Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A)*/
+	if (g_winTimer >= 3.0f)
+	{
+		// ゲーム終了から勝利画面へ遷移
 		if (GetFadeState() == FADE_NONE)
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 0.0f);
 			SetFade(60, color, FADE_OUT, SCENE_WIN);
+			g_isWaitWin = false;  // 遷移開始後はフラグを下ろす
+			g_winTimer = 0.0f;
 		}
 	}
 }

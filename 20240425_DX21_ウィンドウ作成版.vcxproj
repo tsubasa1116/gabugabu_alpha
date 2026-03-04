@@ -170,6 +170,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="Building.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="collider.cpp" />
+    <ClCompile Include="cutin.cpp" />
     <ClCompile Include="DamageText.cpp" />
     <ClCompile Include="debug_ostream.cpp" />
     <ClCompile Include="debug_render.cpp" />
@@ -214,6 +215,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClCompile Include="swipe.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="Title.cpp" />
+    <ClCompile Include="transition.cpp" />
     <ClCompile Include="VideoTexture.cpp" />
     <ClCompile Include="Win.cpp" />
   </ItemGroup>
@@ -226,6 +228,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="Camera.h" />
     <ClInclude Include="collider.h" />
     <ClInclude Include="color.h" />
+    <ClInclude Include="cutin.h" />
     <ClInclude Include="DamageText.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_render.h" />
@@ -270,6 +273,7 @@ copy "$(TargetDir)ps_*.cso" "$(ProjectDir)"
     <ClInclude Include="swipe.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Title.h" />
+    <ClInclude Include="transition.h" />
     <ClInclude Include="VideoTexture.h" />
     <ClInclude Include="Win.h" />
   </ItemGroup>
