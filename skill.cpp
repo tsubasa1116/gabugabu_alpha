@@ -15,6 +15,7 @@ using namespace DirectX;
 #include "keyboard.h"
 #include "Audio.h"
 #include "color.h"
+#include "debug_render.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -35,6 +36,9 @@ static SKILL_OBJECT Skill[PLAYER_MAX];
 static SKILL_GLASS g_SkillGlass[PLAYER_MAX];
 
 static int g_SE_ID[SKILL_SE_COUNT] = { NULL };
+
+// デバッグ表示フラグ
+static bool g_ShowCollider = false;
 
 // マクロ定義
 #define SKILL_VERTEX (24) // 24 頂点（キューブ各面 4 頂点 × 6 面）
@@ -214,14 +218,10 @@ void Skill_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext
 	// 構造体のインスタンス
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		for (int i = 0; i < 5; ++i)
-		{
-			// 各箱の初期座標を設定
-			g_SkillGlass[p].boxes[i].position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_SkillGlass[p].boxes[i].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_SkillGlass[p].boxes[i].scaling = XMFLOAT3(0.2f, 0.2f, 0.2f);
-			// BoundingBoxの初期化などもここで行う
-		}
+		// 球コライダーの初期化
+		g_SkillGlass[p].sphereCollider.center = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		g_SkillGlass[p].sphereCollider.radius = SKILL_GLASS_RADIUS;
+
 		// その他の初期状態を設定
 		g_SkillGlass[p].isActive = false;
 	}
@@ -335,6 +335,8 @@ void Skill_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_SE_ID[1] = LoadAudio("asset\\Audio\\Skill_Concrete_Expansion.wav");	// スキル コンクリート 展開音
 	g_SE_ID[2] = LoadAudio("asset\\Audio\\Skill_Plant.wav");				// スキル 植物
 	g_SE_ID[3] = LoadAudio("asset\\Audio\\Skill_Electricity.wav");			// スキル 電気
+
+	g_ShowCollider = false;
 }
 
 void Skill_Finalize()
@@ -389,49 +391,14 @@ void Skill_Glass_Update(int playerIndex)
 	// スキルタイマー更新
 	player.skillTimer += DELTA_TIME;
 
-	// ここで Radius の値を動的に計算する
-	float dynamicRadius = player.scaling.x; // scalingは等しいのでy,zでも可
-
-	// 5つの箱に対応する相対角度 (度)
-	const float RelativeAngles[5] = { 20.0f, 130.0f, 180.0f, 220.0f, 290.0f };
-
-	// 5つの箱のプレイヤーからの高さオフセット
-	const float High[5] = { 0.0f, 0.5f, 0.1f, 0.2f, 0.3f };
-
-	// 5つの箱の回転角度 (度)
-	const float Rot[5] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-
-	// 5つの箱のスケーリング値
-	const float Scal[5] = { 0.1f, 0.3f, 0.15f, 0.4f, 0.2f };
-
-	// プレイヤーの現在の回転角度 (ラジアン)
-	float playerYaw = XMConvertToRadians(player.rotation.y);
-
 	SKILL_GLASS& skillGlass = g_SkillGlass[playerIndex];
 
-	// 箱の位置・回転・スケールを更新しつつ AABB を更新
-	for (int i = 0; i < 5; ++i)
-	{
-		float relativeRad = XMConvertToRadians(RelativeAngles[i]);
-		float finalAngle = playerYaw + relativeRad;
-
-		// 座標オフセットの計算
-		float offsetX = dynamicRadius * cosf(finalAngle);
-		float offsetZ = dynamicRadius * sinf(finalAngle);
-
-		// 箱の座標を設定
-		skillGlass.boxes[i].position.x = player.position.x + offsetX;
-		skillGlass.boxes[i].position.y = player.position.y + High[i];
-		skillGlass.boxes[i].position.z = player.position.z + offsetZ;
-		skillGlass.boxes[i].rotation = XMFLOAT3(Rot[i], Rot[i], Rot[i]);
-		skillGlass.boxes[i].scaling = XMFLOAT3(Scal[i], Scal[i], Scal[i]);
-
-		// 箱の AABB を更新
-		CalculateAABB(skillGlass.boxes[i].boundingBox, skillGlass.boxes[i].position, skillGlass.boxes[i].scaling);
-	}
+	// 球コライダーの中心をプレイヤーの座標に追従させる
+	skillGlass.sphereCollider.center = player.position;
+	skillGlass.sphereCollider.radius = SKILL_GLASS_RADIUS;
 
 	// -------------------------------
-	// 当たり判定：箱 vs 他プレイヤー
+	// 当たり判定：球 vs 他プレイヤー
 	// 仕様：ガラススキルは「ダメージあり」「押し返しなし」
 	// -------------------------------
 	// プレイヤー側で使っている描画スケール・ヒットボックス比率と合わせる（attack.cpp と同等）
@@ -440,58 +407,46 @@ void Skill_Glass_Update(int playerIndex)
 	const float HITBOX_HEIGHT_SCALE = 1.0f;
 	const float HITBOX_DEPTH_SCALE = 0.6f;
 
-	// 各箱について他プレイヤーと当たり判定
-	for (int b = 0; b < 5; ++b)
+	// 球コライダーで他プレイヤーと当たり判定
+	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-		SKILL_OBJECT& box = skillGlass.boxes[b];
+		if (p == playerIndex) continue; // 自分は無視
 
-		for (int p = 0; p < PLAYER_MAX; ++p)
+		PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
+		if (otherPlayerObject == nullptr) continue;
+		PLAYEROBJECT& otherPlayer = *otherPlayerObject;
+
+		if (!otherPlayer.active) continue;		// 非アクティブは無視
+		if (otherPlayer.isInvincible) continue;	// 無敵中は無視
+
+		// リスポーン中や卵割れ中はダメージを受けないよう無視する
+		if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
+
+		// otherPlayer 用のヒットボックススケールを攻撃判定と合わせて計算して AABB を作る
+		XMFLOAT3 otherPlayerHitboxScaling =
 		{
-			if (p == playerIndex) continue; // 自分は無視
+			otherPlayer.scaling.x * RENDER_SCALE * HITBOX_WIDTH_SCALE,
+			otherPlayer.scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
+			otherPlayer.scaling.z * RENDER_SCALE * HITBOX_DEPTH_SCALE
+		};
+		CalculateAABB(otherPlayer.boundingBox, otherPlayer.position, otherPlayerHitboxScaling);
 
-			PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
-			if (otherPlayerObject == nullptr) continue;
-			PLAYEROBJECT& otherPlayer = *otherPlayerObject;
+		// 判定（球 vs otherPlayer AABB）
+		bool isHit = CheckCircleAABBCollision(skillGlass.sphereCollider, otherPlayer.boundingBox);
 
-			if (!otherPlayer.active) continue;		// 非アクティブは無視
-			if (otherPlayer.isInvincible) continue;	// 無敵中は無視
+		// 当たってもアニメーションはなし
+		if (isHit)
+		{
+			// ダメージのみ（ノックバックは与えない） 防御率でダメージ軽減
+			otherPlayer.hp -= SKILL_GLASS_DAMAGE * otherPlayer.defense;
+			// HPが0以下にならないように
+			if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
 
-			// リスポーン中や卵割れ中はダメージを受けないよう無視する
-			if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
+			otherPlayer.isDamageColor = true;	// ダメージカラーON
+			otherPlayer.damageColorTimer = 0.0f;// ダメージカラータイマーリセット
 
-			// otherPlayer 用のヒットボックススケールを攻撃判定と合わせて計算して AABB を作る
-			XMFLOAT3 otherPlayerHitboxScaling =
-			{
-				otherPlayer.scaling.x * RENDER_SCALE * HITBOX_WIDTH_SCALE,
-				otherPlayer.scaling.y * RENDER_SCALE * HITBOX_HEIGHT_SCALE,
-				otherPlayer.scaling.z * RENDER_SCALE * HITBOX_DEPTH_SCALE
-			};
-			CalculateAABB(otherPlayer.boundingBox, otherPlayer.position, otherPlayerHitboxScaling);
-
-			// box の AABB 再更新
-			CalculateAABB(box.boundingBox, box.position, box.scaling);
-
-			// 判定（otherPlayer AABB と 箱 AABB）
-			MTV col = CalculateAABBMTV(otherPlayer.boundingBox, box.boundingBox);
-
-			// 当たってもアニメーションはなし
-			if (col.isColliding)
-			{
-				// ダメージのみ（ノックバックは与えない） 防御率でダメージ軽減
-				otherPlayer.hp -= SKILL_GLASS_DAMAGE * otherPlayer.defense;
-				// HPが0以下にならないように
-				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
-	
-				// ここ２行
-				otherPlayer.isDamageColor = true;
-				otherPlayer.damageColorTimer = 0.0f;
-
-				otherPlayer.isDamageColor = true;	// ダメージカラーON
-				otherPlayer.damageColorTimer = 0.0f;// ダメージカラータイマーリセット
-
-				// スタンゲージ増加
-				otherPlayer.stunGauge += 0.03f;
-			}
+			// スタンゲージ増加
+			otherPlayer.stunGauge += 0.03f;
 		}
 	}
 
@@ -639,6 +594,12 @@ void Skill_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
+	// Pキーでコライダー表示をトグル（playerIndex == 0 のときだけチェックして重複回避）
+	if (playerIndex == 0 && Keyboard_IsKeyDownTrigger(KK_P))
+	{
+		g_ShowCollider = !g_ShowCollider;
+	}
+
 	// スキル使用中かつスタン中でない場合に更新処理を行う
 	if (player.useSkill && !player.isStunning)
 	{
@@ -653,33 +614,51 @@ void Skill_Update(int playerIndex)
 	}
 }
 
-// Glass専用描画 (5つの箱をループで描画)
+// Glass専用描画 (球コライダーのデバッグ描画のみ)
 void Skill_Glass_Draw(int playerIndex)
 {
-	// Glass専用のテクスチャをセット
-	ID3D11ShaderResourceView* tex = g_Skill_Texture[0];
-	g_pContext->PSSetShaderResources(0, 1, &tex);
-
-	SKILL_GLASS& skillGlass = g_SkillGlass[playerIndex];
-
-	// GlassSkill構造体（5つの箱）を使ってループ描画
-	for (int i = 0; i < 5; ++i)
+	// Pキーが有効な場合のみ球コライダーをデバッグ描画
+	if (g_ShowCollider)
 	{
-		SKILL_OBJECT& box = skillGlass.boxes[i];
+		SKILL_GLASS& skillGlass = g_SkillGlass[playerIndex];
 
-		// --- ワールド行列計算 ---
-		XMMATRIX WorldMatrix =
-			XMMatrixScaling(box.scaling.x, box.scaling.y, box.scaling.z) *
-			XMMatrixRotationRollPitchYaw(XMConvertToRadians(box.rotation.x), XMConvertToRadians(box.rotation.y), XMConvertToRadians(box.rotation.z)) *
-			XMMatrixTranslation(box.position.x, box.position.y, box.position.z);
-
-		// 行列セット
-		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		// ワールド空間の単位行列をセット（Debug_DrawCircleはワールド座標で描画する）
+		XMMATRIX WVP = XMMatrixIdentity() * GetViewMatrix() * GetProjectionMatrix();
 		Shader_SetMatrix(WVP);
 
-		// 描画実行
-		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		g_pContext->DrawIndexed(6 * 6, 0, 0);
+		XMFLOAT3 center = skillGlass.sphereCollider.center;
+		float radius = skillGlass.sphereCollider.radius;
+
+		// XZ平面の円（水平リング）
+		Debug_DrawCircle(center, radius, color::sky);
+
+		// XY平面の円（正面リング）をラインで描画
+		{
+			const int segments = 36;
+			const float angleStep = XM_2PI / segments;
+			for (int i = 0; i < segments; ++i)
+			{
+				float a0 = i * angleStep;
+				float a1 = (i + 1) * angleStep;
+				XMFLOAT3 p0 = { center.x + radius * cosf(a0), center.y + radius * sinf(a0), center.z };
+				XMFLOAT3 p1 = { center.x + radius * cosf(a1), center.y + radius * sinf(a1), center.z };
+				Debug_DrawLine(p0, p1, color::sky);
+			}
+		}
+
+		// YZ平面の円（側面リング）をラインで描画
+		{
+			const int segments = 36;
+			const float angleStep = XM_2PI / segments;
+			for (int i = 0; i < segments; ++i)
+			{
+				float a0 = i * angleStep;
+				float a1 = (i + 1) * angleStep;
+				XMFLOAT3 p0 = { center.x, center.y + radius * sinf(a0), center.z + radius * cosf(a0) };
+				XMFLOAT3 p1 = { center.x, center.y + radius * sinf(a1), center.z + radius * cosf(a1) };
+				Debug_DrawLine(p0, p1, color::sky);
+			}
+		}
 	}
 }
 

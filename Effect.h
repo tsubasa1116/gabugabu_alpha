@@ -60,6 +60,16 @@ struct BUILDING_EFFECT_ANIM
 	int hitEndFrame = 0;		// 終了フレーム
 };
 
+// 隕石着弾エフェクトアニメーション（プレイヤーごと）
+struct METEOR_EFFECT_ANIM
+{
+	int   frame = 0;		// 現在のアニメーションフレーム (0～31)
+	float timer = 0.0f;		// アニメーションタイマー
+	bool  playing = false;	// 再生中フラグ
+	bool  finished = false;	// 再生完了フラグ（1回だけ再生）
+	XMFLOAT3 pos = { 0.0f, 0.0f, 0.0f };	// エフェクト表示位置
+};
+
 struct EFFECT_LAYER
 {
 	int texNo;
@@ -69,17 +79,17 @@ struct EFFECT_LAYER
 };
 
 // テクスチャごとの設定
-struct EffectConfig {
-	int maxFrame;  // 全体フレーム数
-	int loopStart; // ループ開始フレーム
-	int loopEnd;   // ループ終了フレーム (ここを超えたらloopStartに戻る)
-	bool isLoop;   // ループフラグ
-	float speed;   // 再生速度（1.0fが標準）
+struct EffectConfig
+{
+	int maxFrame;	// 全体フレーム数
+	int loopStart;	// ループ開始フレーム
+	int loopEnd;	// ループ終了フレーム (ここを超えたらloopStartに戻る)
+	bool isLoop;	// ループフラグ
+	float speed;	// 再生速度
 	int spriteY;
 	float scaleMin;
 	float scaleMax;
 	float scaleSpeed;
-
 };
 
 // メイン処理関数
@@ -104,5 +114,9 @@ void Effect_DrawForBuilding(int buildingIndex);
 // 建物エフェクト一括処理関数（軽量版）
 void Effect_UpdateAllBuildings();
 void Effect_DrawAllBuildings();
+
+// 隕石着弾エフェクト関数
+void MeteorEffectUpdate();
+void MeteorEffectDraw();
 
 void Effect_Warmup();

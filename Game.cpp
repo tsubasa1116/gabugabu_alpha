@@ -31,6 +31,7 @@
 #include "shader.h"
 #include "color.h"
 #include "cutin.h"
+#include "gimmick.h"
 
 //======================================================
 // 
@@ -43,6 +44,7 @@ LIGHTOBJECT Light;
 static int g_BgmID[3];
 bool input2 = false;
 
+// コマンドが入力されたときに立つフラグ
 static bool s_IsKonamiCodeEntered = false;
 static bool g_GameInitialized = false;
 static bool g_IsFirstFrame = true;
@@ -77,6 +79,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	Initialize_MakeText();
 	CreateRenderTarget_MakeText();
 
+	Meteor_Initialize(pDevice, pContext);
 	Player_Initialize(pDevice, pContext);
 	Field_Initialize(pDevice, pContext);
 	Effect_Initialize(pDevice, pContext);
@@ -123,7 +126,6 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//PlayAudio(g_BgmID, false);	// 蜀咲函髢句ｧ具ｼ医Ν繝ｼ繝励↑縺暦ｼ・
 
 	XMFLOAT4 para;
-
 	para = XMFLOAT4(0.7f, 0.7f, 0.9999f, 1.0f);
 	Light.SetAmbient(para);
 	para = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
@@ -153,13 +155,11 @@ void Game_Finalize()
 	Attack_Finalize();
 	Skill_Finalize();
 	Special_Finalize();
+	Meteor_Finalize();
 	SkyBall_Finalize();
 	Cutin_Finalize();
 	//Building_Finalize();
 
-	//BallFinalize();
-	//P_Finalize();
-	//Score_Finalize();
 
 	UnloadAudio(g_BgmID[0]);
 	DamageText_Finalize();
@@ -171,6 +171,13 @@ void Game_Finalize()
 
 //======================================================
 //	譖ｴ譁ｰ蜃ｦ逅・
+// 
+// 
+// 
+// 
+// 
+// 
+// 
 //======================================================
 void Game_Update()
 {
@@ -207,19 +214,19 @@ void Game_Update()
 	// 繧ｳ繝槭Φ繝峨〒菴ｿ逕ｨ縺吶ｋ蜈ｨ縺ｦ縺ｮ繧ｭ繝ｼ縺ｮ謚ｼ荳九ヨ繝ｪ繧ｬ繝ｼ繧偵メ繧ｧ繝・け縺励∵､懷・髢｢謨ｰ縺ｫ貂｡縺・
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
-		if(!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
+		if (!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
 		else						s_IsKonamiCodeEntered = false;
 	}
-	// ------------------------------------
-	// 
-	// ------------------------------------
+
 	Player_Update();
+	Meteor_Update();
 	Field_Update();
 	Building_UpdateAll();
 	Effect_Update();
+	MeteorEffectUpdate();
 	Cutin_Update();
 
-	// 蟒ｺ迚ｩ繧ｨ繝輔ぉ繧ｯ繝域峩譁ｰ・・譽溘★縺､・・
+	// 建物エフェクト更新（1棟ずつ）
 	int buildingCount = GetBuildingCount();
 	for (int i = 0; i < buildingCount; i++)
 	{
@@ -231,12 +238,9 @@ void Game_Update()
 	Gauge_Update();
 	Camera_Update();
 	SkyBall_Update();
-	//BallUpdate();
-	//P_Update();
-	//Score_Update();
 	DamageText_Update();
 
-	//繧ｲ繝ｼ繝繧ｷ繝ｼ繝ｳ縺ｸ驕ｷ遘ｻ
+	//ゲームシーンへ遷移
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
 		// 繝輔ぉ繝ｼ繝峨い繧ｦ繝医＆縺帙※繧ｷ繝ｼ繝ｳ繧貞・繧頑崛縺医ｋ
@@ -282,14 +286,20 @@ void Game_Draw()
 
 		SetDepthTest(TRUE);
 	}
+
+	// 隕石: 範囲表示のみ
+	Meteor_DrawRange(s_IsKonamiCodeEntered);
+	MeteorEffectDraw();
 	if (GetGamePhase() == PHASE_COUNTDOWN || GetGamePhase() == PHASE_PLAY)
 	{
 		Player_Draw(s_IsKonamiCodeEntered);
 	}
+	// 隕石: モデルのみ
+	Meteor_DrawModel(s_IsKonamiCodeEntered);
 
-	//2D謠冗判
-	Light.SetEnable(FALSE);			// 繝ｩ繧､繝・ぅ繝ｳ繧ｰOFF
-	Shader_SetLight(Light.Light);	// 繝ｩ繧､繝域ｧ矩菴薙ｒ繧ｷ繧ｧ繝ｼ繝繝ｼ縺ｸ繧ｻ繝・ヨ
+	// 2D描画
+	Light.SetEnable(FALSE);
+	Shader_SetLight(Light.Light);
 	SetDepthTest(FALSE);
 
 	DamageText_Draw();
@@ -300,8 +310,8 @@ void Game_Draw()
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
-		XMFLOAT2 pos = { cx - 380.0f, cy - 280.0f };
-		XMFLOAT2 size = { 540.0f, 150.0f };
+		XMFLOAT2 pos = { cx - 380.0f * SCREEN_ADJUST_X, cy - 280.0f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { 540.0f * SCREEN_ADJUST_X, 150.0f * SCREEN_ADJUST_Y };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[4]);
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -453,6 +463,5 @@ void Game_Draw()
 		// 謠冗判縺檎ｵゅｏ縺｣縺溘ｉ蜈・・繝薙Η繝ｼ繝昴・繝・逕ｻ髱｢菴咲ｽｮ)縺ｫ謌ｻ縺・
 		pContext->RSSetViewports(1, &vp);
 	}
-
 }
 

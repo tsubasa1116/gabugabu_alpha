@@ -18,6 +18,7 @@ using namespace DirectX;
 #include "gamepad.h"
 #include "Audio.h"
 #include "loadThread.h"
+#include "model.h"
 #include "cutin.h"
 
 // グローバル変数
@@ -61,6 +62,10 @@ static int  g_concreteFrame[PLAYER_MAX] = { 0 };
 static float g_concreteTimer[PLAYER_MAX] = { 0.0f };
 static const int   CONCRETE_FRAME_MAX = 72;	// 0～72
 static const float CONCRETE_ANIM_FRAME_TIME = 0.15f;
+
+// ガラスミサイル用モデル＆テクスチャ
+static MODEL* g_GlassMissileModel = nullptr;
+static ID3D11ShaderResourceView* g_GlassMissileTexture = nullptr;
 
 static int g_SE_ID[SPECIAL_SE_COUNT] = { NULL };
 
@@ -288,10 +293,10 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"Asset\\Texture\\uiSpecialGreen_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[3]);
 	assert(g_Special_Texture[3]);
-	// ガラスミサイル
-	LoadFromWICFile(L"Asset\\Texture\\ice.jpg", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[4]);
-	assert(g_Special_Texture[4]);
+	//// ガラスミサイル
+	//LoadFromWICFile(L"Asset\\Texture\\ice.jpg", WIC_FLAGS_NONE, &metadata, image);
+	//CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[4]);
+	//assert(g_Special_Texture[4]);
 	// コンクリート 衝撃波 エフェクト1
 	LoadFromWICFile(L"Asset\\Texture\\effectSPConcrete01_v2.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[5]);
@@ -304,7 +309,6 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	LoadFromWICFile(L"Asset\\Texture\\effectlighting.png", WIC_FLAGS_NONE, &metadata, image);
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[7]);
 	assert(g_Special_Texture[7]);
-
 
 	//LoadFromWICFile(L"Asset\\Texture\\effectSkillGlassConcrete_v5_1.png", WIC_FLAGS_NONE, &metadata, image);
 	LoadFromWICFile(L"Asset\\Texture\\effectLightingExplosionspritesheet.png", WIC_FLAGS_NONE, &metadata, image);
@@ -320,6 +324,13 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[10]);
 	assert(g_Special_Texture[10]);
 	});
+
+	// ガラスミサイル用テクスチャ読み込み
+	TexMetadata metadata;
+	ScratchImage image;
+	LoadFromWICFile(L"Asset\\Texture\\ice.jpg", WIC_FLAGS_NONE, &metadata, image);
+	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_GlassMissileTexture);
+	assert(g_GlassMissileTexture);
 
 	// インデックスバッファ作成
 	{
@@ -342,12 +353,14 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
 
+	// ガラスミサイル用モデル読み込み
+	g_GlassMissileModel = ModelLoad("Asset\\Model\\ice_v5.fbx");
+
 	Special_Glass_Initialize(pDevice, pContext);
 	Special_Concrete_Initialize(pDevice, pContext);
 	Special_Plant_Initialize(pDevice, pContext);
 	Special_Electricity_Initialize(pDevice, pContext);
 	//Special_Electricity_Initialize2(pDevice, pContext);
-
 
 	// SEの初期化
 	g_SE_ID[0] = LoadAudio("asset\\Audio\\Special_Concrete.wav");		// スペシャル コンクリート
@@ -375,7 +388,7 @@ void Special_Finalize()
 		g_IndexBuffer = NULL;
 	}
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 11; i++)
 	{
 		if (g_Special_Texture[i])
 		{
@@ -383,6 +396,9 @@ void Special_Finalize()
 			g_Special_Texture[i] = NULL;
 		}
 	}
+
+	if (g_GlassMissileModel) { ModelRelease(g_GlassMissileModel); g_GlassMissileModel = nullptr; }
+	if (g_GlassMissileTexture) { g_GlassMissileTexture->Release(); g_GlassMissileTexture = nullptr; }
 
 	for (int i = 0; i < SPECIAL_SE_COUNT; ++i)	UnloadAudio(g_SE_ID[i]);
 
@@ -412,11 +428,12 @@ void Special_Glass_Update(int playerIndex)
 
 	// スペシャルの初期化処理
 	static bool initialized[PLAYER_MAX] = { false }; // 各プレイヤーごとに初期化フラグを持つ
-	static bool missileRain[PLAYER_MAX] = { false }; // 各プレイヤーごとのミサイル雨フラグ
 
 	if (!initialized[playerIndex])
 	{
 		player.glassBoxes.clear();
+		int boxCount = 0; // 全箱の通し番号（時間差用）
+
 		for (int p = 0; p < PLAYER_MAX; ++p)
 		{
 			if (p == playerIndex) continue; // 自分自身は無視
@@ -463,8 +480,13 @@ void Special_Glass_Update(int playerIndex)
 			{
 				GLASS_BOX box;
 				box.position = player.position; // 箱をプレイヤーの位置に出現させる
-				box.rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				box.scaling = XMFLOAT3(0.4f, 0.4f, 0.4f); // 箱のサイズ
+				box.rotation = XMFLOAT3
+				(
+					static_cast<float>(rand() % 360),
+					static_cast<float>(rand() % 360),
+					static_cast<float>(rand() % 360)
+				);
+				box.scaling = XMFLOAT3(0.2f, 0.2f, 0.2f); // 箱のサイズ
 				box.targetPosition =
 				{
 					otherPlayer.position.x + offsets[i].x,
@@ -472,7 +494,11 @@ void Special_Glass_Update(int playerIndex)
 					otherPlayer.position.z + offsets[i].z
 				};
 				box.dir = XMFLOAT3(0.0f, 1.0f, 0.0f);	// 初期は上昇方向
-				box.active = true;	// 初期状態で有効
+				box.active = true;						// 初期状態で有効
+				box.spawned = false;					// まだ出現していない
+				box.spawnDelay = boxCount * 0.1f;		// 0.0s, 0.1s, 0.2s, ...
+				box.phase = 0;							// 上昇フェーズから開始
+				boxCount++;
 				player.glassBoxes.push_back(box);
 			}
 		}
@@ -484,92 +510,109 @@ void Special_Glass_Update(int playerIndex)
 	{
 		if (!box.active) continue; // 非アクティブな箱はスキップ
 
-		if (!missileRain[playerIndex])
+		// 出現遅延チェック（specialTimerがspawnDelayを超えるまで待機）
+		if (!box.spawned)
 		{
-			if (box.position.y < player.position.y + 6.0f)
-			{
-				// ① プレイヤーの位置からY座標+6まで上昇
-				box.position.y += DELTA_TIME * 6.0f; // 上昇速度
-				if (box.position.y >= player.position.y + 6.0f)	box.position.y = player.position.y + 6.0f;
-			}
-			else missileRain[playerIndex] = true; // 上昇完了後にフラグを立てる
+			if (player.specialTimer < box.spawnDelay) continue; // まだ出現時刻に達していない
+			box.spawned = true;	// 出現開始
+			box.position = player.position;	// 出現時点のプレイヤー位置から開始
 		}
-		else
+
+		// 箱をゆっくり回転させる
+		box.rotation.x += 50.0f * DELTA_TIME;
+		box.rotation.y += 65.0f * DELTA_TIME;
+		box.rotation.z += 40.0f * DELTA_TIME;
+
+		// フェーズ0: 上昇
+		if (box.phase == 0)
 		{
-			if (box.position.x != box.targetPosition.x || box.position.z != box.targetPosition.z)
+			float targetY = player.position.y + 7.0f;
+			if (box.position.y < targetY)
 			{
-				// ② targetPositionの真上まで平行移動
-				XMVECTOR currentPos = XMLoadFloat3(&box.position);
-				XMVECTOR targetPos = XMVectorSet(box.targetPosition.x, box.position.y, box.targetPosition.z, 0.0f);
-				XMVECTOR direction = XMVector3Normalize(targetPos - currentPos);
-
-				// 移動速度を設定
-				const float speed = DELTA_TIME * 6.0f;
-				XMVECTOR movement = direction * speed;
-
-				// 新しい位置を計算
-				currentPos += movement;
-
-				// 目標位置に到達したか確認
-				XMVECTOR distanceVec = targetPos - currentPos;
-				float distance = XMVectorGetX(XMVector3Length(distanceVec));
-				if (distance <= speed)	XMStoreFloat3(&box.position, targetPos);	// 真上にスナップ
-				else					XMStoreFloat3(&box.position, currentPos);	// 移動
+				box.position.y += DELTA_TIME * 10.0f; // 上昇速度
+				if (box.position.y >= targetY) box.position.y = targetY;
 			}
-			else if (box.position.y > box.targetPosition.y)
+			else
 			{
-				// ③ targetPositionまで降下
-				box.position.y -= DELTA_TIME * 6.0f;	// 降下速度
-				if (box.position.y <= box.targetPosition.y)
+				box.phase = 1; // この箱だけ横移動フェーズへ
+			}
+		}
+		// フェーズ1: 横移動（targetPositionの真上まで）
+		else if (box.phase == 1)
+		{
+			XMVECTOR currentPos = XMLoadFloat3(&box.position);
+			XMVECTOR targetPos = XMVectorSet(box.targetPosition.x, box.position.y, box.targetPosition.z, 0.0f);
+			XMVECTOR distanceVec = targetPos - currentPos;
+			float distance = XMVectorGetX(XMVector3Length(distanceVec));
+
+			const float speed = DELTA_TIME * 4.0f;
+
+			if (distance <= speed)
+			{
+				XMStoreFloat3(&box.position, targetPos); // 真上にスナップ
+				box.phase = 2; // この箱だけ降下フェーズへ
+			}
+			else
+			{
+				XMVECTOR direction = XMVector3Normalize(distanceVec);
+				XMVECTOR movement = direction * speed;
+				currentPos += movement;
+				XMStoreFloat3(&box.position, currentPos);
+			}
+		}
+		// フェーズ2: 降下
+		else if (box.phase == 2)
+		{
+			box.position.y -= DELTA_TIME * 10.0f; // 降下速度
+			if (box.position.y <= box.targetPosition.y)
+			{
+				box.position.y = box.targetPosition.y; // 降下完了
+				box.active = false; // 地面に着いたら非アクティブ化
+
+				// ガラスSE再生（ラウンドロビンで別スロットを使い、前の音を途切れさせない）
+				PlayAudio(g_GlassSE_IDs[g_GlassSE_NextSlot], false);
+				g_GlassSE_NextSlot = (g_GlassSE_NextSlot + 1) % GLASS_SE_SLOT_MAX;
+
+				Camera_StartShake(0.2f, 0.2f);
+
+				// 衝突判定
+				Circle boxCollider = { box.position, 0.3f }; // 半径0.3の円
+				for (int p = 0; p < PLAYER_MAX; ++p)
 				{
-					box.position.y = box.targetPosition.y;	// 降下完了
-					box.active = false;	// 地面に着いたら非アクティブ化
+					TriggerVibration(p, 0.2f, 0.2f, 200);
 
-					// ガラスSE再生（ラウンドロビンで別スロットを使い、前の音を途切れさせない）
-					PlayAudio(g_GlassSE_IDs[g_GlassSE_NextSlot], false);
-					g_GlassSE_NextSlot = (g_GlassSE_NextSlot + 1) % GLASS_SE_SLOT_MAX;
+					if (p == playerIndex) continue; // 自分自身は無視
 
-					Camera_StartShake(0.2f, 0.2f);
+					PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
+					if (otherPlayerObject == nullptr || !otherPlayerObject->active) continue;
+					PLAYEROBJECT& otherPlayer = *otherPlayerObject;
 
-					// 衝突判定
-					Circle boxCollider = { box.position, 0.3f };	// 半径0.3の円
-					for (int p = 0; p < PLAYER_MAX; ++p)
+					if (otherPlayer.isInvincible) continue; // 無敵中は無視
+					// リスポーン中や卵割れ中はダメージを受けないよう無視する
+					if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
+
+					// 箱とプレイヤーの衝突判定
+					if (CheckCircleAABBCollision(boxCollider, otherPlayer.boundingBox))
 					{
-						TriggerVibration(p, 0.2f, 0.2f, 200);
-						
-						if (p == playerIndex) continue; // 自分自身は無視
+						float rawDamage = SPECIAL_GLASS_DAMAGE * otherPlayer.defense;;
+						// 衝突している場合、ダメージを与える
+						otherPlayer.hp -= rawDamage;
 
-						PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
-						if (otherPlayerObject == nullptr || !otherPlayerObject->active) continue;
-						PLAYEROBJECT& otherPlayer = *otherPlayerObject;
+						TriggerbyHPShake(p, 8.0f, 20.0f, 1.5f);
 
-						if (otherPlayer.isInvincible) continue; // 無敵中は無視
-						// リスポーン中や卵割れ中はダメージを受けないよう無視する
-						if (otherPlayer.duringRespawn || otherPlayer.isEggBreaking) continue;
+						// ダメージ数字を表示（頭上にオフセット）
+						int dmgInt = static_cast<int>(rawDamage + 0.5f);
+						XMFLOAT3 hitPos = otherPlayer.position;
+						hitPos.y += otherPlayer.scaling.y + 0.3f;
+						SetDamageText(hitPos, dmgInt, TextColor::Red);
 
-						// 箱とプレイヤーの衝突判定
-						if (CheckCircleAABBCollision(boxCollider, otherPlayer.boundingBox))
-						{
-							float rawDamage = SPECIAL_GLASS_DAMAGE * otherPlayer.defense;;
-							// 衝突している場合、ダメージを与える
-							otherPlayer.hp -= rawDamage;
+						// HPが0以下にならないように
+						if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
 
-							TriggerbyHPShake(p, 8.0f, 20.0f, 1.5f);
+						otherPlayer.isAttacked = true; // 攻撃を受けたフラグを立てる
 
-							// ダメージ数字を表示（頭上にオフセット）
-							int dmgInt = static_cast<int>(rawDamage + 0.5f);
-							XMFLOAT3 hitPos = otherPlayer.position;
-							hitPos.y += otherPlayer.scaling.y + 0.3f;
-							SetDamageText(hitPos, dmgInt, TextColor::Red);
-
-							// HPが0以下にならないように
-							if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
-
-							otherPlayer.isAttacked = true; // 攻撃を受けたフラグを立てる
-
-							// 衝突した箱を非アクティブ化
-							box.active = false;
-						}
+						// 衝突した箱を非アクティブ化
+						box.active = false;
 					}
 				}
 			}
@@ -586,7 +629,6 @@ void Special_Glass_Update(int playerIndex)
 		g_animFrame[playerIndex] = 0;		// アニメーションリセット
 		g_animTimer[playerIndex] = 0.0f;
 		initialized[playerIndex] = false;	// 次回のスペシャル使用時に再初期化するため
-		missileRain[playerIndex] = false;	// フラグをリセット
 		player.form = Form::First;			// 変身形態を第1形態に戻す
 		player.type = PlayerType::None;		// タイプをリセット
 		player.useSkill = false;			// スキル解除
@@ -613,9 +655,9 @@ void Special_Concrete_Update(int playerIndex)
 	// 空中で「4フレームを再生済みか（5へ移行済みか）」を保持
 	static bool  concreteAirPlayed5[PLAYER_MAX] = { false };
 
-	const float AIR_EPS = 0.05f;               // 空中判定の閾値
-	const float TOGGLE_TIME = ANIM_FRAME_TIME; // フレーム切替周期（地上／着地用）
-	const float AIR_SHOW4_DURATION = 0.25f;    // 空中でまず4フレームを表示する秒数（この後1回だけ5に移行）
+	const float AIR_EPS = 0.05f;				// 空中判定の閾値
+	const float TOGGLE_TIME = ANIM_FRAME_TIME;	// フレーム切替周期（地上／着地用）
+	const float AIR_SHOW4_DURATION = 0.25f;		// 空中でまず4フレームを表示する秒数（この後1回だけ5に移行）
 
 	// スペシャルの初期位置をプレイヤーの位置に設定
 	if (player.specialTimer == 0.0f)
@@ -1010,8 +1052,6 @@ void Special_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	// ----- 変更点: コンクリート衝撃波アニメーションは
-	//         スペシャル使用中に限らず再生させる -----
 	// 範囲表示フェーズが完了している（着地済み）なら、専用タイマーで g_concreteFrame を進める
 	if (g_concreteRangeFinished[playerIndex] && player.type == PlayerType::Concrete)
 	{
@@ -1029,7 +1069,6 @@ void Special_Update(int playerIndex)
 		g_concreteFrame[playerIndex] = 0;
 		g_concreteTimer[playerIndex] = 0.0f;
 	}
-	// ----- 変更点ここまで -----
 
 	// スペシャル使用中かつスタン中でない場合に更新処理を行う
 	if (player.useSpecial && !player.isStunning)
@@ -1091,37 +1130,16 @@ void Special_Glass_Draw(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	// 箱の描画
+	// 攻撃範囲の描画（先に描画）
+	// 頂点バッファ・インデックスバッファをセット
+	UINT stride = sizeof(Vertex2);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
 	for (const auto& box : player.glassBoxes)
 	{
-		if (!box.active) continue; // 非アクティブな箱は描画しない
-
-		XMMATRIX WorldMatrix =
-			XMMatrixScaling(box.scaling.x, box.scaling.y, box.scaling.z) *
-			XMMatrixRotationRollPitchYaw(XMConvertToRadians(box.rotation.x), XMConvertToRadians(box.rotation.y), XMConvertToRadians(box.rotation.z)) *
-			XMMatrixTranslation(box.position.x - 0.2f, box.position.y, box.position.z);
-
-		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-		Shader_SetMatrix(WVP);
-
-		// 箱のテクスチャを設定
-		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[4]);
-
-		// 明るさを強調するためにカラーを設定 (RGB値を2倍に設定)
-		Shader_SetColor(XMFLOAT4(2.0f, 2.0f, 2.0f, 1.0f)); // 明るさを強調
-
-		// 描画実行
-		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		g_pContext->DrawIndexed(6 * 6, 0, 0);
-
-		// 描画後にカラーをリセット
-		Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)); // デフォルトの明るさに戻す
-	}
-
-	// 攻撃範囲の描画
-	for (const auto& box : player.glassBoxes)
-	{
-		if (!box.active) continue; // 非アクティブな箱は描画しない
+		if (!box.active || !box.spawned) continue; // 非アクティブ・未出現の箱は描画しない
 
 		// targetPositionに基づいて描画
 		XMMATRIX rangeWorldMatrix =
@@ -1141,6 +1159,52 @@ void Special_Glass_Draw(int playerIndex)
 		// 描画実行 (+Y面の一枚だけ描画)
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP); // トポロジーを三角形ストリップに設定
 		g_pContext->Draw(4, 16); // +Y面の4頂点 (16, 17, 18, 19) を描画
+	}
+
+	// 箱の描画（後に描画）
+	for (const auto& box : player.glassBoxes)
+	{
+		if (!box.active || !box.spawned) continue; // 非アクティブ・未出現の箱は描画しない
+
+		XMMATRIX WorldMatrix =
+			XMMatrixScaling(box.scaling.x, box.scaling.y, box.scaling.z) *
+			XMMatrixRotationRollPitchYaw(XMConvertToRadians(box.rotation.x), XMConvertToRadians(box.rotation.y), XMConvertToRadians(box.rotation.z)) *
+			XMMatrixTranslation(box.position.x - 0.2f, box.position.y, box.position.z);
+
+		XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(WVP);
+
+		// 明るさを強調するためにカラーを設定 (RGB値を2倍に設定)
+		Shader_SetColor(XMFLOAT4(2.0f, 2.0f, 2.0f, 1.0f)); // 明るさを強調
+
+		// モデル描画（ice.jpgテクスチャを上書き適用）
+		if (g_GlassMissileModel != nullptr && g_GlassMissileModel->AiScene != nullptr)
+		{
+			Shader_Begin();
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+			for (unsigned int m = 0; m < g_GlassMissileModel->AiScene->mNumMeshes; m++)
+			{
+				aiMesh* mesh = g_GlassMissileModel->AiScene->mMeshes[m];
+
+				// ice.jpgテクスチャを強制セット
+				g_pContext->PSSetShaderResources(0, 1, &g_GlassMissileTexture);
+
+				// 頂点バッファ設定
+				UINT stride = sizeof(Vertex3D);
+				UINT offset = 0;
+				g_pContext->IASetVertexBuffers(0, 1, &g_GlassMissileModel->VertexBuffer[m], &stride, &offset);
+
+				// インデックスバッファ設定
+				g_pContext->IASetIndexBuffer(g_GlassMissileModel->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
+
+				// ポリゴン描画
+				g_pContext->DrawIndexed(mesh->mNumFaces * 3, 0, 0);
+			}
+		}
+
+		// 描画後にカラーをリセット
+		Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)); // デフォルトの明るさに戻す
 	}
 }
 
@@ -1317,7 +1381,7 @@ void Special_Electricity_Draw(int playerIndex)
 			D3D11_MAPPED_SUBRESOURCE msr;
 			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 			Vertex2* vertex = (Vertex2*)msr.pData;
-			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+			CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
 			vertex[16].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
 			vertex[17].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
 			vertex[18].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
@@ -1368,7 +1432,7 @@ void Special_Electricity_Draw(int playerIndex)
 			D3D11_MAPPED_SUBRESOURCE msr;
 			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 			Vertex2* vertex = (Vertex2*)msr.pData;
-			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+			CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
 			vertex[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
 			vertex[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
 			vertex[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
@@ -1517,8 +1581,8 @@ void Special_Electricity_Update2(int playerIndex)
 		// タイマーもリセット
 		for (int i = 0; i < PLAYER_MAX; i++) nextHitTimer[i] = 0.0f;
 
-		player.form = Form::First;
-		player.type = PlayerType::None;
+		//player.form = Form::First;
+		//player.type = PlayerType::None;
 		player.speed = 0.06f;
 		player.useSkill = false;
 		player.useSpecial = false;
@@ -1553,7 +1617,7 @@ void Special_Electricity_Draw2(int playerIndex)
 			D3D11_MAPPED_SUBRESOURCE msr;
 			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 			Vertex2* vertex = (Vertex2*)msr.pData;
-			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+			CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
 			vertex[16].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
 			vertex[17].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
 			vertex[18].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
@@ -1607,7 +1671,7 @@ void Special_Electricity_Draw2(int playerIndex)
 				D3D11_MAPPED_SUBRESOURCE msr;
 				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 				Vertex2* vertex = (Vertex2*)msr.pData;
-				CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+				CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
 				vertex[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
 				vertex[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
 				vertex[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
@@ -1947,4 +2011,514 @@ SPECIAL_OBJECT* GetSpecial(int playerIndex)
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
 	return &Special[playerIndex];
+}
+
+// ================================================================================
+// 共通の描画前セットアップ（範囲・エフェクト共通）
+// ================================================================================
+static void Special_DrawSetup(int playerIndex)
+{
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+
+	SetBlendState(BLENDSTATE_ALPHA);
+	Shader_Begin();
+
+	LIGHT light{};
+	light.Enable = TRUE;
+	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	light.Diffuse = XMFLOAT4(2.5f, 2.5f, 2.5f, 1.0f);
+	light.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+	Shader_SetLight(light);
+
+	SetDepthTest(false);
+	SetBlendState(BLENDSTATE_ALPHA);
+
+	UINT stride = sizeof(Vertex2);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// +Y面のUVをアニメーションフレームに合わせて書き換え
+	int frame = g_animFrame[playerIndex];
+	int col = frame % SHEET_COLS;
+	int row = frame / SHEET_COLS;
+	float u0 = (float)col / (float)SHEET_COLS;
+	float v0 = (float)row / (float)SHEET_ROWS;
+	float u1 = u0 + 1.0f / (float)SHEET_COLS;
+	float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+	D3D11_MAPPED_SUBRESOURCE msr;
+	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	Vertex2* vertex = (Vertex2*)msr.pData;
+	CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+	vertex[16].tex = XMFLOAT2(u0, v0);
+	vertex[17].tex = XMFLOAT2(u1, v0);
+	vertex[18].tex = XMFLOAT2(u0, v1);
+	vertex[19].tex = XMFLOAT2(u1, v1);
+	g_pContext->Unmap(g_VertexBuffer, 0);
+
+	g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[playerIndex]);
+}
+
+// ================================================================================
+// 範囲表示のみ（プレイヤーより先に描画 → プレイヤーの後ろに表示される）
+// ================================================================================
+void Special_DrawRange(int playerIndex)
+{
+	if (!Loader::IsFinished) return;
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
+	Special_DrawSetup(playerIndex);
+
+	switch (player.type)
+	{
+	case PlayerType::Glass:
+	{
+		// ガラス: phase==2（着弾地点の真上に到達）の箱だけ範囲を表示
+		UINT stride = sizeof(Vertex2);
+		UINT offset = 0;
+		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+		for (const auto& box : player.glassBoxes)
+		{
+			if (!box.active || !box.spawned) continue;
+			if (box.phase < 2) continue; // ★ 降下フェーズ（真上に到達）以降のみ表示
+
+			XMMATRIX rangeWorldMatrix =
+				XMMatrixScaling(1.0f, 1.0f, 1.0f) *
+				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+				XMMatrixTranslation(box.targetPosition.x, box.targetPosition.y + 0.1f, box.targetPosition.z - 0.5f);
+
+			XMMATRIX rangeWVP = rangeWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(rangeWVP);
+
+			g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[playerIndex]);
+			SetBlendState(BLENDSTATE_ALPHA);
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			g_pContext->Draw(4, 16);
+		}
+		break;
+	}
+	case PlayerType::Concrete:
+	{
+		// コンクリート: 範囲表示フェーズのみ
+		if (!g_concreteRangeFinished[playerIndex])
+		{
+			XMMATRIX WorldMatrix =
+				XMMatrixScaling(10.0f, 1.0f, 10.0f) *
+				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+				XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
+
+			XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(WVP);
+
+			SetBlendState(BLENDSTATE_ALPHA);
+			g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[playerIndex]);
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			g_pContext->Draw(4, 16);
+		}
+		break;
+	}
+	case PlayerType::Plant:
+	{
+		// 植物: 範囲円（+Y面）
+		XMMATRIX rangeWorldMatrix =
+			XMMatrixScaling(5.0f, 1.0f, 5.0f) *
+			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+			XMMatrixTranslation(player.position.x + 0.2f, 0.1f, player.position.z - 0.5f);
+
+		XMMATRIX rangeWVP = rangeWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+		Shader_SetMatrix(rangeWVP);
+
+		SetBlendState(BLENDSTATE_ALPHA);
+		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		g_pContext->Draw(4, 16);
+		break;
+	}
+	case PlayerType::Electricity:
+	{
+		// 電気: 各サークルの範囲円（+Y面）
+		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
+		{
+			XMFLOAT3 target = player.electricityCircles[i].center;
+
+			// +Y面のUVをアニメーションフレームに合わせて書き換え
+			{
+				int frame = g_animFrame[playerIndex];
+				int col = frame % SHEET_COLS;
+				int row = frame / SHEET_COLS;
+				float u0 = (float)col / (float)SHEET_COLS;
+				float v0 = (float)row / (float)SHEET_ROWS;
+				float u1 = u0 + 1.0f / (float)SHEET_COLS;
+				float v1 = v0 + 1.0f / (float)SHEET_ROWS;
+
+				D3D11_MAPPED_SUBRESOURCE msr;
+				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+				Vertex2* vertex = (Vertex2*)msr.pData;
+				CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+				vertex[16].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+				vertex[17].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+				vertex[18].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+				vertex[19].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
+				g_pContext->Unmap(g_VertexBuffer, 0);
+			}
+
+			LIGHT rangeLight{};
+			rangeLight.Enable = TRUE;
+			rangeLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+			rangeLight.Diffuse = XMFLOAT4(2.5f, 2.5f, 2.5f, 1.0f);
+			rangeLight.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+			Shader_SetLight(rangeLight);
+
+			XMMATRIX circleWorldMatrix =
+				XMMatrixScaling(3.0f, 3.0f, 3.0f) *
+				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+				XMMatrixTranslation(target.x, target.y - 0.5f, target.z);
+
+			XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(circleWVP);
+
+			SetBlendState(BLENDSTATE_ALPHA);
+			g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[playerIndex]);
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			g_pContext->Draw(4, 16);
+		}
+
+		// ライトを元に戻す
+		LIGHT normalLight{};
+		normalLight.Enable = TRUE;
+		normalLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+		normalLight.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+		normalLight.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+		Shader_SetLight(normalLight);
+		break;
+	}
+	default: break;
+	}
+}
+
+// ================================================================================
+// エフェクト本体のみ（プレイヤーより後に描画 → プレイヤーの手前に表示される）
+// ================================================================================
+void Special_DrawEffect(int playerIndex)
+{
+	if (!Loader::IsFinished) return;
+	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+
+	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+	if (playerObject == nullptr) return;
+	PLAYEROBJECT& player = *playerObject;
+
+	Special_DrawSetup(playerIndex);
+
+	switch (player.type)
+	{
+	case PlayerType::Glass:
+	{
+		// ガラス: ミサイル（箱モデル）の描画
+		for (const auto& box : player.glassBoxes)
+		{
+			if (!box.active || !box.spawned) continue;
+
+			XMMATRIX WorldMatrix =
+				XMMatrixScaling(box.scaling.x, box.scaling.y, box.scaling.z) *
+				XMMatrixRotationRollPitchYaw(XMConvertToRadians(box.rotation.x), XMConvertToRadians(box.rotation.y), XMConvertToRadians(box.rotation.z)) *
+				XMMatrixTranslation(box.position.x - 0.2f, box.position.y, box.position.z);
+
+			XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(WVP);
+
+			Shader_SetColor(XMFLOAT4(2.0f, 2.0f, 2.0f, 1.0f));
+
+			if (g_GlassMissileModel != nullptr && g_GlassMissileModel->AiScene != nullptr)
+			{
+				Shader_Begin();
+				g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+				for (unsigned int m = 0; m < g_GlassMissileModel->AiScene->mNumMeshes; m++)
+				{
+					aiMesh* mesh = g_GlassMissileModel->AiScene->mMeshes[m];
+					g_pContext->PSSetShaderResources(0, 1, &g_GlassMissileTexture);
+
+					UINT stride = sizeof(Vertex3D);
+					UINT offset = 0;
+					g_pContext->IASetVertexBuffers(0, 1, &g_GlassMissileModel->VertexBuffer[m], &stride, &offset);
+					g_pContext->IASetIndexBuffer(g_GlassMissileModel->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
+					g_pContext->DrawIndexed(mesh->mNumFaces * 3, 0, 0);
+				}
+			}
+
+			Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+		}
+		break;
+	}
+	case PlayerType::Concrete:
+	{
+		// コンクリート: 衝撃波アニメーション（着地後）
+		if (g_concreteRangeFinished[playerIndex] && g_concreteFrame[playerIndex] < 32 + 40)
+		{
+			int frame = g_concreteFrame[playerIndex];
+			int texIndex;
+			int uvFrame;
+			int uvMaxCols = 8, uvMaxRows = 8;
+
+			if (frame < 32)
+			{
+				texIndex = 5;
+				uvFrame = frame;
+			}
+			else
+			{
+				texIndex = 6;
+				uvFrame = frame - 32;
+			}
+
+			XMMATRIX WorldMatrix =
+				XMMatrixScaling(20.0f, 1.0f, 20.0f) *
+				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+				XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
+
+			XMMATRIX WVP = WorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(WVP);
+
+			g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[texIndex]);
+
+			int col = uvFrame % uvMaxCols;
+			int row = uvFrame / uvMaxCols;
+			float u0 = (float)col / (float)uvMaxCols;
+			float v0 = (float)row / (float)uvMaxRows;
+			float u1 = u0 + 1.0f / (float)uvMaxCols;
+			float v1 = v0 + 1.0f / (float)uvMaxRows;
+
+			D3D11_MAPPED_SUBRESOURCE msr;
+			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+			Vertex2* vertex = (Vertex2*)msr.pData;
+			CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+			vertex[16].tex = XMFLOAT2(u0, v0);
+			vertex[17].tex = XMFLOAT2(u1, v0);
+			vertex[18].tex = XMFLOAT2(u0, v1);
+			vertex[19].tex = XMFLOAT2(u1, v1);
+			g_pContext->Unmap(g_VertexBuffer, 0);
+
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			g_pContext->Draw(4, 16);
+
+			// 加算合成
+			SetBlendState(BLENDSTATE_ADD);
+			Shader_SetBlur();
+			Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.6f));
+
+			float bloomScale = 1.05f;
+			XMMATRIX bloomWorldMatrix =
+				XMMatrixScaling(20.0f * bloomScale, 1.0f, 20.0f * bloomScale) *
+				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+				XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
+
+			XMMATRIX bloomWVP = bloomWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(bloomWVP);
+
+			g_pContext->Draw(4, 16);
+
+			// 設定を戻す
+			Shader_Begin();
+			SetBlendState(BLENDSTATE_ALPHA);
+		}
+		break;
+	}
+	case PlayerType::Plant:
+	{
+		// 植物: エフェクト本体はなし（範囲のみ + Effect.cpp側のエフェクト）
+		break;
+	}
+	case PlayerType::Electricity:
+	{
+		// 電気: 雷エフェクト（specialTimer > 1.5秒以降）
+		if (player.specialTimer <= 1.5f) break;
+
+		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
+		{
+			XMFLOAT3 target = player.electricityCircles[i].center;
+
+			// 雷ライト
+			LIGHT lightningLight{};
+			lightningLight.Enable = TRUE;
+			lightningLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+			lightningLight.Diffuse = XMFLOAT4(4.0f, 4.0f, 4.0f, 1.0f);
+			lightningLight.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			Shader_SetLight(lightningLight);
+
+			// 雷エフェクト（-Z面）のUVを8x8分割で書き換え
+			{
+				int frame = g_lightningFrame[playerIndex];
+				int col = frame % LIGHTNING_SHEET_COLS;
+				int row = frame / LIGHTNING_SHEET_COLS;
+				float u0 = (float)col / (float)LIGHTNING_SHEET_COLS;
+				float v0 = (float)row / (float)LIGHTNING_SHEET_ROWS;
+				float u1 = u0 + 1.0f / (float)LIGHTNING_SHEET_COLS;
+				float v1 = v0 + 1.0f / (float)LIGHTNING_SHEET_ROWS;
+
+				D3D11_MAPPED_SUBRESOURCE msr;
+				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+				Vertex2* vertex = (Vertex2*)msr.pData;
+				CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+				vertex[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
+				vertex[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
+				vertex[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
+				vertex[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
+				g_pContext->Unmap(g_VertexBuffer, 0);
+			}
+
+			float lightningTopY = 10.0f;
+			float lightningBottomY = target.y;
+			float length = fabsf(lightningTopY - lightningBottomY);
+
+			XMMATRIX lightningWorldMatrix =
+				XMMatrixScaling(2.0f, length * 1.0f, 2.0f) *
+				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+				XMMatrixTranslation(target.x + 0.5f, 4.0f, target.z + 0.1f);
+
+			XMMATRIX lightningWVP = lightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(lightningWVP);
+
+			g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[7]);
+			SetBlendState(BLENDSTATE_ALPHA);
+			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			g_pContext->Draw(4, 0);
+
+			// 加算合成ブルーム
+			SetBlendState(BLENDSTATE_ADD);
+			Shader_SetBlur();
+
+			float bloomScale = 1.3f;
+			XMMATRIX bloomLightningWorldMatrix =
+				XMMatrixScaling(2.0f * bloomScale, length * 1.1f, 2.0f) *
+				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+				XMMatrixTranslation(target.x + 0.5f, 4.0f, target.z + 0.1f);
+
+			XMMATRIX bloomLightningWVP = bloomLightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+			Shader_SetMatrix(bloomLightningWVP);
+			g_pContext->Draw(4, 0);
+
+			Shader_Begin();
+			SetBlendState(BLENDSTATE_ALPHA);
+
+			// 追加エフェクト (g_Special_Texture[9])
+			{
+				int animationSpeed = 1;
+				int loopCount = 17;
+				int effectFrame = 0 + ((g_animFrame[playerIndex] / animationSpeed) % loopCount);
+				int cols = 8, rows = 8;
+				int col = effectFrame % cols;
+				int row = effectFrame / cols;
+				float u0 = (float)col / (float)cols;
+				float v0 = (float)row / (float)rows;
+				float u1 = u0 + 1.0f / (float)cols;
+				float v1 = v0 + 1.0f / (float)rows;
+
+				D3D11_MAPPED_SUBRESOURCE msr;
+				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+				Vertex2* vertex = (Vertex2*)msr.pData;
+				CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+				vertex[16].tex = XMFLOAT2(u0, v0);
+				vertex[17].tex = XMFLOAT2(u1, v0);
+				vertex[18].tex = XMFLOAT2(u0, v1);
+				vertex[19].tex = XMFLOAT2(u1, v1);
+				g_pContext->Unmap(g_VertexBuffer, 0);
+
+				XMMATRIX circleWorldMatrix =
+					XMMatrixScaling(8.0f, 8.0f, 8.0f) *
+					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+					XMMatrixTranslation(target.x, target.y - 1.95f, target.z);
+				XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+				Shader_SetMatrix(circleWVP);
+
+				g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[9]);
+				g_pContext->Draw(4, 16);
+
+				SetBlendState(BLENDSTATE_ADD);
+				Shader_SetBlur();
+				Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.8f));
+
+				float bs = 1.05f;
+				XMMATRIX bloomCircleWorldMatrix =
+					XMMatrixScaling(8.0f * bs, 8.0f, 8.0f * bs) *
+					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+					XMMatrixTranslation(target.x, target.y - 1.95f, target.z);
+				XMMATRIX bloomCircleWVP = bloomCircleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+				Shader_SetMatrix(bloomCircleWVP);
+				g_pContext->Draw(4, 16);
+
+				Shader_Begin();
+				SetBlendState(BLENDSTATE_ALPHA);
+			}
+
+			// 追加エフェクト (g_Special_Texture[10])
+			{
+				int animationSpeed = 1;
+				int loopCount = 23;
+				int effectFrame = 0 + ((g_animFrame[playerIndex] / animationSpeed) % loopCount);
+				int cols = 8, rows = 8;
+				int col = effectFrame % cols;
+				int row = effectFrame / cols;
+				float u0 = (float)col / (float)cols;
+				float v0 = (float)row / (float)rows;
+				float u1 = u0 + 1.0f / (float)cols;
+				float v1 = v0 + 1.0f / (float)rows;
+
+				D3D11_MAPPED_SUBRESOURCE msr;
+				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+				Vertex2* vertex = (Vertex2*)msr.pData;
+				CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
+				vertex[16].tex = XMFLOAT2(u0, v0);
+				vertex[17].tex = XMFLOAT2(u1, v0);
+				vertex[18].tex = XMFLOAT2(u0, v1);
+				vertex[19].tex = XMFLOAT2(u1, v1);
+				g_pContext->Unmap(g_VertexBuffer, 0);
+
+				XMMATRIX circleWorldMatrix =
+					XMMatrixScaling(7.0f, 7.0f, 7.0f) *
+					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+					XMMatrixTranslation(target.x, target.y - 1.85f, target.z);
+				XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+				Shader_SetMatrix(circleWVP);
+
+				g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[10]);
+				g_pContext->Draw(4, 16);
+
+				SetBlendState(BLENDSTATE_ADD);
+				Shader_SetBlur();
+				Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.8f));
+
+				float bs = 1.05f;
+				XMMATRIX bloomCircleWorldMatrix =
+					XMMatrixScaling(7.0f * bs, 7.0f, 7.0f * bs) *
+					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
+					XMMatrixTranslation(target.x, target.y - 1.85f, target.z);
+				XMMATRIX bloomCircleWVP = bloomCircleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
+				Shader_SetMatrix(bloomCircleWVP);
+				g_pContext->Draw(4, 16);
+
+				Shader_Begin();
+				SetBlendState(BLENDSTATE_ALPHA);
+			}
+		}
+	
+		// --- ループ終了後にライトを元に戻す ---
+		LIGHT normalLight{};
+		normalLight.Enable = TRUE;
+		normalLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+		normalLight.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+		normalLight.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+		Shader_SetLight(normalLight);
+		break;
+	}
+	default: break;
+	}
 }

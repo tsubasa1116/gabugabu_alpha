@@ -18,6 +18,8 @@
 
 #define SKILL_SE_COUNT				(4)	// スキル SEの数
 
+#define SKILL_GLASS_RADIUS			(1.5f)	// ガラススキルの球の半径
+
 struct SKILL_OBJECT
 {
 	XMFLOAT3 position;
@@ -27,11 +29,11 @@ struct SKILL_OBJECT
 	AABB boundingBox;
 };
 
-// Glass専用のスキル管理構造体（5つの箱の情報を格納する）
+// Glass専用のスキル管理構造体（半径1.5の球コライダー）
 struct SKILL_GLASS
 {
-	// Glassスキルが生成する5つの箱
-	SKILL_OBJECT boxes[5];
+	// 球コライダー（プレイヤー中心、半径1.5）
+	Circle sphereCollider;
 
 	// スキルの現在の状態
 	bool isActive = false;
