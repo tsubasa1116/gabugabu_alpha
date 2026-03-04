@@ -325,6 +325,8 @@ void Attack_Update(int playerIndex)
 	// =========================================================
 	if (player.isAttacking)
 	{
+
+
 		// --- 攻撃の位置と向きを更新 ---
 		float rad = XMConvertToRadians(player.rotation.y);
 		player.dir = { sinf(rad), 0.0f, cosf(rad) }; // プレイヤーの向きを保存
@@ -383,6 +385,9 @@ void Attack_Update(int playerIndex)
 						//// ヒットしたので攻撃終了
 						//player.isAttacking = false;
 						//player.attackTimer = 0.0f;
+						player.hasHit = true;
+						player.isAttacking = false; // 攻撃終了
+
 
 						CalculateAABB(attackObject.boundingBox, attackObject.position, attackObject.scaling);
 						//break; // ★1つ壊したらループを抜ける（複数同時破壊したい場合は消してね）
@@ -415,6 +420,8 @@ void Attack_Update(int playerIndex)
 				if (defenderObject == nullptr || !defenderObject->active || defenderObject->isInvincible) continue;
 
 				PLAYEROBJECT& defender = *defenderObject;
+
+				if (defender.isAttacked) return;
 
 				// defenderの向きからAABBのサイズを決める
 				float radDef = XMConvertToRadians(defender.rotation.y);
@@ -462,6 +469,8 @@ void Attack_Update(int playerIndex)
 					//// ヒットしたので攻撃終了
 					//player.isAttacking = false;
 					//player.attackTimer = 0.0f;
+					player.hasHit = true;
+					player.isAttacking = false; // 攻撃終了
 					//break; // ★1人に当てたら終わり（複数人巻き込みたい場合は消してね）
 
 
@@ -560,123 +569,123 @@ void Attack_Update(int playerIndex)
 
 void Attack_Draw(int playerIndex)
 {
-	// 範囲チェック 0 1 2 3 以外なら return
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+	//// 範囲チェック 0 1 2 3 以外なら return
+	//if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	// 参照を取る
-	ATTACK_OBJECT& attackObject = Attack[playerIndex];
-	ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
+	//// 参照を取る
+	//ATTACK_OBJECT& attackObject = Attack[playerIndex];
+	//ID3D11ShaderResourceView* tex = g_Attack_Texture[playerIndex];
 
 
-	// 1. プレイヤー情報を取得（向きや座標を使うため）
-	PLAYEROBJECT* playerPtr = GetPlayer(playerIndex);
-	if (!playerPtr) return;
-	PLAYEROBJECT& player = *playerPtr;
+	//// 1. プレイヤー情報を取得（向きや座標を使うため）
+	//PLAYEROBJECT* playerPtr = GetPlayer(playerIndex);
+	//if (!playerPtr) return;
+	//PLAYEROBJECT& player = *playerPtr;
 
-	// =====================
-	// ワールド行列の作成
-	// =====================
+	//// =====================
+	//// ワールド行列の作成
+	//// =====================
 
-	// スケーリング行列の作成
-	XMMATRIX ScalingMatrix = XMMatrixScaling
-	(
-		attackObject.scaling.x,
-		attackObject.scaling.y,
-		attackObject.scaling.z
-	);
+	//// スケーリング行列の作成
+	//XMMATRIX ScalingMatrix = XMMatrixScaling
+	//(
+	//	attackObject.scaling.x,
+	//	attackObject.scaling.y,
+	//	attackObject.scaling.z
+	//);
 
-	// 回転行列の作成
-	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
-	(
-		XMConvertToRadians(attackObject.rotation.x),
-		XMConvertToRadians(attackObject.rotation.y),
-		XMConvertToRadians(attackObject.rotation.z)
-	);
+	//// 回転行列の作成
+	//XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw
+	//(
+	//	XMConvertToRadians(attackObject.rotation.x),
+	//	XMConvertToRadians(attackObject.rotation.y),
+	//	XMConvertToRadians(attackObject.rotation.z)
+	//);
 
-	// 平行移動行列の作成
-	XMMATRIX TranslationMatrix = XMMatrixTranslation
-	(
-		attackObject.position.x,
-		attackObject.position.y,
-		attackObject.position.z
-	);
+	//// 平行移動行列の作成
+	//XMMATRIX TranslationMatrix = XMMatrixTranslation
+	//(
+	//	attackObject.position.x,
+	//	attackObject.position.y,
+	//	attackObject.position.z
+	//);
 
-	XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
+	//XMMATRIX WorldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
 
-	// プロジェクション行列作成
-	XMMATRIX projection = GetProjectionMatrix();
+	//// プロジェクション行列作成
+	//XMMATRIX projection = GetProjectionMatrix();
 
-	// ビュー行列作成
-	XMMATRIX view = GetViewMatrix();
+	//// ビュー行列作成
+	//XMMATRIX view = GetViewMatrix();
 
-	// 最終的な変換行列を作成
-	XMMATRIX WVP = WorldMatrix * view * projection;
+	//// 最終的な変換行列を作成
+	//XMMATRIX WVP = WorldMatrix * view * projection;
 
-	// 変換行列を頂点シェーダーへセット
-	Shader_SetMatrix(WVP);
+	//// 変換行列を頂点シェーダーへセット
+	//Shader_SetMatrix(WVP);
 
-	LIGHT light{};
-	light.Enable = TRUE;
-	// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
-	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-	// 拡散光と環境光
-	light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
-	light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-	Shader_SetLight(light);
+	//LIGHT light{};
+	//light.Enable = TRUE;
+	//// 光の向き（ワールド空間）シェーダー側で単位化して使っている想定
+	//light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
+	//// 拡散光と環境光
+	//light.Diffuse = XMFLOAT4(1.5f, 1.5f, 1.5f, 1.0f);
+	//light.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	//Shader_SetLight(light);
 
-	// シェーダーを描画パイプラインへ設定
-	Shader_Begin();
+	//// シェーダーを描画パイプラインへ設定
+	//Shader_Begin();
 
-	// 不透明で描画するためブレンドを無効化し、描画カラーのアルファを1に固定する
-	SetBlendState(BLENDSTATE_NONE);
-	Shader_SetColor(color::white);
+	//// 不透明で描画するためブレンドを無効化し、描画カラーのアルファを1に固定する
+	//SetBlendState(BLENDSTATE_NONE);
+	//Shader_SetColor(color::white);
 
-	// 頂点シェーダーを描画パイプラインへ設定
-	D3D11_MAPPED_SUBRESOURCE msr;
-	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-	Vertex2* vertex = (Vertex2*)msr.pData;
+	//// 頂点シェーダーを描画パイプラインへ設定
+	//D3D11_MAPPED_SUBRESOURCE msr;
+	//g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	//Vertex2* vertex = (Vertex2*)msr.pData;
 
-	// 頂点データを頂点バッファへコピーする
-	CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * ATTACK_VERTEX);
+	//// 頂点データを頂点バッファへコピーする
+	//CopyMemory(&vertex[0], &Attack_vdata[0], sizeof(Vertex2) * ATTACK_VERTEX);
 
-	// コピー完了
-	g_pContext->Unmap(g_VertexBuffer, 0);
+	//// コピー完了
+	//g_pContext->Unmap(g_VertexBuffer, 0);
 
-	// テクスチャをセット
-	g_pContext->PSSetShaderResources(0, 1, &tex);
+	//// テクスチャをセット
+	//g_pContext->PSSetShaderResources(0, 1, &tex);
 
-	// 頂点バッファをセット
-	UINT stride = sizeof(Vertex2);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+	//// 頂点バッファをセット
+	//UINT stride = sizeof(Vertex2);
+	//UINT offset = 0;
+	//g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 
-	// インデックスバッファをセット
-	g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	//// インデックスバッファをセット
+	//g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//// 描画するポリゴンの種類をセット 3頂点でポリゴン1枚として表示
+	//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	g_pContext->DrawIndexed(6 * 6, 0, 0);
+	//g_pContext->DrawIndexed(6 * 6, 0, 0);
 
-	SetBlendState(BLENDSTATE_ALPHA);
+	//SetBlendState(BLENDSTATE_ALPHA);
 
-	// 2. デバッグ描画：攻撃中だけ扇形を表示する
-	if (player.isAttacking)
-	{
-		// 判定で使っているのと「全く同じ」設定で扇を作る
-		Sector debugSector;
-		debugSector.center = player.position;
+	//// 2. デバッグ描画：攻撃中だけ扇形を表示する
+	//if (player.isAttacking)
+	//{
+	//	// 判定で使っているのと「全く同じ」設定で扇を作る
+	//	Sector debugSector;
+	//	debugSector.center = player.position;
 
-		// プレイヤーの向きから前方ベクトルを計算
-		float rad = XMConvertToRadians(player.rotation.y);
-		debugSector.forward = { sinf(rad), 0.0f, cosf(rad) };
+	//	// プレイヤーの向きから前方ベクトルを計算
+	//	float rad = XMConvertToRadians(player.rotation.y);
+	//	debugSector.forward = { sinf(rad), 0.0f, cosf(rad) };
 
-		// 扇形を描画！
-		DrawDebugSector(debugSector);
-	}
+	//	// 扇形を描画！
+	//	DrawDebugSector(debugSector);
+	//}
 
-	// 最後に念のためブレンド状態などを戻す
-	SetBlendState(BLENDSTATE_ALPHA);
+	//// 最後に念のためブレンド状態などを戻す
+	//SetBlendState(BLENDSTATE_ALPHA);
 }
 
 void AttackPlayerCollisions()
