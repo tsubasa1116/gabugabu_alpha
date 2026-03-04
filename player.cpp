@@ -731,23 +731,32 @@ void Player_Update()
 		}
 
 		// 毒状態の処理
+		// 毒状態の処理
 		if (player[p].poisonTimer > 0.0f)
 		{
-			// 無敵中はダメージを与えないが、ここでループを抜けない（以降の物理・当たり判定は実行する）
+			if (!player[p].isPoisoned)
+			{
+				player[p].isPoisoned = true;
+				// 毒開始時：大きくガタガタ揺らす（今まで通り）
+				TriggerbyHPShake(p, 8.0f, 20.0f, 1.5f);
+			}
+
+			TriggerbyHPShake(p, 3.5f, 2.0f, 1.0f);
+
 			if (!player[p].isInvincible)
 			{
-				// 毒状態の間、ダメージを与える
 				player[p].hp -= SPECIAL_PLANT_DAMAGE * player[p].defense;
 			}
 
-			// 毒タイマーを進める
 			player[p].poisonTimer -= DELTA_TIME;
 
-			// 毒タイマーが0になったら毒状態を解除
 			if (player[p].poisonTimer <= 0.0f)
 			{
 				player[p].isPoisoned = false;
 				player[p].poisonTimer = 0.0f;
+
+				// 毒が切れたらシェイクを止めてテクスチャを元に戻す
+				TriggerbyHPShake(p, 0.0f, 0.0f, 0.0f);
 			}
 		}
 

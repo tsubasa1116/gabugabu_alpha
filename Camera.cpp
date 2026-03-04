@@ -23,7 +23,7 @@ static bool     s_IsLerping = false;      // 目標と現在が十分に離れているか
 const float     SMOOTH_FACTOR = 0.35f;     // 1フレームあたりの進行率で、大きいほど速く追従する
 const float     FOV_SMOOTH_FACTOR = 0.08f;// fovの追従速度
 const float     TARGET_EPSILON = 0.001f;  // 目標到達判定の閾値(しきいち)
-static float     margin = 23.0f;
+static float     margin = 5.0f;
 
 // カメラシェイク用
 static bool     s_IsShaking = false;      // シェイク中かどうか
@@ -536,8 +536,8 @@ void Camera_UpdateAuto()
 	}
 
 	// 平行投影用の表示範囲計算（カメラ幅は常に計算）
-	float spreadX = maxX - minX;
-	float spreadZ = maxZ - minZ;
+	float spreadX = maxX + 5.0f - minX;
+	float spreadZ = maxZ + 25.0f - minZ;
 
 	// プレイヤー間の最大距離（幅）
 	float maxSpread = (spreadX > spreadZ) ? spreadX : spreadZ;
@@ -546,7 +546,7 @@ void Camera_UpdateAuto()
 	float targetWidth = maxSpread + margin;
 
 	// ズームの最小値
-	if (targetWidth < 7.0f) targetWidth = 7.0f;
+	if (targetWidth < 5.0f) targetWidth = 5.0f;
 
 	// fovを平行投影の幅として利用（目標に設定）
 	s_TargetFov = targetWidth;

@@ -847,6 +847,7 @@ void Special_Concrete_Update(int playerIndex)
 		player.specialAnimation = false;
 
 		Effect_Clear(playerIndex);
+		Effect_ClearUI(playerIndex);
 		player.isTypeFixed = false;
 
 		// 範囲表示終了フラグを立てる（必要なら残す）
