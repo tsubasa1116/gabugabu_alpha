@@ -336,3 +336,86 @@ bool CheckCircleAABBCollision(const Circle& circle, const AABB& box)
 	float distanceSquared = dx * dx + dy * dy + dz * dz;
 	return distanceSquared <= (circle.radius * circle.radius);
 }
+
+
+
+// ==============================================================================
+
+//======================================================
+//	扇型の当たり判定
+//======================================================
+bool CheckSectorCollision(const XMFLOAT3& targetPos, const Sector& sector)
+{
+	// 1. 距離の判定
+	XMVECTOR vCenter = XMLoadFloat3(&sector.center);
+	XMVECTOR vTarget = XMLoadFloat3(&targetPos);
+
+	XMVECTOR diff = vTarget - vCenter;
+	// Y軸（高さ）を無視して平面で判定する場合、ここでdiff.y = 0にすると正確
+
+	float distance;
+	XMStoreFloat(&distance, XMVector3Length(diff));
+
+	if (distance > sector.radius) return false;	// 遠すぎるならアウト
+	if (distance < 0.0001f) return true;		// ほぼ同じ位置ならセーフ
+
+	// 2. 角度の判定
+	// ベクトルを正規化（長さを1にする）
+	XMVECTOR vForward = XMLoadFloat3(&sector.forward);
+	XMVECTOR vToTarget = XMVector3Normalize(diff);
+
+	// 内積（Dot Product）を使って、2つのベクトルのなす角の「cos」を出す
+	float dot;
+	XMStoreFloat(&dot, XMVector3Dot(vForward, vToTarget));
+
+	// 扇の端っこの角度（半角）をcosに変換
+	// 例：全角90度なら、中心から左右に45度
+	float halfAngleCos = cosf(XMConvertToRadians(sector.angleDegree * 0.5f));
+
+	// 内積の結果（cosθ）が、判定基準のcosより大きければ範囲内
+	// (cosは角度が小さいほど値が大きくなる)
+	if (dot >= halfAngleCos)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool CheckAABBSectorCollision(const AABB& targetBox, const Sector& sector)
+{
+	// --- 1. 高さ(Y軸)の判定 ---
+	// 扇の高さ範囲を仮に「上下1.0f」とする（攻撃の種類に合わせて調整してね）
+	float attackTop = sector.center.y + 2.0f;    // 扇の判定の上端
+	float attackBottom = sector.center.y - 1.0f; // 扇の判定の下端（足元）
+
+	if (targetBox.Min.y > attackTop || targetBox.Max.y < attackBottom)
+	{
+		return false; // 高さが合わないなら当たらない
+	}
+
+	// --- 2. XZ平面での5点チェック (4隅 + 中心) ---
+	XMFLOAT3 testPoints[5];
+	// AABBの底面の4隅
+	testPoints[0] = { targetBox.Min.x, sector.center.y, targetBox.Min.z };
+	testPoints[1] = { targetBox.Max.x, sector.center.y, targetBox.Min.z };
+	testPoints[2] = { targetBox.Min.x, sector.center.y, targetBox.Max.z };
+	testPoints[3] = { targetBox.Max.x, sector.center.y, targetBox.Max.z };
+	// 中心点
+	testPoints[4] = {
+		(targetBox.Min.x + targetBox.Max.x) * 0.5f,
+		sector.center.y,
+		(targetBox.Min.z + targetBox.Max.z) * 0.5f
+	};
+
+	// いずれかの点が扇型に入っていれば「当たり！」
+	for (int i = 0; i < 5; i++)
+	{
+		if (CheckSectorCollision(testPoints[i], sector))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}

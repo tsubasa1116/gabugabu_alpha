@@ -1,7 +1,7 @@
 //======================================================
 //	title.cpp
 // 
-//	制作者：田中佑奈			日付：2026//
+//	制作者：田中佑奈			日付：2026/02/26
 //======================================================
 #include "Manager.h"
 #include "sprite.h"
@@ -62,7 +62,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata2;
 		ScratchImage	image2;
-		LoadFromWICFile(L"asset\\texture\\TitleLogo_v2.png", WIC_FLAGS_NONE, &metadata2, image2);
+		LoadFromWICFile(L"asset\\texture\\titleLogo_v3.png", WIC_FLAGS_NONE, &metadata2, image2);
 		CreateShaderResourceView(pDevice, image2.GetImages(), image2.GetImageCount(), metadata2, &g_Texture2);
 		assert(g_Texture2);//読み込み失敗時にダイアログを表示
 	}
@@ -165,7 +165,7 @@ void Title_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 
 		XMFLOAT2 baseLogoSize = { SCREEN_WIDTH * 0.55f, SCREEN_HEIGHT * 0.55f };
-		XMFLOAT2 logoSize = { baseLogoSize.x * logoScale, baseLogoSize.y * logoScale };
+		XMFLOAT2 logoSize = { baseLogoSize.x * logoScale * 1.5f, baseLogoSize.y * logoScale * 2.0f };
 		XMFLOAT2 logoPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.4f };
 
 		// DrawSprite は中心位置基準を想定しているのでそのまま渡す
@@ -190,8 +190,6 @@ void Title_Draw()
 		// 明度設定（1.0f = 元の色、1.5f = 明るめ、0.5f = 暗め）
 		float brightness = 1.3f;
 		Shader_SetColor(XMFLOAT4(brightness, brightness, brightness, 1.0f));
-
-
 
 		// 描画サイズ（アスペクト比を維持）
 		float texW = (g_Metadata3.width > 0) ? (float)g_Metadata3.width : 100.0f;

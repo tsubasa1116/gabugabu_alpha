@@ -104,3 +104,5 @@ void Effect_DrawForBuilding(int buildingIndex);
 // 建物エフェクト一括処理関数（軽量版）
 void Effect_UpdateAllBuildings();
 void Effect_DrawAllBuildings();
+
+void Effect_Warmup();

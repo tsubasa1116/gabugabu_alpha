@@ -15,13 +15,14 @@
 #include "imgui_impl_dx11.h"
 
 #include "color.h"
+#include "loadThread.h"
 
 
 //======================================================
 //	マクロ定義
 //======================================================
 #define BOX_NUM_VERTEX	(24)
-#define FIELD_TEX_MAX	(4)
+#define FIELD_TEX_MAX	(5)
 
 //======================================================
 //	グローバル変数
@@ -41,9 +42,9 @@ static const float FIELD_SHRINK_INTERVAL = 0.0001f; // 10秒
 //テクスチャ変数
 //static ID3D11ShaderResourceView* g_Texture;
 
+
 // FIELD enum (FIELD_BUILDING, FIELD_BOX) の数だけテクスチャを管理
 static ID3D11ShaderResourceView* g_Texture[FIELD_TEX_MAX];
-#define FIELD_TEX_MAX (4)
 // FIELD::no の値に対応するテクスチャファイル名
 static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 {
@@ -51,6 +52,7 @@ static const wchar_t* g_TexturePaths[FIELD_TEX_MAX] =
 	L"Asset\\Texture\\neo_green_3.png",  // 1
 	L"Asset\\Texture\\texturefieldTree01_v1.png",
 	L"Asset\\Texture\\neo_gray_2.png",
+	L"Asset\\Texture\\neo_yellow.png",
 	//L"Asset\\Texture\\texturefieldConcrete01_v1.png",// 1
 };
 
@@ -228,11 +230,6 @@ MAPDATA Map[] =
 //======================================================
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	char modelPath[256];
-	snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[1]);
-
-	Test = ModelLoad(modelPath);//デバッグ
-
 	// 配列要素数（終了マーカー FIELD_MAX を含まない）
 	int count = GetFieldObjectCount();
 	if (count <= 1)
@@ -398,17 +395,33 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// --------------------------------------------------------------------
 	// 複数のテクスチャを読み込み
 	// --------------------------------------------------------------------
-	for (int i = 0; i < FIELD_TEX_MAX; ++i) // 定義したテクスチャの数だけループ
-	{
-		TexMetadata metadata;
-		ScratchImage image;
-		// 配列に定義したパスからテクスチャを読み込む
-		LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(g_pDevice, image.GetImages(),
-			image.GetImageCount(), metadata, &g_Texture[i]);
-		assert(g_Texture[i]);
-	}
-	// --------------------------------------------------------------------
+	Loader::AddTask([pDevice]()
+		{
+			for (int i = 0; i < FIELD_TEX_MAX; ++i)
+			{
+				TexMetadata metadata;
+				ScratchImage image;
+				HRESULT hr = LoadFromWICFile(g_TexturePaths[i], WIC_FLAGS_NONE, &metadata, image);
+				if (FAILED(hr))
+				{
+					g_Texture[i] = nullptr;
+					continue;
+				}
+
+				hr = CreateShaderResourceView(g_pDevice, image.GetImages(),
+					image.GetImageCount(), metadata, &g_Texture[i]);
+				if (FAILED(hr))
+				{
+					g_Texture[i] = nullptr;
+					continue;
+				}
+			}
+
+			char modelPath[256];
+			snprintf(modelPath, sizeof(modelPath), "asset\\model\\%s.fbx", g_ModelName[1]);
+			Test = ModelLoad(modelPath);
+		}); 
+	//------------------------------------------------------------------
 
 	Building_Initialize(pDevice, pContext);
 }
@@ -420,6 +433,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void Field_Finalize(void)
 {
 	ModelRelease(Test);
+	Test = nullptr;
 
 	//SAFE_RELEASE(g_VertexBuffer);
 	//SAFE_RELEASE(g_IndexBuffer);
@@ -434,6 +448,8 @@ void Field_Finalize(void)
 //======================================================
 void Field_Draw(bool s_IsKonamiCodeEntered)
 {
+	//if (!Loader::IsFinished) return;
+
 	static bool input2 = false;
 
 	// デバッグキー
@@ -521,6 +537,39 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 			texIndex = 0;
 			break;
 		}
+
+		////////////////////////////////////////////////////////////////
+		//		// 今から描くマス（i番目）が、誰かの雷床になっていないか探す
+		bool isElectrified = false;
+		for (int p = 0; p < PLAYER_MAX; ++p)
+		{
+			PLAYEROBJECT* player = GetPlayer(p);
+			// そのプレイヤーが「雷タイプのスペシャル」を使用中か？
+			if (player != nullptr && player->useSpecial && player->type == PlayerType::Electricity)
+			{
+				// ★スペシャル発動から1.0秒経過しているか？
+				if (player->specialTimer > 1.5f)
+				{
+					// 選ばれた5つの雷床のどれかが、今のマス(i)と同じ番号か？
+					for (int e = 0; e < SPECIAL_ELECTRICITY_QUANTITY; ++e)
+					{
+						if (player->electricityTileIndices[e] == i)
+						{
+							isElectrified = true; // 雷床だ！
+							break;
+						}
+					}
+				}
+			}
+			if (isElectrified) break; // 誰かの雷床だとわかったら、探すのはおしまい
+		}
+
+		// もし雷床なら、強制的に雷用のテクスチャ（4番）に変える！
+		if (isElectrified)
+		{
+			texIndex = 4;
+		}
+		///////////////////////////////////////////////////////////////
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[texIndex]);
 

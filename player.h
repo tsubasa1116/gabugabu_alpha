@@ -12,7 +12,7 @@
 #define	PLAYER_MAX				(4)	// プレイヤー最大数
 #define	DELTA_TIME	 (1.0f / 60.0f)	// デルタタイム（秒）
 
-#define	PLAYER_MAX_HP				(500.0f)// プレイヤー 最大HP
+#define	PLAYER_MAX_HP				(50.0f)// プレイヤー 最大HP
 #define	PLAYER_MAX_SATIETY			(7.0f)	// プレイヤー 最大満腹度
 #define	PLAYER_EVOLUTION_GAUGE_RATE	(0.5f)	// プレイヤー 進化ゲージ増加率
 
@@ -84,11 +84,17 @@ struct PLAYEROBJECT
 	bool active;			// 生存フラグ
 	float satiety;			// 満腹度
 
+	int   animFrame = { 0 };	// 現在のプレイヤーアニメーションフレーム
+	float animTimer = { 0.0f };	// アニメーション経過時間
+
 	bool isAttacking;		// 攻撃中かどうか
 	float attackTimer;		// 攻撃中の経過時間
 
 	bool isAttacked;		// 被弾中かどうか
 	float attackedTimer;	// 被弾中の経過時間
+
+	bool isDamageColor;		// 赤色点滅だけを行うフラグ
+	float damageColorTimer; // 赤色点滅のタイマー
 
 	bool isHealing;			// 回復中かどうか
 	float healingTimer;		// 回復中の経過時間
@@ -103,6 +109,7 @@ struct PLAYEROBJECT
 
 	bool useSpecial;		// スペシャル中かどうか
 	float specialTimer;		// スペシャル中の経過時間
+	bool specialAnimation;	// スペシャルアニメーション中かどうか
 
 	bool isInvincible;		// 無敵中かどうか
 	float invincibleTimer;	// 無敵中の経過時間
@@ -178,4 +185,5 @@ void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float sp
 
 bool Player_CanUseSpecial(int playerIndex);
 
+void Player_Warmup();
 
