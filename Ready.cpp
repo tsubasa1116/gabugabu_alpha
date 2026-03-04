@@ -16,6 +16,7 @@
 #include "shader.h"
 #include "input.h"
 #include "color.h"
+#include "Audio.h"
 
 #include <chrono>
 #include <cmath>
@@ -89,6 +90,9 @@ static std::chrono::steady_clock::time_point g_ReadyLastTime;
 
 static bool g_ReadyInitialized = false;
 
+static int g_BgmID = NULL;
+static int g_SeButtonID = NULL;
+
 // イージング（サインのイーズアウト）
 static inline float EaseOutSine(float t) {
 	if (t <= 0.0f) return 0.0f;
@@ -98,6 +102,10 @@ static inline float EaseOutSine(float t) {
 
 void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
+	g_BgmID = LoadAudio("asset\\Audio\\Sky_Blue_POP.wav");
+	PlayAudio(g_BgmID, true);
+	g_SeButtonID = LoadAudio("asset\\Audio\\button.wav");
+
 	if (g_ReadyInitialized) return;
 
 	g_pDevice = pDevice;
@@ -339,6 +347,9 @@ void Ready_Finalize()
 	SAFE_RELEASE(g_Texture19);
 
 	g_ReadyInitialized = false;
+
+	UnloadAudio(g_BgmID);
+	UnloadAudio(g_SeButtonID);
 }
 
 void Ready_Update()
@@ -350,10 +361,14 @@ void Ready_Update()
 	g_ReadyLastTime = now;
 
 	// プレイヤー参加判定（押すたびにポップインリスタート）
-	if (Keyboard_IsKeyDownTrigger(KK_D1) || (g_Input[0].A)) { g_PlayerJoined[0] = true; g_OKPopElapsed[0] = 0.0f; }
-	if (Keyboard_IsKeyDownTrigger(KK_D2) || (g_Input[1].A)) { g_PlayerJoined[1] = true; g_OKPopElapsed[1] = 0.0f; }
-	if (Keyboard_IsKeyDownTrigger(KK_D3) || (g_Input[2].A)) { g_PlayerJoined[2] = true; g_OKPopElapsed[2] = 0.0f; }
-	if (Keyboard_IsKeyDownTrigger(KK_D4) || (g_Input[3].A)) { g_PlayerJoined[3] = true; g_OKPopElapsed[3] = 0.0f; }
+	if (Keyboard_IsKeyDownTrigger(KK_D1) || (g_Input[0].A)) { g_PlayerJoined[0] = true; g_OKPopElapsed[0] = 0.0f; 				PlayAudio(g_SeButtonID, false);
+	}
+	if (Keyboard_IsKeyDownTrigger(KK_D2) || (g_Input[1].A)) { g_PlayerJoined[1] = true; g_OKPopElapsed[1] = 0.0f; 				PlayAudio(g_SeButtonID, false);
+	}
+	if (Keyboard_IsKeyDownTrigger(KK_D3) || (g_Input[2].A)) { g_PlayerJoined[2] = true; g_OKPopElapsed[2] = 0.0f; 				PlayAudio(g_SeButtonID, false);
+	}
+	if (Keyboard_IsKeyDownTrigger(KK_D4) || (g_Input[3].A)) { g_PlayerJoined[3] = true; g_OKPopElapsed[3] = 0.0f; 				PlayAudio(g_SeButtonID, false);
+	}
 
 	// OKポップインタイマー進行
 	for (int i = 0; i < 4; i++)

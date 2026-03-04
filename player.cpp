@@ -39,6 +39,7 @@ using namespace DirectX;
 #include <cstring> // 追加：strcmp のため
 #include "loadThread.h"
 #include "gimmick.h"
+#include "transition.h"
 
 //======================================================
 //	マクロ定義
@@ -2566,7 +2567,7 @@ static void Ranking(int playerIndex)
 		if (GetFadeState() == FADE_NONE)
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 0.0f);
-			SetFade(60, color, FADE_OUT, SCENE_WIN);
+			SetTransition(60, color, TRANSITION_OUT, SCENE_WIN);
 		}
 	}
 }

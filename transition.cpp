@@ -143,6 +143,9 @@ void Transition_Draw()
 
 void SetTransition(float frame, XMFLOAT4 color, TRANSITION_STATE state, SCENE scene)
 {
+    // トランジション中は新たなトランジションを受け付けない
+    if (g_Transition.state != TRANSITION_NONE) return;
+
     g_Transition.frame = frame;
     g_Transition.color = color;
     g_Transition.scene = scene;

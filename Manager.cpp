@@ -33,7 +33,7 @@ void Manager_Initialize()
 #ifdef _DEBUG
 	//DEBUG:
 	//SetScene(SCENE_TITLE);
-	SetScene(SCENE_GAME);
+	SetScene(SCENE_TITLE);
 #else
 	SetScene(SCENE_TITLE);
 #endif
@@ -138,6 +138,44 @@ void Manager_Draw()
 	Fade_Draw();
 	Swipe_Draw();
 	Transition_Draw();
+}
+
+void FinalizeCurrentScene()
+{
+	switch (g_Scene)
+	{
+	case SCENE_NONE:
+		break;
+	case SCENE_TITLE:
+		Title_Finalize();
+		break;
+	case SCENE_START:
+		Start_Finalize();
+		break;
+	case SCENE_SETTING:
+		Setting_Finalize();
+		g_InitSettingOnce = false;
+		break;
+	case SCENE_SOUND:
+		Sound_Finalize();
+		g_InitSoundOnce = false;
+		break;
+	case SCENE_READY:
+		Ready_Finalize();
+		break;
+	case SCENE_GAME:
+		Game_Finalize();
+		break;
+	case SCENE_WIN:
+		Win_Finalize();
+		break;
+	case SCENE_RESULT:
+		Result_Finalize();
+		break;
+	default:
+		break;
+	}
+	g_Scene = SCENE_NONE;
 }
 
 void SetScene(SCENE scene)

@@ -15,6 +15,7 @@
 #include <cmath>
 #include "VideoTexture.h"
 #include "color.h"
+#include "Audio.h"
 
 static VideoTexture g_VideoTex;
 
@@ -39,6 +40,9 @@ static constexpr float BUTTON_POP_DURATION = 0.8f;  // ƒ{ƒ^ƒ“‚Ìƒ|ƒbƒvŠ—vŠÔi•
 static constexpr float BUTTON_DELAY_AFTER_LOGO = 0.3f; // ƒƒSŠ®—¹‚©‚çƒ{ƒ^ƒ“ŠJn‚Ü‚Å‚Ì’x‰„i•bj
 static constexpr float ICON_POP_DURATION = 0.6f;       // ƒAƒCƒRƒ“‚Ìƒ|ƒbƒvƒCƒ“Š—vŠÔi•bj
 static constexpr float ICON_DELAY_AFTER_LOGO = 0.2f;   // ƒƒSŠ®—¹‚©‚çƒAƒCƒRƒ“ŠJn‚Ü‚Å‚Ì’x‰„i•bj
+
+static int g_BgmID = NULL;
+static int g_SeButtonID = NULL;
 
 // ƒC[ƒWƒ“ƒOiƒTƒCƒ“‚ÌƒC[ƒYƒAƒEƒgj
 static inline float EaseOutSine(float t) {
@@ -90,7 +94,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata4;
 		ScratchImage	image4;
-		LoadFromWICFile(L"asset\\texture\\light.png", WIC_FLAGS_NONE, &metadata4, image4);
+		LoadFromWICFile(L"asset\\texture\\01title3.png", WIC_FLAGS_NONE, &metadata4, image4);
 		CreateShaderResourceView(pDevice, image4.GetImages(), image4.GetImageCount(), metadata4, &g_Texture4);
 		assert(g_Texture4);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 	}
@@ -99,7 +103,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata5;
 		ScratchImage	image5;
-		LoadFromWICFile(L"asset\\texture\\tree.png", WIC_FLAGS_NONE, &metadata5, image5);
+		LoadFromWICFile(L"asset\\texture\\01title2.png", WIC_FLAGS_NONE, &metadata5, image5);
 		CreateShaderResourceView(pDevice, image5.GetImages(), image5.GetImageCount(), metadata5, &g_Texture5);
 		assert(g_Texture5);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 	}
@@ -108,7 +112,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata6;
 		ScratchImage	image6;
-		LoadFromWICFile(L"asset\\texture\\concreat.png", WIC_FLAGS_NONE, &metadata6, image6);
+		LoadFromWICFile(L"asset\\texture\\01title0.png", WIC_FLAGS_NONE, &metadata6, image6);
 		CreateShaderResourceView(pDevice, image6.GetImages(), image6.GetImageCount(), metadata6, &g_Texture6);
 		assert(g_Texture6);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 	}
@@ -117,7 +121,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		TexMetadata		metadata7;
 		ScratchImage	image7;
-		LoadFromWICFile(L"asset\\texture\\ice.png", WIC_FLAGS_NONE, &metadata7, image7);
+		LoadFromWICFile(L"asset\\texture\\01title1.png", WIC_FLAGS_NONE, &metadata7, image7);
 		CreateShaderResourceView(pDevice, image7.GetImages(), image7.GetImageCount(), metadata7, &g_Texture7);
 		assert(g_Texture7);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 	}
@@ -134,6 +138,10 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		SetFade(60.0f, color, FADE_IN, SCENE_START);
 	}
 
+	g_BgmID = LoadAudio("asset\\Audio\\BGM_01.wav");
+	PlayAudio(g_BgmID, true);
+
+	g_SeButtonID = LoadAudio("asset\\Audio\\button.wav");
 }
 
 void Title_Finalize()
@@ -142,7 +150,11 @@ void Title_Finalize()
 	SAFE_RELEASE(g_Texture);
 	SAFE_RELEASE(g_Texture2);
 	SAFE_RELEASE(g_Texture3);
+
+	UnloadAudio(g_BgmID);
+	UnloadAudio(g_SeButtonID);
 }
+
 void Title_Update()
 {
 
@@ -161,6 +173,7 @@ void Title_Update()
 	}
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetTransitionState() == TRANSITION_NONE))
 	{
+		PlayAudio(g_SeButtonID, false);
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetTransition(40.0f, color, TRANSITION_OUT, SCENE_START);
 	}
@@ -202,13 +215,12 @@ void Title_Draw()
 
 		float iconSize = SCREEN_HEIGHT * 0.15f; // ƒAƒCƒRƒ“ƒTƒCƒY
 
-		// ŠeƒAƒCƒRƒ“‚ÌÅIˆÊ’ui¶‰E‚Ì‰æ–Ê’[‚Ò‚Á‚½‚èj
-		float halfIcon = iconSize * 10.0f / 2.0f; // •`‰æƒTƒCƒY‚Ì”¼•ª
+		// ŠeƒAƒCƒRƒ“‚ÌÅIˆÊ’ui‰æ‘œ‚Ì’†S‚ª‰æ–Ê‚Ì¶‰E’[‚Ò‚Á‚½‚èj
 		XMFLOAT2 iconEndPos[4] = {
-			{ halfIcon,                  SCREEN_HEIGHT * 0.55f },  // “d‹CF¶’[
-			{ SCREEN_WIDTH - halfIcon,   SCREEN_HEIGHT * 0.55f },  // A•¨F‰E’[
-			{ halfIcon,                  SCREEN_HEIGHT * 0.45f },  // ƒRƒ“ƒNƒŠF¶’[
-			{ SCREEN_WIDTH - halfIcon,   SCREEN_HEIGHT * 0.45f },  // ƒKƒ‰ƒXF‰E’[
+			{ 0.0f - 80,          SCREEN_HEIGHT * 0.55f },  // “d‹CF¶’[
+			{ SCREEN_WIDTH - 120,  SCREEN_HEIGHT * 0.35f },  // A•¨F‰E’[
+			{ 0.0f + 130,          SCREEN_HEIGHT * 0.75f },  // ƒRƒ“ƒNƒŠF¶’[
+			{ SCREEN_WIDTH - 140,  SCREEN_HEIGHT * 0.75f },  // ƒKƒ‰ƒXF‰E’[
 		};
 
 		float iconStart = LOGO_POP_DURATION + ICON_DELAY_AFTER_LOGO;

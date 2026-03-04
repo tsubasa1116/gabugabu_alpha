@@ -11,6 +11,7 @@
 #include	"Start.h"
 
 #include "fade.h"
+#include "transition.h"
 #include "shader.h"
 
 #include "model.h" // 追加：モデル読み込み用
@@ -20,6 +21,7 @@
 
 #include "loadThread.h"
 #include "LoadingScreen.h" 
+#include "Audio.h"
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
 static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
@@ -29,6 +31,9 @@ static ID3D11ShaderResourceView* g_StartTex = nullptr; // 追加：FBXに貼るPNGテク
 
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
+
+static int g_BgmID = NULL;
+static int g_SeButtonID = NULL;
 
 // --- ロゴふよふよ用（調整可能） ---
 static std::chrono::steady_clock::time_point g_LastTime;
@@ -77,8 +82,14 @@ void Start_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	if (Keyboard_IsKeyDown(KK_ENTER))
 	{
 		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(60.0f, color, FADE_IN, SCENE_READY);
+		SetTransition(60.0f, color, TRANSITION_IN, SCENE_READY);
 	}
+
+	g_BgmID = LoadAudio("asset\\Audio\\I'm_ready!.wav");
+	PlayAudio(g_BgmID, true);
+
+	g_SeButtonID = LoadAudio("asset\\Audio\\button.wav");
+
 }
 
 void Start_Finalize()
@@ -94,6 +105,9 @@ void Start_Finalize()
 	}
 	SAFE_RELEASE(g_StartTex);
 	SAFE_RELEASE(g_Texture3);
+
+	UnloadAudio(g_BgmID);
+	UnloadAudio(g_SeButtonID);
 }
 
 void Start_Update()
@@ -113,6 +127,8 @@ void Start_Update()
 	{
 		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
 		{
+			PlayAudio(g_SeButtonID, false);
+
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
 			SetFadeWithLoading(40, color, FADE_OUT, SCENE_READY, L"asset\\movie\\readyLoad.mp4");

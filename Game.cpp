@@ -165,7 +165,7 @@ void Game_Update()
 		Player_Warmup();
 		Effect_Warmup();
 
-		g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");
+		g_BgmID = LoadAudio("asset\\Audio\\BGM.wav");
 
 		g_IsFirstFrame = false;
 	}

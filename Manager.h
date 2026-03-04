@@ -11,7 +11,7 @@ enum SCENE
 	SCENE_READY,		//ゲーム準備シーン
 	SCENE_GAME,			//ゲームシーン
 	SCENE_WIN,			//勝利シーン
-	SCENE_RESULT,		//リザルトルシーン
+	SCENE_RESULT,		//リザルトシーン
 
 };
 
@@ -21,3 +21,4 @@ void Manager_Update();
 void Manager_Draw();
 
 void SetScene(SCENE scene);
+void FinalizeCurrentScene();
