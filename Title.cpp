@@ -1,7 +1,7 @@
 //======================================================
 //	title.cpp
 // 
-//	åˆ¶ä½œè€…ï¼šç”°ä¸­ä½‘å¥ˆ			æ—¥ä»˜ï¼š2026/02/26
+//	§ìÒF“c’†—C“Ş			“ú•tF2026/02/26
 //======================================================
 #include "Manager.h"
 #include "sprite.h"
@@ -19,29 +19,29 @@
 
 static VideoTexture g_VideoTex;
 
-static	ID3D11ShaderResourceView* g_Texture = NULL;		// èƒŒæ™¯
-static	ID3D11ShaderResourceView* g_Texture2 = NULL;	// ã‚²ãƒ¼ãƒ ãƒ­ã‚´
-static	ID3D11ShaderResourceView* g_Texture3 = NULL;	// ã¯ã˜ã‚ã‚‹ãƒœã‚¿ãƒ³
-static	ID3D11ShaderResourceView* g_Texture4 = NULL;	// ã¯ã˜ã‚ã‚‹ãƒœã‚¿ãƒ³
-static	ID3D11ShaderResourceView* g_Texture5 = NULL;	// ã¯ã˜ã‚ã‚‹ãƒœã‚¿ãƒ³
-static	ID3D11ShaderResourceView* g_Texture6 = NULL;	// ã¯ã˜ã‚ã‚‹ãƒœã‚¿ãƒ³
-static	ID3D11ShaderResourceView* g_Texture7 = NULL;	// ã¯ã˜ã‚ã‚‹ãƒœã‚¿ãƒ³
+static	ID3D11ShaderResourceView* g_Texture = NULL;		// ”wŒi
+static	ID3D11ShaderResourceView* g_Texture2 = NULL;	// ƒQ[ƒ€ƒƒS
+static	ID3D11ShaderResourceView* g_Texture3 = NULL;	// ‚Í‚¶‚ß‚éƒ{ƒ^ƒ“
+static	ID3D11ShaderResourceView* g_Texture4 = NULL;	// ‚Í‚¶‚ß‚éƒ{ƒ^ƒ“
+static	ID3D11ShaderResourceView* g_Texture5 = NULL;	// ‚Í‚¶‚ß‚éƒ{ƒ^ƒ“
+static	ID3D11ShaderResourceView* g_Texture6 = NULL;	// ‚Í‚¶‚ß‚éƒ{ƒ^ƒ“
+static	ID3D11ShaderResourceView* g_Texture7 = NULL;	// ‚Í‚¶‚ß‚éƒ{ƒ^ƒ“
 static	DirectX::TexMetadata g_Metadata3{};
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
-// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”¨ã‚¿ã‚¤ãƒãƒ¼
+// ƒAƒjƒ[ƒVƒ‡ƒ“—pƒ^ƒCƒ}[
 static std::chrono::steady_clock::time_point g_TitleLastTime;
 static float g_TitleElapsed = 0.0f;
 
-// ãƒãƒƒãƒ—ã‚¤ãƒ³è¨­å®šï¼ˆèª¿æ•´å¯ï¼‰
-static constexpr float LOGO_POP_DURATION = 0.8f;      // ãƒ­ã‚´ã®ãƒãƒƒãƒ—æ‰€è¦æ™‚é–“ï¼ˆç§’ï¼‰
-static constexpr float BUTTON_POP_DURATION = 0.8f;  // ãƒœã‚¿ãƒ³ã®ãƒãƒƒãƒ—æ‰€è¦æ™‚é–“ï¼ˆç§’ï¼‰
-static constexpr float BUTTON_DELAY_AFTER_LOGO = 0.3f; // ãƒ­ã‚´å®Œäº†ã‹ã‚‰ãƒœã‚¿ãƒ³é–‹å§‹ã¾ã§ã®é…å»¶ï¼ˆç§’ï¼‰
-static constexpr float ICON_POP_DURATION = 0.6f;       // ã‚¢ã‚¤ã‚³ãƒ³ã®ãƒãƒƒãƒ—ã‚¤ãƒ³æ‰€è¦æ™‚é–“ï¼ˆç§’ï¼‰
-static constexpr float ICON_DELAY_AFTER_LOGO = 0.2f;   // ãƒ­ã‚´å®Œäº†ã‹ã‚‰ã‚¢ã‚¤ã‚³ãƒ³é–‹å§‹ã¾ã§ã®é…å»¶ï¼ˆç§’ï¼‰
+// ƒ|ƒbƒvƒCƒ“İ’èi’²®‰Âj
+static constexpr float LOGO_POP_DURATION = 0.8f;      // ƒƒS‚Ìƒ|ƒbƒvŠ—vŠÔi•bj
+static constexpr float BUTTON_POP_DURATION = 0.8f;  // ƒ{ƒ^ƒ“‚Ìƒ|ƒbƒvŠ—vŠÔi•bj
+static constexpr float BUTTON_DELAY_AFTER_LOGO = 0.3f; // ƒƒSŠ®—¹‚©‚çƒ{ƒ^ƒ“ŠJn‚Ü‚Å‚Ì’x‰„i•bj
+static constexpr float ICON_POP_DURATION = 0.6f;       // ƒAƒCƒRƒ“‚Ìƒ|ƒbƒvƒCƒ“Š—vŠÔi•bj
+static constexpr float ICON_DELAY_AFTER_LOGO = 0.2f;   // ƒƒSŠ®—¹‚©‚çƒAƒCƒRƒ“ŠJn‚Ü‚Å‚Ì’x‰„i•bj
 
-// ã‚¤ãƒ¼ã‚¸ãƒ³ã‚°ï¼ˆã‚µã‚¤ãƒ³ã®ã‚¤ãƒ¼ã‚ºã‚¢ã‚¦ãƒˆï¼‰
+// ƒC[ƒWƒ“ƒOiƒTƒCƒ“‚ÌƒC[ƒYƒAƒEƒgj
 static inline float EaseOutSine(float t) {
 	if (t <= 0.0f) return 0.0f;
 	if (t >= 1.0f) return 1.0f;
@@ -53,77 +53,77 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// æ™‚é–“åˆæœŸåŒ–
+	// ŠÔ‰Šú‰»
 	g_TitleLastTime = std::chrono::steady_clock::now();
 	g_TitleElapsed = 0.0f;
 
-	//èƒŒæ™¯
+	//”wŒi
 	{
 		TexMetadata		metadata;
 		ScratchImage	image;
 		LoadFromWICFile(L"asset\\texture\\uiStart_v3.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-		assert(g_Texture);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+		assert(g_Texture);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 	}
 
-	// ãƒ­ã‚´
+	// ƒƒS
 	{
 		TexMetadata		metadata2;
 		ScratchImage	image2;
 		LoadFromWICFile(L"asset\\texture\\TitleLogoBlur.png", WIC_FLAGS_NONE, &metadata2, image2);
 		CreateShaderResourceView(pDevice, image2.GetImages(), image2.GetImageCount(), metadata2, &g_Texture2);
-		assert(g_Texture2);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+		assert(g_Texture2);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 	}
 
-	// ã¯ã˜ã‚ã‚‹ãƒœã‚¿ãƒ³
+	// ‚Í‚¶‚ß‚éƒ{ƒ^ƒ“
 	{
 		TexMetadata		metadata3;
 		ScratchImage	image3;
 		LoadFromWICFile(L"asset\\texture\\startON.png", WIC_FLAGS_NONE, &metadata3, image3);
 		CreateShaderResourceView(pDevice, image3.GetImages(), image3.GetImageCount(), metadata3, &g_Texture3);
-		assert(g_Texture3);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+		assert(g_Texture3);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-		// å®Ÿãƒ”ã‚¯ã‚»ãƒ«ã‚µã‚¤ã‚ºã‚’ä¿æŒï¼ˆæç”»æ™‚ã«ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã‚’ä¿ã¤ãŸã‚ï¼‰
+		// ÀƒsƒNƒZƒ‹ƒTƒCƒY‚ğ•Ûi•`‰æ‚ÉƒAƒXƒyƒNƒg”ä‚ğ•Û‚Â‚½‚ßj
 		g_Metadata3 = metadata3;
 	}
 
-	// é›»æ°—ãƒœã‚¿ãƒ³
+	// “d‹Cƒ{ƒ^ƒ“
 	{
 		TexMetadata		metadata4;
 		ScratchImage	image4;
 		LoadFromWICFile(L"asset\\texture\\light.png", WIC_FLAGS_NONE, &metadata4, image4);
 		CreateShaderResourceView(pDevice, image4.GetImages(), image4.GetImageCount(), metadata4, &g_Texture4);
-		assert(g_Texture4);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+		assert(g_Texture4);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 	}
 
-	// æ¤ç‰©ãƒœã‚¿ãƒ³
+	// A•¨ƒ{ƒ^ƒ“
 	{
 		TexMetadata		metadata5;
 		ScratchImage	image5;
 		LoadFromWICFile(L"asset\\texture\\tree.png", WIC_FLAGS_NONE, &metadata5, image5);
 		CreateShaderResourceView(pDevice, image5.GetImages(), image5.GetImageCount(), metadata5, &g_Texture5);
-		assert(g_Texture5);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+		assert(g_Texture5);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 	}
 
-	// æ¤ç‰©ãƒœã‚¿ãƒ³
+	// A•¨ƒ{ƒ^ƒ“
 	{
 		TexMetadata		metadata6;
 		ScratchImage	image6;
 		LoadFromWICFile(L"asset\\texture\\concreat.png", WIC_FLAGS_NONE, &metadata6, image6);
 		CreateShaderResourceView(pDevice, image6.GetImages(), image6.GetImageCount(), metadata6, &g_Texture6);
-		assert(g_Texture6);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+		assert(g_Texture6);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 	}
 
-	// æ¤ç‰©ãƒœã‚¿ãƒ³
+	// A•¨ƒ{ƒ^ƒ“
 	{
 		TexMetadata		metadata7;
 		ScratchImage	image7;
 		LoadFromWICFile(L"asset\\texture\\ice.png", WIC_FLAGS_NONE, &metadata7, image7);
 		CreateShaderResourceView(pDevice, image7.GetImages(), image7.GetImageCount(), metadata7, &g_Texture7);
-		assert(g_Texture7);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+		assert(g_Texture7);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 	}
 
-	//ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã®ã‚»ãƒƒãƒˆï¼ˆåˆæœŸå…¥åŠ›ã¯ã“ã“ã§ç„¡è¦–ã—ã¦ã‚‚è‰¯ã„ï¼‰
+	//ƒtƒF[ƒhƒCƒ“‚ÌƒZƒbƒgi‰Šú“ü—Í‚Í‚±‚±‚Å–³‹‚µ‚Ä‚à—Ç‚¢j
 	if (Keyboard_IsKeyDown(KK_SPACE))
 	{
 		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -139,7 +139,7 @@ void Title_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 void Title_Finalize()
 {
-	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®è§£æ”¾ãªã©
+	//ƒeƒNƒXƒ`ƒƒ‚Ì‰ğ•ú‚È‚Ç
 	SAFE_RELEASE(g_Texture);
 	SAFE_RELEASE(g_Texture2);
 	SAFE_RELEASE(g_Texture3);
@@ -147,21 +147,24 @@ void Title_Finalize()
 void Title_Update()
 {
 
-	// æ™‚é–“å·®åˆ†æ›´æ–°
+	// ŠÔ·•ªXV
 	auto now = std::chrono::steady_clock::now();
 	std::chrono::duration<float> elapsed = now - g_TitleLastTime;
 	float dt = elapsed.count();
 	g_TitleLastTime = now;
 	g_TitleElapsed += dt;
 
-	// ã‚­ãƒ¼å…¥åŠ›ãƒã‚§ãƒƒã‚¯ï¼ˆãƒ•ã‚§ãƒ¼ãƒ‰ä¸­ã¯å—ã‘ä»˜ã‘ãªã„ï¼‰
+	static bool set = false;
+
+	// ƒL[“ü—Íƒ`ƒFƒbƒNiƒtƒF[ƒh’†‚Íó‚¯•t‚¯‚È‚¢j
 	if ((Keyboard_IsKeyDownTrigger(KK_SPACE) || g_Input->Plus) && (GetSwipeState() == SWIPE_NONE))
 	{
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetSwipe(40.0f, color, SWIPE_OUT, SCENE_SOUND);
 	}
-	if ((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A) && (GetFadeState() == FADE_NONE))
+	if (((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A) && (GetFadeState() == FADE_NONE)) && set == false)
 	{
+		set = true;
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetTransition(40.0f, color, TRANSITION_OUT, SCENE_START);
 	}
@@ -169,11 +172,11 @@ void Title_Update()
 
 void Title_Draw()
 {
-	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
+	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
 	Shader_Begin();
 	Shader_SetColor(color::white);
 
-	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«å¤‰æ›è¡Œåˆ—ã‚’è¨­å®šï¼ˆUIç”¨ï¼šç›´äº¤æŠ•å½±ï¼‰
+	// ’¸“_ƒVƒF[ƒ_[‚É•ÏŠ·s—ñ‚ğİ’èiUI—pF’¼Œğ“Š‰ej
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
 		0.0f,
 		SCREEN_WIDTH,
@@ -182,7 +185,7 @@ void Title_Draw()
 		0.0f,
 		1.0f));
 
-	// èƒŒæ™¯æç”»
+	// ”wŒi•`‰æ
 	if (g_Texture)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture);
@@ -193,23 +196,23 @@ void Title_Draw()
 		DrawSprite(pos, size, col);
 	}
 
-	// å±æ€§ã‚¢ã‚¤ã‚³ãƒ³ï¼ˆãƒ­ã‚´ã®å¾Œã«å·¦å³ã‹ã‚‰ã‚¹ãƒ©ã‚¤ãƒ‰ã‚¤ãƒ³ï¼‰
+	// ‘®«ƒAƒCƒRƒ“iƒƒS‚ÌŒã‚É¶‰E‚©‚çƒXƒ‰ƒCƒhƒCƒ“j
 	{
-		// ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ»ã‚¹ãƒ©ã‚¤ãƒ‰æ–¹å‘ã®å®šç¾©
-		// g_Texture4(é›»æ°—), g_Texture6(ã‚³ãƒ³ã‚¯ãƒª) â†’ å·¦ã‹ã‚‰
-		// g_Texture5(æ¤ç‰©), g_Texture7(ã‚¬ãƒ©ã‚¹)   â†’ å³ã‹ã‚‰
+		// ƒeƒNƒXƒ`ƒƒEƒXƒ‰ƒCƒh•ûŒü‚Ì’è‹`
+		// g_Texture4(“d‹C), g_Texture6(ƒRƒ“ƒNƒŠ) ¨ ¶‚©‚ç
+		// g_Texture5(A•¨), g_Texture7(ƒKƒ‰ƒX)   ¨ ‰E‚©‚ç
 		ID3D11ShaderResourceView* iconTextures[4] = { g_Texture4, g_Texture5, g_Texture6, g_Texture7 };
 		bool fromLeft[4] = { true, false, true, false };
 
-		float iconSize = SCREEN_HEIGHT * 0.15f; // ã‚¢ã‚¤ã‚³ãƒ³ã‚µã‚¤ã‚º
+		float iconSize = SCREEN_HEIGHT * 0.15f; // ƒAƒCƒRƒ“ƒTƒCƒY
 
-		// å„ã‚¢ã‚¤ã‚³ãƒ³ã®æœ€çµ‚ä½ç½®ï¼ˆå·¦å³ã®ç”»é¢ç«¯ã´ã£ãŸã‚Šï¼‰
-		float halfIcon = iconSize * 10.0f / 2.0f; // æç”»ã‚µã‚¤ã‚ºã®åŠåˆ†
+		// ŠeƒAƒCƒRƒ“‚ÌÅIˆÊ’ui¶‰E‚Ì‰æ–Ê’[‚Ò‚Á‚½‚èj
+		float halfIcon = iconSize * 10.0f / 2.0f; // •`‰æƒTƒCƒY‚Ì”¼•ª
 		XMFLOAT2 iconEndPos[4] = {
-			{ halfIcon,                  SCREEN_HEIGHT * 0.55f },  // é›»æ°—ï¼šå·¦ç«¯
-			{ SCREEN_WIDTH - halfIcon,   SCREEN_HEIGHT * 0.55f },  // æ¤ç‰©ï¼šå³ç«¯
-			{ halfIcon,                  SCREEN_HEIGHT * 0.45f },  // ã‚³ãƒ³ã‚¯ãƒªï¼šå·¦ç«¯
-			{ SCREEN_WIDTH - halfIcon,   SCREEN_HEIGHT * 0.45f },  // ã‚¬ãƒ©ã‚¹ï¼šå³ç«¯
+			{ halfIcon,                  SCREEN_HEIGHT * 0.55f },  // “d‹CF¶’[
+			{ SCREEN_WIDTH - halfIcon,   SCREEN_HEIGHT * 0.55f },  // A•¨F‰E’[
+			{ halfIcon,                  SCREEN_HEIGHT * 0.45f },  // ƒRƒ“ƒNƒŠF¶’[
+			{ SCREEN_WIDTH - halfIcon,   SCREEN_HEIGHT * 0.45f },  // ƒKƒ‰ƒXF‰E’[
 		};
 
 		float iconStart = LOGO_POP_DURATION + ICON_DELAY_AFTER_LOGO;
@@ -223,7 +226,7 @@ void Title_Draw()
 			if (tIcon > 1.0f) tIcon = 1.0f;
 			float eIcon = EaseOutSine(tIcon);
 
-			// ã‚¹ãƒ©ã‚¤ãƒ‰é–‹å§‹ä½ç½®ï¼ˆå·¦ã‹ã‚‰ãªã‚‰ç”»é¢å·¦å¤–ã€å³ã‹ã‚‰ãªã‚‰ç”»é¢å³å¤–ï¼‰
+			// ƒXƒ‰ƒCƒhŠJnˆÊ’ui¶‚©‚ç‚È‚ç‰æ–Ê¶ŠOA‰E‚©‚ç‚È‚ç‰æ–Ê‰EŠOj
 			float startX = fromLeft[i] ? -iconSize : SCREEN_WIDTH + iconSize;
 			float endX = iconEndPos[i].x;
 			float posX = startX + (endX - startX) * eIcon;
@@ -241,14 +244,14 @@ void Title_Draw()
 		SetBlendState(BLENDSTATE_NONE);
 	}
 
-	// ãƒ­ã‚´ï¼ˆãƒãƒƒãƒ—ã‚¤ãƒ³ï¼‰
+	// ƒƒSiƒ|ƒbƒvƒCƒ“j
 	if (g_Texture2)
 	{
-		// ãƒ­ã‚´ã‚¢ãƒ‹ãƒ¡é€²è¡Œ
+		// ƒƒSƒAƒjƒis
 		float tLogo = g_TitleElapsed / LOGO_POP_DURATION;
 		if (tLogo > 1.0f) tLogo = 1.0f;
 		float eLogo = EaseOutSine(tLogo); // 0..1
-		// å°‘ã—ç¸®å°ã‚¹ã‚¿ãƒ¼ãƒˆã‹ã‚‰ãƒãƒƒãƒ—
+		// ­‚µk¬ƒXƒ^[ƒg‚©‚çƒ|ƒbƒv
 		float logoScale = 0.6f + 0.4f * eLogo;
 		float logoAlpha = eLogo;
 
@@ -259,16 +262,16 @@ void Title_Draw()
 		XMFLOAT2 logoSize = { baseLogoSize.x * logoScale * 1.0f, baseLogoSize.y * logoScale * 1.0f };
 		XMFLOAT2 logoPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.4f };
 
-		// DrawSprite ã¯ä¸­å¿ƒä½ç½®åŸºæº–ã‚’æƒ³å®šã—ã¦ã„ã‚‹ã®ã§ãã®ã¾ã¾æ¸¡ã™
+		// DrawSprite ‚Í’†SˆÊ’uŠî€‚ğ‘z’è‚µ‚Ä‚¢‚é‚Ì‚Å‚»‚Ì‚Ü‚Ü“n‚·
 		XMFLOAT4 logoCol = { 1.0f, 1.0f, 1.0f, logoAlpha };
 		DrawSprite(logoPos, logoSize, logoCol);
 
 		SetBlendState(BLENDSTATE_NONE);
 	}
 
-	// ã¯ã˜ã‚ã‚‹ãƒœã‚¿ãƒ³ï¼ˆãƒ­ã‚´ã®å¾Œã«ãƒãƒƒãƒ—ã‚¤ãƒ³ï¼‰	if (g_Texture3)
+	// ‚Í‚¶‚ß‚éƒ{ƒ^ƒ“iƒƒS‚ÌŒã‚Éƒ|ƒbƒvƒCƒ“j	if (g_Texture3)
 	{
-		// ãƒœã‚¿ãƒ³ã‚¢ãƒ‹ãƒ¡é€²è¡Œï¼ˆé–‹å§‹é…å»¶ã‚’è€ƒæ…®ï¼‰
+		// ƒ{ƒ^ƒ“ƒAƒjƒisiŠJn’x‰„‚ğl—¶j
 		float buttonStart = LOGO_POP_DURATION + BUTTON_DELAY_AFTER_LOGO;
 		float tButton = (g_TitleElapsed - buttonStart) / BUTTON_POP_DURATION;
 		if (tButton < 0.0f) tButton = 0.0f;
@@ -277,11 +280,11 @@ void Title_Draw()
 		float buttonScale = 0.5f + 0.5f * eButton; // 0.5->1.0
 		float buttonAlpha = eButton;
 
-		// æ˜åº¦è¨­å®šï¼ˆ1.0f = å…ƒã®è‰²ã€1.5f = æ˜ã‚‹ã‚ã€0.5f = æš—ã‚ï¼‰
+		// –¾“xİ’èi1.0f = Œ³‚ÌFA1.5f = –¾‚é‚ßA0.5f = ˆÃ‚ßj
 		float brightness = 1.3f;
 		Shader_SetColor(XMFLOAT4(brightness, brightness, brightness, 1.0f));
 
-		// æç”»ã‚µã‚¤ã‚ºï¼ˆã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã‚’ç¶­æŒï¼‰
+		// •`‰æƒTƒCƒYiƒAƒXƒyƒNƒg”ä‚ğˆÛj
 		float texW = (g_Metadata3.width > 0) ? (float)g_Metadata3.width : 100.0f;
 		float texH = (g_Metadata3.height > 0) ? (float)g_Metadata3.height : 50.0f;
 		float desiredWidth = SCREEN_WIDTH * 0.40f;
@@ -297,11 +300,11 @@ void Title_Draw()
 		DrawSprite(buttonPos, buttonSize, buttonCol);
 		SetBlendState(BLENDSTATE_NONE);
 
-		// ä»–ã®æç”»ã«å½±éŸ¿ã—ãªã„ã‚ˆã†å…ƒã«æˆ»ã™
+		// ‘¼‚Ì•`‰æ‚É‰e‹¿‚µ‚È‚¢‚æ‚¤Œ³‚É–ß‚·
 		Shader_SetColor(color::white);
 	}
 
-	//// å‹•ç”»ã‚’ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¨ã—ã¦æç”»
+	//// “®‰æ‚ğƒeƒNƒXƒ`ƒƒ‚Æ‚µ‚Ä•`‰æ
 	//ID3D11ShaderResourceView* pVideoSRV = g_VideoTex.GetShaderResourceView();
 	//if (pVideoSRV)
 	//{
