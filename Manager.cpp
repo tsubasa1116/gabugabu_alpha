@@ -82,9 +82,9 @@ void Manager_Update()
 	case SCENE_WIN:
 		Win_Update();
 		break;
-	case SCENE_RESULT:
-		Result_Update();
-		break;
+	//case SCENE_RESULT:
+	//	Result_Update();
+		//break;
 	default:
 		break;
 	}
@@ -128,9 +128,9 @@ void Manager_Draw()
 	case SCENE_WIN:
 		Win_Draw();
 		break;
-	case SCENE_RESULT:
-		Result_Draw();
-		break;
+	//case SCENE_RESULT:
+		//Result_Draw();
+		//break;
 	default:
 		break;
 	}
@@ -170,9 +170,9 @@ void SetScene(SCENE scene)
 	case SCENE_WIN:
 		Win_Finalize();
 		break;
-	case SCENE_RESULT:
-		Result_Finalize();
-		break;
+	//case SCENE_RESULT:
+	//	Result_Finalize();
+	//	break;
 	default:
 		break;
 	}
@@ -213,9 +213,9 @@ void SetScene(SCENE scene)
 	case SCENE_WIN:
 		Win_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
 		break;
-	case SCENE_RESULT:
-		Result_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
-		break;
+	//case SCENE_RESULT:
+	//	Result_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
+	//	break;
 	default:
 		break;
 	}
