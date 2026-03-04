@@ -950,8 +950,8 @@ void Special_Plant_Update(int playerIndex)
 		player.specialTimer = 0.0f;
 		g_animFrame[playerIndex] = 0;
 		g_animTimer[playerIndex] = 0.0f;
-		//player.form = Form::First;									// 変身形態を第1形態に戻す
-		//player.type = PlayerType::None;								// タイプをリセット
+		player.form = Form::First;									// 変身形態を第1形態に戻す
+		player.type = PlayerType::None;								// タイプをリセット
 		player.evolutionGaugeRate = PLAYER_EVOLUTION_GAUGE_RATE;	// スキルの進化ゲージバフもリセット
 		player.useSkill = false;									// スキル解除
 		Effect_Clear(playerIndex);									// エフェクトクリア
