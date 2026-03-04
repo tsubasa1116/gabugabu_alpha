@@ -130,6 +130,9 @@ struct PLAYEROBJECT
 	bool isEggBreaking;		// 卵エフェクトが割れ始める瞬間
 	float eggBreakingTimer;	// 卵エフェクトのタイマー
 
+	// ここで実体を作る（1箇所だけ！）
+	float g_hitStopTimer = 0.0f;
+
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	PlayerDir lastDir;							// 待機時の向き
@@ -165,7 +168,7 @@ struct PLAYEROBJECT
 void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 static void LoadTextureList(ID3D11Device* pDevice);
 void Player_Finalize();
-void Player_Update(float currentDeltaTime);
+void Player_Update(/*float currentDeltaTime*/);
 void Player_Draw(bool s_IsKonamiCodeEntered);
 void Player_DrawHP();
 

@@ -52,13 +52,13 @@ static bool s_GameStarted = false;
 static ID3D11DeviceContext* g_pContext = NULL;
 static	ID3D11ShaderResourceView* g_Texture[6];
 
-// ここで実体を作る（1箇所だけ！）
-float g_hitStopTimer = 0.0f;
-
-// 関数の身元もここに書く
-void StartHitStop(float duration) {
-	g_hitStopTimer = duration;
-}
+//// ここで実体を作る（1箇所だけ！）
+//float g_hitStopTimer = 0.0f;
+//
+//// 関数の身元もここに書く
+//void StartHitStop(float duration) {
+//	g_hitStopTimer = duration;
+//}
 
 //======================================================
 //	
@@ -198,19 +198,19 @@ void Game_Update()
 		else						s_IsKonamiCodeEntered = false;
 	}
 
-	float currentDeltaTime = DELTA_TIME;
+	//float currentDeltaTime = DELTA_TIME;
 
-	// ヒットストップ中ならタイマーを減らして、DELTA_TIMEを0にする
-	if (g_hitStopTimer > 0.0f) {
-		g_hitStopTimer -= DELTA_TIME;
-		currentDeltaTime = 0.0f; // 時を止める！
-	}
+	//// ヒットストップ中ならタイマーを減らして、DELTA_TIMEを0にする
+	//if (g_hitStopTimer > 0.0f) {
+	//	g_hitStopTimer -= DELTA_TIME;
+	//	currentDeltaTime = 0.0f; // 時を止める！
+	//}
 
 	// プレイヤーや建物の更新には currentDeltaTime を使うようにする
 	// ------------------------------------
 	// 
 	// ------------------------------------
-	Player_Update(currentDeltaTime);
+	Player_Update(/*currentDeltaTime*/);
 
 	Meteor_Update();
 	Field_Update();

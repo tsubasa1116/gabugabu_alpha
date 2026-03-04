@@ -218,6 +218,12 @@ static UINT Attack_idxdata[6 * 6]
 };
 
 
+//// 関数の身元もここに書く
+//void StartHitStop(float duration) {
+//	player.g_hitStopTimer = duration;
+//}
+
+
 void Attack_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	for (int p = 0; p < PLAYER_MAX; p++)
@@ -382,7 +388,8 @@ void Attack_Update(int playerIndex)
 						//break; // ★1つ壊したらループを抜ける（複数同時破壊したい場合は消してね）
 
 						// 建物壊した時に 0.05秒くらい止める
-						StartHitStop(1.0f);
+						//StartHitStop(1.0f);
+						player.g_hitStopTimer = 1.0f;
 					}
 				}
 			}
@@ -455,8 +462,12 @@ void Attack_Update(int playerIndex)
 					//player.attackTimer = 0.0f;
 					//break; // ★1人に当てたら終わり（複数人巻き込みたい場合は消してね）
 
+
+
+					defender.g_hitStopTimer = 1.0f;
 					// プレイヤーに当てた時はちょっと長めに 0.1秒くらい止める
-					StartHitStop(1.0f);
+					//StartHitStop(1.0f);
+					player.g_hitStopTimer = 1.0f;
 				}
 			}
 		}
