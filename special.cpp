@@ -19,6 +19,7 @@ using namespace DirectX;
 #include "Audio.h"
 #include "loadThread.h"
 #include "model.h"
+#include "cutin.h"
 
 // グローバル変数
 static ID3D11Device* g_pDevice = NULL;
@@ -414,7 +415,11 @@ void Special_Glass_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	if (player.specialTimer == 0.0f)	player.specialAnimation = true;
+	if (player.specialTimer == 0.0f)	
+	{
+		player.specialAnimation = true;
+		Set_Cutin(playerIndex, 1);
+	}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
@@ -672,6 +677,8 @@ void Special_Concrete_Update(int playerIndex)
 		// もし PLAYEROBJECT に animFrame があるなら同期する
 		player.animFrame = 0;
 		player.animTimer = 0.0f;
+
+		Set_Cutin(playerIndex, 3);
 	}
 
 	// スペシャルタイマー更新
@@ -840,6 +847,7 @@ void Special_Concrete_Update(int playerIndex)
 		player.specialAnimation = false;
 
 		Effect_Clear(playerIndex);
+		Effect_ClearUI(playerIndex);
 		player.isTypeFixed = false;
 
 		// 範囲表示終了フラグを立てる（必要なら残す）
@@ -864,12 +872,17 @@ void Special_Plant_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	if (player.specialTimer == 0.0f)	player.specialAnimation = true;
+	if (player.specialTimer == 0.0f)	
+	{
+		player.specialAnimation = true;
+		Set_Cutin(playerIndex, 2);
+	}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
 
-	if (player.specialTimer >= 1.0f)	player.specialAnimation = false;
+	if (player.specialTimer >= 1.0f) player.specialAnimation = false;		
+
 
 	// 円形当たり判定を作成
 	g_PlantCircle[playerIndex].radius = SPECIAL_PLANT_RADIUS;
@@ -942,6 +955,7 @@ void Special_Electricity_Update(int playerIndex)
 	if (player.specialTimer == 0.0f) 
 	{ 
 		PlayAudio(g_SE_ID[2], false);
+		Set_Cutin(playerIndex, 0);
 	}
 
 	player.specialAnimation = true;
@@ -1472,7 +1486,8 @@ void Special_Electricity_Update2(int playerIndex)
 	{
 		PlayAudio(g_SE_ID[2], false);
 		player.specialAnimation = true;
-	}
+		Set_Cutin(playerIndex, 0);
+	}	
 
 	player.specialTimer += DELTA_TIME;
 

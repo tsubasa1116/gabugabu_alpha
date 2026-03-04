@@ -7,6 +7,7 @@
 #include	"Manager.h"
 #include	"sprite.h"
 #include	"keyboard.h"
+#include "input.h"
 
 #include	"Start.h"
 
@@ -20,6 +21,8 @@
 
 #include "loadThread.h"
 #include "LoadingScreen.h" 
+#include "VideoTexture.h"
+#include "color.h"
 
 static	ID3D11ShaderResourceView* g_Texture = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
 static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//従来のフルスクリーンUIテクスチャ（必要なら残す）
@@ -37,6 +40,8 @@ static float g_Texture3OffsetY = 0.0f;
 static constexpr float g_Texture3Amplitude = 9.0f; // 振幅（ピクセル）
 static constexpr float g_Texture3Speed = 2.0f;     // 速度（周期係数）
 // ---------------------------------------
+
+static VideoTexture* g_StageVideo = nullptr;
 
 void Start_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
@@ -73,6 +78,10 @@ void Start_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Metadata3 = metadata3;
 	}
 
+	g_StageVideo = new VideoTexture();
+	// ファイル名は実際の動画ファイルに合わせて変更してください
+	if (!g_StageVideo->Initialize(pDevice, pContext, L"asset\\movie\\start.mp4")) { g_StageVideo->Update(); }
+
 	//フェードインのセット（初期入力はここで無視しても良い）
 	if (Keyboard_IsKeyDown(KK_ENTER))
 	{
@@ -94,6 +103,13 @@ void Start_Finalize()
 	}
 	SAFE_RELEASE(g_StartTex);
 	SAFE_RELEASE(g_Texture3);
+
+	if (g_StageVideo)
+	{
+		g_StageVideo->Finalize();
+		delete g_StageVideo;
+		g_StageVideo = nullptr;
+	}
 }
 
 void Start_Update()
@@ -108,26 +124,28 @@ void Start_Update()
 	g_Texture3FloatTime += dt * g_Texture3Speed;
 	g_Texture3OffsetY = std::sinf(g_Texture3FloatTime) * g_Texture3Amplitude;
 
-	// キー入力チェック
-	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
+	if (g_StageVideo) 
 	{
-		if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE) && !IsLoading())
+		if (!g_StageVideo->Update()) 
 		{
-			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
-
-			SetFadeWithLoading(40, color, FADE_OUT, SCENE_READY, L"asset\\movie\\readyLoad.mp4");
+			// 再生終了（Updateがfalseを返す）したら最初からリセット
+			g_StageVideo->Reset();
 		}
 	}
+
+	// キー入力チェック
+	if ((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A)&& (GetFadeState() == FADE_NONE) && !IsLoading())
+	{
+		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFadeWithLoading(40, color, FADE_OUT, SCENE_READY, L"asset\\movie\\readyLoad.mp4");
+	}
+
 }
 
 void Start_Draw()
 {
 	// シェーダーを描画パイプラインに設定
 	Shader_Begin();
-
-	// 画面サイズ取得
-	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
-	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 
 	// 頂点シェーダーに変換行列を設定（UI用：直交投影）
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
@@ -215,10 +233,8 @@ void Start_Draw()
 		SAFE_RELEASE(pDepthState);
 	}
 
-	// ミールシティの描画
-	if (g_Texture3)
+	if (g_StageVideo && g_StageVideo->GetSRV())
 	{
-		// UI 描画用に直交投影に戻す（重要）
 		Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
 			0.0f,
 			SCREEN_WIDTH,
@@ -226,7 +242,26 @@ void Start_Draw()
 			0.0f,
 			0.0f,
 			1.0f));
+		XMFLOAT2 basePos = { SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT * 0.37f + g_Texture3OffsetY };
 
+		ID3D11ShaderResourceView* vSrv = g_StageVideo->GetSRV();
+		g_pContext->PSSetShaderResources(0, 1, &vSrv);
+
+		// 動画のサイズ（枠より少し小さく、あるいは枠の穴のサイズに合わせて調整）
+		// とりあえず枠と同じスケール計算を流用します
+		float videoW = (float)g_StageVideo->GetWidth();
+		float videoH = (float)g_StageVideo->GetHeight();
+		float desiredWidth = SCREEN_WIDTH * 0.23f; // 枠（30%）より少し小さくする例
+		float scale = desiredWidth / videoW;
+		XMFLOAT2 videoSize = { videoW * scale, videoH * scale };
+
+		SetBlendState(BLENDSTATE_NONE);
+		DrawSprite(basePos, videoSize, color::white);
+	}
+
+	// ミールシティの描画
+	if (g_Texture3)
+	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture3);
 		SetBlendState(BLENDSTATE_ALPHA);
 
@@ -246,4 +281,22 @@ void Start_Draw()
 
 		SetBlendState(BLENDSTATE_NONE);
 	}
+
+	//if (g_StageVideo && g_StageVideo->GetSRV())
+	//{
+	//	XMFLOAT2 basePos = { SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT * 0.37f + g_Texture3OffsetY };
+
+	//	ID3D11ShaderResourceView* vSrv = g_StageVideo->GetSRV();
+	//	g_pContext->PSSetShaderResources(0, 1, &vSrv);
+
+	//	// 動画のサイズ（枠より少し小さく、あるいは枠の穴のサイズに合わせて調整）
+	//	// とりあえず枠と同じスケール計算を流用します
+	//	float videoW = (float)g_StageVideo->GetWidth();
+	//	float videoH = (float)g_StageVideo->GetHeight();
+	//	float desiredWidth = SCREEN_WIDTH * 0.28f; // 枠（30%）より少し小さくする例
+	//	float scale = desiredWidth / videoW;
+	//	XMFLOAT2 videoSize = { videoW * scale, videoH * scale };
+
+	//	DrawSprite(basePos, videoSize, color::white);
+	//}
 }
