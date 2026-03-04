@@ -1,8 +1,14 @@
 // =====================================================
 //	player.cpp
 // 
-//	§ìÒF•½‰ªéD”n			“ú•tF2026/01/27
+//	åˆ¶ä½œè€…ï¼šå¹³å²¡é¢¯é¦¬			æ—¥ä»˜ï¼š2026/01/27
 //======================================================
+
+// FINAL:
+/////////////////////////////////////////////////////////////////////////
+// TODO: ãƒ‰ãƒƒã‚¹ãƒ³ã§å»ºç‰©ã‚’å£Šã™ï¼†ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’å¹ã£é£›ã°ã™
+// TODO: ãƒ’ãƒƒãƒˆã‚¹ãƒˆãƒƒãƒ—
+
 #include <d3d11.h>
 #include <iostream>
 #include <DirectXMath.h>
@@ -36,12 +42,13 @@ using namespace DirectX;
 #include <codecvt>
 #include <vector>
 #include <algorithm>
-#include <cstring> // ’Ç‰ÁFstrcmp ‚Ì‚½‚ß
+#include <cstring> // è¿½åŠ ï¼šstrcmp ã®ãŸã‚
 #include "loadThread.h"
 #include "gimmick.h"
+#include "cutin.h"
 
 //======================================================
-//	ƒ}ƒNƒ’è‹`
+//	ãƒã‚¯ãƒ­å®šç¾©
 //======================================================
 #define GAUGE_POS_X	(69.0f * (SCREEN_WIDTH / 1280.0f))	
 #define GAUGE_POS_Y	(8.0f *  (SCREEN_HEIGHT / 720.0f))	
@@ -49,66 +56,69 @@ using namespace DirectX;
 #define	HPBER_SIZE_Y (270.0f * (SCREEN_HEIGHT / 720.0f))
 
 //======================================================
-//	ƒOƒ[ƒoƒ‹•Ï”
+//	ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 //======================================================
-// ƒIƒuƒWƒFƒNƒg
+// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 PLAYEROBJECT player[PLAYER_MAX];
 
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
 static hp HPBar[PLAYER_MAX];
 
-// ’¸“_ƒoƒbƒtƒ@
+// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
 static ID3D11Buffer* g_VertexBuffer = NULL;
 
-// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
+// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
 static ID3D11Buffer* g_IndexBuffer = NULL;
 
-// ƒeƒNƒXƒ`ƒƒ•Ï”
+// ãƒ†ã‚¯ã‚¹ãƒãƒ£å¤‰æ•°
 static ID3D11ShaderResourceView* g_Texture[18];
 
-// ƒvƒŒƒCƒ„[ ƒAƒjƒ[ƒVƒ‡ƒ“—p•Ï”
-static const float ANIM_FRAME_TIME = 0.15f;	// 1ƒtƒŒ[ƒ€‚ ‚½‚è‚Ì•b”
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”¨å¤‰æ•°
+static const float ANIM_FRAME_TIME = 0.15f;	// 1ãƒ•ãƒ¬ãƒ¼ãƒ ã‚ãŸã‚Šã®ç§’æ•°
 static const int   SHEET_COLS = 16;
 static const int   SHEET_ROWS = 16;
 
-static int g_victoryState[PLAYER_MAX] = { 0 };			// 0 = ‚È‚µ, 1 = ‰‰ñ Ä¶’†, 2 = ƒ‹[ƒv
-static float g_downHoldTimer[PLAYER_MAX] = { 0.0f };	// ÅIƒtƒŒ[ƒ€ƒz[ƒ‹ƒh—pƒ^ƒCƒ}[iƒvƒŒƒCƒ„[–ˆj
+static int g_victoryState[PLAYER_MAX] = { 0 };			// 0 = ãªã—, 1 = åˆå› å†ç”Ÿä¸­, 2 = ãƒ«ãƒ¼ãƒ—
+static float g_downHoldTimer[PLAYER_MAX] = { 0.0f };	// æœ€çµ‚ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ›ãƒ¼ãƒ«ãƒ‰ç”¨ã‚¿ã‚¤ãƒãƒ¼ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ¯ï¼‰
 
 static bool g_skillAnimStarted[PLAYER_MAX] = { false, false, false, false };
-static int g_skillAnimStart[PLAYER_MAX] = { 0 };	// ƒXƒLƒ‹ƒAƒjƒ[ƒVƒ‡ƒ“ŠJnƒtƒŒ[ƒ€•Û‘¶—p
+static int g_skillAnimStart[PLAYER_MAX] = { 0 };	// ã‚¹ã‚­ãƒ«ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ ä¿å­˜ç”¨
 
-static int g_specialAnimPhase[PLAYER_MAX] = { 0 };			// 0 = ‰‰ñÄ¶(0`6), 1 = ƒ‹[ƒv(4`6), 2 = I—¹‰‰o(7)
-static float g_specialEndAnimTimer[PLAYER_MAX] = { 0.0f };	// I—¹ƒtƒŒ[ƒ€(7)‚Ì•\¦ƒ^ƒCƒ}[
+static int g_specialAnimPhase[PLAYER_MAX] = { 0 };			// 0 = åˆå›å†ç”Ÿ(0ï½6), 1 = ãƒ«ãƒ¼ãƒ—(4ï½6), 2 = çµ‚äº†æ¼”å‡º(7)
+static float g_specialEndAnimTimer[PLAYER_MAX] = { 0.0f };	// çµ‚äº†ãƒ•ãƒ¬ãƒ¼ãƒ (7)ã®è¡¨ç¤ºã‚¿ã‚¤ãƒãƒ¼
 static bool g_specialInitialize[PLAYER_MAX] = { false };
 
-// ‡ˆÊE€–S‡‚ÌŠÇ—
-static std::vector<int> g_deathOrder;	// €–S‚µ‚½ƒvƒŒƒCƒ„[‚ÌƒCƒ“ƒfƒbƒNƒXiæ‚É€‚ñ‚¾Ò‚ªæ“ªj
+// é †ä½ãƒ»æ­»äº¡é †ã®ç®¡ç†
+static std::vector<int> g_deathOrder;	// æ­»äº¡ã—ãŸãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ï¼ˆå…ˆã«æ­»ã‚“ã è€…ãŒå…ˆé ­ï¼‰
 
 static int g_SE_ID[PLAYER_SE_COUNT] = { NULL };
 
-// ’¸“_”z—ñ
+static bool g_isWaitWin = false;
+static float g_winTimer = 0.0f;
+
+// é ‚ç‚¹é…åˆ—
 static Vertex2 vdata[PLAYER_VERTEX] =
 {
-	{// ’¸“_0 LEFT-TOP
-		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),	// À•W
-		XMFLOAT3(0.0f, 0.0f, -1.0f),				// –@üƒxƒNƒgƒ‹
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),			// ƒJƒ‰[
-		XMFLOAT2(0.0f, 0.0f)						// ƒeƒNƒXƒ`ƒƒÀ•W
+	{// é ‚ç‚¹0 LEFT-TOP
+		XMFLOAT3(-COORDINATE, COORDINATE, 0.0f),	// åº§æ¨™
+		XMFLOAT3(0.0f, 0.0f, -1.0f),				// æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),			// ã‚«ãƒ©ãƒ¼
+		XMFLOAT2(0.0f, 0.0f)						// ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™
 	},
-	{// ’¸“_1 RIGHT-TOP
+	{// é ‚ç‚¹1 RIGHT-TOP
 		XMFLOAT3(COORDINATE, COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(TEXCOORD, 0.0f)
 	},
-	{// ’¸“_2 LEFT-BOTTOM
+	{// é ‚ç‚¹2 LEFT-BOTTOM
 		XMFLOAT3(-COORDINATE, -COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		XMFLOAT2(0.0f, TEXCOORD)
 	},
-	{// ’¸“_3 RIGHT-BOTTOM
+	{// é ‚ç‚¹3 RIGHT-BOTTOM
 		XMFLOAT3(COORDINATE, -COORDINATE, 0.0f),
 		XMFLOAT3(0.0f, 0.0f, -1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -116,23 +126,23 @@ static Vertex2 vdata[PLAYER_VERTEX] =
 	},
 };
 
-// ƒCƒ“ƒfƒbƒNƒX”z—ñ
+// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹é…åˆ—
 static UINT idxdata[6]
 {
-	 0, 1, 2, 2, 1, 3, // -Z–Ê
+	 0, 1, 2, 2, 1, 3, // -Zé¢
 };
 
-static float top_y = 0;	// ˜ZŠpŒ`‚Ìtop-yÀ•[‚ÌƒfƒoƒbƒO•\¦
+static float top_y = 0;	// å…­è§’å½¢ã®top-yåº§ç¥¨ã®ãƒ‡ãƒãƒƒã‚°è¡¨ç¤º
 
-static std::atomic<int> g_loadedCount(0);	// ‰½–‡I‚í‚Á‚½‚©ii’»—pj
+static std::atomic<int> g_loadedCount(0);	// ä½•æšçµ‚ã‚ã£ãŸã‹ï¼ˆé€²æ—ç”¨ï¼‰
 static bool      s_ShowImgui = true;
 
 //======================================================
-//	‰Šú‰»ŠÖ”
+//	åˆæœŸåŒ–é–¢æ•°
 //======================================================
 void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	// ƒvƒŒƒCƒ„[•\¦‚Ì‰Šú‰»
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼è¡¨ç¤ºã®åˆæœŸåŒ–
 	player[0].position = XMFLOAT3(-3.0f, 4.0f, 0.0f);
 	player[1].position = XMFLOAT3(1.5f, 4.0f, 2.0f);
 	player[2].position = XMFLOAT3(-4.0f, 4.0f, -3.0f);
@@ -166,7 +176,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].power = 0.0f;
 		player[p].speed = 0.0f;
 		player[p].defense = 1.0f;
-		player[p].stock = 3;
+		player[p].stock = 1;
 		player[p].rank = 0;
 		player[p].active = true;
 		player[p].satiety = 0.0f;
@@ -200,7 +210,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].respawnTimer = 0.0f;
 		player[p].isEggBreaking = false;
 		player[p].eggBreakingTimer = 0.0f;
-		player[p].lastDir = PlayerDir::Down; // ³–Ê
+		player[p].lastDir = PlayerDir::Down; // æ­£é¢
 		player[p].isMoving = false;
 		player[p].isShadowEnabled = false;
 		player[p].evolutionGauge = 0.0f;
@@ -212,11 +222,11 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].isTypeFixed = false;
 	}
 
-	// ’¸“_ƒoƒbƒtƒ@ì¬
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
 	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));	// 0‚ÅƒNƒŠƒA
+	ZeroMemory(&bd, sizeof(bd));	// 0ã§ã‚¯ãƒªã‚¢
 	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;	// Ši”[‚Å‚«‚é’¸“_”*’¸“_ƒTƒCƒY
+	bd.ByteWidth = sizeof(Vertex) * PLAYER_VERTEX;	// æ ¼ç´ã§ãã‚‹é ‚ç‚¹æ•°*é ‚ç‚¹ã‚µã‚¤ã‚º
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
@@ -225,33 +235,33 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pContext = pContext;
 	g_loadedCount = 0;
 
-	// ƒ[ƒh‚ğ•ÊƒXƒŒƒbƒh‚ÅŠJn
-	// pDevice‚ğ“n‚µAI—¹‚µ‚½‚çƒtƒ‰ƒO‚ğ—§‚Ä‚é
+	// ãƒ­ãƒ¼ãƒ‰ã‚’åˆ¥ã‚¹ãƒ¬ãƒƒãƒ‰ã§é–‹å§‹
+	// pDeviceã‚’æ¸¡ã—ã€çµ‚äº†ã—ãŸã‚‰ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 	Loader::AddTask([pDevice]()
 		{
 			LoadTextureList(pDevice);
 		});
 
-	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@ì¬
+	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
 	{
 		D3D11_BUFFER_DESC	bd;
-		ZeroMemory(&bd, sizeof(bd));	// 0‚ÅƒNƒŠƒA
+		ZeroMemory(&bd, sizeof(bd));	// 0ã§ã‚¯ãƒªã‚¢
 		bd.Usage = D3D11_USAGE_DYNAMIC;
 		bd.ByteWidth = sizeof(UINT) * 6;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pDevice->CreateBuffer(&bd, NULL, &g_IndexBuffer);
 
-		// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚Ö‘‚«‚İ
+		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã¸æ›¸ãè¾¼ã¿
 		D3D11_MAPPED_SUBRESOURCE msr;
 		pContext->Map(g_IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 		UINT* index = (UINT*)msr.pData;
 
-		// ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^‚ğƒoƒbƒtƒ@‚ÖƒRƒs[
+		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒãƒ•ã‚¡ã¸ã‚³ãƒ”ãƒ¼
 		CopyMemory(&index[0], &idxdata[0], sizeof(UINT) * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
 	}
-	// ƒfƒoƒbƒOƒŒƒ“ƒ_ƒ‰[‰Šú‰»
+	// ãƒ‡ãƒãƒƒã‚°ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼åˆæœŸåŒ–
 	Debug_Initialize(pDevice, pContext);
 
 	float screenX = SCREEN_ADJUST_X;
@@ -272,7 +282,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	SetDeathHP(&HPBar[2], 8);
 	SetDeathHP(&HPBar[3], 9);
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‰Šú‰»
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®åˆæœŸåŒ–
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
 		player[p].animFrame = 0;
@@ -280,14 +290,17 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_skillAnimStarted[p] = false;
 	}
 
-	// ‡ˆÊî•ñ‚ğ‰Šú‰»
+	// é †ä½æƒ…å ±ã‚’åˆæœŸåŒ–
 	g_deathOrder.clear();
 
-	// SE‚Ì‰Šú‰»
-	g_SE_ID[0] = LoadAudio("asset\\Audio\\Roar_Form_Second.wav");	// i‰»Œã‚Ì™ôšK ‘æ2Œ`‘Ô
-	g_SE_ID[1] = LoadAudio("asset\\Audio\\Roar_Form_Third.wav");	// i‰»Œã‚Ì™ôšK ‘æ3Œ`‘Ô
-	g_SE_ID[2] = LoadAudio("asset\\Audio\\Transform.wav");			// •Ïg
-	g_SE_ID[3] = LoadAudio("asset\\Audio\\EggBreaking.wav");		// —‘Š„‚ê‚é
+	// SEã®åˆæœŸåŒ–
+	g_SE_ID[0] = LoadAudio("asset\\Audio\\Roar_Form_Second.wav");	// é¨¾ï½²è›¹é–€ï½¾å¾Œãƒ»èœ¥ãƒ»å‹• éš¨ï½¬2è –ï½¢è«·ãƒ»
+	g_SE_ID[1] = LoadAudio("asset\\Audio\\Roar_Form_Third.wav");	// é¨¾ï½²è›¹é–€ï½¾å¾Œãƒ»èœ¥ãƒ»å‹• éš¨ï½¬3è –ï½¢è«·ãƒ»
+	g_SE_ID[2] = LoadAudio("asset\\Audio\\Transform.wav");			// èŸèŠ½ï½ºï½«
+	g_SE_ID[3] = LoadAudio("asset\\Audio\\EggBreaking.wav");		// èœŠï½µèœ‘ï½²ç¹§å¾Œï½‹
+
+	g_isWaitWin = false;
+	g_winTimer = 0.0f;
 }
 
 static void LoadTextureList(ID3D11Device* pDevice)
@@ -299,50 +312,50 @@ static void LoadTextureList(ID3D11Device* pDevice)
 
 	const TexEntry texList[] =
 	{
-		{  0, L"asset\\texture\\characterMiniRed_v2.png"},			// ‘æ1Œ`‘Ô P1 Ô
-		{  1, L"asset\\texture\\characterMiniBlue_v1.png"},			// ‘æ1Œ`‘Ô P2 Â
-		{  2, L"asset\\texture\\characterMiniYellow_v1.png"},		// ‘æ1Œ`‘Ô P3 ‰©
-		{  3, L"asset\\texture\\characterMiniGreen_v1.png"},		// ‘æ1Œ`‘Ô P4 —Î
-		{  4, L"asset\\texture\\characterMidGlass_v1.png"},			// ‘æ2Œ`‘Ô ƒKƒ‰ƒX
-		{  5, L"asset\\texture\\characterMidConcrete_v1.png" },		// ‘æ2Œ`‘Ô ƒRƒ“ƒNƒŠ[ƒg
-		{  6, L"asset\\texture\\characterMidTree_v1.png" },			// ‘æ2Œ`‘Ô A•¨
-		{  7, L"asset\\texture\\characterMidElectricity_v1.png" },	// ‘æ2Œ`‘Ô “d‹C
-		{  8, L"asset\\texture\\characterBigGlass_v2.png" },		// ‘æ3Œ`‘Ô ƒKƒ‰ƒX
-		{  9, L"asset\\texture\\characterBigConcrete_v2.png" },		// ‘æ3Œ`‘Ô ƒRƒ“ƒNƒŠ[ƒg
-		{ 10, L"asset\\texture\\characterBigTree_v2.png" },			// ‘æ3Œ`‘Ô A•¨
-		{ 11, L"asset\\texture\\characterBigElectricity_v2.png" },	// ‘æ3Œ`‘Ô “d‹C
-		{ 12, L"asset\\texture\\uiCharacterSkill_v2.png" },			// ‘æ2Œ`‘Ô ‘æ3Œ`‘Ô ƒXƒLƒ‹
-		{ 13, L"asset\\texture\\characterBigSP_v4.png" },			// ‘æ3Œ`‘Ô ƒXƒyƒVƒƒƒ‹
-		{ 14, L"asset\\texture\\uiStockRed_v4.png"},				// UI ƒXƒgƒbƒN Ô
-		{ 15, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ƒXƒgƒbƒN Â
-		{ 16, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ƒXƒgƒbƒN ‰©
-		{ 17, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ƒXƒgƒbƒN —Î
+		{  0, L"asset\\texture\\characterMiniRed_v2.png"},			// ç¬¬1å½¢æ…‹ P1 èµ¤
+		{  1, L"asset\\texture\\characterMiniBlue_v1.png"},			// ç¬¬1å½¢æ…‹ P2 é’
+		{  2, L"asset\\texture\\characterMiniYellow_v1.png"},		// ç¬¬1å½¢æ…‹ P3 é»„
+		{  3, L"asset\\texture\\characterMiniGreen_v1.png"},		// ç¬¬1å½¢æ…‹ P4 ç·‘
+		{  4, L"asset\\texture\\characterMidGlass_v1.png"},			// ç¬¬2å½¢æ…‹ ã‚¬ãƒ©ã‚¹
+		{  5, L"asset\\texture\\characterMidConcrete_v1.png" },		// ç¬¬2å½¢æ…‹ ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ
+		{  6, L"asset\\texture\\characterMidTree_v1.png" },			// ç¬¬2å½¢æ…‹ æ¤ç‰©
+		{  7, L"asset\\texture\\characterMidElectricity_v1.png" },	// ç¬¬2å½¢æ…‹ é›»æ°—
+		{  8, L"asset\\texture\\characterBigGlass_v2.png" },		// ç¬¬3å½¢æ…‹ ã‚¬ãƒ©ã‚¹
+		{  9, L"asset\\texture\\characterBigConcrete_v2.png" },		// ç¬¬3å½¢æ…‹ ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆ
+		{ 10, L"asset\\texture\\characterBigTree_v2.png" },			// ç¬¬3å½¢æ…‹ æ¤ç‰©
+		{ 11, L"asset\\texture\\characterBigElectricity_v2.png" },	// ç¬¬3å½¢æ…‹ é›»æ°—
+		{ 12, L"asset\\texture\\uiCharacterSkill_v2.png" },			// ç¬¬2å½¢æ…‹ ç¬¬3å½¢æ…‹ ã‚¹ã‚­ãƒ«
+		{ 13, L"asset\\texture\\characterBigSP_v4.png" },			// ç¬¬3å½¢æ…‹ ã‚¹ãƒšã‚·ãƒ£ãƒ«
+		{ 14, L"asset\\texture\\uiStockRed_v4.png"},				// UI ã‚¹ãƒˆãƒƒã‚¯ èµ¤
+		{ 15, L"asset\\texture\\uiStockBlue_v4.png"},				// UI ã‚¹ãƒˆãƒƒã‚¯ é’
+		{ 16, L"asset\\texture\\uiStockYellow_v4.png" },			// UI ã‚¹ãƒˆãƒƒã‚¯ é»„
+		{ 17, L"asset\\texture\\uiStockGreen_v4.png" },				// UI ã‚¹ãƒˆãƒƒã‚¯ ç·‘
 	};
 
 	for (const auto& e : texList)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 
-		// ƒRƒƒ“ƒg‰»‚µ‚Ä‚¢‚é—v‘f‚Í”z—ñƒGƒ“ƒgƒŠ©‘Ì‚ğƒRƒƒ“ƒgƒAƒEƒg‚µ‚Ä‚¢‚é‚½‚ß‚±‚±‚É‚Í—ˆ‚È‚¢B
+		// ã‚³ãƒ¡ãƒ³ãƒˆåŒ–ã—ã¦ã„ã‚‹è¦ç´ ã¯é…åˆ—ã‚¨ãƒ³ãƒˆãƒªè‡ªä½“ã‚’ã‚³ãƒ¡ãƒ³ãƒˆã‚¢ã‚¦ãƒˆã—ã¦ã„ã‚‹ãŸã‚ã“ã“ã«ã¯æ¥ãªã„ã€‚
 		HRESULT hr = LoadFromWICFile(e.path, WIC_FLAGS_NONE, &metadata, image);
 		if (SUCCEEDED(hr))
 		{
 			if (FAILED(CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture[e.idx])))
 			{
-				// ì¬¸”s‚Í nullptr ‚ğ‘ã“ü‚µ‚Ä‘±s
+				// ä½œæˆå¤±æ•—æ™‚ã¯ nullptr ã‚’ä»£å…¥ã—ã¦ç¶šè¡Œ
 				g_Texture[e.idx] = nullptr;
 			}
 			g_loadedCount++;
 		}
-		// “Ç‚İ‚İ¸”s‚Í nullptr ‚ğ‘ã“ü‚µ‚Ä‘±s
+		// èª­ã¿è¾¼ã¿å¤±æ•—ã¯ nullptr ã‚’ä»£å…¥ã—ã¦ç¶šè¡Œ
 		else	g_Texture[e.idx] = nullptr;
 
 		auto end = std::chrono::high_resolution_clock::now();
 		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-		// std::wstring ‚ğ std::string ‚É•ÏŠ·‚µ‚Äo—Í
+		// std::wstring ã‚’ std::string ã«å¤‰æ›ã—ã¦å‡ºåŠ›
 		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
-		hal::dout << "ƒeƒNƒXƒ`ƒƒƒ[ƒh: " << conv.to_bytes(e.path) << " " << ms << " ms" << std::endl;
+		hal::dout << "ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ­ãƒ¼ãƒ‰: " << conv.to_bytes(e.path) << " " << ms << " ms" << std::endl;
 	}
 }
 
@@ -350,7 +363,7 @@ void Player_Warmup()
 {
 	if (!g_pContext) return;
 
-	// ===== GPU ƒeƒNƒXƒ`ƒƒ ƒEƒH[ƒ€ƒAƒbƒv =====
+	// ===== GPU ãƒ†ã‚¯ã‚¹ãƒãƒ£ ã‚¦ã‚©ãƒ¼ãƒ ã‚¢ãƒƒãƒ— =====
 	const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
 	for (size_t i = 0; i < TEX_COUNT; ++i)
 	{
@@ -361,26 +374,26 @@ void Player_Warmup()
 		}
 	}
 
-	// ÅŒã‚ÉƒŠƒZƒbƒg‚µ‚Ä‚¨‚­
+	// æœ€å¾Œã«ãƒªã‚»ãƒƒãƒˆã—ã¦ãŠã
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
 }
 
 //======================================================
-//	I—¹ˆ—ŠÖ”
+//	çµ‚äº†å‡¦ç†é–¢æ•°
 //======================================================
 void Player_Finalize()
 {
-	// ƒVƒF[ƒ_[‚ÉƒoƒCƒ“ƒh‚³‚ê‚Ä‚¢‚é SRV ‚ğƒAƒ“ƒoƒCƒ“ƒhiˆÀ‘S‚Ì‚½‚ß‘S—v‘f•ªj
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«ãƒã‚¤ãƒ³ãƒ‰ã•ã‚Œã¦ã„ã‚‹ SRV ã‚’ã‚¢ãƒ³ãƒã‚¤ãƒ³ãƒ‰ï¼ˆå®‰å…¨ã®ãŸã‚å…¨è¦ç´ åˆ†ï¼‰
 	const size_t TEX_COUNT = sizeof(g_Texture) / sizeof(g_Texture[0]);
 	if (g_pContext)
 	{
-		// ŒÅ’è’·”z—ñ‚ğg‚Á‚ÄŠmÀ‚É nullptr ‚ğ“n‚·iAPI ‚Í¶”z—ñ‚ğ—v‹j
+		// å›ºå®šé•·é…åˆ—ã‚’ä½¿ã£ã¦ç¢ºå®Ÿã« nullptr ã‚’æ¸¡ã™ï¼ˆAPI ã¯ç”Ÿé…åˆ—ã‚’è¦æ±‚ï¼‰
 		ID3D11ShaderResourceView* nullSRV[25] = {};
 		g_pContext->PSSetShaderResources(0, static_cast<UINT>(TEX_COUNT), nullSRV);
 	}
 
-	// ƒCƒ“ƒfƒbƒNƒX^’¸“_ƒoƒbƒtƒ@‚Ì‰ğ•úiNULL ƒ`ƒFƒbƒNŒã‚É nullptr ‚Éİ’èj
+	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ï¼é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®è§£æ”¾ï¼ˆNULL ãƒã‚§ãƒƒã‚¯å¾Œã« nullptr ã«è¨­å®šï¼‰
 	if (g_IndexBuffer != nullptr)
 	{
 		g_IndexBuffer->Release();
@@ -393,7 +406,7 @@ void Player_Finalize()
 		g_VertexBuffer = nullptr;
 	}
 
-	// ƒeƒNƒXƒ`ƒƒ”z—ñ‘S—v‘f‚ğˆÀ‘S‚É‰ğ•úiƒRƒƒ“ƒg‰»‚µ‚Ä–¢ƒ[ƒh‚Ì—v‘f‚à nullptr ƒ`ƒFƒbƒN‚ÅˆÀ‘Sj
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£é…åˆ—å…¨è¦ç´ ã‚’å®‰å…¨ã«è§£æ”¾ï¼ˆã‚³ãƒ¡ãƒ³ãƒˆåŒ–ã—ã¦æœªãƒ­ãƒ¼ãƒ‰ã®è¦ç´ ã‚‚ nullptr ãƒã‚§ãƒƒã‚¯ã§å®‰å…¨ï¼‰
 	for (size_t i = 0; i < TEX_COUNT; ++i)
 	{
 		if (g_Texture[i] != nullptr)
@@ -403,37 +416,37 @@ void Player_Finalize()
 		}
 	}
 
-	// ƒfƒoƒCƒX^ƒRƒ“ƒeƒLƒXƒg‚ÍŠO•”ŠÇ—‚Ì‚½‚ß‰ğ•ú‚µ‚È‚¢‚ªAQÆ‚ÍƒNƒŠƒA‚µ‚Ä‚¨‚­
+	// ãƒ‡ãƒã‚¤ã‚¹ï¼ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã¯å¤–éƒ¨ç®¡ç†ã®ãŸã‚è§£æ”¾ã—ãªã„ãŒã€å‚ç…§ã¯ã‚¯ãƒªã‚¢ã—ã¦ãŠã
 	g_pContext = nullptr;
 	g_pDevice = nullptr;
 
-	// ƒfƒoƒbƒOƒŒƒ“ƒ_ƒ‰[‚ÌI—¹ˆ—
+	// ãƒ‡ãƒãƒƒã‚°ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼ã®çµ‚äº†å‡¦ç†
 	Debug_Finalize();
 
 	for (int i = 0; i < PLAYER_SE_COUNT; ++i)	UnloadAudio(g_SE_ID[i]);
 }
 
 // ======================================================
-// ˆÚ“®ŠÖ”i—v•ÏXj
+// ç§»å‹•é–¢æ•°ï¼ˆè¦å¤‰æ›´ï¼‰
 // ------------------------------------------------------
-// ˆÚ“®ƒxƒNƒgƒ‹‚ÆŒü‚¢‚Ä‚¢‚é•ûŒüƒxƒNƒgƒ‹‚Í•Ê‚Å‚Á‚½•û‚ª‚¢‚¢
+// ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«ã¨å‘ã„ã¦ã„ã‚‹æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã¯åˆ¥ã§æŒã£ãŸæ–¹ãŒã„ã„
 // ======================================================
-// “ü—Í(ƒ[ƒJƒ‹)‚ğƒJƒƒ‰Šî€‚Åƒ[ƒ‹ƒhXZ‚Ö•ÏŠ·‚·‚éi•½–ÊˆÚ“®—pj
+// å…¥åŠ›(ãƒ­ãƒ¼ã‚«ãƒ«)ã‚’ã‚«ãƒ¡ãƒ©åŸºæº–ã§ãƒ¯ãƒ¼ãƒ«ãƒ‰XZã¸å¤‰æ›ã™ã‚‹ï¼ˆå¹³é¢ç§»å‹•ç”¨ï¼‰
 static inline XMFLOAT3 ToWorldMoveDirByCamera(const XMFLOAT2& input)
 {
-	// input.x: ‰E(+), input.y: ã(+)
+	// input.x: å³(+), input.y: ä¸Š(+)
 	XMMATRIX view = GetViewMatrix();
 	XMMATRIX invView = XMMatrixInverse(nullptr, view);
 
-	// invView ‚Ìs‚©‚çƒJƒƒ‰²‚ğæ“¾iworldj
+	// invView ã®è¡Œã‹ã‚‰ã‚«ãƒ¡ãƒ©è»¸ã‚’å–å¾—ï¼ˆworldï¼‰
 	XMFLOAT3 right = XMFLOAT3(invView.r[0].m128_f32[0], invView.r[0].m128_f32[1], invView.r[0].m128_f32[2]);
 	XMFLOAT3 forward = XMFLOAT3(invView.r[2].m128_f32[0], invView.r[2].m128_f32[1], invView.r[2].m128_f32[2]);
 
-	// XZ•½–Ê‚ÖË‰eiY¬•ª‚ğÌ‚Ä‚éj
+	// XZå¹³é¢ã¸å°„å½±ï¼ˆYæˆåˆ†ã‚’æ¨ã¦ã‚‹ï¼‰
 	right.y = 0.0f;
 	forward.y = 0.0f;
 
-	// ³‹K‰»iƒJƒƒ‰‚ª^ã‚É‹ß‚¢“™‚Åƒ[ƒŠ„‚è‚ğ”ğ‚¯‚éj
+	// æ­£è¦åŒ–ï¼ˆã‚«ãƒ¡ãƒ©ãŒçœŸä¸Šã«è¿‘ã„ç­‰ã§ã‚¼ãƒ­å‰²ã‚Šã‚’é¿ã‘ã‚‹ï¼‰
 	{
 		float rl = sqrtf(right.x * right.x + right.z * right.z);
 		if (rl > 0.0001f) { right.x /= rl; right.z /= rl; }
@@ -443,7 +456,7 @@ static inline XMFLOAT3 ToWorldMoveDirByCamera(const XMFLOAT2& input)
 		if (fl > 0.0001f) { forward.x /= fl; forward.z /= fl; }
 	}
 
-	// ƒ[ƒJƒ‹“ü—Í‚ğƒ[ƒ‹ƒh‚Ö‡¬
+	// ãƒ­ãƒ¼ã‚«ãƒ«å…¥åŠ›ã‚’ãƒ¯ãƒ¼ãƒ«ãƒ‰ã¸åˆæˆ
 	XMFLOAT3 worldDir;
 	worldDir.x = right.x * input.x + forward.x * input.y;
 	worldDir.y = 0.0f;
@@ -453,32 +466,32 @@ static inline XMFLOAT3 ToWorldMoveDirByCamera(const XMFLOAT2& input)
 
 void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 {
-	// i‚İ‚½‚¢•ûŒüi3•½•ûj
+	// é€²ã¿ãŸã„æ–¹å‘ï¼ˆ3å¹³æ–¹ï¼‰
 	float length = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
 
 	if (length > 0.0f)
 	{
-		// ƒxƒNƒgƒ‹‚Ì³‹K‰»
+		// ãƒ™ã‚¯ãƒˆãƒ«ã®æ­£è¦åŒ–
 		moveDir.x /= length;
 		moveDir.z /= length;
 
-		// –Ú•WŠp“x‚ğ‹‚ß‚é
-		float targetAngle = atan2f(moveDir.x, moveDir.z);	// ƒxƒNƒgƒ‹‚ÌŠp“x
-		targetAngle = XMConvertToDegrees(targetAngle);		// ƒ‰ƒWƒAƒ“ -> “x
+		// ç›®æ¨™è§’åº¦ã‚’æ±‚ã‚ã‚‹
+		float targetAngle = atan2f(moveDir.x, moveDir.z);	// ãƒ™ã‚¯ãƒˆãƒ«ã®è§’åº¦
+		targetAngle = XMConvertToDegrees(targetAngle);		// ãƒ©ã‚¸ã‚¢ãƒ³ -> åº¦
 
-		// ·•ª‚ğ’²®i180“x’´‚¦‚È‚¢‚æ‚¤‚Éj
-		float diff = targetAngle - player.moveAngle;	// Šp“x·
+		// å·®åˆ†ã‚’èª¿æ•´ï¼ˆ180åº¦è¶…ãˆãªã„ã‚ˆã†ã«ï¼‰
+		float diff = targetAngle - player.moveAngle;	// è§’åº¦å·®
 		if (diff > 180.0f) diff -= 360.0f;
 		if (diff < -180.0f) diff += 360.0f;
 
 		static float angSpeed = 0.9f;
 
-		// ƒXƒ€[ƒY‚É•âŠÔi0.1f‚ª•âŠÔƒXƒs[ƒhj
+		// ã‚¹ãƒ ãƒ¼ã‚ºã«è£œé–“ï¼ˆ0.1fãŒè£œé–“ã‚¹ãƒ”ãƒ¼ãƒ‰ï¼‰
 		player.moveAngle += diff * angSpeed;
 
-		player.rotation.y = player.moveAngle;	// Šp“x‚Ì”½‰f
+		player.rotation.y = player.moveAngle;	// è§’åº¦ã®åæ˜ 
 
-		// ‘Oi
+		// å‰é€²
 		float rad = XMConvertToRadians(player.moveAngle);
 
 		player.position.x += sinf(rad) * player.speed;
@@ -486,12 +499,18 @@ void Move(PLAYEROBJECT& player, XMFLOAT3 moveDir)
 	}
 }
 
+
+
+
+
 //======================================================
-// XVŠÖ”
+// æ›´æ–°é–¢æ•°
 //======================================================
-void Player_Update()
+void Player_Update(/*float currentDeltaTime*/)
 {
-	// ŠeƒvƒŒƒCƒ„[‚É‘Î‰‚·‚é”­“®ƒL[
+	float currentDeltaTime = DELTA_TIME;
+
+	// å„ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«å¯¾å¿œã™ã‚‹ç™ºå‹•ã‚­ãƒ¼
 	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V, KK_NUMPAD0 };
 
 	const Keyboard_Keys_tag specialKeys[PLAYER_MAX] = { KK_D7, KK_D8, KK_D9, KK_D0 };
@@ -500,7 +519,7 @@ void Player_Update()
 
 	if (s_ShowImgui)
 	{
-		// ƒfƒoƒbƒO—p ImGui ƒEƒBƒ“ƒhƒE
+		// ãƒ‡ãƒãƒƒã‚°ç”¨ ImGui ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 		ImGui::Begin("Player Debug");
 
 		for (int p = 0; p < PLAYER_MAX; ++p)
@@ -509,7 +528,7 @@ void Player_Update()
 			if (meteorObject == nullptr) return;
 			GIMMICK_STATE& meteor = *meteorObject;
 
-			// ƒvƒŒƒCƒ„[‚²‚Æ‚É ID ‚ğ•ª‚¯‚éi“¯ƒ‰ƒxƒ‹Õ“Ë‰ñ”ğj
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã« ID ã‚’åˆ†ã‘ã‚‹ï¼ˆåŒãƒ©ãƒ™ãƒ«è¡çªå›é¿ï¼‰
 			ImGui::PushID(p);
 			ImGui::Text("Player %d", p + 1);
 			ImGui::Indent();
@@ -543,23 +562,23 @@ void Player_Update()
 			ImGui::BulletText("3 Plant breaks    : %d", player[p].breakCount_Plant);
 			ImGui::BulletText("4 Electricity breaks : %d", player[p].breakCount_Electricity);
 
-			// —š—ğƒŠƒXƒg‚ÌƒTƒCƒY‚ğ•\¦
+			// å±¥æ­´ãƒªã‚¹ãƒˆã®ã‚µã‚¤ã‚ºã‚’è¡¨ç¤º
 			size_t historySize = player[p].brokenHistory.size();
 			ImGui::BulletText("brokenHistory Size : %zu", historySize);
 
 			if (historySize > 0)
 			{
-				ImGui::Indent(); // —š—ğ‚ğ‚³‚ç‚Éˆê’iƒCƒ“ƒfƒ“ƒg
+				ImGui::Indent(); // å±¥æ­´ã‚’ã•ã‚‰ã«ä¸€æ®µã‚¤ãƒ³ãƒ‡ãƒ³ãƒˆ
 				ImGui::Text("History (Latest -> Oldest):");
 
-				// —š—ğ‚ğÅVi––”öj‚©‚çŒÃ‚¢•û‚Öƒ‹[ƒv‚µ‚Ä•\¦
+				// å±¥æ­´ã‚’æœ€æ–°ï¼ˆæœ«å°¾ï¼‰ã‹ã‚‰å¤ã„æ–¹ã¸ãƒ«ãƒ¼ãƒ—ã—ã¦è¡¨ç¤º
 				for (int i = (int)historySize - 1; i >= 0; --i)
 				{
-					ImGui::SameLine(); // “¯‚¶s‚É•\¦
+					ImGui::SameLine(); // åŒã˜è¡Œã«è¡¨ç¤º
 					ImGui::Text("%d", (int)player[p].brokenHistory[i]);
 				}
 
-				// —š—ğ‚ª‰¡‚É•À‚Ñ‚·‚¬‚È‚¢‚æ‚¤‰üs
+				// å±¥æ­´ãŒæ¨ªã«ä¸¦ã³ã™ããªã„ã‚ˆã†æ”¹è¡Œ
 				ImGui::NewLine();
 				ImGui::Unindent();
 			}
@@ -573,49 +592,57 @@ void Player_Update()
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
-
-		if (!player[p].active) continue;
-
-		// ƒ[ƒ‹ƒhÀ•W‚ğƒXƒNƒŠ[ƒ“À•W‚É•ÏŠ·
-		XMFLOAT3 worldPos = player[p].position;
-		worldPos.y += 2.0f; // ƒvƒŒƒCƒ„[‚Ìã•û‚É•\¦
-
-		XMVECTOR posVec = XMLoadFloat3(&worldPos);
-		XMMATRIX view = GetViewMatrix();
-		XMMATRIX proj = GetProjectionMatrix();
-		XMMATRIX viewProj = view * proj;
-
-		// ƒrƒ…[ƒ|[ƒg•ÏŠ·
-		XMVECTOR screenPos = XMVector3Project
-		(
-			posVec,
-			0.0f, 0.0f,
-			SCREEN_WIDTH, SCREEN_HEIGHT,
-			0.0f, 1.0f,
-			proj, view,
-			XMMatrixIdentity()
-		);
-
-		// Z’lƒ`ƒFƒbƒNiƒJƒƒ‰‚ÌŒã‚ë‚È‚ç•`‰æ‚µ‚È‚¢j
-		float screenZ = XMVectorGetZ(screenPos);
-		if (screenZ > 0.0f && screenZ < 1.0f)
-		{
-			float screenX = XMVectorGetX(screenPos);
-			float screenY = XMVectorGetY(screenPos);
-
-			// ƒeƒLƒXƒg•`‰æiUpdate“à‚Å‚ÍŒÄ‚Ño‚³‚È‚¢ADraw“à‚Å•`‰æ‚·‚éj
-			// ‚±‚±‚Å‚ÍÀ•W‚ğ•Û‘¶‚µ‚Ä‚¨‚­
-			player[p].screenPos = XMFLOAT2(screenX, screenY);
-			player[p].isOnScreen = true;
+		// ãƒ’ãƒƒãƒˆã‚¹ãƒˆãƒƒãƒ—ä¸­ãªã‚‰ã‚¿ã‚¤ãƒãƒ¼ã‚’æ¸›ã‚‰ã—ã¦ã€DELTA_TIMEã‚’0ã«ã™ã‚‹
+		if (player[p].g_hitStopTimer > 0.0f) {
+			player[p].g_hitStopTimer -= DELTA_TIME;
+			//currentDeltaTime = 0.0f; // æ™‚ã‚’æ­¢ã‚ã‚‹ï¼
+			continue;
 		}
-		else	player[p].isOnScreen = false;
+
+		if (currentDeltaTime > 0.0f)
+		{
+			if (!player[p].active) continue;
+
+			// ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™ã«å¤‰æ›
+			XMFLOAT3 worldPos = player[p].position;
+			worldPos.y += 2.0f; // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä¸Šæ–¹ã«è¡¨ç¤º
+
+			XMVECTOR posVec = XMLoadFloat3(&worldPos);
+			XMMATRIX view = GetViewMatrix();
+			XMMATRIX proj = GetProjectionMatrix();
+			XMMATRIX viewProj = view * proj;
+
+			// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆå¤‰æ›
+			XMVECTOR screenPos = XMVector3Project
+			(
+				posVec,
+				0.0f, 0.0f,
+				SCREEN_WIDTH, SCREEN_HEIGHT,
+				0.0f, 1.0f,
+				proj, view,
+				XMMatrixIdentity()
+			);
+
+			// Zå€¤ãƒã‚§ãƒƒã‚¯ï¼ˆã‚«ãƒ¡ãƒ©ã®å¾Œã‚ãªã‚‰æç”»ã—ãªã„ï¼‰
+			float screenZ = XMVectorGetZ(screenPos);
+			if (screenZ > 0.0f && screenZ < 1.0f)
+			{
+				float screenX = XMVectorGetX(screenPos);
+				float screenY = XMVectorGetY(screenPos);
+
+				// ãƒ†ã‚­ã‚¹ãƒˆæç”»ï¼ˆUpdateå†…ã§ã¯å‘¼ã³å‡ºã•ãªã„ã€Drawå†…ã§æç”»ã™ã‚‹ï¼‰
+				// ã“ã“ã§ã¯åº§æ¨™ã‚’ä¿å­˜ã—ã¦ãŠã
+				player[p].screenPos = XMFLOAT2(screenX, screenY);
+				player[p].isOnScreen = true;
+			}
+			else	player[p].isOnScreen = false;
 
 		// -------------------------------------------------------------
-		// •Ïg
+		// å¤‰èº«
 		// -------------------------------------------------------------
 		switch (player[p].form)
 		{
-		case Form::First:	// ‘æ1Œ`‘Ô
+		case Form::First:	// ç¬¬1å½¢æ…‹
 			player[p].scaling.x = 0.5f;
 			player[p].scaling.y = 0.5f;
 			player[p].scaling.z = 0.5f;
@@ -623,10 +650,10 @@ void Player_Update()
 			player[p].power = 0.3f;
 			player[p].weight = 0.5f;
 			player[p].speed = 0.07f;
-			player[p].isTypeFixed = false;	// ƒXƒLƒ‹ƒN[ƒ‹ƒ^ƒCƒ€UI‚Ì•\¦‚Ég—p
+			player[p].isTypeFixed = false;	// ã‚¹ã‚­ãƒ«ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ UIã®è¡¨ç¤ºã«ä½¿ç”¨
 			break;
 
-		case Form::Second:	// ‘æ2Œ`‘Ô
+		case Form::Second:	// ç¬¬2å½¢æ…‹
 			player[p].scaling.x = 0.8f;
 			player[p].scaling.y = 0.8f;
 			player[p].scaling.z = 0.8f;
@@ -637,7 +664,7 @@ void Player_Update()
 			player[p].isTypeFixed = true;
 			break;
 
-		case Form::Third:	// ‘æ3Œ`‘Ô
+		case Form::Third:	// ç¬¬3å½¢æ…‹
 			player[p].scaling.x = 1.2f;
 			player[p].scaling.y = 1.2f;
 			player[p].scaling.z = 1.2f;
@@ -651,250 +678,289 @@ void Player_Update()
 			break;
 		}
 
-		// ”ñƒAƒNƒeƒBƒu‚Í YÀ•W‚ğŒÅ’è
-		if (!player[p].active)	player[p].position.y = 0.0f;
+			// éã‚¢ã‚¯ãƒ†ã‚£ãƒ–æ™‚ã¯ Yåº§æ¨™ã‚’å›ºå®š
+			if (!player[p].active)	player[p].position.y = 0.0f;
 
-		// 1ˆÊŒˆ’èŒã‚Í–³“Gó‘Ô
+		// 1ä½æ±ºå®šå¾Œã¯ç„¡æ•µçŠ¶æ…‹
 		if (player[p].rank == 1)player[p].isInvincible = true;
 
-		// ‰ñ•œƒtƒ‰ƒO‚ÌXV
+		// å›å¾©ãƒ•ãƒ©ã‚°ã®æ›´æ–°
 		if (player[p].isHealing)
 		{
-			player[p].healingTimer += DELTA_TIME;	// ‰ñ•œƒ^ƒCƒ}[‚ğXV
+			player[p].healingTimer += DELTA_TIME;	// å›å¾©ã‚¿ã‚¤ãƒãƒ¼ã‚’æ›´æ–°
 
 			if (player[p].healingTimer >= HEALING_TIME)
 			{
-				player[p].isHealing = false;	// ‰ñ•œI—¹
-				player[p].healingTimer = 0.0f;	// ƒ^ƒCƒ}[ƒŠƒZƒbƒg
-			}
-		}
+				player[p].healingTimer += DELTA_TIME;	// å›å¾©ã‚¿ã‚¤ãƒãƒ¼ã‚’æ›´æ–°
 
-		// i‰»ƒtƒ‰ƒO‚ÌXV
-		if (player[p].isEvolving)
-		{
-			player[p].evolvingTimer += DELTA_TIME;	// i‰»ƒ^ƒCƒ}[‚ğXV
-
-			if (player[p].evolvingTimer >= EVOLVING_TIME)
-			{
-				player[p].isEvolving = false;	// i‰»I—¹
-				player[p].evolvingTimer = 0.0f;	// ƒ^ƒCƒ}[ƒŠƒZƒbƒg
-			}
-		}
-
-		// –• “x‚ÌŒ¸­
-		player[p].satiety -= DELTA_TIME;
-		if (player[p].satiety < 0.0f)	player[p].satiety = 0.0f;
-		//// –• “x‚ª1–¢–‚È‚çHP‚ğŒ¸­‚³‚¹‚é
-		//if (player[p].satiety < 1.0f)	player[p].hp -= 0.05f;
-
-		// ƒŠƒXƒ|[ƒ“ˆ—
-		if (player[p].duringRespawn)
-		{
-			if (GetGamePhase() == PHASE_PLAY)
-			{
-				player[p].respawnTimer += DELTA_TIME;
-
-				// YÀ•W‚ğ4‚ÉŒÅ’è
-				player[p].position.y = 4.0f;
-
-				// UŒ‚ƒ{ƒ^ƒ“‰Ÿ‰º‚Ü‚½‚Í5•bŒo‰ß‚Å—‰ºŠJn
-				if (g_Input[p].A || Keyboard_IsKeyDownTrigger(attackKeys[p]) || player[p].respawnTimer >= 5.0f)
+				if (player[p].healingTimer >= HEALING_TIME)
 				{
-					player[p].duringRespawn = false;
-					player[p].respawnTimer = 0.0f;
-					player[p].isInvincible = true;
-					player[p].invincibleTimer = 0.0f;
-					player[p].isEggBreaking = true;
+					player[p].isHealing = false;	// å›å¾©çµ‚äº†
+					player[p].healingTimer = 0.0f;	// ã‚¿ã‚¤ãƒãƒ¼ãƒªã‚»ãƒƒãƒˆ
+				}
+			}
+
+			// é€²åŒ–ãƒ•ãƒ©ã‚°ã®æ›´æ–°
+			if (player[p].isEvolving)
+			{
+				player[p].evolvingTimer += DELTA_TIME;	// é€²åŒ–ã‚¿ã‚¤ãƒãƒ¼ã‚’æ›´æ–°
+
+				if (player[p].evolvingTimer >= EVOLVING_TIME)
+				{
+					player[p].isEvolving = false;	// é€²åŒ–çµ‚äº†
+					player[p].evolvingTimer = 0.0f;	// ã‚¿ã‚¤ãƒãƒ¼ãƒªã‚»ãƒƒãƒˆ
+				}
+			}
+
+			// æº€è…¹åº¦ã®æ¸›å°‘
+			player[p].satiety -= DELTA_TIME;
+			if (player[p].satiety < 0.0f)	player[p].satiety = 0.0f;
+			//// æº€è…¹åº¦ãŒ1æœªæº€ãªã‚‰HPã‚’æ¸›å°‘ã•ã›ã‚‹
+			//if (player[p].satiety < 1.0f)	player[p].hp -= 0.05f;
+
+			// ãƒªã‚¹ãƒãƒ¼ãƒ³å‡¦ç†
+			if (player[p].duringRespawn)
+			{
+				if (GetGamePhase() == PHASE_PLAY)
+				{
+					player[p].respawnTimer += DELTA_TIME;
+
+					// Yåº§æ¨™ã‚’4ã«å›ºå®š
+					player[p].position.y = 4.0f;
+
+					// æ”»æ’ƒãƒœã‚¿ãƒ³æŠ¼ä¸‹ã¾ãŸã¯5ç§’çµŒéã§è½ä¸‹é–‹å§‹
+					if (g_Input[p].A || Keyboard_IsKeyDownTrigger(attackKeys[p]) || player[p].respawnTimer >= 5.0f)
+					{
+						player[p].duringRespawn = false;
+						player[p].respawnTimer = 0.0f;
+						player[p].isInvincible = true;
+						player[p].invincibleTimer = 0.0f;
+						player[p].isEggBreaking = true;
+						player[p].eggBreakingTimer = 0.0f;
+					}
+				}
+			}
+			// é‡åŠ›åŠ é€Ÿåº¦ã®ãªã„ç°¡æ˜“çš„ãªé‡åŠ›
+			else if (player[p].active)	player[p].position.y += -0.1f;
+
+			// åµã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒå‰²ã‚Œã‚‹æ™‚é–“
+			if (player[p].isEggBreaking)
+			{
+				if (player[p].eggBreakingTimer == 0.0f)	PlayAudio(g_SE_ID[3], false);
+
+				player[p].eggBreakingTimer += DELTA_TIME;
+
+				if (player[p].eggBreakingTimer >= EGG_BREAKING_TIME)
+				{
+					player[p].isEggBreaking = false;
 					player[p].eggBreakingTimer = 0.0f;
 				}
 			}
-		}
-		// d—Í‰Á‘¬“x‚Ì‚È‚¢ŠÈˆÕ“I‚Èd—Í
-		else if (player[p].active)	player[p].position.y += -0.1f;
 
-		// —‘ƒGƒtƒFƒNƒg‚ªŠ„‚ê‚éŠÔ
-		if (player[p].isEggBreaking)
-		{
-			if (player[p].eggBreakingTimer == 0.0f)	PlayAudio(g_SE_ID[3], false);
-
-			player[p].eggBreakingTimer += DELTA_TIME;
-
-			if (player[p].eggBreakingTimer >= EGG_BREAKING_TIME)
-			{
-				player[p].isEggBreaking = false;
-				player[p].eggBreakingTimer = 0.0f;
-			}
-		}
-
-		// “Åó‘Ô‚Ìˆ—
+		// æ¯’çŠ¶æ…‹ã®å‡¦ç†
+		// æ¯’çŠ¶æ…‹ã®å‡¦ç†
 		if (player[p].poisonTimer > 0.0f)
 		{
-			// –³“G’†‚Íƒ_ƒ[ƒW‚ğ—^‚¦‚È‚¢‚ªA‚±‚±‚Åƒ‹[ƒv‚ğ”²‚¯‚È‚¢iˆÈ~‚Ì•¨—E“–‚½‚è”»’è‚ÍÀs‚·‚éj
+			if (!player[p].isPoisoned)
+			{
+				player[p].isPoisoned = true;
+				// æ¯’é–‹å§‹æ™‚ï¼šå¤§ããã‚¬ã‚¿ã‚¬ã‚¿æºã‚‰ã™ï¼ˆä»Šã¾ã§é€šã‚Šï¼‰
+				TriggerbyHPShake(p, 8.0f, 20.0f, 1.5f);
+			}
+
+			TriggerbyHPShake(p, 3.5f, 2.0f, 1.0f);
+
 			if (!player[p].isInvincible)
 			{
-				// “Åó‘Ô‚ÌŠÔAƒ_ƒ[ƒW‚ğ—^‚¦‚é
 				player[p].hp -= SPECIAL_PLANT_DAMAGE * player[p].defense;
 			}
 
-			// “Åƒ^ƒCƒ}[‚ği‚ß‚é
-			player[p].poisonTimer -= DELTA_TIME;
+				// è±ˆåµã¡ç¹§ï½¤ç¹æ§­ãƒ»ç¹§å¸ï½²ç¹§âˆšï½‹
+				player[p].poisonTimer -= currentDeltaTime;
 
-			// “Åƒ^ƒCƒ}[‚ª0‚É‚È‚Á‚½‚ç“Åó‘Ô‚ğ‰ğœ
 			if (player[p].poisonTimer <= 0.0f)
 			{
 				player[p].isPoisoned = false;
 				player[p].poisonTimer = 0.0f;
+
+				// æ¯’ãŒåˆ‡ã‚ŒãŸã‚‰ã‚·ã‚§ã‚¤ã‚¯ã‚’æ­¢ã‚ã¦ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’å…ƒã«æˆ»ã™
+				TriggerbyHPShake(p, 0.0f, 0.0f, 0.0f);
 			}
 		}
 
-		// ƒXƒ^ƒ“ƒQ[ƒW‚ªÅ‘å‚ÅƒXƒ^ƒ“ƒtƒ‰ƒO‚ğ—§‚Ä‚é
-		if (player[p].stunGauge >= STUNGAUGE_MAX)
-		{
-			player[p].isStunning = true;
-			player[p].stunGauge = STUNGAUGE_MAX;
-		}
-		// ƒXƒ^ƒ“’†‚Ìˆ—
-		if (player[p].isStunning)
-		{
-			// ƒXƒ^ƒ“ƒ^ƒCƒ}[‚ği‚ß‚é
-			player[p].stunTimer += DELTA_TIME;
-
-			// ŠÔŒo‰ß‚ÅƒXƒ^ƒ“‰ğœ
-			if (player[p].stunTimer >= STUN_TIME)
+			// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸ãŒæœ€å¤§ã§ã‚¹ã‚¿ãƒ³ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
+			if (player[p].stunGauge >= STUNGAUGE_MAX)
 			{
-				player[p].isStunning = false;	// ƒXƒ^ƒ“‰ğœ
-				player[p].stunTimer = 0.0f;		// ƒXƒ^ƒ“ƒ^ƒCƒ}[ƒŠƒZƒbƒg
-				player[p].stunGauge = 0.0f;		// ƒXƒ^ƒ“ƒQ[ƒWƒŠƒZƒbƒg
+				player[p].isStunning = true;
+				player[p].stunGauge = STUNGAUGE_MAX;
 			}
-
-			// ƒXƒ^ƒ“’†‚ÍˆÚ“®ƒxƒNƒgƒ‹‚ğŠ®‘S‚Éƒ[ƒ‚É‚·‚é
-			player[p].moveDir = { 0.0f, 0.0f, 0.0f };
-
-			player[p].isMoving = false;
-
-			player[p].isAttacking = false;
-			player[p].useSkill = false;
-			player[p].useSpecial = false;
-		}
-		else // ƒXƒ^ƒ“‚µ‚Ä‚¢‚È‚¢ê‡‚Ìˆ—
-		{
-			// ƒXƒ^ƒ“‚µ‚Ä‚¢‚È‚¢ŠÔ‚ÍƒXƒ^ƒ“ƒQ[ƒW‚ğŒ¸­‚³‚¹‚é
-			player[p].stunGauge -= DELTA_TIME;
-
-			// ƒXƒ^ƒ“ƒQ[ƒW‚ª0–¢–‚É‚È‚ç‚È‚¢‚æ‚¤‚ÉƒNƒ‰ƒ“ƒv
-			if (player[p].stunGauge < 0.0f)	player[p].stunGauge = 0.0f;
-		}
-
-		// ƒXƒ^ƒ“’†Eƒ_ƒEƒ“’†‚Å‚È‚¯‚ê‚Î‘æ1Œ`‘Ôs“® 1ˆÊŠm’èŒã‚ÍƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‚İ
-		if (!player[p].isStunning && !player[p].isDown && player[p].rank != 1 && player[p].active)
-		{
-			// ”­“®ƒgƒŠƒK[“ü—Í‚ğƒ`ƒFƒbƒN‚µ‚ÄUŒ‚ƒtƒ‰ƒO‚ğ—§‚Ä‚é
-			if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
+			// ã‚¹ã‚¿ãƒ³ä¸­ã®å‡¦ç†
+			if (player[p].isStunning)
 			{
-				player[p].isAttacking = true;
+				// ã‚¹ã‚¿ãƒ³ã‚¿ã‚¤ãƒãƒ¼ã‚’é€²ã‚ã‚‹
+				player[p].stunTimer += DELTA_TIME;
 
-				// ‘æ2E‘æ3Œ`‘Ô‚Ìê‡AƒXƒLƒ‹g—pƒtƒ‰ƒO‚à—§‚Ä‚é
-				if (player[p].type != PlayerType::None)	player[p].useSkill = true;
-			}
-			if (g_Input[p].A)	player[p].isAttacking = true;
+				// æ™‚é–“çµŒéã§ã‚¹ã‚¿ãƒ³è§£é™¤
+				if (player[p].stunTimer >= STUN_TIME)
+				{
+					player[p].isStunning = false;	// ã‚¹ã‚¿ãƒ³è§£é™¤
+					player[p].stunTimer = 0.0f;		// ã‚¹ã‚¿ãƒ³ã‚¿ã‚¤ãƒãƒ¼ãƒªã‚»ãƒƒãƒˆ
+					player[p].stunGauge = 0.0f;		// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸ãƒªã‚»ãƒƒãƒˆ
+				}
 
-			// ‘æ2E‘æ3Œ`‘Ô‚Ìê‡ƒXƒLƒ‹g—pƒtƒ‰ƒO—§‚Ä‚é
-			if (g_Input[p].X)	if (player[p].type != PlayerType::None)	player[p].useSkill = true;
-
-			// ”­“®ƒgƒŠƒK[“ü—Í‚ğƒ`ƒFƒbƒN‚µ‚ÄƒXƒyƒVƒƒƒ‹g—pƒtƒ‰ƒO‚ğ—§‚Ä‚é
-			if (player[p].form == Form::Third && Keyboard_IsKeyDownTrigger(specialKeys[p]))	player[p].useSpecial = true;
-
-			// ƒ{ƒ^ƒ““ü—Í‚ğƒ`ƒFƒbƒN‚µ‚ÄƒXƒyƒVƒƒƒ‹g—pƒtƒ‰ƒO‚ğ—§‚Ä‚é
-			if (player[p].form == Form::Third && g_Input[p].ZR)	player[p].useSpecial = true;
-
-			// ƒtƒ‰ƒO‚ª—§‚Á‚½‚çXVˆ—‚ğŒÄ‚Ño‚·
-			if (player[p].isAttacking)	Attack_Update(p);	// UŒ‚
-			if (player[p].useSkill)		Skill_Update(p);	// ƒXƒLƒ‹
-			if (player[p].useSpecial)	Special_Update(p);	// ƒXƒyƒVƒƒƒ‹
-
-			// Œ»İ‚ÌƒvƒŒƒCƒ„[ p ‚ÌˆÚ“®ƒxƒNƒgƒ‹‚ğƒŠƒZƒbƒg
-			player[p].moveDir = { 0.0f, 0.0f, 0.0f };
-		}
-
-		if (!player[p].isStunning && !player[p].isDown && player[p].rank != 1)
-		{
-			XMFLOAT2 moveInput = { 0.0f, 0.0f };
-
-			// PHASE_PLAYˆÈŠO‚ÍˆÚ“®‚³‚¹‚È‚¢iŠÏíƒ‚[ƒh‚Ì—áŠO‚Í•Ê“r‘Î‰j
-			if (GetGamePhase() != PHASE_PLAY)
-			{
+				// ã‚¹ã‚¿ãƒ³ä¸­ã¯ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«ã‚’å®Œå…¨ã«ã‚¼ãƒ­ã«ã™ã‚‹
 				player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+
 				player[p].isMoving = false;
+
+				player[p].isAttacking = false;
+				player[p].useSkill = false;
+				player[p].useSpecial = false;
 			}
-			else
+			else // ã‚¹ã‚¿ãƒ³ã—ã¦ã„ãªã„å ´åˆã®å‡¦ç†
 			{
-				// ƒXƒyƒVƒƒƒ‹ ƒRƒ“ƒNƒŠ[ƒgg—p’†‚ÍˆÚ“®•s‰Â
-				if (player[p].useSpecial && player[p].type == PlayerType::Concrete)
+				// ã‚¹ã‚¿ãƒ³ã—ã¦ã„ãªã„é–“ã¯ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸ã‚’æ¸›å°‘ã•ã›ã‚‹
+				player[p].stunGauge -= DELTA_TIME;
+
+				// ã‚¹ã‚¿ãƒ³ã‚²ãƒ¼ã‚¸ãŒ0æœªæº€ã«ãªã‚‰ãªã„ã‚ˆã†ã«ã‚¯ãƒ©ãƒ³ãƒ—
+				if (player[p].stunGauge < 0.0f)	player[p].stunGauge = 0.0f;
+			}
+
+			// ã‚¹ã‚¿ãƒ³ä¸­ãƒ»ãƒ€ã‚¦ãƒ³ä¸­ã§ãªã‘ã‚Œã°ç¬¬1å½¢æ…‹è¡Œå‹• 1ä½ç¢ºå®šå¾Œã¯ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ã¿
+			if (!player[p].isStunning && !player[p].isDown && player[p].rank != 1 && player[p].active)
+			{
+				// ç™ºå‹•ãƒˆãƒªã‚¬ãƒ¼å…¥åŠ›ã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦æ”»æ’ƒãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
+				if (Keyboard_IsKeyDownTrigger(attackKeys[p]))
+				{
+					player[p].isAttacking = true;
+
+					// ç¬¬2ãƒ»ç¬¬3å½¢æ…‹ã®å ´åˆã€ã‚¹ã‚­ãƒ«ä½¿ç”¨ãƒ•ãƒ©ã‚°ã‚‚ç«‹ã¦ã‚‹
+					if (player[p].type != PlayerType::None)	player[p].useSkill = true;
+				}
+				if (g_Input[p].A)	player[p].isAttacking = true;
+
+				// ç¬¬2ãƒ»ç¬¬3å½¢æ…‹ã®å ´åˆã‚¹ã‚­ãƒ«ä½¿ç”¨ãƒ•ãƒ©ã‚°ç«‹ã¦ã‚‹
+				if (g_Input[p].X)	if (player[p].type != PlayerType::None)	player[p].useSkill = true;
+
+				// ç™ºå‹•ãƒˆãƒªã‚¬ãƒ¼å…¥åŠ›ã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦ã‚¹ãƒšã‚·ãƒ£ãƒ«ä½¿ç”¨ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
+				if (player[p].form == Form::Third && Keyboard_IsKeyDownTrigger(specialKeys[p]))	player[p].useSpecial = true;
+
+				// ãƒœã‚¿ãƒ³å…¥åŠ›ã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦ã‚¹ãƒšã‚·ãƒ£ãƒ«ä½¿ç”¨ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
+				if (player[p].form == Form::Third && g_Input[p].ZR)	player[p].useSpecial = true;
+
+				// ãƒ•ãƒ©ã‚°ãŒç«‹ã£ãŸã‚‰æ›´æ–°å‡¦ç†ã‚’å‘¼ã³å‡ºã™
+				if (player[p].isAttacking)	Attack_Update(p);	player[p].hasHit = false;// æ”»æ’ƒ
+				if (player[p].useSkill)		Skill_Update(p);	// ã‚¹ã‚­ãƒ«
+				if (player[p].useSpecial)	Special_Update(p);	// ã‚¹ãƒšã‚·ãƒ£ãƒ«
+
+				// ç¾åœ¨ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ p ã®ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«ã‚’ãƒªã‚»ãƒƒãƒˆ
+				player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+			}
+
+			// activeã§ã‚‚å‹•ã‹ã™ï¼ˆè¦³æˆ¦ç”¨ï¼‰
+			if (!player[p].isStunning && !player[p].isDown && player[p].rank != 1)
+			{
+				XMFLOAT2 moveInput = { 0.0f, 0.0f };
+
+				// PHASE_PLAYä»¥å¤–ã¯ç§»å‹•ã•ã›ãªã„ï¼ˆè¦³æˆ¦ãƒ¢ãƒ¼ãƒ‰æ™‚ã®ä¾‹å¤–ã¯åˆ¥é€”å¯¾å¿œï¼‰
+				if (GetGamePhase() != PHASE_PLAY)
 				{
 					player[p].moveDir = { 0.0f, 0.0f, 0.0f };
 					player[p].isMoving = false;
 				}
+				else
+				{
+					// ã‚¹ãƒšã‚·ãƒ£ãƒ« ã‚³ãƒ³ã‚¯ãƒªãƒ¼ãƒˆä½¿ç”¨ä¸­ã¯ç§»å‹•ä¸å¯
+					if (player[p].useSpecial && player[p].type == PlayerType::Concrete)
+					{
+						player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+						player[p].isMoving = false;
+					}
 
-				player[p].moveInput2D = { 0.0f, 0.0f };
+					player[p].moveInput2D = { 0.0f, 0.0f };
 
-				if (p == 0) // ƒvƒŒƒCƒ„[0 (WASD) UŒ‚:Space
-				{
-					if (g_Input[0].LStickY < 0.0f) { moveInput.y += 1.0f; player[0].isMoving = true; }
-					if (g_Input[0].LStickY > 0.0f) { moveInput.y -= 1.0f; player[0].isMoving = true; }
-					if (g_Input[0].LStickX < 0.0f) { moveInput.x -= 1.0f; player[0].isMoving = true; }
-					if (g_Input[0].LStickX > 0.0f) { moveInput.x += 1.0f; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_W)) { moveInput.y += 1.0f; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_S)) { moveInput.y -= 1.0f; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_A)) { moveInput.x -= 1.0f; player[0].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_D)) { moveInput.x += 1.0f; player[0].isMoving = true; }
-					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[0].isMoving = false;
-				}
-				else if (p == 1) // ƒvƒŒƒCƒ„[1 (–îˆóƒL[) UŒ‚:Enter
-				{
-					if (g_Input[1].LStickY < 0.0f) { moveInput.y += 1.0f; player[1].isMoving = true; }
-					if (g_Input[1].LStickY > 0.0f) { moveInput.y -= 1.0f; player[1].isMoving = true; }
-					if (g_Input[1].LStickX < 0.0f) { moveInput.x -= 1.0f; player[1].isMoving = true; }
-					if (g_Input[1].LStickX > 0.0f) { moveInput.x += 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_UP)) { moveInput.y += 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_DOWN)) { moveInput.y -= 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_LEFT)) { moveInput.x -= 1.0f; player[1].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_RIGHT)) { moveInput.x += 1.0f; player[1].isMoving = true; }
-					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[1].isMoving = false;
-				}
-				else if (p == 2) // ƒvƒŒƒCƒ„[2 (TFGH) UŒ‚:V
-				{
-					if (g_Input[2].LStickY < 0.0f) { moveInput.y += 1.0f; player[2].isMoving = true; }
-					if (g_Input[2].LStickY > 0.0f) { moveInput.y -= 1.0f; player[2].isMoving = true; }
-					if (g_Input[2].LStickX < 0.0f) { moveInput.x -= 1.0f; player[2].isMoving = true; }
-					if (g_Input[2].LStickX > 0.0f) { moveInput.x += 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_T)) { moveInput.y += 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_G)) { moveInput.y -= 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_F)) { moveInput.x -= 1.0f; player[2].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_H)) { moveInput.x += 1.0f; player[2].isMoving = true; }
-					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[2].isMoving = false;
-				}
-				if (p == 3) // ƒvƒŒƒCƒ„[3 (ƒeƒ“ƒL[) UŒ‚:Numpad0
-				{
-					if (g_Input[3].LStickY < 0.0f) { moveInput.y += 1.0f; player[3].isMoving = true; }
-					if (g_Input[3].LStickY > 0.0f) { moveInput.y -= 1.0f; player[3].isMoving = true; }
-					if (g_Input[3].LStickX < 0.0f) { moveInput.x -= 1.0f; player[3].isMoving = true; }
-					if (g_Input[3].LStickX > 0.0f) { moveInput.x += 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_NUMPAD8)) { moveInput.y += 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_NUMPAD5)) { moveInput.y -= 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_NUMPAD4)) { moveInput.x -= 1.0f; player[3].isMoving = true; }
-					if (Keyboard_IsKeyDown(KK_NUMPAD6)) { moveInput.x += 1.0f; player[3].isMoving = true; }
-					if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[3].isMoving = false;
-				}
-				player[p].moveInput2D = moveInput;
+					if (p == 0) // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼0 (WASD) æ”»æ’ƒ:Space
+					{
+						if (g_Input[0].LStickY < 0.0f) { moveInput.y += 1.0f; player[0].isMoving = true; }
+						if (g_Input[0].LStickY > 0.0f) { moveInput.y -= 1.0f; player[0].isMoving = true; }
+						if (g_Input[0].LStickX < 0.0f) { moveInput.x -= 1.0f; player[0].isMoving = true; }
+						if (g_Input[0].LStickX > 0.0f) { moveInput.x += 1.0f; player[0].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_W)) { moveInput.y += 1.0f; player[0].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_S)) { moveInput.y -= 1.0f; player[0].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_A)) { moveInput.x -= 1.0f; player[0].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_D)) { moveInput.x += 1.0f; player[0].isMoving = true; }
+						if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[0].isMoving = false;
+					}
+					else if (p == 1) // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1 (çŸ¢å°ã‚­ãƒ¼) æ”»æ’ƒ:Enter
+					{
+						if (g_Input[1].LStickY < 0.0f) { moveInput.y += 1.0f; player[1].isMoving = true; }
+						if (g_Input[1].LStickY > 0.0f) { moveInput.y -= 1.0f; player[1].isMoving = true; }
+						if (g_Input[1].LStickX < 0.0f) { moveInput.x -= 1.0f; player[1].isMoving = true; }
+						if (g_Input[1].LStickX > 0.0f) { moveInput.x += 1.0f; player[1].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_UP)) { moveInput.y += 1.0f; player[1].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_DOWN)) { moveInput.y -= 1.0f; player[1].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_LEFT)) { moveInput.x -= 1.0f; player[1].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_RIGHT)) { moveInput.x += 1.0f; player[1].isMoving = true; }
+						if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[1].isMoving = false;
+					}
+					else if (p == 2) // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼2 (TFGH) æ”»æ’ƒ:V
+					{
+						if (g_Input[2].LStickY < 0.0f) { moveInput.y += 1.0f; player[2].isMoving = true; }
+						if (g_Input[2].LStickY > 0.0f) { moveInput.y -= 1.0f; player[2].isMoving = true; }
+						if (g_Input[2].LStickX < 0.0f) { moveInput.x -= 1.0f; player[2].isMoving = true; }
+						if (g_Input[2].LStickX > 0.0f) { moveInput.x += 1.0f; player[2].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_T)) { moveInput.y += 1.0f; player[2].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_G)) { moveInput.y -= 1.0f; player[2].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_F)) { moveInput.x -= 1.0f; player[2].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_H)) { moveInput.x += 1.0f; player[2].isMoving = true; }
+						if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[2].isMoving = false;
+					}
+					else if (p == 3) // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼3 (ãƒ†ãƒ³ã‚­ãƒ¼) æ”»æ’ƒ:Numpad0
+					{
+						if (g_Input[3].LStickY < 0.0f) { moveInput.y += 1.0f; player[3].isMoving = true; }
+						if (g_Input[3].LStickY > 0.0f) { moveInput.y -= 1.0f; player[3].isMoving = true; }
+						if (g_Input[3].LStickX < 0.0f) { moveInput.x -= 1.0f; player[3].isMoving = true; }
+						if (g_Input[3].LStickX > 0.0f) { moveInput.x += 1.0f; player[3].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_NUMPAD8)) { moveInput.y += 1.0f; player[3].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_NUMPAD5)) { moveInput.y -= 1.0f; player[3].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_NUMPAD4)) { moveInput.x -= 1.0f; player[3].isMoving = true; }
+						if (Keyboard_IsKeyDown(KK_NUMPAD6)) { moveInput.x += 1.0f; player[3].isMoving = true; }
+						if (moveInput.x == 0.0f && moveInput.y == 0.0f)	player[3].isMoving = false;
+					}
+					player[p].moveInput2D = moveInput;
 
-				// ˆÚ“®FƒJƒƒ‰Šî€‚ğƒ[ƒ‹ƒh‚É‚·‚é
-				player[p].moveDir = ToWorldMoveDirByCamera(moveInput);
+					// ç§»å‹•ï¼šã‚«ãƒ¡ãƒ©åŸºæº–ã‚’ãƒ¯ãƒ¼ãƒ«ãƒ‰ã«ã™ã‚‹
+					player[p].moveDir = ToWorldMoveDirByCamera(moveInput);
+				}
+
+				Move(player[p], player[p].moveDir);
+
+				// ç§»å‹•ä¸­ãªã‚‰ lastDir ã‚’æ›´æ–°
+				if (player[p].isMoving)
+				{
+					float dx = player[p].moveInput2D.x;
+					float dz = player[p].moveInput2D.y;
+
+					if (dx < 0.0f && dz < 0.0f) player[p].lastDir = PlayerDir::Down_Left;
+					else if (dx < 0.0f && dz > 0.0f) player[p].lastDir = PlayerDir::Up_Left;
+					else if (dx > 0.0f && dz > 0.0f) player[p].lastDir = PlayerDir::Up_Right;
+					else if (dx > 0.0f && dz < 0.0f) player[p].lastDir = PlayerDir::Down_Right;
+					else if (dz < 0.0f)              player[p].lastDir = PlayerDir::Down;
+					else if (dx < 0.0f)              player[p].lastDir = PlayerDir::Left;
+					else if (dz > 0.0f)              player[p].lastDir = PlayerDir::Up;
+					else if (dx > 0.0f)              player[p].lastDir = PlayerDir::Right;
+				}
 			}
 
-			Move(player[p], player[p].moveDir);
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®ã‚¹ã‚­ãƒ«ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ¸›ç®—
+			if (player[p].skillCoolTimer > 0.0f)
+			{
+				player[p].skillCoolTimer -= DELTA_TIME;
+				if (player[p].skillCoolTimer < 0.0f) player[p].skillCoolTimer = 0.0f;
+			}
 
-			// ˆÚ“®’†‚È‚ç lastDir ‚ğXV
-			if (player[p].isMoving)
+			// HPãŒ0ä»¥ä¸‹ã®å‡¦ç†
+			if (player[p].hp <= 0.0f && player[p].active && !player[p].isDown)
 			{
 				float dx = player[p].moveInput2D.x;
 				float dz = player[p].moveInput2D.y;
@@ -908,51 +974,59 @@ void Player_Update()
 				else if (dz > 0.0f)              player[p].lastDir = PlayerDir::Up;
 				else if (dx > 0.0f)              player[p].lastDir = PlayerDir::Right;
 			}
-		}
 
-		// ƒvƒŒƒCƒ„[‚²‚Æ‚ÌƒXƒLƒ‹ƒN[ƒ‹ƒ^ƒCƒ€‚ğ–ˆƒtƒŒ[ƒ€Œ¸Z
-		if (player[p].skillCoolTimer > 0.0f)
-		{
-			player[p].skillCoolTimer -= DELTA_TIME;
-			if (player[p].skillCoolTimer < 0.0f) player[p].skillCoolTimer = 0.0f;
-		}
-
-		// HP‚ª0ˆÈ‰º‚Ìˆ—
-		if (player[p].hp <= 0.0f && player[p].active && !player[p].isDown)
-		{
-			// ƒ_ƒEƒ“ó‘Ô‚ÉˆÚs‚µ‚Äƒ^ƒCƒ}[‚ğƒŠƒZƒbƒg
-			player[p].isDown = true;
-			player[p].downTimer = 0.0f;
-			Effect_ClearUI(p);
-		}
-
-		// ƒ_ƒEƒ“ó‘Ô‚Ìƒ^ƒCƒ}[XV‚ÆƒŠƒXƒ|[ƒ“”»’è
-		if (player[p].isDown)
-		{
-			// s“®’â~
-			player[p].moveDir = { 0.0f, 0.0f, 0.0f };
-			player[p].isAttacking = false;
-			player[p].useSkill = false;
-			player[p].useSpecial = false;
-
-			// ƒ_ƒEƒ“ƒ^ƒCƒ}[XV
-			player[p].downTimer += DELTA_TIME;
-
-			// ƒvƒŒƒCƒ„[–ˆ‚Ìƒ_ƒEƒ“ŠÔ‚ªŒo‰ß‚µ‚½‚çƒŠƒXƒ|[ƒ“ˆ—
-			if (player[p].downTimer >= DOWN_TIME)
+			// ãƒ€ã‚¦ãƒ³çŠ¶æ…‹ã®ã‚¿ã‚¤ãƒãƒ¼æ›´æ–°ã¨ãƒªã‚¹ãƒãƒ¼ãƒ³åˆ¤å®š
+			if (player[p].isDown)
 			{
-				// c‹@‚ğ1‚ÂŒ¸‚ç‚·
+				// è¡Œå‹•åœæ­¢
+				player[p].moveDir = { 0.0f, 0.0f, 0.0f };
+				player[p].isAttacking = false;
+				player[p].useSkill = false;
+				player[p].useSpecial = false;
+
+				// ãƒ€ã‚¦ãƒ³ã‚¿ã‚¤ãƒãƒ¼æ›´æ–°
+				player[p].downTimer += DELTA_TIME;
+
+				// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ¯ã®ãƒ€ã‚¦ãƒ³æ™‚é–“ãŒçµŒéã—ãŸã‚‰ãƒªã‚¹ãƒãƒ¼ãƒ³å‡¦ç†
+				if (player[p].downTimer >= DOWN_TIME)
+				{
+					// æ®‹æ©Ÿã‚’1ã¤æ¸›ã‚‰ã™
+					player[p].stock -= 1;
+
+					if (player[p].stock > 0)	Player_Respawn(p);
+					else
+					{
+						// æ®‹æ©Ÿç„¡ã—ã§å¾©æ´»ãªã—
+						player[p].active = false;
+						player[p].isDown = false;
+						player[p].downTimer = 0.0f;
+
+						// é †ä½ç™»éŒ²ï¼ˆå†…éƒ¨ã§é‡è¤‡ç™»éŒ²ã‚’é˜²æ­¢ï¼‰
+						Ranking(p);
+					}
+				}
+			}
+
+			// è½ä¸‹å‡¦ç† å½±ã‚¨ãƒ•ã‚§ã‚¯ãƒˆéè¡¨ç¤º
+			if (player[p].position.y < -1.0f)
+			{
+				player[p].isShadowEnabled = false;
+			}
+
+			if (player[p].active && player[p].position.y <= -10.0f)
+			{
+				Effect_ClearUI(p);
+				// æ®‹æ©Ÿã‚’ä¸€ã¤æ¸›ã‚‰ã™
 				player[p].stock -= 1;
 
+				// ãƒªã‚¹ãƒãƒ¼ãƒ³ï¼ˆä½ç½®ãƒ»ã‚¹ãƒ†ãƒ¼ãƒˆãƒªã‚»ãƒƒãƒˆï¼‰
 				if (player[p].stock > 0)	Player_Respawn(p);
 				else
 				{
-					// c‹@–³‚µ‚Å•œŠˆ‚È‚µ
+					// æ®‹æ©Ÿç„¡ã—ã§å®Œå…¨ã«éã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ–
 					player[p].active = false;
-					player[p].isDown = false;
-					player[p].downTimer = 0.0f;
 
-					// š’Ç‰ÁFƒGƒtƒFƒNƒgŠÖ˜Aƒtƒ‰ƒO‚ğƒŠƒZƒbƒg
+					// â˜…è¿½åŠ ï¼šã‚¨ãƒ•ã‚§ã‚¯ãƒˆé–¢é€£ãƒ•ãƒ©ã‚°ã‚’ãƒªã‚»ãƒƒãƒˆ
 					player[p].isAttacked = false;
 					player[p].attackedTimer = 0.0f;
 					player[p].isDamageColor = false;
@@ -974,32 +1048,19 @@ void Player_Update()
 					player[p].specialAnimation = false;
 					Effect_Clear(p);
 
-					// ‡ˆÊ“o˜^i“à•”‚Åd•¡“o˜^‚ğ–h~j
+					// é †ä½ç™»éŒ²ï¼ˆå†…éƒ¨ã§é‡è¤‡ç™»éŒ²ã‚’é˜²æ­¢ï¼‰
 					Ranking(p);
+					player[p].position.y = 0.0f;
 				}
 			}
-		}
 
-		// —‰ºˆ— ‰eƒGƒtƒFƒNƒg”ñ•\¦
-		if (player[p].position.y < -1.0f)
-		{
-			player[p].isShadowEnabled = false;
-		}
-
-		if (player[p].active && player[p].position.y <= -10.0f)
-		{
-			Effect_ClearUI(p);
-			// c‹@‚ğˆê‚ÂŒ¸‚ç‚·
-			player[p].stock -= 1;
-
-			// ƒŠƒXƒ|[ƒ“iˆÊ’uEƒXƒe[ƒgƒŠƒZƒbƒgj
-			if (player[p].stock > 0)	Player_Respawn(p);
-			else
+			// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ãŸæ™‚ã®å‡¦ç†
+			if (player[p].isAttacked)
 			{
-				// c‹@–³‚µ‚ÅŠ®‘S‚É”ñƒAƒNƒeƒBƒu‰»
+				// æ®‹æ©Ÿç„¡ã—ã§å®Œå…¨ã«éã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ–
 				player[p].active = false;
 
-				// ƒGƒtƒFƒNƒgŠÖ˜Aƒtƒ‰ƒO‚ğƒŠƒZƒbƒg
+				// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆé–¢é€£ãƒ•ãƒ©ã‚°ã‚’ãƒªã‚»ãƒƒãƒˆ
 				player[p].isAttacked = false;
 				player[p].attackedTimer = 0.0f;
 				player[p].isDamageColor = false;
@@ -1021,26 +1082,26 @@ void Player_Update()
 				player[p].specialAnimation = false;
 				Effect_Clear(p);
 
-				// ‡ˆÊ“o˜^
+				// é †ä½ç™»éŒ²
 				Ranking(p);
 				player[p].position.y = 0.0f;
 			}
 		}
 
-		// ƒ_ƒ[ƒW‚ğó‚¯‚½‚Ìˆ—
+		// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ãŸæ™‚ã®å‡¦ç†
 		if (player[p].isAttacked)
 		{
-			// ƒ_ƒ[ƒWƒ^ƒCƒ}[XV
+			// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚¿ã‚¤ãƒãƒ¼æ›´æ–°
 			player[p].attackedTimer += DELTA_TIME;
 
-			// ƒvƒŒƒCƒ„[–ˆ‚Ìƒ_ƒ[ƒWŠÔ‚ªŒo‰ß‚µ‚½‚çƒ_ƒ[ƒWI—¹
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ¯ã®ãƒ€ãƒ¡ãƒ¼ã‚¸æ™‚é–“ãŒçµŒéã—ãŸã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸çµ‚äº†
 			if (player[p].attackedTimer >= ATTACKED_TIME)
 			{
 				player[p].isAttacked = false;
 				player[p].attackedTimer = 0.0f;
 			}
 		}
-		// ƒ_ƒ[ƒWF‚¾‚¯‚Ìˆ—
+		// ãƒ€ãƒ¡ãƒ¼ã‚¸è‰²ã ã‘ã®å‡¦ç†
 		if (player[p].isDamageColor)
 		{
 			player[p].damageColorTimer += DELTA_TIME;
@@ -1052,298 +1113,75 @@ void Player_Update()
 			}
 		}
 
-		// ƒ_ƒ[ƒWF‚¾‚¯‚Ìˆ—
+		// ãƒ€ãƒ¡ãƒ¼ã‚¸è‰²ã ã‘ã®å‡¦ç†
 		if (player[p].isDamageColor)
 		{
 			player[p].damageColorTimer += DELTA_TIME;
 
-			if (player[p].damageColorTimer >= ATTACKED_TIME)
-			{
-				player[p].isDamageColor = false;
-				player[p].damageColorTimer = 0.0f;
-			}
-		}
-
-		// i‰»‚Ì–³“Gˆ—
-		if (player[p].isInvincible)
-		{
-			// –³“Gƒ^ƒCƒ}[XV
-			player[p].invincibleTimer += DELTA_TIME;
-
-			// ƒvƒŒƒCƒ„[–ˆ‚Ì–³“GŠÔ‚ªŒo‰ß‚µ‚½‚ç–³“GI—¹
-			if (player[p].invincibleTimer >= EVOLVING_TIME)
-			{
-				player[p].isInvincible = false;
-				player[p].invincibleTimer = 0.0f;
-
-				// i‰»‚Ì™ôšKSEÄ¶
-				if (player[p].form == Form::Second)PlayAudio(g_SE_ID[0], false);	// ™ôšK ‘æ2Œ`‘Ô
-				else if (player[p].form == Form::Third)	PlayAudio(g_SE_ID[1], false);	// ™ôšK ‘æ3Œ`‘Ô
-			}
-		}
-
-		// ==========================================================
-		// ƒvƒŒƒCƒ„[ƒAƒjƒ[ƒVƒ‡ƒ“XV
-		// ==========================================================
-
-		// ƒXƒLƒ‹ŠJn‚ÌƒtƒŒ[ƒ€‰Šú‰»iƒAƒjƒ[ƒVƒ‡ƒ“XVƒ^ƒCƒ~ƒ“ƒO‚ÉˆË‘¶‚µ‚È‚¢j
-		if (player[p].skillAnimation && !g_skillAnimStarted[p])
-		{
-			// ‘®«‚²‚Æ‚ÌŠî€ƒIƒtƒZƒbƒgi‘®«1‚Â‚ ‚½‚è32ƒRƒ}j
-			int typeBase = 0;
-			if (player[p].type == PlayerType::Concrete)	typeBase = 0;
-			else if (player[p].type == PlayerType::Electricity)	typeBase = 32;
-			else if (player[p].type == PlayerType::Glass)		typeBase = 64;
-			else if (player[p].type == PlayerType::Plant)		typeBase = 96;
-
-			// Œ`‘ÔƒIƒtƒZƒbƒgi‘æ2Œ`‘Ô: 0A‘æ3Œ`‘Ô: 128j
-			int formBase = 0;
-			if (player[p].form == Form::Third) formBase = 128;
-
-			// •ûŒüƒIƒtƒZƒbƒgi1•ûŒü‚ ‚½‚è4ƒRƒ}j
-			int dirOffset = 0;
-			if (player[p].lastDir == PlayerDir::Down)		dirOffset = 0;
-			else if (player[p].lastDir == PlayerDir::Down_Left)	dirOffset = 4;
-			else if (player[p].lastDir == PlayerDir::Left)		dirOffset = 8;
-			else if (player[p].lastDir == PlayerDir::Up_Left)	dirOffset = 12;
-			else if (player[p].lastDir == PlayerDir::Up)		dirOffset = 16;
-			else if (player[p].lastDir == PlayerDir::Up_Right)	dirOffset = 20;
-			else if (player[p].lastDir == PlayerDir::Right)		dirOffset = 24;
-			else if (player[p].lastDir == PlayerDir::Down_Right)dirOffset = 28;
-
-			int start = formBase + typeBase + dirOffset;
-			g_skillAnimStart[p] = start;
-			player[p].animFrame = start;
-			g_skillAnimStarted[p] = true;
-		}
-		// ƒXƒLƒ‹I—¹‚Ìƒtƒ‰ƒOƒŠƒZƒbƒg
-		if (!player[p].skillAnimation && g_skillAnimStarted[p])	g_skillAnimStarted[p] = false;
-
-		// ƒXƒyƒVƒƒƒ‹ŠJn‚ÌƒtƒŒ[ƒ€‰Šú‰»iƒAƒjƒ[ƒVƒ‡ƒ“XVƒ^ƒCƒ~ƒ“ƒO‚ÉˆË‘¶‚µ‚È‚¢j
-		if (player[p].specialAnimation && !g_specialInitialize[p])
-		{
-			int type = -1;
-			if (player[p].type == PlayerType::Concrete)	type = 0;
-			else if (player[p].type == PlayerType::Electricity)	type = 1;
-			else if (player[p].type == PlayerType::Glass)		type = 2;
-			else if (player[p].type == PlayerType::Plant)		type = 3;
-
-			int start = type * 64;
-			if (player[p].lastDir == PlayerDir::Down)		start += 0;
-			else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
-			else if (player[p].lastDir == PlayerDir::Left)		start += 16;
-			else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
-			else if (player[p].lastDir == PlayerDir::Up)		start += 32;
-			else if (player[p].lastDir == PlayerDir::Up_Right)	start += 40;
-			else if (player[p].lastDir == PlayerDir::Right)		start += 48;
-			else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
-
-			player[p].animFrame = start;
-			g_specialAnimPhase[p] = 0;			// ƒtƒF[ƒYƒŠƒZƒbƒg
-			g_specialEndAnimTimer[p] = 0.0f;	// I—¹‰‰oƒ^ƒCƒ}[ƒŠƒZƒbƒg
-			g_specialInitialize[p] = true;
-		}
-		// ƒXƒyƒVƒƒƒ‹I—¹‚ÌƒtƒŒ[ƒ€ƒŠƒZƒbƒg
-		else if (!player[p].specialAnimation && g_specialInitialize[p])
-		{
-			g_specialInitialize[p] = false;
-			int idleStart = 0;
-			if (player[p].lastDir == PlayerDir::Down)		idleStart = 0;
-			else if (player[p].lastDir == PlayerDir::Down_Left)	idleStart = 26;
-			else if (player[p].lastDir == PlayerDir::Left)		idleStart = 52;
-			else if (player[p].lastDir == PlayerDir::Up_Left)	idleStart = 78;
-			else if (player[p].lastDir == PlayerDir::Up)		idleStart = 104;
-			else if (player[p].lastDir == PlayerDir::Up_Right)	idleStart = 130;
-			else if (player[p].lastDir == PlayerDir::Right)		idleStart = 156;
-			else if (player[p].lastDir == PlayerDir::Down_Right)idleStart = 182;
-			player[p].animFrame = idleStart; // ‘Ò‹@ƒtƒŒ[ƒ€‚ÉƒŠƒZƒbƒg
-		}
-
-		// ƒKƒ‰ƒXE“d‹CEA•¨: specialTimer ‚ÉŠî‚Ã‚­ƒAƒjƒ[ƒVƒ‡ƒ“I—¹§Œä
-		// ¦ useSpecial ‚Í true ‚Ì‚Ü‚Üispecial.cpp ‚Ìƒ_ƒ[ƒWˆ—“™‚ÍŒp‘±j
-		if (player[p].specialAnimation)
-		{
-			// ƒKƒ‰ƒXE“d‹C: 0.9•b‚ÅƒtƒŒ[ƒ€7A1.0•b‚ÅI—¹
-			if (player[p].type == PlayerType::Glass || player[p].type == PlayerType::Electricity)
-			{
-				if (player[p].specialTimer >= 1.0f)
+				if (player[p].damageColorTimer >= ATTACKED_TIME)
 				{
-					// I—¹‰‰oƒtƒF[ƒY‚ÖiI—¹ƒtƒŒ[ƒ€‚ğ•\¦‚³‚¹‚éj
-					g_specialAnimPhase[p] = 2;
-					g_specialEndAnimTimer[p] = 0.0f;
-
-					// ‘®«EŒü‚«‚©‚çI—¹‰‰oƒtƒŒ[ƒ€(start + 7) ‚ğŒˆ’è‚µ‚Äİ’è
-					int type = -1;
-					if (player[p].type == PlayerType::Concrete)		type = 0;
-					else if (player[p].type == PlayerType::Electricity)	type = 1;
-					else if (player[p].type == PlayerType::Glass)		type = 2;
-					else if (player[p].type == PlayerType::Plant)		type = 3;
-
-					int start = type * 64;
-					if (player[p].lastDir == PlayerDir::Down)		start += 0;
-					else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
-					else if (player[p].lastDir == PlayerDir::Left)		start += 16;
-					else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
-					else if (player[p].lastDir == PlayerDir::Up)		start += 32;
-					else if (player[p].lastDir == PlayerDir::Up_Right)	start += 40;
-					else if (player[p].lastDir == PlayerDir::Right)		start += 48;
-					else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
-
-					player[p].animFrame = start + 7;	// I—¹‰‰oƒtƒŒ[ƒ€‚ğ•\¦
-					player[p].animTimer = 0.0f;		// “¯ƒtƒŒ[ƒ€‚Åis‚µ‚È‚¢‚æ‚¤ƒŠƒZƒbƒg
-				}
-				else if (player[p].specialTimer >= 0.9f && g_specialAnimPhase[p] != 2)
-				{
-					g_specialAnimPhase[p] = 2;
-
-					int type = -1;
-					if (player[p].type == PlayerType::Concrete)	type = 0;
-					else if (player[p].type == PlayerType::Electricity)	type = 1;
-					else if (player[p].type == PlayerType::Glass)		type = 2;
-					else if (player[p].type == PlayerType::Plant)		type = 3;
-
-					int start = type * 64;
-					if (player[p].lastDir == PlayerDir::Down)		start += 0;
-					else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
-					else if (player[p].lastDir == PlayerDir::Left)		start += 16;
-					else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
-					else if (player[p].lastDir == PlayerDir::Up)		start += 32;
-					else if (player[p].lastDir == PlayerDir::Up_Right)	start += 40;
-					else if (player[p].lastDir == PlayerDir::Right)		start += 48;
-					else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
-
-					player[p].animFrame = start + 7;
+					player[p].isDamageColor = false;
+					player[p].damageColorTimer = 0.0f;
 				}
 			}
-			// A•¨: 1.0•b‚Å‘Ò‹@‚É–ß‚·i‚»‚ê‚Ü‚Å‚Í8ƒRƒ}ƒ‹[ƒvŒp‘±j
-			else if (player[p].type == PlayerType::Plant)
+
+			// é€²åŒ–æ™‚ã®ç„¡æ•µå‡¦ç†
+			if (player[p].isInvincible)
 			{
-				// 1.0•bŒo‰ß‚ÅƒAƒjƒ[ƒVƒ‡ƒ“I—¹
-				if (player[p].specialTimer >= 1.0f && player[p].specialAnimation)
+				// ç„¡æ•µã‚¿ã‚¤ãƒãƒ¼æ›´æ–°
+				player[p].invincibleTimer += DELTA_TIME;
+
+				// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ¯ã®ç„¡æ•µæ™‚é–“ãŒçµŒéã—ãŸã‚‰ç„¡æ•µçµ‚äº†
+				if (player[p].invincibleTimer >= EVOLVING_TIME)
 				{
-					g_specialAnimPhase[p] = 0;
-					g_specialEndAnimTimer[p] = 0.0f;
+					player[p].isInvincible = false;
+					player[p].invincibleTimer = 0.0f;
 
-					int idleStart = 0;
-					if (player[p].lastDir == PlayerDir::Down)		idleStart = 0;
-					else if (player[p].lastDir == PlayerDir::Down_Left)	idleStart = 26;
-					else if (player[p].lastDir == PlayerDir::Left)		idleStart = 52;
-					else if (player[p].lastDir == PlayerDir::Up_Left)	idleStart = 78;
-					else if (player[p].lastDir == PlayerDir::Up)		idleStart = 104;
-					else if (player[p].lastDir == PlayerDir::Up_Right)	idleStart = 130;
-					else if (player[p].lastDir == PlayerDir::Right)		idleStart = 156;
-					else if (player[p].lastDir == PlayerDir::Down_Right)idleStart = 182;
-
-					player[p].animFrame = idleStart;
+					// é€²åŒ–æ™‚ã®å’†å“®SEå†ç”Ÿ
+					if (player[p].form == Form::Second)PlayAudio(g_SE_ID[0], false);	// å’†å“® ç¬¬2å½¢æ…‹
+					else if (player[p].form == Form::Third)	PlayAudio(g_SE_ID[1], false);	// å’†å“® ç¬¬3å½¢æ…‹
 				}
 			}
-		}
 
-		// ƒvƒŒƒCƒ„[ ƒAƒjƒ[ƒVƒ‡ƒ“XV
-		player[p].animTimer += DELTA_TIME;
+			// ==========================================================
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
+			// ==========================================================
 
-		// ƒGƒtƒFƒNƒg ƒAƒjƒ[ƒVƒ‡ƒ“
-		Effect_UpdateForPlayer(p);
-
-		if (player[p].animTimer >= ANIM_FRAME_TIME)
-		{
-			int advance = (int)(player[p].animTimer / ANIM_FRAME_TIME);
-			player[p].animTimer -= advance * ANIM_FRAME_TIME;
-
-			// Ÿ—˜ ‘æ1Œ`‘Ô 13ƒRƒ}(ƒ‰ƒXƒg5ƒRƒ} ƒ‹[ƒv) ‘æ2Œ`‘Ô 20ƒRƒ}(ƒ‰ƒXƒg9ƒRƒ} ƒ‹[ƒv) ‘æ3Œ`‘Ô 21ƒRƒ}(ƒ‰ƒXƒgƒRƒ} ƒ‹[ƒv)
-			if (player[p].rank == 1 || g_victoryState[p] != 0)
+			// ã‚¹ã‚­ãƒ«é–‹å§‹æ™‚ã®ãƒ•ãƒ¬ãƒ¼ãƒ åˆæœŸåŒ–ï¼ˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã«ä¾å­˜ã—ãªã„ï¼‰
+			if (player[p].skillAnimation && !g_skillAnimStarted[p])
 			{
-				if (player[p].rank == 1 && g_victoryState[p] == 0)
-				{
-					g_victoryState[p] = 1;
-					player[p].animFrame = 208;	// ‰‰ñÄ¶ŠJnƒtƒŒ[ƒ€
-				}
+				// å±æ€§ã”ã¨ã®åŸºæº–ã‚ªãƒ•ã‚»ãƒƒãƒˆï¼ˆå±æ€§1ã¤ã‚ãŸã‚Š32ã‚³ãƒï¼‰
+				int typeBase = 0;
+				if (player[p].type == PlayerType::Concrete)	typeBase = 0;
+				else if (player[p].type == PlayerType::Electricity)	typeBase = 32;
+				else if (player[p].type == PlayerType::Glass)		typeBase = 64;
+				else if (player[p].type == PlayerType::Plant)		typeBase = 96;
 
-				if (g_victoryState[p] == 1)
-				{
-					// ‰‰ñÄ¶ ƒtƒŒ[ƒ€‚ğ’Pƒ‘‰Á
-					player[p].animFrame += advance;
+				// å½¢æ…‹ã‚ªãƒ•ã‚»ãƒƒãƒˆï¼ˆç¬¬2å½¢æ…‹: 0ã€ç¬¬3å½¢æ…‹: 128ï¼‰
+				int formBase = 0;
+				if (player[p].form == Form::Third) formBase = 128;
 
-					// ‘æ1Œ`‘Ô 220 ‚ğ•\¦‚µ‚½Œã‚Éƒ‹[ƒv—Ìˆæ‚ÖˆÚs‚·‚é
-					if (player[p].animFrame > 220 && player[p].form == Form::First)
-					{
-						g_victoryState[p] = 2;
-						player[p].animFrame = 216;	// ƒ‹[ƒvŠJnƒtƒŒ[ƒ€
-					}
-					// ‘æ2Œ`‘Ô 227 ‚ğ•\¦‚µ‚½Œã‚Éƒ‹[ƒv—Ìˆæ‚ÖˆÚs‚·‚é
-					if (player[p].animFrame > 227 && player[p].form == Form::Second)
-					{
-						g_victoryState[p] = 2;
-						player[p].animFrame = 219;	// ƒ‹[ƒvŠJnƒtƒŒ[ƒ€
-					}
-					// ‘æ3Œ`‘Ô 228 ‚ğ•\¦‚µ‚½Œã‚Éƒ‹[ƒv—Ìˆæ‚ÖˆÚs‚·‚é 229ƒRƒ}–Ú‚Íg—p‚µ‚È‚¢
-					if (player[p].animFrame > 228 && player[p].form == Form::Third)
-					{
-						g_victoryState[p] = 2;
-						player[p].animFrame = 221;	// ƒ‹[ƒvŠJnƒtƒŒ[ƒ€
-					}
-				}
-				else if (g_victoryState[p] == 2)
-				{
-					switch (player[p].form)
-					{
-					case Form::First:	LoopRange(player[p].animFrame, 216, 5, advance);	// ‘æ1Œ`‘Ô 216`220‚ğƒ‹[ƒv
-						break;
-					case Form::Second:	LoopRange(player[p].animFrame, 219, 9, advance);	// ‘æ2Œ`‘Ô 219`227‚ğƒ‹[ƒv
-						break;
-					case Form::Third:	LoopRange(player[p].animFrame, 221, 8, advance);	// ‘æ3Œ`‘Ô 221`228‚ğƒ‹[ƒv 229ƒRƒ}–Ú‚Íg—p‚µ‚È‚¢
-						break;
-					}
-				}
+				// æ–¹å‘ã‚ªãƒ•ã‚»ãƒƒãƒˆï¼ˆ1æ–¹å‘ã‚ãŸã‚Š4ã‚³ãƒï¼‰
+				int dirOffset = 0;
+				if (player[p].lastDir == PlayerDir::Down)		dirOffset = 0;
+				else if (player[p].lastDir == PlayerDir::Down_Left)	dirOffset = 4;
+				else if (player[p].lastDir == PlayerDir::Left)		dirOffset = 8;
+				else if (player[p].lastDir == PlayerDir::Up_Left)	dirOffset = 12;
+				else if (player[p].lastDir == PlayerDir::Up)		dirOffset = 16;
+				else if (player[p].lastDir == PlayerDir::Up_Right)	dirOffset = 20;
+				else if (player[p].lastDir == PlayerDir::Right)		dirOffset = 24;
+				else if (player[p].lastDir == PlayerDir::Down_Right)dirOffset = 28;
+
+				int start = formBase + typeBase + dirOffset;
+				g_skillAnimStart[p] = start;
+				player[p].animFrame = start;
+				g_skillAnimStarted[p] = true;
 			}
-			// ƒ_ƒEƒ“ 5ƒRƒ} (ƒ_ƒ[ƒW 2ƒRƒ} + ƒ_ƒEƒ“ 3ƒRƒ}) ÅIƒRƒ}‚Å’â~
-			else if (player[p].isDown)
-			{
-				// Œü‚«‚É‰‚¶‚½ŠJnƒtƒŒ[ƒ€‚ğŒˆ’è
-				int start = 15; // ƒfƒtƒHƒ‹ƒgiDownj
-				if (player[p].lastDir == PlayerDir::Down)		 start = 15;
-				else if (player[p].lastDir == PlayerDir::Down_Left)	 start = 41;
-				else if (player[p].lastDir == PlayerDir::Left)		 start = 67;
-				else if (player[p].lastDir == PlayerDir::Up_Left)	 start = 93;
-				else if (player[p].lastDir == PlayerDir::Up)		 start = 119;
-				else if (player[p].lastDir == PlayerDir::Up_Right)	 start = 145;
-				else if (player[p].lastDir == PlayerDir::Right)		 start = 171;
-				else if (player[p].lastDir == PlayerDir::Down_Right) start = 197;
+			// ã‚¹ã‚­ãƒ«çµ‚äº†æ™‚ã®ãƒ•ãƒ©ã‚°ãƒªã‚»ãƒƒãƒˆ
+			if (!player[p].skillAnimation && g_skillAnimStarted[p])	g_skillAnimStarted[p] = false;
 
-				const int count = 5;
-				const int lastFrame = start + count - 1;
-
-				float elapsedSec = (float)advance * ANIM_FRAME_TIME;
-
-				// ƒtƒŒ[ƒ€‚ª”ÍˆÍŠO‚È‚çŠJnƒtƒŒ[ƒ€‚É•â³‚µƒ^ƒCƒ}[ƒŠƒZƒbƒg
-				if (player[p].animFrame < start || player[p].animFrame > lastFrame)
-				{
-					player[p].animFrame = start;
-					g_downHoldTimer[p] = 0.0f;
-				}
-
-				// ÅIƒtƒŒ[ƒ€ˆÈŠO‚È‚çisiƒ‹[ƒvj
-				if (player[p].animFrame != lastFrame)
-				{
-					LoopRange(player[p].animFrame, start, count, advance);
-					g_downHoldTimer[p] = 0.0f; // “’B‘O‚Íƒz[ƒ‹ƒhƒ^ƒCƒ}[‚ğƒŠƒZƒbƒg
-				}
-				else
-				{
-					// ÅIƒtƒŒ[ƒ€‚É“’B ƒz[ƒ‹ƒh‚ği‚ß‚é
-					g_downHoldTimer[p] += elapsedSec;
-
-					// ƒz[ƒ‹ƒh‚ª–—¹‚µ‚½‚çŸ‚Éi‚ß‚éi‚±‚±‚Å‚Í1ƒtƒŒ[ƒ€•ª‚¾‚¯i‚ß‚éj
-					if (g_downHoldTimer[p] >= DOWN_TIME)
-					{
-						g_downHoldTimer[p] = 0.0f;
-						// 1ƒtƒŒ[ƒ€•ªi‚ß‚éiƒ‹[ƒv‚É‚æ‚è start ‚É–ß‚éj
-						LoopRange(player[p].animFrame, start, count, 1);
-					}
-				}
-			}
-			// ƒXƒyƒVƒƒƒ‹ ƒAƒjƒ[ƒVƒ‡ƒ“
-			else if (player[p].specialAnimation)
+			// ã‚¹ãƒšã‚·ãƒ£ãƒ«é–‹å§‹æ™‚ã®ãƒ•ãƒ¬ãƒ¼ãƒ åˆæœŸåŒ–ï¼ˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã«ä¾å­˜ã—ãªã„ï¼‰
+			if (player[p].specialAnimation && !g_specialInitialize[p])
 			{
 				int type = -1;
 				if (player[p].type == PlayerType::Concrete)	type = 0;
@@ -1361,390 +1199,625 @@ void Player_Update()
 				else if (player[p].lastDir == PlayerDir::Right)		start += 48;
 				else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
 
-				// ƒKƒ‰ƒXE“d‹C: 0`6‚ğ1‰ñÄ¶ ¨ 4`6‚ğƒ‹[ƒv
+				player[p].animFrame = start;
+				g_specialAnimPhase[p] = 0;			// ãƒ•ã‚§ãƒ¼ã‚ºãƒªã‚»ãƒƒãƒˆ
+				g_specialEndAnimTimer[p] = 0.0f;	// çµ‚äº†æ¼”å‡ºã‚¿ã‚¤ãƒãƒ¼ãƒªã‚»ãƒƒãƒˆ
+				g_specialInitialize[p] = true;
+			}
+			// ã‚¹ãƒšã‚·ãƒ£ãƒ«çµ‚äº†æ™‚ã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒªã‚»ãƒƒãƒˆ
+			else if (!player[p].specialAnimation && g_specialInitialize[p])
+			{
+				g_specialInitialize[p] = false;
+				int idleStart = 0;
+				if (player[p].lastDir == PlayerDir::Down)		idleStart = 0;
+				else if (player[p].lastDir == PlayerDir::Down_Left)	idleStart = 26;
+				else if (player[p].lastDir == PlayerDir::Left)		idleStart = 52;
+				else if (player[p].lastDir == PlayerDir::Up_Left)	idleStart = 78;
+				else if (player[p].lastDir == PlayerDir::Up)		idleStart = 104;
+				else if (player[p].lastDir == PlayerDir::Up_Right)	idleStart = 130;
+				else if (player[p].lastDir == PlayerDir::Right)		idleStart = 156;
+				else if (player[p].lastDir == PlayerDir::Down_Right)idleStart = 182;
+				player[p].animFrame = idleStart; // å¾…æ©Ÿãƒ•ãƒ¬ãƒ¼ãƒ ã«ãƒªã‚»ãƒƒãƒˆ
+			}
+
+			// ã‚¬ãƒ©ã‚¹ãƒ»é›»æ°—ãƒ»æ¤ç‰©: specialTimer ã«åŸºã¥ãã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµ‚äº†åˆ¶å¾¡
+			// â€» useSpecial ã¯ true ã®ã¾ã¾ï¼ˆspecial.cpp ã®ãƒ€ãƒ¡ãƒ¼ã‚¸å‡¦ç†ç­‰ã¯ç¶™ç¶šï¼‰
+			if (player[p].specialAnimation)
+			{
+				// ã‚¬ãƒ©ã‚¹ãƒ»é›»æ°—: 0ï½6ã‚’1å›å†ç”Ÿ â†’ 4ï½6ã‚’ãƒ«ãƒ¼ãƒ—
+			}
+			// ã‚¬ãƒ©ã‚¹ãƒ»é›»æ°—ãƒ»æ¤ç‰©: specialTimer ã«åŸºã¥ãã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµ‚äº†åˆ¶å¾¡
+			// â€» useSpecial ã¯ true ã®ã¾ã¾ï¼ˆspecial.cpp ã®ãƒ€ãƒ¡ãƒ¼ã‚¸å‡¦ç†ç­‰ã¯ç¶™ç¶šï¼‰
+			if (player[p].specialAnimation)
+			{
+				// ã‚¬ãƒ©ã‚¹ãƒ»é›»æ°—: 0.9ç§’ã§ãƒ•ãƒ¬ãƒ¼ãƒ 7ã€1.0ç§’ã§çµ‚äº†
 				if (player[p].type == PlayerType::Glass || player[p].type == PlayerType::Electricity)
 				{
-					if (g_specialAnimPhase[p] == 0)
+					if (player[p].specialTimer >= 1.0f)
+					{
+						// çµ‚äº†æ¼”å‡ºãƒ•ã‚§ãƒ¼ã‚ºã¸ï¼ˆçµ‚äº†ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’è¡¨ç¤ºã•ã›ã‚‹ï¼‰
+						g_specialAnimPhase[p] = 2;
+						g_specialEndAnimTimer[p] = 0.0f;
+
+						// å±æ€§ãƒ»å‘ãã‹ã‚‰çµ‚äº†æ¼”å‡ºãƒ•ãƒ¬ãƒ¼ãƒ (start + 7) ã‚’æ±ºå®šã—ã¦è¨­å®š
+						int type = -1;
+						if (player[p].type == PlayerType::Concrete)		type = 0;
+						else if (player[p].type == PlayerType::Electricity)	type = 1;
+						else if (player[p].type == PlayerType::Glass)		type = 2;
+						else if (player[p].type == PlayerType::Plant)		type = 3;
+
+						int start = type * 64;
+						if (player[p].lastDir == PlayerDir::Down)		start += 0;
+						else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
+						else if (player[p].lastDir == PlayerDir::Left)		start += 16;
+						else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
+						else if (player[p].lastDir == PlayerDir::Up)		start += 32;
+						else if (player[p].lastDir == PlayerDir::Up_Right)	start += 40;
+						else if (player[p].lastDir == PlayerDir::Right)		start += 48;
+						else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
+
+						player[p].animFrame = start + 7;	// çµ‚äº†æ¼”å‡ºãƒ•ãƒ¬ãƒ¼ãƒ ã‚’è¡¨ç¤º
+						player[p].animTimer = 0.0f;		// åŒãƒ•ãƒ¬ãƒ¼ãƒ ã§é€²è¡Œã—ãªã„ã‚ˆã†ãƒªã‚»ãƒƒãƒˆ
+					}
+					else if (player[p].specialTimer >= 0.9f && g_specialAnimPhase[p] != 2)
+					{
+						g_specialAnimPhase[p] = 2;
+
+						int type = -1;
+						if (player[p].type == PlayerType::Concrete)	type = 0;
+						else if (player[p].type == PlayerType::Electricity)	type = 1;
+						else if (player[p].type == PlayerType::Glass)		type = 2;
+						else if (player[p].type == PlayerType::Plant)		type = 3;
+
+						int start = type * 64;
+						if (player[p].lastDir == PlayerDir::Down)		start += 0;
+						else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
+						else if (player[p].lastDir == PlayerDir::Left)		start += 16;
+						else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
+						else if (player[p].lastDir == PlayerDir::Up)		start += 32;
+						else if (player[p].lastDir == PlayerDir::Up_Right)	start += 40;
+						else if (player[p].lastDir == PlayerDir::Right)		start += 48;
+						else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
+
+						player[p].animFrame = start + 7;
+					}
+				}
+				// æ¤ç‰©: 1.0ç§’ã§å¾…æ©Ÿã«æˆ»ã™ï¼ˆãã‚Œã¾ã§ã¯8ã‚³ãƒãƒ«ãƒ¼ãƒ—ç¶™ç¶šï¼‰
+				else if (player[p].type == PlayerType::Plant)
+				{
+					// 1.0ç§’çµŒéã§ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµ‚äº†
+					if (player[p].specialTimer >= 1.0f && player[p].specialAnimation)
+					{
+						g_specialAnimPhase[p] = 0;
+						g_specialEndAnimTimer[p] = 0.0f;
+
+						int idleStart = 0;
+						if (player[p].lastDir == PlayerDir::Down)		idleStart = 0;
+						else if (player[p].lastDir == PlayerDir::Down_Left)	idleStart = 26;
+						else if (player[p].lastDir == PlayerDir::Left)		idleStart = 52;
+						else if (player[p].lastDir == PlayerDir::Up_Left)	idleStart = 78;
+						else if (player[p].lastDir == PlayerDir::Up)		idleStart = 104;
+						else if (player[p].lastDir == PlayerDir::Up_Right)	idleStart = 130;
+						else if (player[p].lastDir == PlayerDir::Right)		idleStart = 156;
+						else if (player[p].lastDir == PlayerDir::Down_Right)idleStart = 182;
+
+						player[p].animFrame = idleStart;
+					}
+				}
+			}
+
+			// ç¹åŠ±Îç¹§ï½¤ç¹ï½¤ç¹ï½¼ ç¹§ï½¢ç¹ä¹Î“ç¹ï½¼ç¹§ï½·ç¹ï½§ç¹ï½³è­–ï½´è­ï½°
+			player[p].animTimer += currentDeltaTime;
+
+			// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
+			Effect_UpdateForPlayer(p);
+
+			if (player[p].animTimer >= ANIM_FRAME_TIME)
+			{
+				int advance = (int)(player[p].animTimer / ANIM_FRAME_TIME);
+				player[p].animTimer -= advance * ANIM_FRAME_TIME;
+
+				// å‹åˆ© ç¬¬1å½¢æ…‹ 13ã‚³ãƒ(ãƒ©ã‚¹ãƒˆ5ã‚³ãƒ ãƒ«ãƒ¼ãƒ—) ç¬¬2å½¢æ…‹ 20ã‚³ãƒ(ãƒ©ã‚¹ãƒˆ9ã‚³ãƒ ãƒ«ãƒ¼ãƒ—) ç¬¬3å½¢æ…‹ 21ã‚³ãƒ(ãƒ©ã‚¹ãƒˆã‚³ãƒ ãƒ«ãƒ¼ãƒ—)
+				if (player[p].rank == 1 || g_victoryState[p] != 0)
+				{
+					if (player[p].rank == 1 && g_victoryState[p] == 0)
+					{
+						g_victoryState[p] = 1;
+						player[p].animFrame = 208;	// åˆå›å†ç”Ÿé–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ 
+					}
+
+					if (g_victoryState[p] == 1)
+					{
+						// åˆå›å†ç”Ÿ ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’å˜ç´”å¢—åŠ 
+						player[p].animFrame += advance;
+
+						// ç¬¬1å½¢æ…‹ 220 ã‚’è¡¨ç¤ºã—ãŸå¾Œã«ãƒ«ãƒ¼ãƒ—é ˜åŸŸã¸ç§»è¡Œã™ã‚‹
+						if (player[p].animFrame > 220 && player[p].form == Form::First)
+						{
+							g_victoryState[p] = 2;
+							player[p].animFrame = 216;	// ãƒ«ãƒ¼ãƒ—é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ 
+						}
+						// ç¬¬2å½¢æ…‹ 227 ã‚’è¡¨ç¤ºã—ãŸå¾Œã«ãƒ«ãƒ¼ãƒ—é ˜åŸŸã¸ç§»è¡Œã™ã‚‹
+						if (player[p].animFrame > 227 && player[p].form == Form::Second)
+						{
+							g_victoryState[p] = 2;
+							player[p].animFrame = 219;	// ãƒ«ãƒ¼ãƒ—é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ 
+						}
+						// ç¬¬3å½¢æ…‹ 228 ã‚’è¡¨ç¤ºã—ãŸå¾Œã«ãƒ«ãƒ¼ãƒ—é ˜åŸŸã¸ç§»è¡Œã™ã‚‹ 229ã‚³ãƒç›®ã¯ä½¿ç”¨ã—ãªã„
+						if (player[p].animFrame > 228 && player[p].form == Form::Third)
+						{
+							g_victoryState[p] = 2;
+							player[p].animFrame = 221;	// ãƒ«ãƒ¼ãƒ—é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ 
+						}
+					}
+					else if (g_victoryState[p] == 2)
+					{
+						switch (player[p].form)
+						{
+						case Form::First:	LoopRange(player[p].animFrame, 216, 5, advance);	// ç¬¬1å½¢æ…‹ 216ï½220ã‚’ãƒ«ãƒ¼ãƒ—
+							break;
+						case Form::Second:	LoopRange(player[p].animFrame, 219, 9, advance);	// ç¬¬2å½¢æ…‹ 219ï½227ã‚’ãƒ«ãƒ¼ãƒ—
+							break;
+						case Form::Third:	LoopRange(player[p].animFrame, 221, 8, advance);	// ç¬¬3å½¢æ…‹ 221ï½228ã‚’ãƒ«ãƒ¼ãƒ— 229ã‚³ãƒç›®ã¯ä½¿ç”¨ã—ãªã„
+							break;
+						}
+					}
+				}
+				// ãƒ€ã‚¦ãƒ³ 5ã‚³ãƒ (ãƒ€ãƒ¡ãƒ¼ã‚¸ 2ã‚³ãƒ + ãƒ€ã‚¦ãƒ³ 3ã‚³ãƒ) æœ€çµ‚ã‚³ãƒã§åœæ­¢
+				else if (player[p].isDown)
+				{
+					// å‘ãã«å¿œã˜ãŸé–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’æ±ºå®š
+					int start = 15; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆï¼ˆDownï¼‰
+					if (player[p].lastDir == PlayerDir::Down)		 start = 15;
+					else if (player[p].lastDir == PlayerDir::Down_Left)	 start = 41;
+					else if (player[p].lastDir == PlayerDir::Left)		 start = 67;
+					else if (player[p].lastDir == PlayerDir::Up_Left)	 start = 93;
+					else if (player[p].lastDir == PlayerDir::Up)		 start = 119;
+					else if (player[p].lastDir == PlayerDir::Up_Right)	 start = 145;
+					else if (player[p].lastDir == PlayerDir::Right)		 start = 171;
+					else if (player[p].lastDir == PlayerDir::Down_Right) start = 197;
+
+					const int count = 5;
+					const int lastFrame = start + count - 1;
+
+					float elapsedSec = (float)advance * ANIM_FRAME_TIME;
+
+					// ãƒ•ãƒ¬ãƒ¼ãƒ ãŒç¯„å›²å¤–ãªã‚‰é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ ã«è£œæ­£ã—ã‚¿ã‚¤ãƒãƒ¼ãƒªã‚»ãƒƒãƒˆ
+					if (player[p].animFrame < start || player[p].animFrame > lastFrame)
+					{
+						player[p].animFrame = start;
+						g_downHoldTimer[p] = 0.0f;
+					}
+
+					// æœ€çµ‚ãƒ•ãƒ¬ãƒ¼ãƒ ä»¥å¤–ãªã‚‰é€²è¡Œï¼ˆãƒ«ãƒ¼ãƒ—ï¼‰
+					if (player[p].animFrame != lastFrame)
+					{
+						LoopRange(player[p].animFrame, start, count, advance);
+						g_downHoldTimer[p] = 0.0f; // åˆ°é”å‰ã¯ãƒ›ãƒ¼ãƒ«ãƒ‰ã‚¿ã‚¤ãƒãƒ¼ã‚’ãƒªã‚»ãƒƒãƒˆ
+					}
+					else
+					{
+						// æœ€çµ‚ãƒ•ãƒ¬ãƒ¼ãƒ ã«åˆ°é” ãƒ›ãƒ¼ãƒ«ãƒ‰ã‚’é€²ã‚ã‚‹
+						g_downHoldTimer[p] += elapsedSec;
+
+						// ãƒ›ãƒ¼ãƒ«ãƒ‰ãŒæº€äº†ã—ãŸã‚‰æ¬¡ã«é€²ã‚ã‚‹ï¼ˆã“ã“ã§ã¯1ãƒ•ãƒ¬ãƒ¼ãƒ åˆ†ã ã‘é€²ã‚ã‚‹ï¼‰
+						if (g_downHoldTimer[p] >= DOWN_TIME)
+						{
+							g_downHoldTimer[p] = 0.0f;
+							// 1ãƒ•ãƒ¬ãƒ¼ãƒ åˆ†é€²ã‚ã‚‹ï¼ˆãƒ«ãƒ¼ãƒ—ã«ã‚ˆã‚Š start ã«æˆ»ã‚‹ï¼‰
+							LoopRange(player[p].animFrame, start, count, 1);
+						}
+					}
+				}
+				// ã‚¹ãƒšã‚·ãƒ£ãƒ« ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
+				else if (player[p].specialAnimation)
+				{
+					int type = -1;
+					if (player[p].type == PlayerType::Concrete)	type = 0;
+					else if (player[p].type == PlayerType::Electricity)	type = 1;
+					else if (player[p].type == PlayerType::Glass)		type = 2;
+					else if (player[p].type == PlayerType::Plant)		type = 3;
+
+					int start = type * 64;
+					if (player[p].lastDir == PlayerDir::Down)		start += 0;
+					else if (player[p].lastDir == PlayerDir::Down_Left)	start += 8;
+					else if (player[p].lastDir == PlayerDir::Left)		start += 16;
+					else if (player[p].lastDir == PlayerDir::Up_Left)	start += 24;
+					else if (player[p].lastDir == PlayerDir::Up)		start += 32;
+					else if (player[p].lastDir == PlayerDir::Up_Right)	start += 40;
+					else if (player[p].lastDir == PlayerDir::Right)		start += 48;
+					else if (player[p].lastDir == PlayerDir::Down_Right)start += 56;
+
+					// ã‚¬ãƒ©ã‚¹ãƒ»é›»æ°—: 0ï½6ã‚’1å›å†ç”Ÿ â†’ 4ï½6ã‚’ãƒ«ãƒ¼ãƒ—
+					if (player[p].type == PlayerType::Glass || player[p].type == PlayerType::Electricity)
+					{
+						if (g_specialAnimPhase[p] == 0)
+						{
+							player[p].animFrame += advance;
+							if (player[p].animFrame > start + 6)
+							{
+								g_specialAnimPhase[p] = 1;
+								player[p].animFrame = start + 4;
+							}
+						}
+						else if (g_specialAnimPhase[p] == 1)	LoopRange(player[p].animFrame, start + 4, 3, advance);
+						// phase == 2 : ãƒ•ãƒ¬ãƒ¼ãƒ 7è¡¨ç¤ºä¸­ -> ä½•ã‚‚ã—ãªã„ï¼ˆspecialTimerãƒ™ãƒ¼ã‚¹ã§åˆ¶å¾¡ï¼‰
+					}
+					// æ¤ç‰©: å¾“æ¥é€šã‚Š8ã‚³ãƒãƒ«ãƒ¼ãƒ—
+					if (player[p].type == PlayerType::Plant)	LoopRange(player[p].animFrame, start, 8, advance);
+				}
+				// ãƒ€ãƒ¡ãƒ¼ã‚¸ 3ã‚³ãƒ
+				else if (player[p].isAttacked || player[p].isStunning)
+				{
+					if (player[p].lastDir == PlayerDir::Down)		LoopRange(player[p].animFrame, 14, 3, advance);	//  ä¸‹   14ï½16 
+					else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(player[p].animFrame, 40, 3, advance);	// å·¦ä¸‹  40ï½42
+					else if (player[p].lastDir == PlayerDir::Left)		LoopRange(player[p].animFrame, 66, 3, advance);	//  å·¦   66ï½68
+					else if (player[p].lastDir == PlayerDir::Up_Left)	LoopRange(player[p].animFrame, 92, 3, advance);	// å·¦ä¸Š  92ï½94
+					else if (player[p].lastDir == PlayerDir::Up)		LoopRange(player[p].animFrame, 118, 3, advance);	//  ä¸Š  118ï½120
+					else if (player[p].lastDir == PlayerDir::Up_Right)	LoopRange(player[p].animFrame, 144, 3, advance);	// å³ä¸Š 144ï½146
+					else if (player[p].lastDir == PlayerDir::Right)		LoopRange(player[p].animFrame, 170, 3, advance);	//  å³  170ï½172
+					else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(player[p].animFrame, 196, 3, advance);	// å³ä¸‹ 196ï½198
+				}
+				// ã‚¹ã‚­ãƒ« 4ã‚³ãƒï¼ˆ1å›å†ç”Ÿãƒ»æœ€çµ‚ãƒ•ãƒ¬ãƒ¼ãƒ ã§åœæ­¢å¾Œã«çµ‚äº†ï¼‰
+				else if (player[p].skillAnimation)
+				{
+					int start = g_skillAnimStart[p];
+					const int count = 4;
+					const int lastFrame = start + count - 1;
+
+					// ç¯„å›²å¤–ãªã‚‰é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’è¨ˆç®—ãƒ»ä¿å­˜ã—ã¦ãƒªã‚»ãƒƒãƒˆ
+					if (player[p].animFrame < start || player[p].animFrame > lastFrame)
+					{
+						// å±æ€§ã”ã¨ã®åŸºæº–ã‚ªãƒ•ã‚»ãƒƒãƒˆï¼ˆå±æ€§1ã¤ã‚ãŸã‚Š32ã‚³ãƒï¼‰
+						int typeBase = 0;
+						if (player[p].type == PlayerType::Concrete)	typeBase = 0;
+						else if (player[p].type == PlayerType::Electricity)	typeBase = 32;
+						else if (player[p].type == PlayerType::Glass)		typeBase = 64;
+						else if (player[p].type == PlayerType::Plant)		typeBase = 96;
+
+						// å½¢æ…‹ã‚ªãƒ•ã‚»ãƒƒãƒˆï¼ˆç¬¬2å½¢æ…‹: 0ã€ç¬¬3å½¢æ…‹: 128ï¼‰
+						int formBase = 0;
+						if (player[p].form == Form::Third) formBase = 128;
+
+						// æ–¹å‘ã‚ªãƒ•ã‚»ãƒƒãƒˆï¼ˆ1æ–¹å‘ã‚ãŸã‚Š4ã‚³ãƒï¼‰
+						int dirOffset = 0;
+						if (player[p].lastDir == PlayerDir::Down)		dirOffset = 0;
+						else if (player[p].lastDir == PlayerDir::Down_Left)	dirOffset = 4;
+						else if (player[p].lastDir == PlayerDir::Left)		dirOffset = 8;
+						else if (player[p].lastDir == PlayerDir::Up_Left)	dirOffset = 12;
+						else if (player[p].lastDir == PlayerDir::Up)		dirOffset = 16;
+						else if (player[p].lastDir == PlayerDir::Up_Right)	dirOffset = 20;
+						else if (player[p].lastDir == PlayerDir::Right)		dirOffset = 24;
+						else if (player[p].lastDir == PlayerDir::Down_Right)dirOffset = 28;
+
+						start = formBase + typeBase + dirOffset;
+						g_skillAnimStart[p] = start;
+						player[p].animFrame = start;
+					}
+
+					// lastFrame ã‚’å†è¨ˆç®—ï¼ˆstart ãŒæ›´æ–°ã•ã‚ŒãŸå¯èƒ½æ€§ãŒã‚ã‚‹ãŸã‚ï¼‰
+					const int finalFrame = g_skillAnimStart[p] + count - 1;
+
+					// æœ€çµ‚ãƒ•ãƒ¬ãƒ¼ãƒ ã«é”ã—ã¦ã„ãªã‘ã‚Œã°é€²ã‚ã‚‹
+					if (player[p].animFrame < finalFrame)
 					{
 						player[p].animFrame += advance;
-						if (player[p].animFrame > start + 6)
+						// ã‚ªãƒ¼ãƒãƒ¼ã‚·ãƒ¥ãƒ¼ãƒˆé˜²æ­¢ï¼ˆæœ€çµ‚ãƒ•ãƒ¬ãƒ¼ãƒ ã§ã‚¯ãƒ©ãƒ³ãƒ—ï¼‰
+						if (player[p].animFrame > finalFrame) player[p].animFrame = finalFrame;
+					}
+					else
+					{
+						// æœ€çµ‚ãƒ•ãƒ¬ãƒ¼ãƒ ã«é”ã—ãŸã‚‰ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµ‚äº†
+						player[p].skillAnimation = false;
+
+						// é€šå¸¸ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®å¾…æ©Ÿã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é–‹å§‹ãƒ•ãƒ¬ãƒ¼ãƒ ã«ãƒªã‚»ãƒƒãƒˆ
+						int idleStart = 0;
+						if (player[p].lastDir == PlayerDir::Down)		idleStart = 0;
+						else if (player[p].lastDir == PlayerDir::Down_Left)	idleStart = 26;
+						else if (player[p].lastDir == PlayerDir::Left)		idleStart = 52;
+						else if (player[p].lastDir == PlayerDir::Up_Left)	idleStart = 78;
+						else if (player[p].lastDir == PlayerDir::Up)		idleStart = 104;
+						else if (player[p].lastDir == PlayerDir::Up_Right)	idleStart = 130;
+						else if (player[p].lastDir == PlayerDir::Right)		idleStart = 156;
+						else if (player[p].lastDir == PlayerDir::Down_Right)idleStart = 182;
+
+						player[p].animFrame = idleStart;
+					}
+				}
+				// æ”»æ’ƒ 6ã‚³ãƒ
+				else if (player[p].isAttacking)
+				{
+					if (player[p].lastDir == PlayerDir::Down)		LoopRange(player[p].animFrame, 20, 6, advance);	//  ä¸‹   20ï½25
+					else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(player[p].animFrame, 46, 6, advance);	// å·¦ä¸‹  46ï½51
+					else if (player[p].lastDir == PlayerDir::Left)		LoopRange(player[p].animFrame, 72, 6, advance);	//  å·¦   72ï½77
+					else if (player[p].lastDir == PlayerDir::Up_Left)	LoopRange(player[p].animFrame, 98, 6, advance);	// å·¦ä¸Š  98ï½103
+					else if (player[p].lastDir == PlayerDir::Up)		LoopRange(player[p].animFrame, 124, 6, advance);	//  ä¸Š  124ï½129
+					else if (player[p].lastDir == PlayerDir::Up_Right)	LoopRange(player[p].animFrame, 150, 6, advance);	// å³ä¸Š 150ï½155
+					else if (player[p].lastDir == PlayerDir::Right)		LoopRange(player[p].animFrame, 176, 6, advance);	//  å³  176ï½181
+					else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(player[p].animFrame, 202, 6, advance);	// å³ä¸‹ 202ï½207
+				}
+				// ç§»å‹• 8ã‚³ãƒ ï¼ˆãƒªã‚¹ãƒãƒ¼ãƒ³ä¸­ã‚’é™¤ãï¼‰
+				else if (!player[p].duringRespawn && player[p].isMoving)
+				{
+					float dx = player[p].moveInput2D.x;
+					float dz = player[p].moveInput2D.y;
+
+					if (dx < 0.0f && dz < 0.0f)LoopRange(player[p].animFrame, 32, 8, advance);
+					else if (dx < 0.0f && dz > 0.0f)LoopRange(player[p].animFrame, 84, 8, advance);
+					else if (dx > 0.0f && dz > 0.0f)LoopRange(player[p].animFrame, 136, 8, advance);
+					else if (dx > 0.0f && dz < 0.0f)LoopRange(player[p].animFrame, 188, 8, advance);
+					else if (dz < 0.0f)				LoopRange(player[p].animFrame, 6, 8, advance);
+					else if (dx < 0.0f)				LoopRange(player[p].animFrame, 58, 8, advance);
+					else if (dz > 0.0f)				LoopRange(player[p].animFrame, 110, 8, advance);
+					else if (dx > 0.0f)				LoopRange(player[p].animFrame, 162, 8, advance);
+				}
+				// å¾…æ©Ÿ 6ã‚³ãƒ
+				else if (player[p].isMoving == false)
+				{
+					if (player[p].lastDir == PlayerDir::Down)		LoopRange(player[p].animFrame, 0, 6, advance);	//  ä¸‹    0ï½5
+					else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(player[p].animFrame, 26, 6, advance);	// å·¦ä¸‹  26ï½31
+					else if (player[p].lastDir == PlayerDir::Left)		LoopRange(player[p].animFrame, 52, 6, advance);	//  å·¦   52ï½57
+					else if (player[p].lastDir == PlayerDir::Up_Left)	LoopRange(player[p].animFrame, 78, 6, advance);	// å·¦ä¸Š  78ï½83 
+					else if (player[p].lastDir == PlayerDir::Up)		LoopRange(player[p].animFrame, 104, 6, advance);	//  ä¸Š  104ï½109
+					else if (player[p].lastDir == PlayerDir::Up_Right)	LoopRange(player[p].animFrame, 130, 6, advance);	// å³ä¸Š 130ï½135
+					else if (player[p].lastDir == PlayerDir::Right)		LoopRange(player[p].animFrame, 156, 6, advance);	//  å³  156ï½161
+					else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(player[p].animFrame, 182, 6, advance);	// å³ä¸‹ 182ï½187		
+				}
+			}
+
+			static XMFLOAT3 posBuff = player[p].position;	// ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºåº§æ¨™
+
+			// æç”»ã§ä½¿ã£ã¦ã„ã‚‹ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆå€ç‡ã¨åŒã˜å€¤ã‚’ç‰©ç†ã«ã‚‚ä½¿ã†
+			const float renderScale = 2.0f;	// Draw å´ã® spriteScale ã«åˆã‚ã›ã‚‹
+			// æç”»ã‚¹ã‚±ãƒ¼ãƒ«ã‚’åæ˜ ã—ãŸã‚¹ã‚±ãƒ¼ãƒ«ï¼ˆè¡¨ç¤ºç”¨ï¼‰
+			XMFLOAT3 physicsScaling = XMFLOAT3(player[p].scaling.x * renderScale, player[p].scaling.y * renderScale, player[p].scaling.z * renderScale);
+
+
+			////////////////////////////////////////////////////////////////////////////////////////////
+			// TODO:
+
+			// --- ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”¨ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹æ¯”ç‡ï¼ˆå‘ãã§é•·çŸ­ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹ï¼‰ ---
+			// é«˜ã•ã¯å›ºå®šã€æ°´å¹³é¢ã¯å‘ãã«å¿œã˜ã¦é•·çŸ­ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
+			const float HITBOX_HEIGHT_SCALE = 1.0f;
+			const float HITBOX_SHORT = 0.35f;	// å‘ãã¨ç›´äº¤ã™ã‚‹çŸ­è¾º
+			const float HITBOX_LONG = 0.65f;	// å‘ãã«æ²¿ã£ãŸé•·è¾º
+
+			// å›è»¢ã‹ã‚‰å‰æ–¹ãƒ™ã‚¯ãƒˆãƒ«ã‚’ç®—å‡ºã—ã¦ã€ã©ã¡ã‚‰ã®è»¸ãŒå„ªå‹¢ã‹åˆ¤å®šã™ã‚‹
+			float radFacing = XMConvertToRadians(player[p].rotation.y);
+			float facingX = sinf(radFacing);
+			float facingZ = cosf(radFacing);
+			bool facingZDominant = fabsf(facingZ) <= fabsf(facingX);
+
+			float widthScale = facingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// Xæ–¹å‘ã‚¹ã‚±ãƒ¼ãƒ«
+			float depthScale = facingZDominant ? HITBOX_LONG : HITBOX_SHORT;	// Zæ–¹å‘ã‚¹ã‚±ãƒ¼ãƒ«
+
+			XMFLOAT3 hitboxScaling = XMFLOAT3
+			(
+				player[p].scaling.x * renderScale * widthScale,
+				player[p].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
+				player[p].scaling.z * renderScale * depthScale
+			);
+
+
+			/////////////////////////////////////////////////////////////////////////////////////
+			// TODO:å»ºç‰©ã¨ã®ã»ã£ãã„å½“ãŸã‚Šåˆ¤å®šã¨ã¯åˆ¥ã«ã€æ”»æ’ƒã‚’é£Ÿã‚‰ã†ç”¨ã®å¤§ãã‚ã®å½“ãŸã‚Šåˆ¤å®šã‚’ä½œã‚‹
+			// TODO:é‡åŠ›ã®è¦‹ç›´ã—ã¨ã€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒé‡åŠ›ã«ã‚ˆã‚Šç„¡é™ã«æ­»ã¬ã®ã‚’é˜²ã
+
+			// AABB ã‚’ç¾åœ¨ã®ä½ç½®ãƒ»ã‚¹ã‚±ãƒ¼ãƒ«ï¼ˆãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ï¼‰ã§æ›´æ–°ã—ã¦ãŠãï¼ˆè¡çªåˆ¤å®šã§ä½¿ç”¨ï¼‰
+			CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+
+			// 812è¡Œç›®ä»˜è¿‘
+			// --- ä¿®æ­£æ¡ˆ ---
+			if (currentDeltaTime > 0.0f)
+			{
+
+				// 1. é€Ÿåº¦ãŒã‚ã‚Œã°ã€ãã®åˆ†ã ã‘åº§æ¨™ã‚’å‹•ã‹ã™ï¼ˆã“ã‚ŒãŒã€Œå¹ã£é£›ã‚“ã§ã„ã‚‹ã€çŠ¶æ…‹ï¼‰
+				player[p].position.x += player[p].velocity.x;
+				player[p].position.y += player[p].velocity.y;
+				player[p].position.z += player[p].velocity.z;
+
+				// 2. æ‘©æ“¦ã§æ¸›é€Ÿ
+				player[p].velocity.x *= 0.95f; // 1æœªæº€ã‚’æ›ã‘ã‚‹ã¨ã ã‚“ã ã‚“é…ããªã‚‹
+				player[p].velocity.z *= 0.95f;
+
+				// 3. é‡åŠ›ã‚’åŠ ãˆã‚‹ï¼ˆè½ä¸‹ã—ã¦ã„ã‚‹å ´åˆï¼‰
+				if (!player[p].duringRespawn || player[p].active)
+				{
+					if (player[p].position.y >= -11.0f)	player[p].velocity.y = -0.02f; // ä¸‹å‘ãã®åŠ›ï¼ˆè² ã®å€¤ï¼‰
+					else								player[p].velocity.y = 0.0f;
+				}
+			}
+			else if (!player[p].active)
+			{
+				// éã‚¢ã‚¯ãƒ†ã‚£ãƒ–æ™‚ã¯é€Ÿåº¦ã‚’ã‚¼ãƒ­ã«ã—ã¦ä½ç½®ã‚’å›ºå®š
+				player[p].velocity = { 0.0f, 0.0f, 0.0f };
+			}
+			posBuff = player[p].position;
+
+			// åœ°é¢ã®é«˜ã•ï¼ˆæœ€ä½ãƒ©ã‚¤ãƒ³ï¼‰
+			//float groundHeight = -10.0f;	// å¥ˆè½ã®åº•
+			//bool isShadowEnabled = false;		// åœ°é¢ã«è¶³ãŒã¤ã„ã¦ã„ã‚‹ã‹ãƒ•ãƒ©ã‚°
+
+			// ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ï¼ˆåœ°é¢ï¼‰ã¨ã®å½“ãŸã‚Šåˆ¤å®š
+			if (player[p].active)
+			{
+				int fieldCount = GetFieldObjectCount();
+				MAPDATA* fieldObjects = GetFieldObjects();
+
+				for (int j = 0; j < fieldCount; ++j)
+				{
+					// ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã§ãªã„ã€ã¾ãŸã¯ no ãŒ MAX ãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
+					if (!fieldObjects[j].isActive || fieldObjects[j].no == FIELD::FIELD_MAX)
+					{
+						continue;
+					}
+
+					// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®AABBï¼ˆä½“ã®ä¸€éƒ¨ï¼‰ãŒå…­è§’å½¢ã«ä¹—ã£ã¦ã„ã‚‹ã‹
+					if (CheckAABBHexCollision(player[p].boundingBox, fieldObjects[j].boundingBox))
+					{
+						// ã‚¿ã‚¤ãƒ«ã®ä¸Šé¢Yåº§æ¨™ã‚’è¨ˆç®—
+						float tileTopY = fieldObjects[j].pos.y + (fieldObjects[j].boundingBox.height / 2.0f);	// -1 + 1.5 = 0.5
+
+						// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®åº•é¢ãŒã‚¿ã‚¤ãƒ«ã®ä¸Šé¢ä»¥ä¸‹ã‹
+						if (player[p].boundingBox.Min.y <= tileTopY)
 						{
-							g_specialAnimPhase[p] = 1;
-							player[p].animFrame = start + 4;
+							const float baseHalfHeight = COORDINATE;
+							// ç€åœ°ã§ã¯è¦‹ãŸç›®ã®é«˜ã•ï¼ˆæç”»ã‚¹ã‚±ãƒ¼ãƒ«ï¼‰ã‚’å…ƒã«è¨ˆç®—ã—ã¦ã„ã‚‹ãŸã‚ physicsScaling ã‚’ä½¿ç”¨
+							float halfHeight = baseHalfHeight * player[p].scaling.y * renderScale;
+
+							// ç€åœ°ã•ã›ã‚‹ï¼ˆã‚ã‚Šè¾¼ã¿ãŒèµ·ããªã„ã‚ˆã†å›ºå®šå€¤ã¨ã—ã¦è£œæ­£ï¼‰
+							float targetY = tileTopY + halfHeight;
+							if (player[p].position.y < targetY)
+							{
+								player[p].position.y = targetY;
+								player[p].isShadowEnabled = true; // å½±ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¡¨ç¤º
+							}
+
+							// AABB ã‚’å†è¨ˆç®—ã—ã¦æ­£ç¢ºæ€§ã‚’ä¿ã¤ï¼ˆæç”»ã‚¹ã‚±ãƒ¼ãƒ«ã‚’è€ƒæ…®ï¼‰
+							// ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ï¼ˆå‘ãã«å¿œã˜ãŸé•·æ–¹å½¢ï¼‰ã§å†è¨ˆç®—ã™ã‚‹
+							CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+
+							top_y = tileTopY;
+
+							break;
 						}
 					}
-					else if (g_specialAnimPhase[p] == 1)	LoopRange(player[p].animFrame, start + 4, 3, advance);
-					// phase == 2 : ƒtƒŒ[ƒ€7•\¦’† -> ‰½‚à‚µ‚È‚¢ispecialTimerƒx[ƒX‚Å§Œäj
-				}
-				// A•¨: ]—ˆ’Ê‚è8ƒRƒ}ƒ‹[ƒv
-				if (player[p].type == PlayerType::Plant)	LoopRange(player[p].animFrame, start, 8, advance);
-			}
-			// ƒ_ƒ[ƒW 3ƒRƒ}
-			else if (player[p].isAttacked || player[p].isStunning)
-			{
-				if (player[p].lastDir == PlayerDir::Down)		LoopRange(player[p].animFrame, 14, 3, advance);	//  ‰º   14`16 
-				else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(player[p].animFrame, 40, 3, advance);	// ¶‰º  40`42
-				else if (player[p].lastDir == PlayerDir::Left)		LoopRange(player[p].animFrame, 66, 3, advance);	//  ¶   66`68
-				else if (player[p].lastDir == PlayerDir::Up_Left)	LoopRange(player[p].animFrame, 92, 3, advance);	// ¶ã  92`94
-				else if (player[p].lastDir == PlayerDir::Up)		LoopRange(player[p].animFrame, 118, 3, advance);	//  ã  118`120
-				else if (player[p].lastDir == PlayerDir::Up_Right)	LoopRange(player[p].animFrame, 144, 3, advance);	// ‰Eã 144`146
-				else if (player[p].lastDir == PlayerDir::Right)		LoopRange(player[p].animFrame, 170, 3, advance);	//  ‰E  170`172
-				else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(player[p].animFrame, 196, 3, advance);	// ‰E‰º 196`198
-			}
-			// ƒXƒLƒ‹ 4ƒRƒ}i1‰ñÄ¶EÅIƒtƒŒ[ƒ€‚Å’â~Œã‚ÉI—¹j
-			else if (player[p].skillAnimation)
-			{
-				int start = g_skillAnimStart[p];
-				const int count = 4;
-				const int lastFrame = start + count - 1;
-
-				// ”ÍˆÍŠO‚È‚çŠJnƒtƒŒ[ƒ€‚ğŒvZE•Û‘¶‚µ‚ÄƒŠƒZƒbƒg
-				if (player[p].animFrame < start || player[p].animFrame > lastFrame)
-				{
-					// ‘®«‚²‚Æ‚ÌŠî€ƒIƒtƒZƒbƒgi‘®«1‚Â‚ ‚½‚è32ƒRƒ}j
-					int typeBase = 0;
-					if (player[p].type == PlayerType::Concrete)	typeBase = 0;
-					else if (player[p].type == PlayerType::Electricity)	typeBase = 32;
-					else if (player[p].type == PlayerType::Glass)		typeBase = 64;
-					else if (player[p].type == PlayerType::Plant)		typeBase = 96;
-
-					// Œ`‘ÔƒIƒtƒZƒbƒgi‘æ2Œ`‘Ô: 0A‘æ3Œ`‘Ô: 128j
-					int formBase = 0;
-					if (player[p].form == Form::Third) formBase = 128;
-
-					// •ûŒüƒIƒtƒZƒbƒgi1•ûŒü‚ ‚½‚è4ƒRƒ}j
-					int dirOffset = 0;
-					if (player[p].lastDir == PlayerDir::Down)		dirOffset = 0;
-					else if (player[p].lastDir == PlayerDir::Down_Left)	dirOffset = 4;
-					else if (player[p].lastDir == PlayerDir::Left)		dirOffset = 8;
-					else if (player[p].lastDir == PlayerDir::Up_Left)	dirOffset = 12;
-					else if (player[p].lastDir == PlayerDir::Up)		dirOffset = 16;
-					else if (player[p].lastDir == PlayerDir::Up_Right)	dirOffset = 20;
-					else if (player[p].lastDir == PlayerDir::Right)		dirOffset = 24;
-					else if (player[p].lastDir == PlayerDir::Down_Right)dirOffset = 28;
-
-					start = formBase + typeBase + dirOffset;
-					g_skillAnimStart[p] = start;
-					player[p].animFrame = start;
-				}
-
-				// lastFrame ‚ğÄŒvZistart ‚ªXV‚³‚ê‚½‰Â”\«‚ª‚ ‚é‚½‚ßj
-				const int finalFrame = g_skillAnimStart[p] + count - 1;
-
-				// ÅIƒtƒŒ[ƒ€‚É’B‚µ‚Ä‚¢‚È‚¯‚ê‚Îi‚ß‚é
-				if (player[p].animFrame < finalFrame)
-				{
-					player[p].animFrame += advance;
-					// ƒI[ƒo[ƒVƒ…[ƒg–h~iÅIƒtƒŒ[ƒ€‚ÅƒNƒ‰ƒ“ƒvj
-					if (player[p].animFrame > finalFrame) player[p].animFrame = finalFrame;
-				}
-				else
-				{
-					// ÅIƒtƒŒ[ƒ€‚É’B‚µ‚½‚çƒAƒjƒ[ƒVƒ‡ƒ“I—¹
-					player[p].skillAnimation = false;
-
-					// ’ÊíƒeƒNƒXƒ`ƒƒ‚Ì‘Ò‹@ƒAƒjƒ[ƒVƒ‡ƒ“ŠJnƒtƒŒ[ƒ€‚ÉƒŠƒZƒbƒg
-					int idleStart = 0;
-					if (player[p].lastDir == PlayerDir::Down)		idleStart = 0;
-					else if (player[p].lastDir == PlayerDir::Down_Left)	idleStart = 26;
-					else if (player[p].lastDir == PlayerDir::Left)		idleStart = 52;
-					else if (player[p].lastDir == PlayerDir::Up_Left)	idleStart = 78;
-					else if (player[p].lastDir == PlayerDir::Up)		idleStart = 104;
-					else if (player[p].lastDir == PlayerDir::Up_Right)	idleStart = 130;
-					else if (player[p].lastDir == PlayerDir::Right)		idleStart = 156;
-					else if (player[p].lastDir == PlayerDir::Down_Right)idleStart = 182;
-
-					player[p].animFrame = idleStart;
 				}
 			}
-			// UŒ‚ 6ƒRƒ}
-			else if (player[p].isAttacking)
+
+			// -------------------------------------------------------------------------------------
+			// å»ºç‰©ã¨ã®å½“ãŸã‚Šåˆ¤å®š
+			// -------------------------------------------------------------------------------------
+			if (player[p].active)
 			{
-				if (player[p].lastDir == PlayerDir::Down)		LoopRange(player[p].animFrame, 20, 6, advance);	//  ‰º   20`25
-				else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(player[p].animFrame, 46, 6, advance);	// ¶‰º  46`51
-				else if (player[p].lastDir == PlayerDir::Left)		LoopRange(player[p].animFrame, 72, 6, advance);	//  ¶   72`77
-				else if (player[p].lastDir == PlayerDir::Up_Left)	LoopRange(player[p].animFrame, 98, 6, advance);	// ¶ã  98`103
-				else if (player[p].lastDir == PlayerDir::Up)		LoopRange(player[p].animFrame, 124, 6, advance);	//  ã  124`129
-				else if (player[p].lastDir == PlayerDir::Up_Right)	LoopRange(player[p].animFrame, 150, 6, advance);	// ‰Eã 150`155
-				else if (player[p].lastDir == PlayerDir::Right)		LoopRange(player[p].animFrame, 176, 6, advance);	//  ‰E  176`181
-				else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(player[p].animFrame, 202, 6, advance);	// ‰E‰º 202`207
-			}
-			// ˆÚ“® 8ƒRƒ} iƒŠƒXƒ|[ƒ“’†‚ğœ‚­j
-			else if (!player[p].duringRespawn && player[p].isMoving)
-			{
-				float dx = player[p].moveInput2D.x;
-				float dz = player[p].moveInput2D.y;
+				int buildingCount = GetBuildingCount();			// å»ºç‰©æ•°å–å¾—
+				Building** buildingObjects = GetBuildings();	// ãƒªã‚¹ãƒˆå–å¾—
 
-				if (dx < 0.0f && dz < 0.0f)LoopRange(player[p].animFrame, 32, 8, advance);
-				else if (dx < 0.0f && dz > 0.0f)LoopRange(player[p].animFrame, 84, 8, advance);
-				else if (dx > 0.0f && dz > 0.0f)LoopRange(player[p].animFrame, 136, 8, advance);
-				else if (dx > 0.0f && dz < 0.0f)LoopRange(player[p].animFrame, 188, 8, advance);
-				else if (dz < 0.0f)				LoopRange(player[p].animFrame, 6, 8, advance);
-				else if (dx < 0.0f)				LoopRange(player[p].animFrame, 58, 8, advance);
-				else if (dz > 0.0f)				LoopRange(player[p].animFrame, 110, 8, advance);
-				else if (dx > 0.0f)				LoopRange(player[p].animFrame, 162, 8, advance);
-			}
-			// ‘Ò‹@ 6ƒRƒ}
-			else if (player[p].isMoving == false)
-			{
-				if (player[p].lastDir == PlayerDir::Down)		LoopRange(player[p].animFrame, 0, 6, advance);	//  ‰º    0`5
-				else if (player[p].lastDir == PlayerDir::Down_Left)	LoopRange(player[p].animFrame, 26, 6, advance);	// ¶‰º  26`31
-				else if (player[p].lastDir == PlayerDir::Left)		LoopRange(player[p].animFrame, 52, 6, advance);	//  ¶   52`57
-				else if (player[p].lastDir == PlayerDir::Up_Left)	LoopRange(player[p].animFrame, 78, 6, advance);	// ¶ã  78`83 
-				else if (player[p].lastDir == PlayerDir::Up)		LoopRange(player[p].animFrame, 104, 6, advance);	//  ã  104`109
-				else if (player[p].lastDir == PlayerDir::Up_Right)	LoopRange(player[p].animFrame, 130, 6, advance);	// ‰Eã 130`135
-				else if (player[p].lastDir == PlayerDir::Right)		LoopRange(player[p].animFrame, 156, 6, advance);	//  ‰E  156`161
-				else if (player[p].lastDir == PlayerDir::Down_Right)LoopRange(player[p].animFrame, 182, 6, advance);	// ‰E‰º 182`187		
-			}
-		}
-
-		static XMFLOAT3 posBuff = player[p].position;	// ƒfƒoƒbƒO•\¦À•W
-
-		// •`‰æ‚Åg‚Á‚Ä‚¢‚éƒXƒvƒ‰ƒCƒg”{—¦‚Æ“¯‚¶’l‚ğ•¨—‚É‚àg‚¤
-		const float renderScale = 2.0f;	// Draw ‘¤‚Ì spriteScale ‚É‡‚í‚¹‚é
-		// •`‰æƒXƒP[ƒ‹‚ğ”½‰f‚µ‚½ƒXƒP[ƒ‹i•\¦—pj
-		XMFLOAT3 physicsScaling = XMFLOAT3(player[p].scaling.x * renderScale, player[p].scaling.y * renderScale, player[p].scaling.z * renderScale);
-
-
-		////////////////////////////////////////////////////////////////////////////////////////////
-		// TODO:
-
-		// --- ƒvƒŒƒCƒ„[—pƒqƒbƒgƒ{ƒbƒNƒX”ä—¦iŒü‚«‚Å’·’Z‚ğØ‚è‘Ö‚¦‚éj ---
-		// ‚‚³‚ÍŒÅ’èA…•½–Ê‚ÍŒü‚«‚É‰‚¶‚Ä’·’Z‚ğØ‚è‘Ö‚¦‚é
-		const float HITBOX_HEIGHT_SCALE = 1.0f;
-		const float HITBOX_SHORT = 0.35f;	// Œü‚«‚Æ’¼Œğ‚·‚é’Z•Ó
-		const float HITBOX_LONG = 0.65f;	// Œü‚«‚É‰ˆ‚Á‚½’·•Ó
-
-		// ‰ñ“]‚©‚ç‘O•ûƒxƒNƒgƒ‹‚ğZo‚µ‚ÄA‚Ç‚¿‚ç‚Ì²‚ª—D¨‚©”»’è‚·‚é
-		float radFacing = XMConvertToRadians(player[p].rotation.y);
-		float facingX = sinf(radFacing);
-		float facingZ = cosf(radFacing);
-		bool facingZDominant = fabsf(facingZ) <= fabsf(facingX);
-
-		float widthScale = facingZDominant ? HITBOX_SHORT : HITBOX_LONG;	// X•ûŒüƒXƒP[ƒ‹
-		float depthScale = facingZDominant ? HITBOX_LONG : HITBOX_SHORT;	// Z•ûŒüƒXƒP[ƒ‹
-
-		XMFLOAT3 hitboxScaling = XMFLOAT3
-		(
-			player[p].scaling.x * renderScale * widthScale,
-			player[p].scaling.y * renderScale * HITBOX_HEIGHT_SCALE,
-			player[p].scaling.z * renderScale * depthScale
-		);
-
-
-		/////////////////////////////////////////////////////////////////////////////////////
-		// TODO:Œš•¨‚Æ‚Ì‚Ù‚Á‚»‚¢“–‚½‚è”»’è‚Æ‚Í•Ê‚ÉAUŒ‚‚ğH‚ç‚¤—p‚Ì‘å‚«‚ß‚Ì“–‚½‚è”»’è‚ğì‚é
-		// TODO:d—Í‚ÌŒ©’¼‚µ‚ÆAƒvƒŒƒCƒ„[‚ªd—Í‚É‚æ‚è–³ŒÀ‚É€‚Ê‚Ì‚ğ–h‚®
-
-		// AABB ‚ğŒ»İ‚ÌˆÊ’uEƒXƒP[ƒ‹iƒqƒbƒgƒ{ƒbƒNƒXj‚ÅXV‚µ‚Ä‚¨‚­iÕ“Ë”»’è‚Åg—pj
-		CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
-
-		// 1. ‘¬“x‚ª‚ ‚ê‚ÎA‚»‚Ì•ª‚¾‚¯À•W‚ğ“®‚©‚·i‚±‚ê‚ªu‚Á”ò‚ñ‚Å‚¢‚évó‘Ôj
-		player[p].position.x += player[p].velocity.x;
-		player[p].position.y += player[p].velocity.y;
-		player[p].position.z += player[p].velocity.z;
-
-		// 2. –€C‚ÅŒ¸‘¬
-		player[p].velocity.x *= 0.95f; // 1–¢–‚ğŠ|‚¯‚é‚Æ‚¾‚ñ‚¾‚ñ’x‚­‚È‚é
-		player[p].velocity.z *= 0.95f;
-
-		// 3. d—Í‚ğ‰Á‚¦‚éi—‰º‚µ‚Ä‚¢‚éê‡j
-		if (!player[p].duringRespawn || player[p].active)
-		{
-			if (player[p].position.y >= -11.0f)	player[p].velocity.y = -0.02f; // ‰ºŒü‚«‚Ì—Íi•‰‚Ì’lj
-			else								player[p].velocity.y = 0.0f;
-		}
-		else if (!player[p].active)
-		{
-			// ”ñƒAƒNƒeƒBƒu‚Í‘¬“x‚ğƒ[ƒ‚É‚µ‚ÄˆÊ’u‚ğŒÅ’è
-			player[p].velocity = { 0.0f, 0.0f, 0.0f };
-		}
-		posBuff = player[p].position;
-
-		// ’n–Ê‚Ì‚‚³iÅ’áƒ‰ƒCƒ“j
-		//float groundHeight = -10.0f;	// “Ş—‚Ì’ê
-		//bool isShadowEnabled = false;		// ’n–Ê‚É‘«‚ª‚Â‚¢‚Ä‚¢‚é‚©ƒtƒ‰ƒO
-
-		// ƒ}ƒbƒvƒf[ƒ^i’n–Êj‚Æ‚Ì“–‚½‚è”»’è
-		if (player[p].active)
-		{
-			int fieldCount = GetFieldObjectCount();
-			MAPDATA* fieldObjects = GetFieldObjects();
-
-			for (int j = 0; j < fieldCount; ++j)
-			{
-				// ƒAƒNƒeƒBƒu‚Å‚È‚¢A‚Ü‚½‚Í no ‚ª MAX ‚È‚çƒXƒLƒbƒv
-				if (!fieldObjects[j].isActive || fieldObjects[j].no == FIELD::FIELD_MAX)
+				for (int j = 0; j < buildingCount; ++j)
 				{
-					continue;
-				}
+					// ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã§ãªã‘ã‚Œã°ç„¡è¦–
+					if (!buildingObjects[j]->isActive)	continue;
 
-				// ƒvƒŒƒCƒ„[‚ÌAABBi‘Ì‚Ìˆê•”j‚ª˜ZŠpŒ`‚Éæ‚Á‚Ä‚¢‚é‚©
-				if (CheckAABBHexCollision(player[p].boundingBox, fieldObjects[j].boundingBox))
-				{
-					// ƒ^ƒCƒ‹‚Ìã–ÊYÀ•W‚ğŒvZ
-					float tileTopY = fieldObjects[j].pos.y + (fieldObjects[j].boundingBox.height / 2.0f);	// -1 + 1.5 = 0.5
-
-					// ƒvƒŒƒCƒ„[‚Ì’ê–Ê‚ªƒ^ƒCƒ‹‚Ìã–ÊˆÈ‰º‚©
-					if (player[p].boundingBox.Min.y <= tileTopY)
+					// è¿½åŠ ï¼šFBXåãŒ "togeki" ã®å»ºç‰©ã¨ã¯å½“ãŸã‚Šåˆ¤å®šã—ãªã„
+					// ï¼ˆPlant ã‚¿ã‚¤ãƒ—ã®ãƒ¢ãƒ‡ãƒ«åé…åˆ—ã« "togeki" ãŒã‚ã‚‹æƒ³å®šï¼‰
+					const char* modelName = buildingObjects[j]->GetModelName();
+					if (buildingObjects[j]->GetType() == BuildingType::Plant &&
+						std::strcmp(modelName, "togeki") == 0)
 					{
-						const float baseHalfHeight = COORDINATE;
-						// ’…’n‚Å‚ÍŒ©‚½–Ú‚Ì‚‚³i•`‰æƒXƒP[ƒ‹j‚ğŒ³‚ÉŒvZ‚µ‚Ä‚¢‚é‚½‚ß physicsScaling ‚ğg—p
-						float halfHeight = baseHalfHeight * player[p].scaling.y * renderScale;
+						// ã“ã®å»ºç‰©ã¯è¡çªåˆ¤å®šã‚’ç„¡è¦–
+						continue;
+					}
 
-						// ’…’n‚³‚¹‚éi‚ß‚è‚İ‚ª‹N‚«‚È‚¢‚æ‚¤ŒÅ’è’l‚Æ‚µ‚Ä•â³j
-						float targetY = tileTopY + halfHeight;
-						if (player[p].position.y < targetY)
-						{
-							player[p].position.y = targetY;
-							player[p].isShadowEnabled = true; // ‰eƒGƒtƒFƒNƒg‚ğ•\¦
-						}
+					// å»ºç‰©ãŒè‡ªåˆ†ã§è¨ˆç®—ã—ã¦ãŠã„ã¦ãã‚ŒãŸ AABB ã‚’ã‚‚ã‚‰ã†ã ã‘ï¼
+					const AABB& bBox = buildingObjects[j]->GetAABB();
 
-						// AABB ‚ğÄŒvZ‚µ‚Ä³Šm«‚ğ•Û‚Âi•`‰æƒXƒP[ƒ‹‚ğl—¶j
-						// ƒqƒbƒgƒ{ƒbƒNƒXiŒü‚«‚É‰‚¶‚½’·•ûŒ`j‚ÅÄŒvZ‚·‚é
+					// åˆ¤å®šï¼
+					MTV collision = CalculateAABBMTV(player[p].boundingBox, bBox);
+					if (collision.isColliding)
+					{
+						// è¡çªã—ã¦ã„ãŸã‚‰ã€MTVã®åˆ†ã ã‘ä½ç½®ã‚’æˆ»ã™
+						player[p].position.x += collision.translation.x;
+						player[p].position.y += collision.translation.y;
+						player[p].position.z += collision.translation.z;
+
+						// æŠ¼ã—æˆ»ã—å¾Œã®æ–°ã—ã„AABBã‚’å†è¨ˆç®—ï¼ˆæç”»ã‚¹ã‚±ãƒ¼ãƒ«ã‚’åæ˜ ï¼‰
+						// ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ï¼ˆå‘ãã«å¿œã˜ãŸé•·æ–¹å½¢ï¼‰ã§å†è¨ˆç®—ã™ã‚‹
 						CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
-
-						top_y = tileTopY;
-
-						break;
 					}
 				}
 			}
-		}
-
-		// -------------------------------------------------------------------------------------
-		// Œš•¨‚Æ‚Ì“–‚½‚è”»’è
-		// -------------------------------------------------------------------------------------
-		if (player[p].active)
-		{
-			int buildingCount = GetBuildingCount();			// Œš•¨”æ“¾
-			Building** buildingObjects = GetBuildings();	// ƒŠƒXƒgæ“¾
-
-			for (int j = 0; j < buildingCount; ++j)
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«å¯¾å¿œã™ã‚‹æ”»æ’ƒã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ PLAYER_MAX åˆ†ãƒ«ãƒ¼ãƒ—ã—ã¦ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°åŒæœŸ
+			for (int atk = 0; atk < PLAYER_MAX; ++atk)
 			{
-				// ƒAƒNƒeƒBƒu‚Å‚È‚¯‚ê‚Î–³‹
-				if (!buildingObjects[j]->isActive)	continue;
+				ATTACK_OBJECT* attackObject = GetAttack(atk); // ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹å¤‰æ•°ã‚’è¡çªã—ãªã„åå‰ã«å¤‰æ›´
+				if (attackObject == nullptr) continue;
 
-				// ’Ç‰ÁFFBX–¼‚ª "togeki" ‚ÌŒš•¨‚Æ‚Í“–‚½‚è”»’è‚µ‚È‚¢
-				// iPlant ƒ^ƒCƒv‚Ìƒ‚ƒfƒ‹–¼”z—ñ‚É "togeki" ‚ª‚ ‚é‘z’èj
-				const char* modelName = buildingObjects[j]->GetModelName();
-				if (buildingObjects[j]->GetType() == BuildingType::Plant &&
-					std::strcmp(modelName, "togeki") == 0)
-				{
-					// ‚±‚ÌŒš•¨‚ÍÕ“Ë”»’è‚ğ–³‹
-					continue;
-				}
-
-				// Œš•¨‚ª©•ª‚ÅŒvZ‚µ‚Ä‚¨‚¢‚Ä‚­‚ê‚½ AABB ‚ğ‚à‚ç‚¤‚¾‚¯I
-				const AABB& bBox = buildingObjects[j]->GetAABB();
-
-				// ”»’èI
-				MTV collision = CalculateAABBMTV(player[p].boundingBox, bBox);
-				if (collision.isColliding)
-				{
-					// Õ“Ë‚µ‚Ä‚¢‚½‚çAMTV‚Ì•ª‚¾‚¯ˆÊ’u‚ğ–ß‚·
-					player[p].position.x += collision.translation.x;
-					player[p].position.y += collision.translation.y;
-					player[p].position.z += collision.translation.z;
-
-					// ‰Ÿ‚µ–ß‚µŒã‚ÌV‚µ‚¢AABB‚ğÄŒvZi•`‰æƒXƒP[ƒ‹‚ğ”½‰fj
-					// ƒqƒbƒgƒ{ƒbƒNƒXiŒü‚«‚É‰‚¶‚½’·•ûŒ`j‚ÅÄŒvZ‚·‚é
-					CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
-				}
+				// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å´ã®ã‚¹ã‚±ãƒ¼ãƒ«ã«åˆã‚ã›ã‚‹ï¼ˆæ”»æ’ƒã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯åŠåˆ†ï¼‰
+				attackObject->scaling.x = player[atk].scaling.x * 0.5f;
+				attackObject->scaling.y = player[atk].scaling.y * 0.5f;
+				attackObject->scaling.z = player[atk].scaling.z * 0.5f;
 			}
-		}
-		// ƒvƒŒƒCƒ„[‚É‘Î‰‚·‚éUŒ‚ƒIƒuƒWƒFƒNƒg‚ğ PLAYER_MAX •ªƒ‹[ƒv‚µ‚ÄƒXƒP[ƒŠƒ“ƒO“¯Šú
-		for (int atk = 0; atk < PLAYER_MAX; ++atk)
-		{
-			ATTACK_OBJECT* attackObject = GetAttack(atk); // ƒCƒ“ƒfƒbƒNƒX•Ï”‚ğÕ“Ë‚µ‚È‚¢–¼‘O‚É•ÏX
-			if (attackObject == nullptr) continue;
 
-			// ƒvƒŒƒCƒ„[‘¤‚ÌƒXƒP[ƒ‹‚É‡‚í‚¹‚éiUŒ‚ƒIƒuƒWƒFƒNƒg‚Í”¼•ªj
-			attackObject->scaling.x = player[atk].scaling.x * 0.5f;
-			attackObject->scaling.y = player[atk].scaling.y * 0.5f;
-			attackObject->scaling.z = player[atk].scaling.z * 0.5f;
-		}
-
-		// -------------------------------------------------------------------------------------
-		// ƒvƒŒƒCƒ„[ƒIƒuƒWƒFƒNƒg“¯m‚Ì“–‚½‚è”»’èiPLAYER_MAX•ª‘Î‰j
-		// -------------------------------------------------------------------------------------
-		if (player[p].active)
-		{
-			for (int otherIndex = p + 1; otherIndex < PLAYER_MAX; ++otherIndex)
+			// -------------------------------------------------------------------------------------
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆåŒå£«ã®å½“ãŸã‚Šåˆ¤å®šï¼ˆPLAYER_MAXåˆ†å¯¾å¿œï¼‰
+			// -------------------------------------------------------------------------------------
+			if (player[p].active)
 			{
-				// ”ñƒAƒNƒeƒBƒu‚Í–³‹
-				if (!player[otherIndex].active) continue;
-
-				// ‘¼ƒvƒŒƒCƒ„[‚Ì AABB ‚ğXVi‚±‚±‚Å’è‹`Ï‚İ‚Ì hitboxScaling ‚ğg—pj
-				CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScaling);
-
-				// Õ“Ëƒ`ƒFƒbƒNiƒyƒA p <-> otherIndex ‚ğˆê“x‚¾‚¯ˆ—j
-				MTV collision_player = CalculateAABBMTV(player[p].boundingBox, player[otherIndex].boundingBox);
-
-				if (collision_player.isColliding)
+				for (int otherIndex = p + 1; otherIndex < PLAYER_MAX; ++otherIndex)
 				{
-					// •ûŒüƒxƒNƒgƒ‹‚ğXVirotation.y ‚©‚çZoj
-					{
-						float rad_p = XMConvertToRadians(player[p].rotation.y);
-						player[p].dir.x = sinf(rad_p);
-						player[p].dir.z = cosf(rad_p);
-					}
+					// éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã¯ç„¡è¦–
+					if (!player[otherIndex].active) continue;
 
-					{
-						float rad_o = XMConvertToRadians(player[otherIndex].rotation.y);
-						player[otherIndex].dir.x = sinf(rad_o);
-						player[otherIndex].dir.z = cosf(rad_o);
-					}
-
-					// ‰Ÿ‚µ–ß‚µ—Ê (MTV) ‚ğ”¼•ª‚É‚µ‚Ä‘o•û‚É“K—p
-					XMFLOAT3 half_translation =
-					{
-						collision_player.translation.x * 0.5f,
-						collision_player.translation.y * 0.5f,
-						collision_player.translation.z * 0.5f
-					};
-
-					// player[p] ‚ğ MTV ‚Ì”¼•ª‚¾‚¯‰Ÿ‚·
-					player[p].position.x += half_translation.x;
-					player[p].position.y += half_translation.y;
-					player[p].position.z += half_translation.z;
-
-					// player[otherIndex] ‚ğ‹t•ûŒü‚É”¼•ª‚¾‚¯‰Ÿ‚·
-					player[otherIndex].position.x -= half_translation.x;
-					player[otherIndex].position.y -= half_translation.y;
-					player[otherIndex].position.z -= half_translation.z;
-
-					// ‰Ÿ‚µ–ß‚µŒã‚ÌV‚µ‚¢AABB‚ğÄŒvZ (ƒqƒbƒgƒ{ƒbƒNƒX—p)
-					CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+					// ä»–ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã® AABB ã‚’æ›´æ–°ï¼ˆã“ã“ã§å®šç¾©æ¸ˆã¿ã® hitboxScaling ã‚’ä½¿ç”¨ï¼‰
 					CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScaling);
+
+					// è¡çªãƒã‚§ãƒƒã‚¯ï¼ˆãƒšã‚¢ p <-> otherIndex ã‚’ä¸€åº¦ã ã‘å‡¦ç†ï¼‰
+					MTV collision_player = CalculateAABBMTV(player[p].boundingBox, player[otherIndex].boundingBox);
+
+					if (collision_player.isColliding)
+					{
+						// æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã‚’æ›´æ–°ï¼ˆrotation.y ã‹ã‚‰ç®—å‡ºï¼‰
+						{
+							float rad_p = XMConvertToRadians(player[p].rotation.y);
+							player[p].dir.x = sinf(rad_p);
+							player[p].dir.z = cosf(rad_p);
+						}
+
+						{
+							float rad_o = XMConvertToRadians(player[otherIndex].rotation.y);
+							player[otherIndex].dir.x = sinf(rad_o);
+							player[otherIndex].dir.z = cosf(rad_o);
+						}
+
+						// æŠ¼ã—æˆ»ã—é‡ (MTV) ã‚’åŠåˆ†ã«ã—ã¦åŒæ–¹ã«é©ç”¨
+						XMFLOAT3 half_translation =
+						{
+							collision_player.translation.x * 0.5f,
+							collision_player.translation.y * 0.5f,
+							collision_player.translation.z * 0.5f
+						};
+
+						// player[p] ã‚’ MTV ã®åŠåˆ†ã ã‘æŠ¼ã™
+						player[p].position.x += half_translation.x;
+						player[p].position.y += half_translation.y;
+						player[p].position.z += half_translation.z;
+
+						// player[otherIndex] ã‚’é€†æ–¹å‘ã«åŠåˆ†ã ã‘æŠ¼ã™
+						player[otherIndex].position.x -= half_translation.x;
+						player[otherIndex].position.y -= half_translation.y;
+						player[otherIndex].position.z -= half_translation.z;
+
+						// æŠ¼ã—æˆ»ã—å¾Œã®æ–°ã—ã„AABBã‚’å†è¨ˆç®— (ãƒ’ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ç”¨)
+						CalculateAABB(player[p].boundingBox, player[p].position, hitboxScaling);
+						CalculateAABB(player[otherIndex].boundingBox, player[otherIndex].position, hitboxScaling);
+					}
 				}
 			}
+			SetHPValue(&HPBar[p], (int)player[p].hp, (int)PLAYER_MAX_HP);
+			UpdateHP(&HPBar[p]);
+
+			if (&HPBar[p])	SetHPOutline(&HPBar[p], player[p].type);
 		}
-		SetHPValue(&HPBar[p], (int)player[p].hp, (int)PLAYER_MAX_HP);
-		UpdateHP(&HPBar[p]);
-
-		if (&HPBar[p])	SetHPOutline(&HPBar[p], player[p].type);
 	}
-
-	// ƒvƒŒƒCƒ„[“¯m‚ÌUŒ‚”»’è
+	Player_CheckWin();
 	AttackPlayerCollisions();
 }
 
 //======================================================
-//	ƒVƒ‹ƒGƒbƒg—p•`‰æ
+//	ã‚·ãƒ«ã‚¨ãƒƒãƒˆç”¨æç”»
 //======================================================
 static void Player_DrawSilhouette(int p)
 {
 	if (!Loader::IsFinished && g_loadedCount == 0) return;
 	if (!player[p].active || player[p].duringRespawn) return;
 
-	// ƒvƒƒWƒFƒNƒVƒ‡ƒ“Eƒrƒ…[s—ñ‚ğæ“¾
+	// ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³ãƒ»ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ã‚’å–å¾—
 	XMMATRIX proj = GetProjectionMatrix();
 	XMMATRIX view = GetViewMatrix();
 
-	const float scale = 3.5f; // ’Êí•`‰æ‚Æ“¯‚¶”{—¦‚ğ‚©‚¯‚é
+	const float scale = 3.5f; // é€šå¸¸æç”»ã¨åŒã˜å€ç‡ã‚’ã‹ã‘ã‚‹
 
-	// ƒ[ƒ‹ƒhs—ñiƒrƒ‹ƒ{[ƒhj
+	// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ï¼ˆãƒ“ãƒ«ãƒœãƒ¼ãƒ‰ï¼‰
 	XMMATRIX scalingMatrix = XMMatrixScaling(
 		player[p].scaling.x * scale,
 		player[p].scaling.y * scale,
@@ -1771,38 +1844,38 @@ static void Player_DrawSilhouette(int p)
 	Shader_Begin();
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	// ƒVƒ‹ƒGƒbƒgF‚ğİ’èiƒvƒŒƒCƒ„[‚²‚Æ‚ÉˆÙ‚È‚éFj
+	// ã‚·ãƒ«ã‚¨ãƒƒãƒˆè‰²ã‚’è¨­å®šï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã«ç•°ãªã‚‹è‰²ï¼‰
 	XMFLOAT4 silhouetteColor;
 	switch (p)
 	{
-	case 0: silhouetteColor = { 0.64f,  0.2f, 0.2f, 1.0f }; break; // Ô
-	case 1: silhouetteColor = { 0.0f, 0.45f, 0.7f, 1.0f }; break; // Â
-	case 2: silhouetteColor = { 0.7f,  0.7f, 0.0f, 1.0f }; break; // ‰©
-	case 3: silhouetteColor = { 0.0f,  0.6f, 0.0f, 1.0f }; break; // —Î
+	case 0: silhouetteColor = { 0.64f,  0.2f, 0.2f, 1.0f }; break; // èµ¤
+	case 1: silhouetteColor = { 0.0f, 0.45f, 0.7f, 1.0f }; break; // é’
+	case 2: silhouetteColor = { 0.7f,  0.7f, 0.0f, 1.0f }; break; // é»„
+	case 3: silhouetteColor = { 0.0f,  0.6f, 0.0f, 1.0f }; break; // ç·‘
 	default: silhouetteColor = { 1.0f,  1.0f, 1.0f, 1.0f }; break;
 	}
 	Shader_SetColor(silhouetteColor);
 
-	// [“xƒeƒXƒg ‰œ‚É‚ ‚é‚¾‚¯•`‰æ‚·‚éiGreaterj
+	// æ·±åº¦ãƒ†ã‚¹ãƒˆ å¥¥ã«ã‚ã‚‹æ™‚ã ã‘æç”»ã™ã‚‹ï¼ˆGreaterï¼‰
 	ID3D11DeviceContext* context = Direct3D_GetDeviceContext();
 	ID3D11DepthStencilState* depthStateGreater = Direct3D_GetDepthStateGreater();
 	context->OMSetDepthStencilState(depthStateGreater, 0);
 
-	// ƒVƒ‹ƒGƒbƒg—p‚Ì•`‰æƒ‚[ƒhİ’è
+	// ã‚·ãƒ«ã‚¨ãƒƒãƒˆç”¨ã®æç”»ãƒ¢ãƒ¼ãƒ‰è¨­å®š
 	Shader_SetDrawMode(1);
 
-	// ƒeƒNƒXƒ`ƒƒİ’èi’Êí•`‰æ‚Æ“¯‚¶j
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£è¨­å®šï¼ˆé€šå¸¸æç”»ã¨åŒã˜ï¼‰
 	ID3D11ShaderResourceView* srv = nullptr;
 	switch (player[p].form)
 	{
-		// ‘æ1Œ`‘Ô
+		// ç¬¬1å½¢æ…‹
 	case Form::First:
 		if (p == 0)				srv = g_Texture[0];
 		else if (p == 1)				srv = g_Texture[1];
 		else if (p == 2)				srv = g_Texture[2];
 		else if (p == 3)				srv = g_Texture[3];
 		break;
-		// ‘æ2Œ`‘Ô
+		// ç¬¬2å½¢æ…‹
 	case Form::Second:
 		switch (player[p].type)
 		{
@@ -1813,7 +1886,7 @@ static void Player_DrawSilhouette(int p)
 		default: break;
 		}
 		break;
-		// ‘æ3Œ`‘Ô
+		// ç¬¬3å½¢æ…‹
 	case Form::Third:
 		switch (player[p].type)
 		{
@@ -1826,16 +1899,16 @@ static void Player_DrawSilhouette(int p)
 		break;
 	}
 
-	// ƒXƒLƒ‹EƒXƒyƒVƒƒƒ‹ê—pƒeƒNƒXƒ`ƒƒ
-	if (player[p].useSpecial && player[p].specialAnimation)	srv = g_Texture[13];	// ƒXƒyƒVƒƒƒ‹ƒAƒjƒ[ƒVƒ‡ƒ“Œp‘±’†‚Ì‚İ
-	else if (player[p].skillAnimation)						srv = g_Texture[12];	// ƒXƒLƒ‹”­“®ƒAƒjƒ[ƒVƒ‡ƒ“
+	// ã‚¹ã‚­ãƒ«ãƒ»ã‚¹ãƒšã‚·ãƒ£ãƒ«å°‚ç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£
+	if (player[p].useSpecial && player[p].specialAnimation)	srv = g_Texture[13];	// ã‚¹ãƒšã‚·ãƒ£ãƒ«ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç¶™ç¶šä¸­ã®ã¿
+	else if (player[p].skillAnimation)						srv = g_Texture[12];	// ã‚¹ã‚­ãƒ«ç™ºå‹•ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
 
-	// ’¸“_ƒoƒbƒtƒ@‚Éƒf[ƒ^ƒRƒs[iUVİ’èj
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã«ãƒ‡ãƒ¼ã‚¿ã‚³ãƒ”ãƒ¼ï¼ˆUVè¨­å®šï¼‰
 	D3D11_MAPPED_SUBRESOURCE msr;
 	Vertex2 localVt[PLAYER_VERTEX];
 	CopyMemory(&localVt[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
 
-	// Œ»İ‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ƒtƒŒ[ƒ€‚©‚çUVŒvZ
+	// ç¾åœ¨ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã‚‰UVè¨ˆç®—
 	int frame = player[p].animFrame;
 	int col = frame % SHEET_COLS;
 	int row = frame / SHEET_COLS;
@@ -1856,7 +1929,7 @@ static void Player_DrawSilhouette(int p)
 
 	context->PSSetShaderResources(0, 1, &srv);
 
-	// •`‰æ
+	// æç”»
 	UINT stride = sizeof(Vertex2);
 	UINT offset = 0;
 	context->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
@@ -1864,30 +1937,30 @@ static void Player_DrawSilhouette(int p)
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	context->DrawIndexed(6, 0, 0);
 
-	// [“xƒXƒe[ƒg‚ğ–ß‚·
+	// æ·±åº¦ã‚¹ãƒ†ãƒ¼ãƒˆã‚’æˆ»ã™
 	ID3D11DepthStencilState* depthStateEnable = Direct3D_GetDepthStateEnable();
 	context->OMSetDepthStencilState(depthStateEnable, 0);
 
-	// •`‰æƒ‚[ƒh‚ğ’Êí‚É–ß‚·
+	// æç”»ãƒ¢ãƒ¼ãƒ‰ã‚’é€šå¸¸ã«æˆ»ã™
 	Shader_SetDrawMode(0);
 	Shader_SetColor(color::white);
 }
 
 //======================================================
-//	ƒAƒEƒgƒ‰ƒCƒ“—p•`‰æ
+//	ã‚¢ã‚¦ãƒˆãƒ©ã‚¤ãƒ³ç”¨æç”»
 //======================================================
 static void Player_DrawOutline(int p)
 {
 	if (!Loader::IsFinished && g_loadedCount == 0) return;
 	if (!player[p].active) return;
 
-	// ƒvƒƒWƒFƒNƒVƒ‡ƒ“Eƒrƒ…[s—ñ‚ğæ“¾
+	// ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³ãƒ»ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ã‚’å–å¾—
 	XMMATRIX proj = GetProjectionMatrix();
 	XMMATRIX view = GetViewMatrix();
 
-	const float scale = 3.6f; // ’Êí•`‰æ‚è­‚µ‘å‚«‚ß‚Ì”{—¦‚ğ‚©‚¯‚é
+	const float scale = 3.6f; // é€šå¸¸æç”»ã‚Šå°‘ã—å¤§ãã‚ã®å€ç‡ã‚’ã‹ã‘ã‚‹
 
-	// ƒ[ƒ‹ƒhs—ñiƒrƒ‹ƒ{[ƒhj
+	// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ï¼ˆãƒ“ãƒ«ãƒœãƒ¼ãƒ‰ï¼‰
 	XMMATRIX scalingMatrix = XMMatrixScaling(
 		player[p].scaling.x * scale,
 		player[p].scaling.y * scale,
@@ -1914,33 +1987,33 @@ static void Player_DrawOutline(int p)
 	Shader_Begin();
 	SetBlendState(BLENDSTATE_ALPHA);
 
-	// ƒVƒ‹ƒGƒbƒgF‚ğİ’èiƒvƒŒƒCƒ„[‚²‚Æ‚ÉˆÙ‚È‚éFj
+	// ã‚·ãƒ«ã‚¨ãƒƒãƒˆè‰²ã‚’è¨­å®šï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã«ç•°ãªã‚‹è‰²ï¼‰
 	XMFLOAT4 outerColor;
 	switch (p)
 	{
-	case 0: outerColor = { 0.94f,  0.5f, 0.5f, 1.0f }; break; // Ô
-	case 1: outerColor = { 0.0f, 0.75f, 1.0f, 1.0f }; break; // Â
-	case 2: outerColor = { 1.0f,  1.0f, 0.3f, 1.0f }; break; // ‰©
-	case 3: outerColor = { 0.0f,  1.0f, 0.0f, 1.0f }; break; // —Î
+	case 0: outerColor = { 0.94f,  0.5f, 0.5f, 1.0f }; break; // èµ¤
+	case 1: outerColor = { 0.0f, 0.75f, 1.0f, 1.0f }; break; // é’
+	case 2: outerColor = { 1.0f,  1.0f, 0.3f, 1.0f }; break; // é»„
+	case 3: outerColor = { 0.0f,  1.0f, 0.0f, 1.0f }; break; // ç·‘
 	default: outerColor = { 1.0f, 1.0f, 1.0f, 0.4f }; break;
 	}
 	Shader_SetColor(outerColor);
 
-	// ƒAƒEƒgƒ‰ƒCƒ“—p‚Ì•`‰æƒ‚[ƒhİ’è
+	// ã‚¢ã‚¦ãƒˆãƒ©ã‚¤ãƒ³ç”¨ã®æç”»ãƒ¢ãƒ¼ãƒ‰è¨­å®š
 	Shader_SetDrawMode(2);
 
-	// ƒeƒNƒXƒ`ƒƒİ’èi’Êí•`‰æ‚Æ“¯‚¶j
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£è¨­å®šï¼ˆé€šå¸¸æç”»ã¨åŒã˜ï¼‰
 	ID3D11ShaderResourceView* srv = nullptr;
 	switch (player[p].form)
 	{
-		// ‘æ1Œ`‘Ô
+		// ç¬¬1å½¢æ…‹
 	case Form::First:
 			 if (p == 0)				srv = g_Texture[0];
 		else if (p == 1)				srv = g_Texture[1];
 		else if (p == 2)				srv = g_Texture[2];
 		else if (p == 3)				srv = g_Texture[3];
 		break;
-		// ‘æ2Œ`‘Ô
+		// ç¬¬2å½¢æ…‹
 	case Form::Second:
 		switch (player[p].type)
 		{
@@ -1951,7 +2024,7 @@ static void Player_DrawOutline(int p)
 		default: break;
 		}
 		break;
-		// ‘æ3Œ`‘Ô
+		// ç¬¬3å½¢æ…‹
 	case Form::Third:
 		switch (player[p].type)
 		{
@@ -1964,16 +2037,16 @@ static void Player_DrawOutline(int p)
 		break;
 	}
 
-	// ƒXƒLƒ‹EƒXƒyƒVƒƒƒ‹ê—pƒeƒNƒXƒ`ƒƒ
-	if (player[p].useSpecial && player[p].specialAnimation)	srv = g_Texture[13];	// ƒXƒyƒVƒƒƒ‹ƒAƒjƒ[ƒVƒ‡ƒ“Œp‘±’†‚Ì‚İ
-	else if (player[p].skillAnimation)						srv = g_Texture[12];	// ƒXƒLƒ‹”­“®ƒAƒjƒ[ƒVƒ‡ƒ“
+	// ã‚¹ã‚­ãƒ«ãƒ»ã‚¹ãƒšã‚·ãƒ£ãƒ«å°‚ç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£
+	if (player[p].useSpecial && player[p].specialAnimation)	srv = g_Texture[13];	// ã‚¹ãƒšã‚·ãƒ£ãƒ«ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç¶™ç¶šä¸­ã®ã¿
+	else if (player[p].skillAnimation)						srv = g_Texture[12];	// ã‚¹ã‚­ãƒ«ç™ºå‹•ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
 
-	// ’¸“_ƒoƒbƒtƒ@‚Éƒf[ƒ^ƒRƒs[iUVİ’èj
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã«ãƒ‡ãƒ¼ã‚¿ã‚³ãƒ”ãƒ¼ï¼ˆUVè¨­å®šï¼‰
 	D3D11_MAPPED_SUBRESOURCE msr;
 	Vertex2 localVt[PLAYER_VERTEX];
 	CopyMemory(&localVt[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
 
-	// Œ»İ‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ƒtƒŒ[ƒ€‚©‚çUVŒvZ
+	// ç¾åœ¨ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã‚‰UVè¨ˆç®—
 	int frame = player[p].animFrame;
 	int col = frame % SHEET_COLS;
 	int row = frame / SHEET_COLS;
@@ -1994,7 +2067,7 @@ static void Player_DrawOutline(int p)
 
 	g_pContext->PSSetShaderResources(0, 1, &srv);
 
-	// •`‰æ
+	// æç”»
 	UINT stride = sizeof(Vertex2);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
@@ -2002,75 +2075,75 @@ static void Player_DrawOutline(int p)
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pContext->DrawIndexed(6, 0, 0);
 
-	// •`‰æƒ‚[ƒh‚ğ’Êí‚É–ß‚·
+	// æç”»ãƒ¢ãƒ¼ãƒ‰ã‚’é€šå¸¸ã«æˆ»ã™
 	Shader_SetDrawMode(0);
 	Shader_SetColor(color::white);
 }
 
 //======================================================
-//	ƒvƒŒƒCƒ„[–{‘Ì•`‰æŠÖ”
+//	ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æœ¬ä½“æç”»é–¢æ•°
 //======================================================
 void Player_Draw(bool s_IsKonamiCodeEntered)
 {
 	if (!Loader::IsFinished && g_loadedCount == 0) return;
 
-	// UŒ‚EƒXƒLƒ‹EƒXƒyƒVƒƒƒ‹•`‰æ
+	// æ”»æ’ƒãƒ»ã‚¹ã‚­ãƒ«ãƒ»ã‚¹ãƒšã‚·ãƒ£ãƒ«æç”»
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{
 		if (player[p].active && player[p].isAttacking)	Attack_Draw(p);
 		//if (player[p].active && player[p].useSkill)		Skill_Draw(p);
-		if (player[p].active && player[p].useSpecial)	Special_DrawRange(p);	// ”ÍˆÍ•`‰æ
+		if (player[p].active && player[p].useSpecial)	Special_DrawRange(p);	// ç¯„å›²æç”»
 	}
 
 	LIGHT light{};
 	light.Enable = TRUE;
-	// Œõ‚ÌŒü‚«iƒ[ƒ‹ƒh‹óŠÔjƒVƒF[ƒ_[‘¤‚Å’PˆÊ‰»‚µ‚Äg‚Á‚Ä‚¢‚é‘z’è
+	// å…‰ã®å‘ãï¼ˆãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ï¼‰ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å´ã§å˜ä½åŒ–ã—ã¦ä½¿ã£ã¦ã„ã‚‹æƒ³å®š
 	light.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-	// ŠgUŒõ‚ÆŠÂ‹«Œõ
+	// æ‹¡æ•£å…‰ã¨ç’°å¢ƒå…‰
 	light.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	light.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
 	Shader_SetLight(light);
 
 	static bool input1 = false;
-	// ƒfƒoƒbƒOƒ‚[ƒh’†‚Ì‚İƒL[“ü—Í‚ğó‚¯•t‚¯‚é
+	// ãƒ‡ãƒãƒƒã‚°ãƒ¢ãƒ¼ãƒ‰ä¸­ã®ã¿ã‚­ãƒ¼å…¥åŠ›ã‚’å—ã‘ä»˜ã‘ã‚‹
 	if (s_IsKonamiCodeEntered)
 	{
-		if (Keyboard_IsKeyDownTrigger(KK_D1)) input1 = !input1;	// ƒtƒ‰ƒO”½“]
+		if (Keyboard_IsKeyDownTrigger(KK_D1)) input1 = !input1;	// ãƒ•ãƒ©ã‚°åè»¢
 	}
 
 	Shader_Begin();
 
 	// ========================================================
-	// ‰œ‚ÌƒvƒŒƒCƒ„[‚ªè‘O‚ÌƒvƒŒƒCƒ„[‚É‰B‚ê‚È‚¢‚æ‚¤‚É•`‰æ
+	// å¥¥ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæ‰‹å‰ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«éš ã‚Œãªã„ã‚ˆã†ã«æç”»
 	// ========================================================
 
-	// ƒvƒƒWƒFƒNƒVƒ‡ƒ“Eƒrƒ…[s—ñ‚ğæ‚Éæ“¾
+	// ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³ãƒ»ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ã‚’å…ˆã«å–å¾—
 	XMMATRIX projection = GetProjectionMatrix();
 	XMMATRIX view = GetViewMatrix();
 
-	// ƒJƒƒ‰ˆÊ’u‚ğZoiView ‚Ì‹ts—ñ‚Ì r[3] ‚ªƒ[ƒ‹ƒh‹óŠÔ‚ÌƒJƒƒ‰ˆÊ’uj
+	// ã‚«ãƒ¡ãƒ©ä½ç½®ã‚’ç®—å‡ºï¼ˆView ã®é€†è¡Œåˆ—ã® r[3] ãŒãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ã®ã‚«ãƒ¡ãƒ©ä½ç½®ï¼‰
 	XMMATRIX invView = XMMatrixInverse(nullptr, view);
 	XMFLOAT3 camPos;
 	camPos.x = invView.r[3].m128_f32[0];
 	camPos.y = invView.r[3].m128_f32[1];
 	camPos.z = invView.r[3].m128_f32[2];
 
-	// ƒvƒŒƒCƒ„[‚ğ•`‰æ‚·‚éƒ‰ƒ€ƒ_iProjection, View ‚ğƒLƒƒƒvƒ`ƒƒj
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’æç”»ã™ã‚‹ãƒ©ãƒ ãƒ€ï¼ˆProjection, View ã‚’ã‚­ãƒ£ãƒ—ãƒãƒ£ï¼‰
 	auto DrawPlayerInternal = [&](int idx)
 		{
-			// ƒvƒŒƒCƒ„[‚Ì‰eƒGƒtƒFƒNƒg•`‰æ
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å½±ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæç”»
 			EffectShadow_DrawForPlayer(idx);
 
-			const float spriteScale = 3.5f;	// •\¦”{—¦
+			const float spriteScale = 3.5f;	// è¡¨ç¤ºå€ç‡
 
-			// ƒ[ƒ‹ƒhs—ñiƒrƒ‹ƒ{[ƒh•—‚ÌŠù‘¶ƒƒWƒbƒN‚ğ“¥Pj
+			// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ï¼ˆãƒ“ãƒ«ãƒœãƒ¼ãƒ‰é¢¨ã®æ—¢å­˜ãƒ­ã‚¸ãƒƒã‚¯ã‚’è¸è¥²ï¼‰
 			XMMATRIX ScalingMatrix = XMMatrixScaling(
 				player[idx].scaling.x * spriteScale,
 				player[idx].scaling.y * spriteScale,
 				player[idx].scaling.z * spriteScale
 			);
 
-			XMMATRIX vm = GetViewMatrix();	// ƒJƒƒ‰‚Ìs—ñ
+			XMMATRIX vm = GetViewMatrix();	// ã‚«ãƒ¡ãƒ©ã®è¡Œåˆ—
 			vm.r[3].m128_f32[0] = 0.0f;
 			vm.r[3].m128_f32[1] = 0.0f;
 			vm.r[3].m128_f32[2] = 0.0f;
@@ -2081,7 +2154,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 			vm.r[3].m128_f32[2] = player[idx].position.z;
 			vm.r[3].m128_f32[3] = 1.0f;
 
-			// World s—ñiƒrƒ‹ƒ{[ƒh—pj‚ğƒVƒF[ƒ_[‚É“n‚·
+			// World è¡Œåˆ—ï¼ˆãƒ“ãƒ«ãƒœãƒ¼ãƒ‰ç”¨ï¼‰ã‚’ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«æ¸¡ã™
 			XMMATRIX WorldMatrix = ScalingMatrix * vm;
 			Shader_SetWorldMatrix(WorldMatrix);
 
@@ -2091,14 +2164,14 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 			Shader_Begin();
 			SetBlendState(BLENDSTATE_ALPHA);
 
-			// ’¸“_ƒoƒbƒtƒ@‚Éƒf[ƒ^ƒRƒs[iƒtƒŒ[ƒ€‚É‰‚¶‚ÄUV‚ğ‘‚«Š·‚¦‚éj
+			// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã«ãƒ‡ãƒ¼ã‚¿ã‚³ãƒ”ãƒ¼ï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ ã«å¿œã˜ã¦UVã‚’æ›¸ãæ›ãˆã‚‹ï¼‰
 			D3D11_MAPPED_SUBRESOURCE msr;
 
-			// ƒRƒs[Œ³‚Ìvdata ‚ğƒ[ƒJƒ‹”z—ñ‚ÉƒRƒs[‚µ‚Ä UV ‚ğ’²®
+			// ã‚³ãƒ”ãƒ¼å…ƒã®vdata ã‚’ãƒ­ãƒ¼ã‚«ãƒ«é…åˆ—ã«ã‚³ãƒ”ãƒ¼ã—ã¦ UV ã‚’èª¿æ•´
 			Vertex2 localV[PLAYER_VERTEX];
 			CopyMemory(&localV[0], &vdata[0], sizeof(Vertex2) * PLAYER_VERTEX);
 
-			// Œ»İ‚ÌƒtƒŒ[ƒ€‚©‚ç UV ‚ğŒvZ
+			// ç¾åœ¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã‚‰ UV ã‚’è¨ˆç®—
 			int frame = player[idx].animFrame;
 			int col = frame % SHEET_COLS;
 			int row = frame / SHEET_COLS;
@@ -2107,13 +2180,13 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 			float u1 = u0 + 1.0f / (float)SHEET_COLS;
 			float v1 = v0 + 1.0f / (float)SHEET_ROWS;
 
-			// ’¸“_‚ÌƒeƒNƒXƒ`ƒƒÀ•W‚ğã‘‚«
+			// é ‚ç‚¹ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ã‚’ä¸Šæ›¸ã
 			localV[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
 			localV[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
 			localV[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
 			localV[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 
-			// ƒoƒbƒtƒ@‚Ö‘‚«‚İ
+			// ãƒãƒƒãƒ•ã‚¡ã¸æ›¸ãè¾¼ã¿
 			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 			Vertex2* vertex = (Vertex2*)msr.pData;
 			CopyMemory(vertex, &localV[0], sizeof(Vertex2) * PLAYER_VERTEX);
@@ -2121,17 +2194,17 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 
 			ID3D11ShaderResourceView* srv = nullptr;
 
-			// Œ`‘Ô‚Æƒ^ƒCƒv‚É‰‚¶‚½ƒeƒNƒXƒ`ƒƒ‚ğİ’è
+			// å½¢æ…‹ã¨ã‚¿ã‚¤ãƒ—ã«å¿œã˜ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’è¨­å®š
 			switch (player[idx].form)
 			{
-				// ‘æ1Œ`‘Ô
+				// ç¬¬1å½¢æ…‹
 			case Form::First:
 				if (idx == 0)					srv = g_Texture[0];
 				else if (idx == 1)				srv = g_Texture[1];
 				else if (idx == 2)				srv = g_Texture[2];
 				else if (idx == 3)				srv = g_Texture[3];
 				break;
-				// ‘æ2Œ`‘Ô
+				// ç¬¬2å½¢æ…‹
 			case Form::Second:
 				switch (player[idx].type)
 				{
@@ -2142,7 +2215,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 				default: break;
 				}
 				break;
-				// ‘æ3Œ`‘Ô
+				// ç¬¬3å½¢æ…‹
 			case Form::Third:
 				switch (player[idx].type)
 				{
@@ -2155,22 +2228,22 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 				break;
 			}
 
-			// ƒXƒLƒ‹EƒXƒyƒVƒƒƒ‹ê—pƒeƒNƒXƒ`ƒƒ
-			if (player[idx].useSpecial && player[idx].specialAnimation)	srv = g_Texture[13];	// ƒXƒyƒVƒƒƒ‹ƒAƒjƒ[ƒVƒ‡ƒ“Œp‘±’†‚Ì‚İ
-			else if (player[idx].skillAnimation)						srv = g_Texture[12];	// ƒXƒLƒ‹”­“®ƒAƒjƒ[ƒVƒ‡ƒ“
+			// ã‚¹ã‚­ãƒ«ãƒ»ã‚¹ãƒšã‚·ãƒ£ãƒ«å°‚ç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£
+			if (player[idx].useSpecial && player[idx].specialAnimation)	srv = g_Texture[13];	// ã‚¹ãƒšã‚·ãƒ£ãƒ«ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç¶™ç¶šä¸­ã®ã¿
+			else if (player[idx].skillAnimation)						srv = g_Texture[12];	// ã‚¹ã‚­ãƒ«ç™ºå‹•ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
 
 			g_pContext->PSSetShaderResources(0, 1, &srv);
 
-			// ƒvƒŒƒCƒ„[‚²‚Æ‚ÉˆÙ‚È‚éF‚ğİ’è
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã«ç•°ãªã‚‹è‰²ã‚’è¨­å®š
 			if (player[idx].isAttacked || player[idx].isDamageColor)
 			{
-				// ‚Ç‚¿‚ç‚Ìƒ^ƒCƒ}[‚ª“®‚¢‚Ä‚¢‚é‚©
+				// ã©ã¡ã‚‰ã®ã‚¿ã‚¤ãƒãƒ¼ãŒå‹•ã„ã¦ã„ã‚‹ã‹
 				float currentTimer = player[idx].isAttacked ? player[idx].attackedTimer : player[idx].damageColorTimer;
 
-				// “_–Å‚Ì‘¬‚³
+				// ç‚¹æ»…ã®é€Ÿã•
 				float speed = 40.0f;
 
-				// “_–Å‚Ì“x‡‚¢i0.0f`1.0fj
+				// ç‚¹æ»…ã®åº¦åˆã„ï¼ˆ0.0fï½1.0fï¼‰
 				float blink = (sinf(currentTimer * speed) + 1.0f) * 0.5f;
 
 				Shader_SetColorLerp(color::white, color::red, blink);
@@ -2179,7 +2252,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 			{
 				switch (idx)
 				{
-					// Lerp = 1.æZF 2.•âŠÔ‚·‚éF 3.•âŠÔ‚Ì“x‡‚¢
+					// Lerp = 1.ä¹—ç®—è‰² 2.è£œé–“ã™ã‚‹è‰² 3.è£œé–“ã®åº¦åˆã„
 				case 0:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
 				case 1:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
 				case 2:		Shader_SetColorLerp(color::white, color::purple, 0.7f); break;
@@ -2187,9 +2260,9 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 				default:	Shader_SetColor(color::white); break;
 				}
 			}
-			else	Shader_SetColor(color::white); // ’ÊíF
+			else	Shader_SetColor(color::white); // é€šå¸¸è‰²
 
-			// ƒoƒbƒtƒ@ƒZƒbƒg & •`‰æ
+			// ãƒãƒƒãƒ•ã‚¡ã‚»ãƒƒãƒˆ & æç”»
 			UINT stride = sizeof(Vertex2);
 			UINT offset = 0;
 			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
@@ -2197,14 +2270,14 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			g_pContext->DrawIndexed(6, 0, 0);
 
-			// ƒGƒtƒFƒNƒg•`‰æ iƒvƒŒƒCƒ„[‚Ìè‘Oj
+			// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæç”» ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ‰‹å‰ï¼‰
 			EffectFront_DrawForPlayer(idx);
 		};
 
 	// -----------------------------------
-	// “§–¾•`‰æ‚Ì‚½‚ß‚Ìƒ\[ƒgi‰“‚¢‡j
+	// é€æ˜æç”»ã®ãŸã‚ã®ã‚½ãƒ¼ãƒˆï¼ˆé ã„é †ï¼‰
 	// -----------------------------------
-	std::vector<std::pair<float, int>> list;	// (‹——£“ñæ, index)
+	std::vector<std::pair<float, int>> list;	// (è·é›¢äºŒä¹—, index)
 	list.reserve(PLAYER_MAX);
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
@@ -2216,17 +2289,17 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		list.emplace_back(dist2, p);
 	}
 
-	// ‰“‚¢‡i‘å‚«‚¢‡j‚Éƒ\[ƒg
+	// é ã„é †ï¼ˆå¤§ãã„é †ï¼‰ã«ã‚½ãƒ¼ãƒˆ
 	std::sort(list.begin(), list.end(), [](const std::pair<float, int>& a, const std::pair<float, int>& b)
 		{
 			return a.first > b.first;
 		});
 
-	// “§‰ßƒŒƒ“ƒ_ƒŠƒ“ƒOF[“xƒeƒXƒg‚Í—LŒøA[“x‘‚«‚İ‚Í–³ŒøiSetDepthReadOnly ‚ğg—pj
+	// é€éãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ï¼šæ·±åº¦ãƒ†ã‚¹ãƒˆã¯æœ‰åŠ¹ã€æ·±åº¦æ›¸ãè¾¼ã¿ã¯ç„¡åŠ¹ï¼ˆSetDepthReadOnly ã‚’ä½¿ç”¨ï¼‰
 	SetDepthTest(true);
-	SetDepthReadOnly();	// [“xƒeƒXƒg‚Í‚·‚é‚ª[“xƒoƒbƒtƒ@‚Ö‚Ì‘‚«‚İ‚Í‚µ‚È‚¢
+	SetDepthReadOnly();	// æ·±åº¦ãƒ†ã‚¹ãƒˆã¯ã™ã‚‹ãŒæ·±åº¦ãƒãƒƒãƒ•ã‚¡ã¸ã®æ›¸ãè¾¼ã¿ã¯ã—ãªã„
 
-	// ƒ\[ƒg‡i‰“‚¢‚à‚Ì‚©‚ç•`‰æj - ƒvƒŒƒCƒ„[–{‘Ì‚Í active ‚Ì‚à‚Ì‚¾‚¯•`‰æ
+	// ã‚½ãƒ¼ãƒˆé †ï¼ˆé ã„ã‚‚ã®ã‹ã‚‰æç”»ï¼‰ - ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æœ¬ä½“ã¯ active ã®ã‚‚ã®ã ã‘æç”»
 	for (auto& p : list)
 	{
 		int idx = p.second;
@@ -2236,91 +2309,94 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 		}
 	}
 
-	// ”ñƒAƒNƒeƒBƒu‚¾‚ªŠÏí“™‚Ì——R‚ÅƒGƒtƒFƒNƒg‚ğo‚·•K—v‚ª‚ ‚éƒvƒŒƒCƒ„[‚ğ‚±‚±‚Åˆ—
+	// éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã ãŒè¦³æˆ¦ç­‰ã®ç†ç”±ã§ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’å‡ºã™å¿…è¦ãŒã‚ã‚‹ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’ã“ã“ã§å‡¦ç†
 	for (int i = 0; i < PLAYER_MAX; ++i)
 	{
-		if (player[i].active) continue; // ƒAƒNƒeƒBƒu‚È‚çŠù‚É–{‘Ì+ƒGƒtƒFƒNƒg•`‰æÏ‚İ
+		if (player[i].active) continue; // ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªã‚‰æ—¢ã«æœ¬ä½“+ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæç”»æ¸ˆã¿
 
 		GIMMICK_STATE* meteor = GetGimmick(i);
 		if (meteor && meteor->canFire)
 		{
-			// ƒGƒtƒFƒNƒg‚Ì‚İ•`‰æiƒvƒŒƒCƒ„[–{‘Ì‚Í•`‰æ‚µ‚È‚¢j
-			SetDepthTest(false); // ƒGƒtƒFƒNƒg‚Íè‘O•`‰æ‚Å‚«‚é‚æ‚¤‚É
+			// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ã¿æç”»ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æœ¬ä½“ã¯æç”»ã—ãªã„ï¼‰
+			SetDepthTest(false); // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã¯æ‰‹å‰æç”»ã§ãã‚‹ã‚ˆã†ã«
 			SetBlendState(BLENDSTATE_ALPHA);
 			EffectFront_DrawForPlayer(i);
 		}
 	}
 
-	// 3DƒIƒuƒWƒFƒNƒg‚Í[“xƒeƒXƒg‚ğ–³Œø‚É‚µ‚Ä•`‰æ
+	// 3Dã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯æ·±åº¦ãƒ†ã‚¹ãƒˆã‚’ç„¡åŠ¹ã«ã—ã¦æç”»
 	SetDepthTest(false);
 
-	// 3DƒIƒuƒWƒFƒNƒgiƒvƒŒƒCƒ„[j‚Ì•`‰æ‚ªI‚í‚Á‚½Œã...
-	SetDepthTest(false); // ƒRƒ‰ƒCƒ_[‚ğÅ‘O–Ê‚Éo‚µ‚½‚¢‚È‚ç‚±‚ê‚ÅOK
+	// 3Dã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ï¼‰ã®æç”»ãŒçµ‚ã‚ã£ãŸå¾Œ...
+	SetDepthTest(false); // ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã‚’æœ€å‰é¢ã«å‡ºã—ãŸã„ãªã‚‰ã“ã‚Œã§OK
 
 	/////////////////////////////////////////////////////////////////////////////////////
-	// TODO:“–‚½‚è”»’è‚Ì‰Â‹‰»
+	// TODO:å½“ãŸã‚Šåˆ¤å®šã®å¯è¦–åŒ–
 	if (s_IsKonamiCodeEntered)
 	{
-		// ƒvƒŒƒCƒ„[‚Ì•`‰æ‚Ég‚í‚ê‚½s—ñ‚ğƒNƒŠƒA‚·‚é
-		Shader_SetMatrix(XMMatrixIdentity() * GetViewMatrix() * GetProjectionMatrix()); // WVPs—ñ‚ğIdentity * View * Projection‚Éİ’è
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æç”»ã«ä½¿ã‚ã‚ŒãŸè¡Œåˆ—ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹
+		Shader_SetMatrix(XMMatrixIdentity() * GetViewMatrix() * GetProjectionMatrix()); // WVPè¡Œåˆ—ã‚’Identity * View * Projectionã«è¨­å®š
 
-		// 3. “§‰ß‚âF‚ª‚¨‚©‚µ‚­‚È‚ç‚È‚¢‚æ‚¤‚ÉƒuƒŒƒ“ƒhƒXƒe[ƒg‚ğƒŠƒZƒbƒg
-		SetBlendState(BLENDSTATE_NONE); // ˜gü‚È‚çƒAƒ‹ƒtƒ@‚È‚µ‚Å‚àOK
+		// 3. é€éã‚„è‰²ãŒãŠã‹ã—ããªã‚‰ãªã„ã‚ˆã†ã«ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆã‚’ãƒªã‚»ãƒƒãƒˆ
+		SetBlendState(BLENDSTATE_NONE); // æ ç·šãªã‚‰ã‚¢ãƒ«ãƒ•ã‚¡ãªã—ã§ã‚‚OK
 
 		for (int i = 0; i < PLAYER_MAX; i++)
 		{
 			if (!player[i].active) continue;
 
-			// 4. F‚ğƒZƒbƒgiÂF‚É‚·‚é‚È‚ç‘æ4ˆø”‚ÌƒAƒ‹ƒtƒ@‚ğ1.0f‚ÉIj
+			// 4. è‰²ã‚’ã‚»ãƒƒãƒˆï¼ˆé’è‰²ã«ã™ã‚‹ãªã‚‰ç¬¬4å¼•æ•°ã®ã‚¢ãƒ«ãƒ•ã‚¡ã‚’1.0fã«ï¼ï¼‰
 			Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 
-			// 5. •`‰æI
+			// 5. æç”»ï¼
 			Debug_DrawAABB(player[i].boundingBox, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
 		}
 	}
 
-	// ƒJƒƒ‰‚©‚ç‚Ì‡”Ô‚ğƒ\[ƒg‚µ‚½‚à‚Ì(list)‚Ì‡”Ô‚ÅÄ“x•`‰æ
+	// ã‚«ãƒ¡ãƒ©ã‹ã‚‰ã®é †ç•ªã‚’ã‚½ãƒ¼ãƒˆã—ãŸã‚‚ã®(list)ã®é †ç•ªã§å†åº¦æç”»
 	for (auto& p : list)
 	{
 		Player_DrawOutline(p.second);
 
-		// Ä•`‰æ‚Å‚à–{‘Ì‚Í active ‚Ì‚à‚Ì‚¾‚¯•`‰æi”ñƒAƒNƒeƒBƒu‚Í Outline ŠÖ”“à‚Å’e‚©‚ê‚éj
+		// å†æç”»ã§ã‚‚æœ¬ä½“ã¯ active ã®ã‚‚ã®ã ã‘æç”»ï¼ˆéã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã¯ Outline é–¢æ•°å†…ã§å¼¾ã‹ã‚Œã‚‹ï¼‰
 		if (player[p.second].active)
 		{
 			DrawPlayerInternal(p.second);
 		}
 	}
 
-	// ƒVƒ‹ƒGƒbƒg•`‰æ’Ç‰Á
+	// ã‚·ãƒ«ã‚¨ãƒƒãƒˆæç”»è¿½åŠ 
 	for (auto& p : list) Player_DrawSilhouette(p.second);
 
-	// ƒXƒyƒVƒƒƒ‹ƒGƒtƒFƒNƒg–{‘Ì
+	// ã‚¹ãƒšã‚·ãƒ£ãƒ«ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæœ¬ä½“
 	for (int p2 = 0; p2 < PLAYER_MAX; ++p2)
 	{
-		if (player[p2].active && player[p2].useSpecial)	Special_DrawEffect(p2);	// ƒGƒtƒFƒNƒg•`‰æ
+		if (player[p2].active && player[p2].useSpecial)	Special_DrawEffect(p2);	// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæç”»
 	}
 
-	// 3DƒIƒuƒWƒFƒNƒg‚Ì[“xƒeƒXƒg‚ğ–³Œø‚É‚µ‚Ä•`‰æ
+	// 3Dã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®æ·±åº¦ãƒ†ã‚¹ãƒˆã‚’ç„¡åŠ¹ã«ã—ã¦æç”»
 	SetDepthTest(false);
+
+	Shader_BeginUI();
+	Shader_Begin();
 }
 
 void Player_DrawHP()
 {
 	Shader_Begin();
 
-	// ŒÂ•ÊUIƒXƒe[ƒ^ƒX•`‰æ
+	// å€‹åˆ¥UIã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹æç”»
 	for (int i = 0; i < PLAYER_MAX; i++)
 	{
 		SetBlendState(BLENDSTATE_ALPHA);
 
-		// ƒvƒŒƒCƒ„[‚ª€‚ñ‚Å‚¢‚é‚©‚Ç‚¤‚©‚ğ”»’è
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæ­»ã‚“ã§ã„ã‚‹ã‹ã©ã†ã‹ã‚’åˆ¤å®š
 		bool isDead = (!player[i].active && player[i].stock <= 0);
 
 		DrawHP(&HPBar[i], i + 2, isDead);
 
 
 		if (isDead)
-		{// €‚ñ‚¾‚Æ‚«‚ÍAŠDF‚ÌHPƒo[‚ğc‚µ‚Ä‘S‚Ä‚ÌUI‚ğÁ‚·
+		{// æ­»ã‚“ã ã¨ãã¯ã€ç°è‰²ã®HPãƒãƒ¼ã‚’æ®‹ã—ã¦å…¨ã¦ã®UIã‚’æ¶ˆã™
 			if (!Player_CanUseSpecial(i))
 			{
 				Effect_Clear(i);
@@ -2330,24 +2406,24 @@ void Player_DrawHP()
 
 		XMFLOAT2 hp = HPBar[i].pos;
 
-		// ƒXƒLƒ‹ƒQ[ƒW•\¦—p‚Ì’l‚ğŒvZ‚·‚é
+		// ã‚¹ã‚­ãƒ«ã‚²ãƒ¼ã‚¸è¡¨ç¤ºç”¨ã®å€¤ã‚’è¨ˆç®—ã™ã‚‹
 		float skillFill = 1.0f;
 
-		// ƒXƒLƒ‹–¢Š‚È‚ç0
+		// ã‚¹ã‚­ãƒ«æœªæ‰€æŒãªã‚‰0
 		if (player[i].type == PlayerType::None)
 		{
 			skillFill = 0.0f;
 		}
 		else
 		{
-			// ƒN[ƒ‹ƒ^ƒCƒ}[‚ª0‚È‚ç—˜—p‰Â”\
+			// ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒãƒ¼ãŒ0ãªã‚‰åˆ©ç”¨å¯èƒ½
 			if (player[i].skillCoolTimer <= 0.0f)
 			{
 				skillFill = 1.0f;
 			}
 			else
 			{
-				// type‚É‰‚¶‚½ƒN[ƒ‹ƒ^ƒCƒ€‚ğæ“¾
+				// typeã«å¿œã˜ãŸã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ã‚’å–å¾—
 				float coolTime = 0.0f;
 				switch (player[i].type)
 				{
@@ -2358,15 +2434,15 @@ void Player_DrawHP()
 				default: coolTime = 0.0f; break;
 				}
 
-				// ƒN[ƒ‹ƒ^ƒCƒ€‚ª0‚Ì‚Í1.0f‚ğ•Ô‚·
+				// ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ãŒ0ã®æ™‚ã¯1.0fã‚’è¿”ã™
 				if (coolTime <= 0.0f)
 				{
 					skillFill = 1.0f;
 				}
 				else
 				{
-					// g—p’¼Œã@skillCoolTimer == coolTime => fill = 0.0
-					// ƒN[ƒ‹I—¹@skillCoolTimer == 0 => fill = 1.0
+					// ä½¿ç”¨ç›´å¾Œã€€skillCoolTimer == coolTime => fill = 0.0
+					// ã‚¯ãƒ¼ãƒ«çµ‚äº†ã€€skillCoolTimer == 0 => fill = 1.0
 					skillFill = 1.0f - (player[i].skillCoolTimer / coolTime);
 					if (skillFill < 0.0f) skillFill = 0.0f;
 					if (skillFill > 1.0f) skillFill = 1.0f;
@@ -2374,7 +2450,7 @@ void Player_DrawHP()
 			}
 		}
 
-		// i‰»‚ªŒÅ’è‚³‚ê‚½‚çAƒ^ƒCƒv‚ÌƒQ[ƒW‚ğÅ‘å’l‚Å•\¦‚·‚é
+		// é€²åŒ–ãŒå›ºå®šã•ã‚ŒãŸã‚‰ã€ã‚¿ã‚¤ãƒ—ã®ã‚²ãƒ¼ã‚¸ã‚’æœ€å¤§å€¤ã§è¡¨ç¤ºã™ã‚‹
 		if (player[i].isTypeFixed)
 		{
 			float glass = 0.0f;
@@ -2396,27 +2472,27 @@ void Player_DrawHP()
 		}
 		else
 		{
-			// ŒÅ’è‘O‚ÍƒJƒEƒ“ƒg”‚ğ‚»‚Ì‚Ü‚Ü•\¦‚·‚é
+			// å›ºå®šå‰ã¯ã‚«ã‚¦ãƒ³ãƒˆæ•°ã‚’ãã®ã¾ã¾è¡¨ç¤ºã™ã‚‹
 			Gauge_Set(i, player[i].breakCount_Glass, player[i].breakCount_Concrete, player[i].breakCount_Plant, player[i].breakCount_Electricity,
 				player[i].evolutionGauge, skillFill, { hp.x - GAUGE_POS_X , hp.y + GAUGE_POS_Y }, player[i].type);
 		}
 
-		// ƒXƒyƒVƒƒƒ‹g—p‰Â”\‚È‚çƒGƒtƒFƒNƒg‚ğ•\¦A‚»‚¤‚Å‚È‚¯‚ê‚ÎÁ‚·
+		// ã‚¹ãƒšã‚·ãƒ£ãƒ«ä½¿ç”¨å¯èƒ½ãªã‚‰ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¡¨ç¤ºã€ãã†ã§ãªã‘ã‚Œã°æ¶ˆã™
 		if (Player_CanUseSpecial(i))
 		{
 			Shader_SetColor(color::white);
-			Effect_Set(24, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (100.0f * SCREEN_ADJUST_Y) }, { (162.0f * SCREEN_ADJUST_X), (60.0f * SCREEN_ADJUST_Y) }, i);
+			Effect_Set(24, { (hp.x + 12.0f * SCREEN_ADJUST_X), hp.y - (95.0f * SCREEN_ADJUST_Y) }, { (190.0f * SCREEN_ADJUST_X), (69.0f * SCREEN_ADJUST_Y) }, i);
 		}
 		if (!Player_CanUseSpecial(i))
 		{
 			Effect_Clear(i);
 		}
 
-		// ’ÊíƒQ[ƒWi“à{ŠOj‚Íí‚É•`‰æ
-		// ƒXƒLƒ‹ƒQ[ƒW‚Í‘®«Šm’è‚Ì‚Æ‚«‚Ì‚İ•`‰æ
+		// é€šå¸¸ã‚²ãƒ¼ã‚¸ï¼ˆå†…ï¼‹å¤–ï¼‰ã¯å¸¸ã«æç”»
+		// ã‚¹ã‚­ãƒ«ã‚²ãƒ¼ã‚¸ã¯å±æ€§ç¢ºå®šã®ã¨ãã®ã¿æç”»
 		Gauge_DrawBasic(i);
 
-		// ‘®«Šm’è‚µ‚Ä‚¢‚é‚Æ‚«‚ÍƒXƒLƒ‹UI‚à•`‰æ
+		// å±æ€§ç¢ºå®šã—ã¦ã„ã‚‹ã¨ãã¯ã‚¹ã‚­ãƒ«UIã‚‚æç”»
 		if (player[i].isTypeFixed)
 		{
 			Gauge_DrawSkill(i);
@@ -2430,10 +2506,10 @@ void Player_DrawHP()
 
 void Player_Respawn(int playerIndex)
 {
-	// ”ÍˆÍƒ`ƒFƒbƒN 0 1 2 3 ˆÈŠO‚È‚ç return
+	// ç¯„å›²ãƒã‚§ãƒƒã‚¯ 0 1 2 3 ä»¥å¤–ãªã‚‰ return
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
-	// c‹@‚ª1‚ÂˆÈã‚ ‚éê‡
+	// æ®‹æ©ŸãŒ1ã¤ä»¥ä¸Šã‚ã‚‹å ´åˆ
 	if (player[playerIndex].active == true)
 	{
 		player[playerIndex].rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -2476,7 +2552,7 @@ void Player_Respawn(int playerIndex)
 		player[playerIndex].respawnTimer = 0.0f;
 		player[playerIndex].isEggBreaking = false;
 		player[playerIndex].eggBreakingTimer = 0.0f;
-		player[playerIndex].lastDir = PlayerDir::Down; // ³–Ê
+		player[playerIndex].lastDir = PlayerDir::Down; // æ­£é¢
 		player[playerIndex].isMoving = false;
 		player[playerIndex].isShadowEnabled = true;
 		player[playerIndex].form = Form::First;
@@ -2500,7 +2576,7 @@ void Player_Respawn(int playerIndex)
 	if (playerIndex == 3) player[3].position = XMFLOAT3(4.0f, 4.0f, 1.0f);
 }
 
-inline void LoopRange(int& animFrame, int start, int count, int advance)
+void LoopRange(int& animFrame, int start, int count, int advance)
 {
 	int relative = (animFrame - start + advance) % count;
 	if (relative < 0) relative += count;
@@ -2508,22 +2584,22 @@ inline void LoopRange(int& animFrame, int start, int count, int advance)
 }
 
 //==================================
-// c‹@•`‰æ
+// æ®‹æ©Ÿæç”»
 //==================================
 void Player_DrawStock(int i)
 {
 	Shader_Begin();
 	Shader_BeginUI();
 
-	// HPƒo[ˆÊ’uæ“¾EƒQ[ƒWÀ•Wİ’è
+	// HPãƒãƒ¼ä½ç½®å–å¾—ãƒ»ã‚²ãƒ¼ã‚¸åº§æ¨™è¨­å®š
 	float bx = HPBar[i].pos.x - (60.0f * SCREEN_ADJUST_X);
 	float by = HPBar[i].pos.y + (60.0f * SCREEN_ADJUST_Y);
 
-	// ƒvƒŒƒCƒ„[‚²‚Æ‚ÌƒXƒgƒbƒN•`‰æ
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®ã‚¹ãƒˆãƒƒã‚¯æç”»
 	for (int j = 0; j < player[i].stock; j++)
 	{
-		// ƒXƒgƒbƒN•`‰æ•Ï”
-		XMFLOAT2 pos = { bx + (j * 30.0f * SCREEN_ADJUST_X), by };	// ‰¡•À‚Ñ
+		// ã‚¹ãƒˆãƒƒã‚¯æç”»å¤‰æ•°
+		XMFLOAT2 pos = { bx + (j * 30.0f * SCREEN_ADJUST_X), by };	// æ¨ªä¸¦ã³
 		XMFLOAT2 size = { (260.0f * SCREEN_ADJUST_X), (260.0f * SCREEN_ADJUST_Y) };
 
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture[i + 14]);
@@ -2542,7 +2618,7 @@ void Player_DrawText()
 		wchar_t playerLabel[8];
 		swprintf_s(playerLabel, L"%dP", p + 1);
 
-		// ƒvƒŒƒCƒ„[‚²‚Æ‚ÉFİ’è
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã«è‰²è¨­å®š
 		TextColor textColor;
 		switch (p)
 		{
@@ -2563,14 +2639,14 @@ void Player_DrawText()
 			break;
 		}
 
-		// ƒtƒHƒ“ƒgƒTƒCƒY‚Ì”¼•ª’ö“x¶‚É‚¸‚ç‚·
+		// ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºã®åŠåˆ†ç¨‹åº¦å·¦ã«ãšã‚‰ã™
 		float offsetX = 15.0f;
 
 		DrawTextEx(
 			playerLabel,
 			player[p].screenPos.x - offsetX,
-			player[p].screenPos.y - 10.0f,	// ƒeƒLƒXƒg‚Ì‚‚³•ªã‚É•\¦
-			40.0f,							// ƒtƒHƒ“ƒgƒTƒCƒY
+			player[p].screenPos.y - 10.0f,	// ãƒ†ã‚­ã‚¹ãƒˆã®é«˜ã•åˆ†ä¸Šã«è¡¨ç¤º
+			40.0f,							// ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º
 			L"Impact",
 			textColor
 		);
@@ -2580,17 +2656,17 @@ void Player_DrawText()
 static void Ranking(int playerIndex)
 {
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
-	// “ñd“o˜^–h~
+	// äºŒé‡ç™»éŒ²é˜²æ­¢
 	if (player[playerIndex].rank != 0) return;
 
-	// €–S‡‚É’Ç‰Á
+	// æ­»äº¡é †ã«è¿½åŠ 
 	g_deathOrder.push_back(playerIndex);
 	size_t pos = g_deathOrder.size();
 
-	// æ‚É€‚ñ‚¾ƒvƒŒƒCƒ„[‚ª’á‡ˆÊ‚É‚È‚éipos=1 -> 4ˆÊj
+	// å…ˆã«æ­»ã‚“ã ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒä½é †ä½ã«ãªã‚‹ï¼ˆpos=1 -> 4ä½ï¼‰
 	player[playerIndex].rank = PLAYER_MAX - (int)(pos - 1);
 
-	// ÅŒã‚Ìˆêl‚ªŠm’è‚µ‚½‚çc‚è‚ğ1ˆÊ‚É‚·‚é
+	// æœ€å¾Œã®ä¸€äººãŒç¢ºå®šã—ãŸã‚‰æ®‹ã‚Šã‚’1ä½ã«ã™ã‚‹
 	if (g_deathOrder.size() == (size_t)(PLAYER_MAX - 1))
 	{
 		for (int p = 0; p < PLAYER_MAX; ++p)
@@ -2601,19 +2677,43 @@ static void Ranking(int playerIndex)
 				break;
 			}
 		}
+		//if((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A))
+		//{
+		//	// èœæ™ãƒ»ï½¢ï½ºè³ãƒ»ç«Šãƒ»SCENE_WIN ç¸ºï½¸é©•ï½·é˜ï½»
+		//	if (GetFadeState() == FADE_NONE)
+		//	{
+		//		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 0.0f);
+		//		SetFade(60, color, FADE_OUT, SCENE_WIN);
+		//	}
+		//}
+		g_isWaitWin = true;
+		g_winTimer = 0.0f;
+	}
+}
 
-		// ŸÒŠm’è ¨ SCENE_WIN ‚Ö‘JˆÚ
+void Player_CheckWin()
+{
+	if (!g_isWaitWin) return;
+
+	g_winTimer += DELTA_TIME;
+
+	/*if (Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A)*/
+	if (g_winTimer >= 3.0f)
+	{
+		// ã‚²ãƒ¼ãƒ çµ‚äº†ã‹ã‚‰å‹åˆ©ç”»é¢ã¸é·ç§»
 		if (GetFadeState() == FADE_NONE)
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 0.0f);
 			SetFade(60, color, FADE_OUT, SCENE_WIN);
+			g_isWaitWin = false;  // é·ç§»é–‹å§‹å¾Œã¯ãƒ•ãƒ©ã‚°ã‚’ä¸‹ã‚ã™
+			g_winTimer = 0.0f;
 		}
 	}
 }
 
 PLAYEROBJECT* GetPlayer(int playerIndex)
 {
-	// ”ÍˆÍƒ`ƒFƒbƒN 0 1 2 3 ˆÈŠO‚È‚ç nullptr ‚ğ•Ô‚·
+	// ç¯„å›²ãƒã‚§ãƒƒã‚¯ 0 1 2 3 ä»¥å¤–ãªã‚‰ nullptr ã‚’è¿”ã™
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX)	return nullptr;
 
 	return &player[playerIndex];
@@ -2621,7 +2721,7 @@ PLAYEROBJECT* GetPlayer(int playerIndex)
 
 void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float speed)
 {
-	// ”ÍˆÍƒ`ƒFƒbƒN
+	// ç¯„å›²ãƒã‚§ãƒƒã‚¯
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
 
 
@@ -2632,7 +2732,7 @@ void TriggerbyHPShake(int playerIndex, float amplitude, float duration, float sp
 
 bool Player_CanUseSpecial(int playerIndex)
 {
-	// ”ÍˆÍƒ`ƒFƒbƒN
+	// ç¯„å›²ãƒã‚§ãƒƒã‚¯
 	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return false;
 
 	PLAYEROBJECT& pl = player[playerIndex];
@@ -2642,12 +2742,12 @@ bool Player_CanUseSpecial(int playerIndex)
 	if (pl.isDown)		return false;
 	if (pl.rank == 1)	return false;
 
-	// Œ`‘Ô‚ª‘æ3Œ`‘Ô‚Å‚ ‚é‚±‚Æ
+	// å½¢æ…‹ãŒç¬¬3å½¢æ…‹ã§ã‚ã‚‹ã“ã¨
 	if (pl.form != Form::Third) return false;
 
-	// ƒ^ƒCƒv‚ª–¢İ’è‚¾‚ÆƒXƒyƒVƒƒƒ‹‚ª‚È‚¢‚©‚çƒ^ƒCƒv‚àƒ`ƒFƒbƒN
+	// ã‚¿ã‚¤ãƒ—ãŒæœªè¨­å®šã ã¨ã‚¹ãƒšã‚·ãƒ£ãƒ«ãŒãªã„ã‹ã‚‰ã‚¿ã‚¤ãƒ—ã‚‚ãƒã‚§ãƒƒã‚¯
 	if (pl.type == PlayerType::None) return false;
 
-	// ‚·‚×‚Ä’Ê‚Á‚½‚çtrue
+	// ã™ã¹ã¦é€šã£ãŸã‚‰true
 	return true;
 }

@@ -46,7 +46,7 @@ void SetDamageText(const XMFLOAT3& worldPos, int damage, TextColor color)
 	e.text = std::to_wstring(damage);
 	e.worldPos = worldPos;
 	e.vy = 0.05f; // 上にゆっくり移動
-	e.flame = 70.0f; // フレーム数で消す
+	e.flame = 50.0f; // フレーム数で消す
 	e.size = 36.0f;
 	e.color = color;
 	e.alive = true;
@@ -140,7 +140,7 @@ void DamageText_Draw()
 		float alpha = 1.0f; // 基本は完全に不透明
 
 		// 残り寿命が 50フレーム を切ったら、徐々に透明(0.0)にしていく
-		if (e.flame <= 50.0f)
+		if (e.flame <= 30.0f)
 		{
 			alpha = e.flame / 50.0f;
 		}

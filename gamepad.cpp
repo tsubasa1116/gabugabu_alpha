@@ -82,10 +82,10 @@ void Gamepad_Update()
 		g_Input[p].LStickY = NormalizeStickWithDeadZone(ly);
 
 		// ƒ{ƒ^ƒ““ü—Í
-		g_Input[p].A = SDL_GetGamepadButton(g_pGamepad[p], SDL_GAMEPAD_BUTTON_SOUTH);
-		g_Input[p].B = SDL_GetGamepadButton(g_pGamepad[p], SDL_GAMEPAD_BUTTON_EAST);
-		g_Input[p].X = SDL_GetGamepadButton(g_pGamepad[p], SDL_GAMEPAD_BUTTON_WEST);
-		g_Input[p].Y = SDL_GetGamepadButton(g_pGamepad[p], SDL_GAMEPAD_BUTTON_NORTH);
+		g_Input[p].A = SDL_GetGamepadButton(g_pGamepad[p], SDL_GAMEPAD_BUTTON_EAST);
+		g_Input[p].B = SDL_GetGamepadButton(g_pGamepad[p], SDL_GAMEPAD_BUTTON_SOUTH);
+		g_Input[p].X = SDL_GetGamepadButton(g_pGamepad[p], SDL_GAMEPAD_BUTTON_NORTH);
+		g_Input[p].Y = SDL_GetGamepadButton(g_pGamepad[p], SDL_GAMEPAD_BUTTON_WEST);
 
 		g_Input[p].L = SDL_GetGamepadButton(g_pGamepad[p], SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
 		g_Input[p].R = SDL_GetGamepadButton(g_pGamepad[p], SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
