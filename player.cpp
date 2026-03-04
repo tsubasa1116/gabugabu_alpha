@@ -705,12 +705,6 @@ void Player_Update(/*float currentDeltaTime*/)
 				}
 			}
 
-			// 満腹度の減少
-			player[p].satiety -= DELTA_TIME;
-			if (player[p].satiety < 0.0f)	player[p].satiety = 0.0f;
-			//// 満腹度が1未満ならHPを減少させる
-			//if (player[p].satiety < 1.0f)	player[p].hp -= 0.05f;
-
 			// リスポーン処理
 			if (player[p].duringRespawn)
 			{
@@ -726,8 +720,6 @@ void Player_Update(/*float currentDeltaTime*/)
 					{
 						player[p].duringRespawn = false;
 						player[p].respawnTimer = 0.0f;
-						player[p].isInvincible = true;
-						player[p].invincibleTimer = 0.0f;
 						player[p].isEggBreaking = true;
 						player[p].eggBreakingTimer = 0.0f;
 					}
