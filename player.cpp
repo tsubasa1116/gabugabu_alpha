@@ -124,7 +124,7 @@ static UINT idxdata[6]
 
 static float top_y = 0;	// 六角形のtop-y座票のデバッグ表示
 
-static std::atomic<int> g_loadedCount(0);                   // 何枚終わったか（進捗用）
+static std::atomic<int> g_loadedCount(0);	// 何枚終わったか（進捗用）
 static bool      s_ShowImgui = true;
 
 //======================================================
@@ -2121,43 +2121,43 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 
 			ID3D11ShaderResourceView* srv = nullptr;
 
-			//// 形態とタイプに応じたテクスチャを設定
-			//switch (player[idx].form)
-			//{
-			//	// 第1形態
-			//case Form::First:
-			//	if (idx == 0)					srv = g_Texture[0];
-			//	else if (idx == 1)				srv = g_Texture[1];
-			//	else if (idx == 2)				srv = g_Texture[2];
-			//	else if (idx == 3)				srv = g_Texture[3];
-			//	break;
-			//	// 第2形態
-			//case Form::Second:
-			//	switch (player[idx].type)
-			//	{
-			//	case PlayerType::Glass:			srv = g_Texture[4];	break;
-			//	case PlayerType::Concrete:		srv = g_Texture[5];	break;
-			//	case PlayerType::Plant:			srv = g_Texture[6];	break;
-			//	case PlayerType::Electricity:	srv = g_Texture[7];	break;
-			//	default: break;
-			//	}
-			//	break;
-			//	// 第3形態
-			//case Form::Third:
-			//	switch (player[idx].type)
-			//	{
-			//	case PlayerType::Glass:			srv = g_Texture[8];		break;
-			//	case PlayerType::Concrete:		srv = g_Texture[9];		break;
-			//	case PlayerType::Plant:			srv = g_Texture[10];	break;
-			//	case PlayerType::Electricity:	srv = g_Texture[11];	break;
-			//	default: break;
-			//	}
-			//	break;
-			//}
+			// 形態とタイプに応じたテクスチャを設定
+			switch (player[idx].form)
+			{
+				// 第1形態
+			case Form::First:
+				if (idx == 0)					srv = g_Texture[0];
+				else if (idx == 1)				srv = g_Texture[1];
+				else if (idx == 2)				srv = g_Texture[2];
+				else if (idx == 3)				srv = g_Texture[3];
+				break;
+				// 第2形態
+			case Form::Second:
+				switch (player[idx].type)
+				{
+				case PlayerType::Glass:			srv = g_Texture[4];	break;
+				case PlayerType::Concrete:		srv = g_Texture[5];	break;
+				case PlayerType::Plant:			srv = g_Texture[6];	break;
+				case PlayerType::Electricity:	srv = g_Texture[7];	break;
+				default: break;
+				}
+				break;
+				// 第3形態
+			case Form::Third:
+				switch (player[idx].type)
+				{
+				case PlayerType::Glass:			srv = g_Texture[8];		break;
+				case PlayerType::Concrete:		srv = g_Texture[9];		break;
+				case PlayerType::Plant:			srv = g_Texture[10];	break;
+				case PlayerType::Electricity:	srv = g_Texture[11];	break;
+				default: break;
+				}
+				break;
+			}
 
-			//// スキル・スペシャル専用テクスチャ
-			//if (player[idx].useSpecial && player[idx].specialAnimation)	srv = g_Texture[13];	// スペシャルアニメーション継続中のみ
-			//else if (player[idx].skillAnimation)						srv = g_Texture[12];	// スキル発動アニメーション
+			// スキル・スペシャル専用テクスチャ
+			if (player[idx].useSpecial && player[idx].specialAnimation)	srv = g_Texture[13];	// スペシャルアニメーション継続中のみ
+			else if (player[idx].skillAnimation)						srv = g_Texture[12];	// スキル発動アニメーション
 
 			g_pContext->PSSetShaderResources(0, 1, &srv);
 
@@ -2282,7 +2282,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	// カメラからの順番をソートしたもの(list)の順番で再度描画
 	for (auto& p : list)
 	{
-		//Player_DrawOutline(p.second);
+		Player_DrawOutline(p.second);
 
 		// 再描画でも本体は active のものだけ描画（非アクティブは Outline 関数内で弾かれる）
 		if (player[p.second].active)
@@ -2292,7 +2292,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	}
 
 	// シルエット描画追加
-	//for (auto& p : list) Player_DrawSilhouette(p.second);
+	for (auto& p : list) Player_DrawSilhouette(p.second);
 
 	// スペシャルエフェクト本体
 	for (int p2 = 0; p2 < PLAYER_MAX; ++p2)

@@ -383,6 +383,8 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	{
 		g_rangeScale[i] = 1.0f;
 		g_prevUseSpecial[i] = false;
+		// 植物スペシャルの当たり判定半径を固定で初期化
+		g_PlantCircle[i].radius = SPECIAL_PLANT_RADIUS;
 	}
 }
 
@@ -948,8 +950,8 @@ void Special_Plant_Update(int playerIndex)
 		player.specialTimer = 0.0f;
 		g_animFrame[playerIndex] = 0;
 		g_animTimer[playerIndex] = 0.0f;
-		player.form = Form::First;									// 変身形態を第1形態に戻す
-		player.type = PlayerType::None;								// タイプをリセット
+		//player.form = Form::First;									// 変身形態を第1形態に戻す
+		//player.type = PlayerType::None;								// タイプをリセット
 		player.evolutionGaugeRate = PLAYER_EVOLUTION_GAUGE_RATE;	// スキルの進化ゲージバフもリセット
 		player.useSkill = false;									// スキル解除
 		Effect_Clear(playerIndex);									// エフェクトクリア
