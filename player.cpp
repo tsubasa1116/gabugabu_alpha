@@ -176,7 +176,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].power = 0.0f;
 		player[p].speed = 0.0f;
 		player[p].defense = 1.0f;
-		player[p].stock = 1;
+		player[p].stock = 3;
 		player[p].rank = 0;
 		player[p].active = true;
 		player[p].satiety = 0.0f;
@@ -751,7 +751,6 @@ void Player_Update(/*float currentDeltaTime*/)
 			}
 
 		// 毒状態の処理
-		// 毒状態の処理
 		if (player[p].poisonTimer > 0.0f)
 		{
 			if (!player[p].isPoisoned)
@@ -986,6 +985,38 @@ void Player_Update(/*float currentDeltaTime*/)
 						player[p].active = false;
 						player[p].isDown = false;
 						player[p].downTimer = 0.0f;
+						player[p].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+
+						// アニメーションフラグをリセット
+						player[p].isAttacking = false;
+						player[p].attackTimer = 0.0f;
+						player[p].isAttacked = false;
+						player[p].attackedTimer = 0.0f;
+						player[p].isDamageColor = false;
+						player[p].damageColorTimer = 0.0f;
+						player[p].isHealing = false;
+						player[p].healingTimer = 0.0f;
+						player[p].isEvolving = false;
+						player[p].evolvingTimer = 0.0f;
+						player[p].useSkill = false;
+						player[p].skillTimer = 0.0f;
+						player[p].skillAnimation = false;
+						player[p].useSpecial = false;
+						player[p].specialTimer = 0.0f;
+						player[p].specialAnimation = false;
+						player[p].isInvincible = false;
+						player[p].invincibleTimer = 0.0f;
+						player[p].isStunning = false;
+						player[p].stunTimer = 0.0f;
+						player[p].isPoisoned = false;
+						player[p].poisonTimer = 0.0f;
+						player[p].isEggBreaking = false;
+						player[p].eggBreakingTimer = 0.0f;
+						player[p].isMoving = false;
+						g_skillAnimStarted[p] = false;
+						g_specialInitialize[p] = false;
+						g_specialAnimPhase[p] = 0;
+						g_victoryState[p] = 0;
 
 						// 順位登録（内部で重複登録を防止）
 						Ranking(p);
@@ -1011,6 +1042,40 @@ void Player_Update(/*float currentDeltaTime*/)
 				{
 					// 残機無しで完全に非アクティブ化
 					player[p].active = false;
+					player[p].scaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+
+					// アニメーションフラグをリセット
+					player[p].isAttacking = false;
+					player[p].attackTimer = 0.0f;
+					player[p].isAttacked = false;
+					player[p].attackedTimer = 0.0f;
+					player[p].isDamageColor = false;
+					player[p].damageColorTimer = 0.0f;
+					player[p].isHealing = false;
+					player[p].healingTimer = 0.0f;
+					player[p].isEvolving = false;
+					player[p].evolvingTimer = 0.0f;
+					player[p].useSkill = false;
+					player[p].skillTimer = 0.0f;
+					player[p].skillAnimation = false;
+					player[p].useSpecial = false;
+					player[p].specialTimer = 0.0f;
+					player[p].specialAnimation = false;
+					player[p].isInvincible = false;
+					player[p].invincibleTimer = 0.0f;
+					player[p].isStunning = false;
+					player[p].stunTimer = 0.0f;
+					player[p].isDown = false;
+					player[p].downTimer = 0.0f;
+					player[p].isPoisoned = false;
+					player[p].poisonTimer = 0.0f;
+					player[p].isEggBreaking = false;
+					player[p].eggBreakingTimer = 0.0f;
+					player[p].isMoving = false;
+					g_skillAnimStarted[p] = false;
+					g_specialInitialize[p] = false;
+					g_specialAnimPhase[p] = 0;
+					g_victoryState[p] = 0;
 
 					// 順位登録
 					Ranking(p);
