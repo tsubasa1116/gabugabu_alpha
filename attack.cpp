@@ -389,7 +389,7 @@ void Attack_Update(int playerIndex)
 
 						// Œš•¨‰ó‚µ‚½‚É 0.05•b‚­‚ç‚¢~‚ß‚é
 						//StartHitStop(1.0f);
-						player.g_hitStopTimer = 1.0f;
+						player.g_hitStopTimer = 0.05f;
 					}
 				}
 			}
@@ -466,10 +466,10 @@ void Attack_Update(int playerIndex)
 
 
 
-					defender.g_hitStopTimer = 1.0f;
+					defender.g_hitStopTimer = 0.05f;
 					// ƒvƒŒƒCƒ„[‚É“–‚Ä‚½‚Í‚¿‚å‚Á‚Æ’·‚ß‚É 0.1•b‚­‚ç‚¢~‚ß‚é
 					//StartHitStop(1.0f);
-					player.g_hitStopTimer = 1.0f;
+					player.g_hitStopTimer = 0.05f;
 				}
 			}
 		}
