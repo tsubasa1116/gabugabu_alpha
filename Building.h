@@ -39,11 +39,12 @@ private:
 	// （同じ番号で両方を管理）
 	int m_ModelIndex;
 	int m_FieldIndex;
-
 	// 種類・フェーズに応じて
 	// モデルとテクスチャを読み込む
 	//void LoadModelForPhase();
-
+	float m_ShakeTimer = 0.0f;
+	bool  m_IsShaking = false;
+	XMFLOAT3 m_BasePosition;   // ★これを追加
 public:
 
 	// トランスフォーム
@@ -104,6 +105,7 @@ public:
 
 	float m_RespawnTimer = { 10.0f };	// 復活までの秒数
 	float m_RebirthAnimTimer = 0.0f;
+	int GetFieldIndex() const { return m_FieldIndex; }
 	// 既存ファイル: Building.h
 
 };

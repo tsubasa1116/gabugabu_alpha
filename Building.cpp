@@ -136,7 +136,7 @@ static ModelBaseSize g_PlantModelSizes[COUNT(g_PlantModels)] = {
 
 static ModelBaseSize g_ElectricModelSizes[COUNT(g_ElectricModels)] = {
 	{1.4f, 2.0f, 0.9f},		// singou
-	{1.5f, 3.0f, 1.5f},		// taw-
+	{1.5f, 7.0f, 1.5f},		// taw-
 	{3.9f, 2.5f, 1.6f},		// raibu
 	{1.0f, 3.5f, 1.1f},		// propsElectricitySub03_v9
 	{1.0f, 2.8f, 1.0f}		// propsElectricitySub02_v9
@@ -424,11 +424,12 @@ void Building::Update()
 {
 	MAPDATA* map = GetFieldObjects();
 
-	if (!map[m_FieldIndex].isActive && !m_IsFalling)
+	if (!map[m_FieldIndex].isActive && !m_IsFalling && !m_IsShaking)
 	{
-		m_IsFalling = true;
-		m_FallSpeed = 0.0f;
+		m_IsShaking = true;
+		m_ShakeTimer = 0.5f;   // 0.5秒振動
 	}
+
 	// --- 復活（消えていく）処理 ---
 	if (this->isDestroyed)
 	{
@@ -527,6 +528,7 @@ void Building::Update()
 	{
 		m_TexOffset = (m_TexOffset + 1) % FIELD_TEX_MAX;
 	}
+
 	// 離れた瞬間にテクスチャオフセットをリセット
 	else if (!anyPlayerNear && m_IsPlayerNear)
 	{
@@ -559,11 +561,28 @@ void Building::Update()
 
 	// CalculateAABBをここで呼ぶ（インスタンスごとの計算）
 	CalculateAABB(this->boundingBox, currentPos, actualSize);
+	// ==========================
+// 振動処理
+// ==========================
+	if (m_IsShaking)
+	{
+		m_ShakeTimer -= DELTA_TIME;
 
+		// 左右に小さく振動
+		float shakeAmount = 5.0f;
+		position.x += sin(GetTickCount() * 0.02f) * shakeAmount;
+
+		if (m_ShakeTimer <= 0.0f)
+		{
+			m_IsShaking = false;
+			m_IsFalling = true;
+			m_FallSpeed = 0.0f;
+		}
+	}
 	if (m_IsFalling)
 	{
 		// 重力加速
-		m_FallSpeed += 0.06f * DELTA_TIME;
+		m_FallSpeed += 0.03f * DELTA_TIME;
 
 		// 下に移動
 		position.y -= m_FallSpeed;
@@ -574,6 +593,8 @@ void Building::Update()
 			isActive = false;
 		}
 	}
+
+
 }
 
 //=========================================
