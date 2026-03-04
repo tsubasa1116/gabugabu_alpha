@@ -50,8 +50,6 @@ struct GIMMICK_STATE
 	// 範囲アニメーション用
 	int   rangeAnimFrame;	// 現在のアニメーションフレーム
 	float rangeAnimTimer;	// アニメーションタイマー
-
-	bool hitPlayer;			// true = プレイヤーに命中した着弾
 };
 
 void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

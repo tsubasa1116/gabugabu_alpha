@@ -21,7 +21,7 @@
 #define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間
 #define	HEALING_TIME		(2.0f)	// 回復持続時間
 #define	HP_HEAL				(5.0f)	// HP回復
-#define	EVOLVING_TIME		(3.0f)	// 進化時間
+#define	EVOLVING_TIME		(2.0f)	// 進化時間
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間
 #define	DOWN_TIME			(3.0f)	// ダウン持続時間

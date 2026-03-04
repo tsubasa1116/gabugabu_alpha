@@ -13,7 +13,7 @@
 
 #define SPECIAL_GLASS_DAMAGE		(100.0f)// ミサイル 1個あたりのダメージ量
 #define SPECIAL_CONCRETE_DAMAGE		(75.0f)	// 判定1回のみ
-#define SPECIAL_PLANT_DAMAGE		(0.2f)	// スリップダメージ
+#define SPECIAL_PLANT_DAMAGE		(0.15f)	// スリップダメージ
 #define SPECIAL_ELECTRICITY_DAMAGE	(20.0f)	// 雷 1個あたりのダメージ量
 
 #define SPECIAL_GLASSBOX_QUANTITY		(3)	// ガラス 1プレイヤーに飛ばす箱の数
@@ -57,8 +57,8 @@ void Special_Update(int playerIndex);
 void Special_Draw(int playerIndex);
 
 // 描画パス分割用（範囲表示 = プレイヤーより先、エフェクト本体 = プレイヤーより後）
-void Special_DrawRange(int playerIndex);	// 範囲表示のみ（地面に描画）
-void Special_DrawEffect(int playerIndex);	// エフェクト本体のみ（手前に描画）
+void Special_DrawRange(int playerIndex);   // 範囲表示のみ（地面に描画）
+void Special_DrawEffect(int playerIndex);  // エフェクト本体のみ（手前に描画）
 
 void Special_Glass_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Special_Concrete_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

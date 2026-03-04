@@ -1,8 +1,8 @@
 //======================================================
 //	gimmick.cpp
 // 
-//	éš•çŸ³ã‚’é™ã‚‰ã›ã‚‹ã‚®ãƒŸãƒƒã‚¯
-//	player.stockãŒ0ã«ãªã£ãŸã¨ãã«ç™ºå‹•å¯èƒ½
+//	è¦Î‚ğ~‚ç‚¹‚éƒMƒ~ƒbƒN
+//	player.stock‚ª0‚É‚È‚Á‚½‚Æ‚«‚É”­“®‰Â”\
 //======================================================
 
 #include <DirectXMath.h>
@@ -25,86 +25,82 @@ using namespace DirectX;
 #include "debug_render.h"
 
 //======================================================
-//	ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+//	ƒOƒ[ƒoƒ‹•Ï”
 //======================================================
 static ID3D11Device* g_pDevice = NULL;
 static ID3D11DeviceContext* g_pContext = NULL;
 
-// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
+// ’¸“_ƒoƒbƒtƒ@
 static ID3D11Buffer* g_VertexBuffer = NULL;
 
-// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
+// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
 static ID3D11Buffer* g_IndexBuffer = NULL;
 
-// ãƒ†ã‚¯ã‚¹ãƒãƒ£å¤‰æ•°
-static ID3D11ShaderResourceView* g_RangeTexture[4] = { NULL };	// ç¯„å›²ãƒ†ã‚¯ã‚¹ãƒãƒ£
-static ID3D11ShaderResourceView* g_MeteorTexture = NULL;		// éš•çŸ³ãƒ¢ãƒ‡ãƒ«ç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£
+// ƒeƒNƒXƒ`ƒƒ•Ï”
+static ID3D11ShaderResourceView* g_RangeTexture[4] = { NULL };	// ”ÍˆÍƒeƒNƒXƒ`ƒƒ
+static ID3D11ShaderResourceView* g_MeteorTexture = NULL;		// è¦Îƒ‚ƒfƒ‹—pƒeƒNƒXƒ`ƒƒ
 
-// éš•çŸ³FBXãƒ¢ãƒ‡ãƒ«
+// è¦ÎFBXƒ‚ƒfƒ‹
 static MODEL* g_MeteorModel = NULL;
 
-// ã‚®ãƒŸãƒƒã‚¯çŠ¶æ…‹ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ï¼‰
+// ƒMƒ~ƒbƒNó‘ÔiƒvƒŒƒCƒ„[‚²‚Æj
 static GIMMICK_STATE g_Gimmick[PLAYER_MAX];
 
-// è¿½åŠ ï¼šéš•çŸ³ã®è¦–è¦šçš„ãªç¯„å›²ã‚¹ã‚±ãƒ¼ãƒ«ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ï¼‰
-static float g_meteorRangeScale[PLAYER_MAX];			// 0.1f .. 1.0f ã®æ­£è¦åŒ–ã‚¹ã‚±ãƒ¼ãƒ«ï¼ˆ1.0 ãŒ MAXï¼‰
-static const float METEOR_RANGE_GROW_DURATION = 0.4f;	// 0.1 -> MAX ã«åºƒãŒã‚‹ã¾ã§ã®æ™‚é–“ï¼ˆç§’ï¼‰
-
-// ãƒã‚¯ãƒ­å®šç¾©ï¼ˆç¯„å›²æç”»ã§+Yé¢ã‚’ä½¿ã†ãŸã‚ç®±ã®é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã¯æ®‹ã™ï¼‰
+// ƒ}ƒNƒ’è‹`i”ÍˆÍ•`‰æ‚Å+Y–Ê‚ğg‚¤‚½‚ß” ‚Ì’¸“_ƒf[ƒ^‚Íc‚·j
 #define METEOR_VERTEX (24)
 
-// éš•çŸ³ï¼ˆç®±ï¼‰ã®é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ï¼ˆç¯„å›²æç”»ã®+Yé¢ã®ã¿ä½¿ç”¨ï¼‰
+// è¦Îi” j‚Ì’¸“_ƒf[ƒ^i”ÍˆÍ•`‰æ‚Ì+Y–Ê‚Ì‚İg—pj
 static Vertex2 Meteor_vdata[METEOR_VERTEX] =
 {
-	// -Zé¢ (æ³•ç·š: 0,0,-1)
+	// -Z–Ê (–@ü: 0,0,-1)
 	{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
 	{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
 	{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 	{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
 
-	// +Xé¢ (æ³•ç·š: 1,0,0)
+	// +X–Ê (–@ü: 1,0,0)
 	{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
 	{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
 	{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 	{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
 
-	// +Zé¢ (æ³•ç·š: 0,0,1)
+	// +Z–Ê (–@ü: 0,0,1)
 	{ XMFLOAT3(0.5f,  0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
 	{ XMFLOAT3(-0.5f,  0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
 	{ XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 	{ XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
 
-	// -Xé¢ (æ³•ç·š: -1,0,0)
+	// -X–Ê (–@ü: -1,0,0)
 	{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
 	{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
 	{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 	{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
 
-	// +Yé¢ (æ³•ç·š: 0,1,0)
+	// +Y–Ê (–@ü: 0,1,0)
 	{ XMFLOAT3(-0.5f, 0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
 	{ XMFLOAT3(0.5f, 0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
 	{ XMFLOAT3(-0.5f, 0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 	{ XMFLOAT3(0.5f, 0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
 
-	// -Yé¢ (æ³•ç·š: 0,-1,0)
+	// -Y–Ê (–@ü: 0,-1,0)
 	{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
 	{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
 	{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 	{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
 };
 
-// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹é…åˆ—
+// ƒCƒ“ƒfƒbƒNƒX”z—ñ
 static UINT Meteor_idxdata[6 * 6] =
 {
-	 0,  1,  2,  2,  1,  3, // -Zé¢
-	 4,  5,  6,  6,  5,  7, // +Xé¢
-	 8,  9, 10, 10,  9, 11, // +Zé¢
-	12, 13, 14, 14, 13, 15, // -Xé¢
-	16, 17, 18, 18, 17, 19, // +Yé¢
-	20, 21, 22, 22, 21, 23, // -Yé¢
+	 0,  1,  2,  2,  1,  3, // -Z–Ê
+	 4,  5,  6,  6,  5,  7, // +X–Ê
+	 8,  9, 10, 10,  9, 11, // +Z–Ê
+	12, 13, 14, 14, 13, 15, // -X–Ê
+	16, 17, 18, 18, 17, 19, // +Y–Ê
+	20, 21, 22, 22, 21, 23, // -Y–Ê
 };
 
-// ç¯„å›²ãƒ†ã‚¯ã‚¹ãƒãƒ£ç”¨é ‚ç‚¹ï¼ˆãƒ“ãƒ«ãƒœãƒ¼ãƒ‰å¹³é¢ï¼‰
+// ”ÍˆÍƒeƒNƒXƒ`ƒƒ—p’¸“_iƒrƒ‹ƒ{[ƒh•½–Êj
 #define RANGE_VERTEX (6)
 static Vertex2 Range_vdata[RANGE_VERTEX] =
 {
@@ -117,7 +113,7 @@ static Vertex2 Range_vdata[RANGE_VERTEX] =
 };
 
 //======================================================
-// ã‚«ãƒ¡ãƒ©åŸºæº–ã§ãƒ­ãƒ¼ã‚«ãƒ«å…¥åŠ›ã‚’ãƒ¯ãƒ¼ãƒ«ãƒ‰XZæ–¹å‘ã¸å¤‰æ›
+// ƒJƒƒ‰Šî€‚Åƒ[ƒJƒ‹“ü—Í‚ğƒ[ƒ‹ƒhXZ•ûŒü‚Ö•ÏŠ·
 //======================================================
 static XMFLOAT3 MeteorToWorldDir(const XMFLOAT2& input)
 {
@@ -127,7 +123,7 @@ static XMFLOAT3 MeteorToWorldDir(const XMFLOAT2& input)
 	XMFLOAT3 right = { invView.r[0].m128_f32[0], 0.0f, invView.r[0].m128_f32[2] };
 	XMFLOAT3 forward = { invView.r[2].m128_f32[0], 0.0f, invView.r[2].m128_f32[2] };
 
-	// æ­£è¦åŒ–
+	// ³‹K‰»
 	float rl = sqrtf(right.x * right.x + right.z * right.z);
 	if (rl > 0.0001f) { right.x /= rl; right.z /= rl; }
 	float fl = sqrtf(forward.x * forward.x + forward.z * forward.z);
@@ -141,14 +137,14 @@ static XMFLOAT3 MeteorToWorldDir(const XMFLOAT2& input)
 }
 
 //======================================================
-//	åˆæœŸåŒ–é–¢æ•°
+//	‰Šú‰»ŠÖ”
 //======================================================
 void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// ã‚®ãƒŸãƒƒã‚¯çŠ¶æ…‹ã®åˆæœŸåŒ–
+	// ƒMƒ~ƒbƒNó‘Ô‚Ì‰Šú‰»
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
 		g_Gimmick[p].enabled = false;
@@ -156,7 +152,6 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Gimmick[p].canFire = false;
 		g_Gimmick[p].rangeAnimFrame = 0;
 		g_Gimmick[p].rangeAnimTimer = 0.0f;
-		g_Gimmick[p].hitPlayer = false;
 
 		g_Gimmick[p].meteor.position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Gimmick[p].meteor.rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -165,12 +160,9 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Gimmick[p].meteor.collider = { XMFLOAT3(0.0f, 0.0f, 0.0f), METEOR_RANGE_RADIUS };
 		g_Gimmick[p].meteor.active = false;
 		g_Gimmick[p].meteor.landed = false;
-
-		// è¿½åŠ ï¼šç¯„å›²ã‚¹ã‚±ãƒ¼ãƒ«åˆæœŸåŒ–
-		g_meteorRangeScale[p] = 1.0f;
 	}
 
-	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
+	// ’¸“_ƒoƒbƒtƒ@ì¬
 	{
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -181,7 +173,7 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
 	}
 
-	// ç¯„å›²æç”»ç”¨ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆ
+	// ”ÍˆÍ•`‰æ—p‚ÌƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@ì¬
 	{
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -198,18 +190,18 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		pContext->Unmap(g_IndexBuffer, 0);
 	}	
 
-	// ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
+	// ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
 	Loader::AddTask([pDevice]()
 		{
 			TexMetadata metadata;
 			ScratchImage image;
 
-			// éš•çŸ³ãƒ¢ãƒ‡ãƒ«ç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£
+			// è¦Îƒ‚ƒfƒ‹—pƒeƒNƒXƒ`ƒƒ
 			LoadFromWICFile(L"Asset\\Texture\\textureMeteo_v10.png", WIC_FLAGS_NONE, &metadata, image);
 			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_MeteorTexture);
 			assert(g_MeteorTexture);
 
-			// éš•çŸ³ç¯„å›²è¡¨ç¤ºï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®è‰²ï¼‰
+			// è¦Î”ÍˆÍ•\¦iƒvƒŒƒCƒ„[‚²‚Æ‚ÌFj
 			LoadFromWICFile(L"Asset\\Texture\\uiSpecialRed_v2.png", WIC_FLAGS_NONE, &metadata, image);
 			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_RangeTexture[0]);
 			assert(g_RangeTexture[0]);
@@ -223,13 +215,13 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_RangeTexture[3]);
 			assert(g_RangeTexture[3]);
 
-			// éš•çŸ³FBXãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿
+			// è¦ÎFBXƒ‚ƒfƒ‹“Ç‚İ‚İ
 			g_MeteorModel = ModelLoad("asset\\model\\effectMeteo_v1.fbx");
 		});
 }
 
 //======================================================
-//	çµ‚äº†å‡¦ç†é–¢æ•°
+//	I—¹ˆ—ŠÖ”
 //======================================================
 void Meteor_Finalize()
 {
@@ -244,11 +236,11 @@ void Meteor_Finalize()
 		g_IndexBuffer = NULL;
 	}
 
-	// éš•çŸ³FBXãƒ¢ãƒ‡ãƒ«è§£æ”¾
+	// è¦ÎFBXƒ‚ƒfƒ‹‰ğ•ú
 	ModelRelease(g_MeteorModel);
 	g_MeteorModel = NULL;
 
-	// éš•çŸ³ãƒ¢ãƒ‡ãƒ«ç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£è§£æ”¾
+	// è¦Îƒ‚ƒfƒ‹—pƒeƒNƒXƒ`ƒƒ‰ğ•ú
 	if (g_MeteorTexture != NULL)
 	{
 		g_MeteorTexture->Release();
@@ -269,11 +261,11 @@ void Meteor_Finalize()
 }
 
 //======================================================
-//	æ›´æ–°é–¢æ•°
+//	XVŠÖ”
 //======================================================
 void Meteor_Update()
 {
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ã®æ”»æ’ƒã‚­ãƒ¼
+	// ƒvƒŒƒCƒ„[‚²‚Æ‚ÌUŒ‚ƒL[
 	const Keyboard_Keys_tag attackKeys[PLAYER_MAX] = { KK_SPACE, KK_ENTER, KK_V, KK_NUMPAD0 };
 
 	for (int p = 0; p < PLAYER_MAX; p++)
@@ -303,7 +295,7 @@ void Meteor_Update()
 		if (!g_Gimmick[p].enabled) continue;
 
 		// ------------------------------------------
-		// ç¯„å›²ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°ï¼ˆspecial.cppã¨åŒã˜æ–¹å¼ï¼‰
+		// ”ÍˆÍƒAƒjƒ[ƒVƒ‡ƒ“XVispecial.cpp‚Æ“¯‚¶•û®j
 		// ------------------------------------------
 		g_Gimmick[p].rangeAnimTimer += DELTA_TIME;
 		if (g_Gimmick[p].rangeAnimTimer >= METEOR_RANGE_ANIM_TIME)
@@ -313,7 +305,7 @@ void Meteor_Update()
 		}
 
 		// ------------------------------------------
-		// ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ç®¡ç†
+		// ƒN[ƒ‹ƒ^ƒCƒ€ŠÇ—
 		// ------------------------------------------
 		if (!g_Gimmick[p].canFire && !player.active)
 		{
@@ -326,19 +318,19 @@ void Meteor_Update()
 		}
 
 		// ------------------------------------------
-		// â‘¡ éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç§»å‹•å…¥åŠ›ã§ç¯„å›²ã‚’å‹•ã‹ã™
+		// ‡A ”ñƒAƒNƒeƒBƒuƒvƒŒƒCƒ„[‚ÌˆÚ“®“ü—Í‚Å”ÍˆÍ‚ğ“®‚©‚·
 		// ------------------------------------------
 		if (g_Gimmick[p].canFire)
 		{
 			XMFLOAT2 moveInput = { 0.0f, 0.0f };
 
-			// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å…¥åŠ›
+			// ƒRƒ“ƒgƒ[ƒ‰[“ü—Í
 			if (g_Input[p].LStickY < 0.0f) moveInput.y += 1.0f;
 			if (g_Input[p].LStickY > 0.0f) moveInput.y -= 1.0f;
 			if (g_Input[p].LStickX < 0.0f) moveInput.x -= 1.0f;
 			if (g_Input[p].LStickX > 0.0f) moveInput.x += 1.0f;
 
-			// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã”ã¨ï¼‰
+			// ƒL[ƒ{[ƒh“ü—ÍiƒvƒŒƒCƒ„[‚²‚Æj
 			const Keyboard_Keys_tag moveKeys[PLAYER_MAX][4] = {
 				{ KK_W, KK_S, KK_A, KK_D },
 				{ KK_UP, KK_DOWN, KK_LEFT, KK_RIGHT },
@@ -350,7 +342,7 @@ void Meteor_Update()
 			if (Keyboard_IsKeyDown(moveKeys[p][2])) moveInput.x -= 1.0f;
 			if (Keyboard_IsKeyDown(moveKeys[p][3])) moveInput.x += 1.0f;
 
-			// å…¥åŠ›ãŒã‚ã‚Œã°ç§»å‹•
+			// “ü—Í‚ª‚ ‚ê‚ÎˆÚ“®
 			float len = sqrtf(moveInput.x * moveInput.x + moveInput.y * moveInput.y);
 			if (len > 0.0f)
 			{
@@ -358,27 +350,27 @@ void Meteor_Update()
 				moveInput.y /= len;
 
 				XMFLOAT3 worldDir = MeteorToWorldDir(moveInput);
-				float meteorSpeed = 0.065f; // éš•çŸ³ç¯„å›²ã®ç§»å‹•é€Ÿåº¦
+				float meteorSpeed = 0.065f; // è¦Î”ÍˆÍ‚ÌˆÚ“®‘¬“x
 				player.position.x += worldDir.x * meteorSpeed;
 				player.position.z += worldDir.z * meteorSpeed;
 			}
 		}
 		// ------------------------------------------
-		// â‘¢ æ”»æ’ƒå…¥åŠ›ã§éš•çŸ³ç™ºå°„
+		// ‡B UŒ‚“ü—Í‚Åè¦Î”­Ë
 		// ------------------------------------------
 		if (g_Gimmick[p].canFire && !g_Gimmick[p].meteor.active)
 		{
 			bool firePressed = false;
 
-			// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰
+			// ƒL[ƒ{[ƒh
 			if (Keyboard_IsKeyDownTrigger(attackKeys[p])) firePressed = true;
 
-			// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
+			// ƒRƒ“ƒgƒ[ƒ‰[
 			if (g_Input[p].A) firePressed = true;
 
 			if (firePressed)
 			{
-				// éš•çŸ³ã‚’ç”Ÿæˆï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’åŸºæº–ã«ã™ã‚‹ï¼‰
+				// è¦Î‚ğ¶¬iƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğŠî€‚É‚·‚éj
 				g_Gimmick[p].meteor.active = true;
 				g_Gimmick[p].meteor.landed = false;
 				g_Gimmick[p].meteor.targetPos = player.position;
@@ -389,44 +381,27 @@ void Meteor_Update()
 				g_Gimmick[p].meteor.rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 				g_Gimmick[p].meteor.scaling = XMFLOAT3(METEOR_MODEL_SCALE, METEOR_MODEL_SCALE, METEOR_MODEL_SCALE);
 
-				// ç™ºå°„ç›´å¾Œã«è¦–è¦šç¯„å›²ã‚¹ã‚±ãƒ¼ãƒ«ã‚’å°ã•ãã—ã¦æ‹¡å¤§ã‚’é–‹å§‹
-				g_meteorRangeScale[p] = 0.1f;
-
 				g_Gimmick[p].canFire = false;
 				g_Gimmick[p].coolTimer = 0.0f;
 			}
 		}
 
 		// ------------------------------------------
-		// éš•çŸ³ã®è½ä¸‹å‡¦ç†
+		// è¦Î‚Ì—‰ºˆ—
 		// ------------------------------------------
 		if (g_Gimmick[p].meteor.active && !g_Gimmick[p].meteor.landed)
 		{
-			// è¿½åŠ ï¼šè½ä¸‹ä¸­ã«ç¯„å›²ã‚¹ã‚±ãƒ¼ãƒ«ã‚’æˆé•·ã•ã›ã‚‹ï¼ˆè¦–è¦šåŠ¹æœï¼‰
-			if (g_meteorRangeScale[p] < 1.0f)
-			{
-				if (METEOR_RANGE_GROW_DURATION > 0.0f)
-				{
-					g_meteorRangeScale[p] += DELTA_TIME / METEOR_RANGE_GROW_DURATION;
-				}
-				else
-				{
-					g_meteorRangeScale[p] = 1.0f;
-				}
-				if (g_meteorRangeScale[p] > 1.0f) g_meteorRangeScale[p] = 1.0f;
-			}
-
 			g_Gimmick[p].meteor.position.y -= METEOR_FALL_SPEED * DELTA_TIME;
 
-			// å›è»¢æ¼”å‡º
+			// ‰ñ“]‰‰o
 			g_Gimmick[p].meteor.rotation.y += 3.0f;
 
-			// è½ä¸‹ä¸­ã‚‚å††ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°ï¼ˆãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨ï¼‰
+			// —‰º’†‚à‰~ƒRƒ‰ƒCƒ_[‚ğ–ˆƒtƒŒ[ƒ€XViƒfƒoƒbƒO•\¦—pj
 			g_Gimmick[p].meteor.collider.center = g_Gimmick[p].meteor.position;
 			g_Gimmick[p].meteor.collider.radius = METEOR_RANGE_RADIUS;
 
 			// ------------------------------------------
-			// å»ºç‰©ã¨ã®è¡çªåˆ¤å®šï¼ˆè½ä¸‹ä¸­ã«å»ºç‰©ã®ä¸Šéƒ¨ã§æ­¢ã¾ã‚‹ï¼‰
+			// Œš•¨‚Æ‚ÌÕ“Ë”»’èi—‰º’†‚ÉŒš•¨‚Ìã•”‚Å~‚Ü‚éj
 			// ------------------------------------------
 			bool hitBuilding = false;
 			int buildingCount = GetBuildingCount();
@@ -439,13 +414,13 @@ void Meteor_Update()
 
 				const AABB& box = buildings[b]->GetAABB();
 
-				// éš•çŸ³ã®å††ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã¨AABBã®è¡çªåˆ¤å®š
+				// è¦Î‚Ì‰~ƒRƒ‰ƒCƒ_[‚ÆAABB‚ÌÕ“Ë”»’è
 				if (CheckCircleAABBCollision(g_Gimmick[p].meteor.collider, box))
 				{
-					// å»ºç‰©ã®ä¸Šé¢ã§ç€å¼¾ã•ã›ã‚‹
+					// Œš•¨‚Ìã–Ê‚Å’…’e‚³‚¹‚é
 					g_Gimmick[p].meteor.position.y = box.Max.y;
 
-					// å»ºç‰©ã‚’ç ´å£Šã™ã‚‹
+					// Œš•¨‚ğ”j‰ó‚·‚é
 					buildings[b]->isDestroyed = true;
 					buildings[b]->isActive = false;
 					buildings[b]->m_RespawnTimer = 10.0f;
@@ -455,7 +430,7 @@ void Meteor_Update()
 				}
 			}
 
-			// ç€å¼¾åˆ¤å®šï¼ˆåœ°é¢ã«åˆ°é” or å»ºç‰©ã«è¡çªï¼‰
+			// ’…’e”»’èi’n–Ê‚É“’B or Œš•¨‚ÉÕ“Ëj
 			if (hitBuilding || g_Gimmick[p].meteor.position.y <= g_Gimmick[p].meteor.targetPos.y)
 			{
 				if (!hitBuilding)
@@ -464,17 +439,11 @@ void Meteor_Update()
 				}
 				g_Gimmick[p].meteor.landed = true;
 
-				// ç€å¼¾æ™‚ã«è¦–è¦šã‚¹ã‚±ãƒ¼ãƒ«ã‚’æœ€å¤§ã«ã—ã¦ãŠã
-				g_meteorRangeScale[p] = 1.0f;
-
-				// â‘¤ å††ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã‚’ç€å¼¾ä½ç½®ã§æ›´æ–°
+				// ‡D ‰~ƒRƒ‰ƒCƒ_[‚ğ’…’eˆÊ’u‚ÅXV
 				g_Gimmick[p].meteor.collider.center = g_Gimmick[p].meteor.position;
 				g_Gimmick[p].meteor.collider.radius = METEOR_RANGE_RADIUS;
 
-				// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ’ãƒƒãƒˆãƒ•ãƒ©ã‚°ã‚’ãƒªã‚»ãƒƒãƒˆ
-				g_Gimmick[p].hitPlayer = false;
-
-				// å…¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã®å½“ãŸã‚Šåˆ¤å®šï¼ˆå†† vs AABBï¼‰
+				// ‘SƒvƒŒƒCƒ„[‚Æ‚Ì“–‚½‚è”»’èi‰~ vs AABBj
 				for (int target = 0; target < PLAYER_MAX; target++)
 				{
 					PLAYEROBJECT* targetObj = GetPlayer(target);
@@ -483,24 +452,24 @@ void Meteor_Update()
 					if (targetObj->duringRespawn || targetObj->isEggBreaking) continue;
 					if (targetObj->isInvincible) continue;
 
-					// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®AABBã‚’è¨ˆç®—
+					// ƒ^[ƒQƒbƒg‚ÌAABB‚ğŒvZ
 					AABB targetAABB;
 					CalculateAABB(targetAABB, targetObj->position, targetObj->scaling);
 
-					// è¡çªåˆ¤å®šï¼ˆå†† vs AABBï¼‰
+					// Õ“Ë”»’èi‰~ vs AABBj
 					if (CheckCircleAABBCollision(g_Gimmick[p].meteor.collider, targetAABB))
 					{
-						// ãƒ€ãƒ¡ãƒ¼ã‚¸è¨ˆç®—
+						// ƒ_ƒ[ƒWŒvZ
 						float rawDamage = METEOR_DAMAGE * targetObj->defense;
 
-						// ãƒ€ãƒ¡ãƒ¼ã‚¸é©ç”¨
+						// ƒ_ƒ[ƒW“K—p
 						targetObj->hp -= rawDamage;
 						targetObj->isAttacked = true;
 						targetObj->attackedTimer = 0.0f;
 						targetObj->isDamageColor = true;
 						targetObj->damageColorTimer = 0.0f;
 
-						// ãƒ€ãƒ¡ãƒ¼ã‚¸ãƒ†ã‚­ã‚¹ãƒˆè¡¨ç¤º
+						// ƒ_ƒ[ƒWƒeƒLƒXƒg•\¦
 						int dmgInt = static_cast<int>(rawDamage + 0.5f);
 						XMFLOAT3 hitPos = targetObj->position;
 
@@ -511,20 +480,17 @@ void Meteor_Update()
 			}
 		}
 
-		// ç€å¼¾å¾Œã—ã°ã‚‰ãã—ãŸã‚‰éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«
+		// ’…’eŒã‚µ‚Î‚ç‚­‚µ‚½‚ç”ñƒAƒNƒeƒBƒu‚É
 		if (g_Gimmick[p].meteor.landed)
 		{
-			// å³åº§ã«éã‚¢ã‚¯ãƒ†ã‚£ãƒ–
+			// ‘¦À‚É”ñƒAƒNƒeƒBƒu
 			g_Gimmick[p].meteor.active = false;
-
-			// ãƒªã‚»ãƒƒãƒˆï¼ˆå¿µã®ãŸã‚ï¼‰
-			g_meteorRangeScale[p] = 1.0f;
 		}
 	}
 }
 
 //======================================================
-//	æç”»é–¢æ•°
+//	•`‰æŠÖ”
 //======================================================
 void Meteor_Draw(bool debugDraw)
 {
@@ -533,20 +499,20 @@ void Meteor_Draw(bool debugDraw)
 		if (!g_Gimmick[p].enabled) continue;
 		if (g_RangeTexture[p] == NULL) continue;
 
-		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’å–å¾—
+		// ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğæ“¾
 		PLAYEROBJECT* playerObj = GetPlayer(p);
 		if (playerObj == nullptr) continue;
 		PLAYEROBJECT& player = *playerObj;
 
 		// ------------------------------------------
-		// â‘  ç¯„å›²ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®å¸¸æ™‚è¡¨ç¤ºï¼ˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ä»˜ãï¼‰
+		// ‡@ ”ÍˆÍƒeƒNƒXƒ`ƒƒ‚Ìí•\¦iƒAƒjƒ[ƒVƒ‡ƒ“•t‚«j
 		// ------------------------------------------
 		{
 			SetBlendState(BLENDSTATE_ALPHA);
 			Shader_Begin();
 			SetDepthTest(FALSE);
 
-			// ãƒ©ã‚¤ãƒˆè¨­å®š
+			// ƒ‰ƒCƒgİ’è
 			LIGHT rangeLight{};
 			rangeLight.Enable = TRUE;
 			rangeLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
@@ -554,7 +520,7 @@ void Meteor_Draw(bool debugDraw)
 			rangeLight.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 			Shader_SetLight(rangeLight);
 
-			// ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚·ãƒ¼ãƒˆã®UVè¨ˆç®—ï¼ˆ8x8ã‚·ãƒ¼ãƒˆï¼‰
+			// ƒXƒvƒ‰ƒCƒgƒV[ƒg‚ÌUVŒvZi8x8ƒV[ƒgj
 			int frame = g_Gimmick[p].rangeAnimFrame;
 			int col = frame % METEOR_RANGE_SHEET_COLS;
 			int row = frame / METEOR_RANGE_SHEET_COLS;
@@ -563,32 +529,31 @@ void Meteor_Draw(bool debugDraw)
 			float u1 = u0 + 1.0f / (float)METEOR_RANGE_SHEET_COLS;
 			float v1 = v0 + 1.0f / (float)METEOR_RANGE_SHEET_ROWS;
 
-			// é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’æ›¸ãè¾¼ã¿ï¼ˆ+Yé¢ã®UVã‚’ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ã«åˆã‚ã›ã¦æ›¸ãæ›ãˆï¼‰
+			// ’¸“_ƒf[ƒ^‚ğ‘‚«‚İi+Y–Ê‚ÌUV‚ğƒAƒjƒ[ƒVƒ‡ƒ“ƒtƒŒ[ƒ€‚É‡‚í‚¹‚Ä‘‚«Š·‚¦j
 			D3D11_MAPPED_SUBRESOURCE msr;
 			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 			Vertex2* vertex = (Vertex2*)msr.pData;
 			CopyMemory(vertex, Meteor_vdata, sizeof(Vertex2) * METEOR_VERTEX);
-			// +Yé¢ï¼ˆé ‚ç‚¹16ï½19ï¼‰ã®UVã‚’ä¸Šæ›¸ã
+			// +Y–Êi’¸“_16`19j‚ÌUV‚ğã‘‚«
 			vertex[16].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
 			vertex[17].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
 			vertex[18].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
 			vertex[19].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
 			g_pContext->Unmap(g_VertexBuffer, 0);
 
-			// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã«ã‚¹ã‚±ãƒ¼ãƒ« = ç›´å¾„3 = åŠå¾„1.5ï¼‰
-			// å¤‰æ›´ï¼šè¦–è¦šã‚¹ã‚±ãƒ¼ãƒ«ã‚’é©ç”¨ã—ã¦ç›´å¾„ã‚’å¤‰åŒ–ã•ã›ã‚‹
-			float diameter = METEOR_RANGE_RADIUS * 2.0f * g_meteorRangeScale[p];
+			// ƒ[ƒ‹ƒhs—ñiƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ÉƒXƒP[ƒ‹ = ’¼Œa3 = ”¼Œa1.5j
+			float diameter = METEOR_RANGE_RADIUS * 2.0f;
 			XMMATRIX world = XMMatrixScaling(diameter, 1.0f, diameter)
 				* XMMatrixTranslation(
 					player.position.x + 0.2f,
 					0.1f,
 					player.position.z - 0.5f);
 
-			// WVPè¡Œåˆ—ã‚’è¨ˆç®—ã—ã¦ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«ã‚»ãƒƒãƒˆ
+			// WVPs—ñ‚ğŒvZ‚µ‚ÄƒVƒF[ƒ_[‚ÉƒZƒbƒg
 			XMMATRIX WVP = world * GetViewMatrix() * GetProjectionMatrix();
 			Shader_SetMatrix(WVP);
 
-			// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ãƒ»ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã®ã‚»ãƒƒãƒˆ
+			// ’¸“_ƒoƒbƒtƒ@EƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚ÌƒZƒbƒg
 			UINT stride = sizeof(Vertex2);
 			UINT offset = 0;
 			g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
@@ -597,7 +562,7 @@ void Meteor_Draw(bool debugDraw)
 			SetBlendState(BLENDSTATE_ALPHA);
 			g_pContext->PSSetShaderResources(0, 1, &g_RangeTexture[p]);
 
-			// +Yé¢ã®4é ‚ç‚¹(16,17,18,19)ã‚’TriangleStripã§æç”»
+			// +Y–Ê‚Ì4’¸“_(16,17,18,19)‚ğTriangleStrip‚Å•`‰æ
 			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			g_pContext->Draw(4, 16);
 
@@ -606,7 +571,7 @@ void Meteor_Draw(bool debugDraw)
 	}
 
 	// ------------------------------------------
-	// ãƒ‡ãƒãƒƒã‚°æç”»ï¼šéš•çŸ³ã®å½“ãŸã‚Šåˆ¤å®šï¼ˆå††ï¼‰
+	// ƒfƒoƒbƒO•`‰æFè¦Î‚Ì“–‚½‚è”»’èi‰~j
 	// ------------------------------------------
 	if (debugDraw)
 	{
@@ -629,7 +594,7 @@ void Meteor_Draw(bool debugDraw)
 	}
 
 	// ------------------------------------------
-	// æç”»å¾Œã®ã‚¹ãƒ†ãƒ¼ãƒˆã‚¯ãƒªãƒ¼ãƒ³ã‚¢ãƒƒãƒ—
+	// •`‰æŒã‚ÌƒXƒe[ƒgƒNƒŠ[ƒ“ƒAƒbƒv
 	// ------------------------------------------
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
@@ -637,7 +602,7 @@ void Meteor_Draw(bool debugDraw)
 }
 
 //======================================================
-//	ç¯„å›²è¡¨ç¤ºã®ã¿ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚ˆã‚Šå…ˆã«æç”»ï¼‰
+//	”ÍˆÍ•\¦‚Ì‚İiƒvƒŒƒCƒ„[‚æ‚èæ‚É•`‰æj
 //======================================================
 void Meteor_DrawRange(bool debugDraw)
 {
@@ -650,7 +615,7 @@ void Meteor_DrawRange(bool debugDraw)
 		if (playerObj == nullptr) continue;
 		PLAYEROBJECT& player = *playerObj;
 
-		// ç¯„å›²ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®å¸¸æ™‚è¡¨ç¤ºï¼ˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ä»˜ãï¼‰
+		// ”ÍˆÍƒeƒNƒXƒ`ƒƒ‚Ìí•\¦iƒAƒjƒ[ƒVƒ‡ƒ“•t‚«j
 		{
 			SetBlendState(BLENDSTATE_ALPHA);
 			Shader_Begin();
@@ -681,8 +646,7 @@ void Meteor_DrawRange(bool debugDraw)
 			vertex[19].tex = XMFLOAT2(u1, v1);
 			g_pContext->Unmap(g_VertexBuffer, 0);
 
-			// å¤‰æ›´ï¼šè¦–è¦šã‚¹ã‚±ãƒ¼ãƒ«ã‚’é©ç”¨ã—ãŸç›´å¾„
-			float diameter = METEOR_RANGE_RADIUS * 2.0f * g_meteorRangeScale[p];
+			float diameter = METEOR_RANGE_RADIUS * 2.0f;
 			XMMATRIX world = XMMatrixScaling(diameter, 1.0f, diameter)
 				* XMMatrixTranslation(
 					player.position.x + 0.2f,
@@ -707,14 +671,14 @@ void Meteor_DrawRange(bool debugDraw)
 		}
 	}
 
-	// ã‚¹ãƒ†ãƒ¼ãƒˆã‚¯ãƒªãƒ¼ãƒ³ã‚¢ãƒƒãƒ—
+	// ƒXƒe[ƒgƒNƒŠ[ƒ“ƒAƒbƒv
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 //======================================================
-//	éš•çŸ³ãƒ¢ãƒ‡ãƒ«ã®ã¿ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚ˆã‚Šå¾Œã«æç”»ï¼‰
+//	è¦Îƒ‚ƒfƒ‹‚Ì‚İiƒvƒŒƒCƒ„[‚æ‚èŒã‚É•`‰æj
 //======================================================
 void Meteor_DrawModel(bool debugDraw)
 {
@@ -722,16 +686,16 @@ void Meteor_DrawModel(bool debugDraw)
 	{
 		if (!g_Gimmick[p].enabled) continue;
 
-		// éš•çŸ³ã®æç”»ï¼ˆFBXãƒ¢ãƒ‡ãƒ« + å¤–éƒ¨ãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼‰
+		// è¦Î‚Ì•`‰æiFBXƒ‚ƒfƒ‹ + ŠO•”ƒeƒNƒXƒ`ƒƒj
 		if (g_Gimmick[p].meteor.active && g_MeteorModel != NULL && g_MeteorModel->AiScene != NULL)
 		{
 			METEOR_OBJECT& meteor = g_Gimmick[p].meteor;
 
-			// WVPè¡Œåˆ—ã‚’ä½œæˆ
+			// WVPs—ñ‚ğì¬
 			XMMATRIX ScalingMatrix = XMMatrixScaling(
 				meteor.scaling.x, meteor.scaling.y, meteor.scaling.z);
 
-			// FBXãƒ¢ãƒ‡ãƒ«ã®å‘ãè£œæ­£
+			// FBXƒ‚ƒfƒ‹‚ÌŒü‚«•â³
 			XMMATRIX CorrectionMatrix = XMMatrixRotationX(XMConvertToRadians(-45.0f));
 			XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
 				XMConvertToRadians(meteor.rotation.x),
@@ -746,7 +710,7 @@ void Meteor_DrawModel(bool debugDraw)
 
 			Shader_SetMatrix(WVP);
 
-			// ModelDrawã‚’ä½¿ã‚ãšã€è‡ªå‰ã§ãƒ¡ãƒƒã‚·ãƒ¥ã‚’æç”»ã—ã¦ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ç¢ºå®Ÿã«é©ç”¨ã™ã‚‹
+			// ModelDraw‚ğg‚í‚¸A©‘O‚ÅƒƒbƒVƒ…‚ğ•`‰æ‚µ‚ÄƒeƒNƒXƒ`ƒƒ‚ğŠmÀ‚É“K—p‚·‚é
 			Shader_Begin();
 			g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -754,28 +718,28 @@ void Meteor_DrawModel(bool debugDraw)
 			{
 				aiMesh* mesh = g_MeteorModel->AiScene->mMeshes[m];
 
-				// å¤–éƒ¨ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’å¼·åˆ¶ã‚»ãƒƒãƒˆï¼ˆModelDrawã®ä¸Šæ›¸ãå•é¡Œã‚’å›é¿ï¼‰
+				// ŠO•”ƒeƒNƒXƒ`ƒƒ‚ğ‹­§ƒZƒbƒgiModelDraw‚Ìã‘‚«–â‘è‚ğ‰ñ”ğj
 				if (g_MeteorTexture != NULL)
 				{
 					g_pContext->PSSetShaderResources(0, 1, &g_MeteorTexture);
 				}
 
-				// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡è¨­å®š
+				// ’¸“_ƒoƒbƒtƒ@İ’è
 				UINT stride = sizeof(Vertex3D);
 				UINT offset = 0;
 				g_pContext->IASetVertexBuffers(0, 1, &g_MeteorModel->VertexBuffer[m], &stride, &offset);
 
-				// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡è¨­å®š
+				// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@İ’è
 				g_pContext->IASetIndexBuffer(g_MeteorModel->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
 
-				// ãƒãƒªã‚´ãƒ³æç”»
+				// ƒ|ƒŠƒSƒ“•`‰æ
 				g_pContext->DrawIndexed(mesh->mNumFaces * 3, 0, 0);
 			}
 		}
 	}
 
 	// ------------------------------------------
-	// ãƒ‡ãƒãƒƒã‚°æç”»ï¼šéš•çŸ³ã®å½“ãŸã‚Šåˆ¤å®šï¼ˆå††ï¼‰
+	// ƒfƒoƒbƒO•`‰æFè¦Î‚Ì“–‚½‚è”»’èi‰~j
 	// ------------------------------------------
 	if (debugDraw)
 	{
@@ -798,7 +762,7 @@ void Meteor_DrawModel(bool debugDraw)
 	}
 
 	// ------------------------------------------
-	// æç”»å¾Œã®ã‚¹ãƒ†ãƒ¼ãƒˆã‚¯ãƒªãƒ¼ãƒ³ã‚¢ãƒƒãƒ—
+	// •`‰æŒã‚ÌƒXƒe[ƒgƒNƒŠ[ƒ“ƒAƒbƒv
 	// ------------------------------------------
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
