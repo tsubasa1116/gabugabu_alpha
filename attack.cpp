@@ -374,6 +374,7 @@ void Attack_Update(int playerIndex)
 
 						buildingObjects[i]->isActive = false;
 						buildingObjects[i]->isDestroyed = true;
+						buildingObjects[i]->m_RespawnTimer = 5.0f; // 5•bŒã‚ÉƒŠƒXƒ|[ƒ“
 						player.brokenHistory.push_back(type);
 						player.evolutionGauge += player.evolutionGaugeRate;
 
