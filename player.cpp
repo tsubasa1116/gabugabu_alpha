@@ -1236,7 +1236,7 @@ void Player_Update(/*float currentDeltaTime*/)
 				}
 			}
 
-			// 繝励Ξ繧､繝､繝ｼ 繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ譖ｴ譁ｰ
+			// 
 			player[p].animTimer += currentDeltaTime;
 
 			// エフェクト アニメーション
