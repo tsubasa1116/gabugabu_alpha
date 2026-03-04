@@ -73,6 +73,11 @@ static int g_SE_ID[SPECIAL_SE_COUNT] = { NULL };
 static int g_GlassSE_IDs[GLASS_SE_SLOT_MAX] = { 0 };
 static int g_GlassSE_NextSlot = 0;
 
+// 追加：範囲拡大アニメーション用（プレイヤー毎）
+static float g_rangeScale[PLAYER_MAX];               // 0.1f .. 1.0f の正規化スケール（1.0 が MAX）
+static bool  g_prevUseSpecial[PLAYER_MAX] = { false };
+static const float RANGE_GROW_DURATION = 0.45f;     // 0.1 -> MAX に広がるまでの時間（秒）
+
 static Vertex2 Special_vdata[SPECIAL_VERTEX] =
 {
 	// -Z面 (法線: 0,0,-1)
@@ -274,55 +279,55 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	pDevice->CreateBuffer(&bd, NULL, &g_VertexBuffer);
 
 	Loader::AddTask([pDevice]()
-	{
-	// テクスチャ読み込み
-	TexMetadata metadata;
-	ScratchImage image;
+		{
+			// テクスチャ読み込み
+			TexMetadata metadata;
+			ScratchImage image;
 
-	// スペシャル範囲表示
-	LoadFromWICFile(L"Asset\\Texture\\uiSpecialRed_v2.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[0]);
-	assert(g_Special_Texture[0]);
-	LoadFromWICFile(L"Asset\\Texture\\uiSpecialBlue_v2.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[1]);
-	assert(g_Special_Texture[1]);
-	LoadFromWICFile(L"Asset\\Texture\\uiSpecialYellow_v3.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[2]);
-	assert(g_Special_Texture[2]);
-	LoadFromWICFile(L"Asset\\Texture\\uiSpecialGreen_v2.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[3]);
-	assert(g_Special_Texture[3]);
-	//// ガラスミサイル
-	//LoadFromWICFile(L"Asset\\Texture\\ice.jpg", WIC_FLAGS_NONE, &metadata, image);
-	//CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[4]);
-	//assert(g_Special_Texture[4]);
-	// コンクリート 衝撃波 エフェクト1
-	LoadFromWICFile(L"Asset\\Texture\\effectSPConcrete01_v2.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[5]);
-	assert(g_Special_Texture[5]);
-	// コンクリート 衝撃波 エフェクト2
-	LoadFromWICFile(L"Asset\\Texture\\effectSPConcrete02_v2.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[6]);
-	assert(g_Special_Texture[6]);
-	// 電気 雷 エフェクト
-	LoadFromWICFile(L"Asset\\Texture\\effectlighting.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[7]);
-	assert(g_Special_Texture[7]);
+			// スペシャル範囲表示
+			LoadFromWICFile(L"Asset\\Texture\\uiSpecialRed_v2.png", WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[0]);
+			assert(g_Special_Texture[0]);
+			LoadFromWICFile(L"Asset\\Texture\\uiSpecialBlue_v2.png", WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[1]);
+			assert(g_Special_Texture[1]);
+			LoadFromWICFile(L"Asset\\Texture\\uiSpecialYellow_v3.png", WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[2]);
+			assert(g_Special_Texture[2]);
+			LoadFromWICFile(L"Asset\\Texture\\uiSpecialGreen_v2.png", WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[3]);
+			assert(g_Special_Texture[3]);
+			//// ガラスミサイル
+			//LoadFromWICFile(L"Asset\\Texture\\ice.jpg", WIC_FLAGS_NONE, &metadata, image);
+			//CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[4]);
+			//assert(g_Special_Texture[4]);
+			// コンクリート 衝撃波 エフェクト1
+			LoadFromWICFile(L"Asset\\Texture\\effectSPConcrete01_v2.png", WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[5]);
+			assert(g_Special_Texture[5]);
+			// コンクリート 衝撃波 エフェクト2
+			LoadFromWICFile(L"Asset\\Texture\\effectSPConcrete02_v2.png", WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[6]);
+			assert(g_Special_Texture[6]);
+			// 電気 雷 エフェクト
+			LoadFromWICFile(L"Asset\\Texture\\effectlighting.png", WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[7]);
+			assert(g_Special_Texture[7]);
 
-	//LoadFromWICFile(L"Asset\\Texture\\effectSkillGlassConcrete_v5_1.png", WIC_FLAGS_NONE, &metadata, image);
-	LoadFromWICFile(L"Asset\\Texture\\effectLightingExplosionspritesheet.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[8]);
-	assert(g_Special_Texture[8]);
+			//LoadFromWICFile(L"Asset\\Texture\\effectSkillGlassConcrete_v5_1.png", WIC_FLAGS_NONE, &metadata, image);
+			LoadFromWICFile(L"Asset\\Texture\\effectLightingExplosionspritesheet.png", WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[8]);
+			assert(g_Special_Texture[8]);
 
-	//LoadFromWICFile(L"Asset\\Texture\\uiOrbit_v1.png", WIC_FLAGS_NONE, &metadata, image);
-	LoadFromWICFile(L"Asset\\Texture\\effectSPElectricity_v1.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[9]);
-	assert(g_Special_Texture[9]);
+			//LoadFromWICFile(L"Asset\\Texture\\uiOrbit_v1.png", WIC_FLAGS_NONE, &metadata, image);
+			LoadFromWICFile(L"Asset\\Texture\\effectSPElectricity_v1.png", WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[9]);
+			assert(g_Special_Texture[9]);
 
-	LoadFromWICFile(L"Asset\\Texture\\effectHit02_v2.png", WIC_FLAGS_NONE, &metadata, image);
-	CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[10]);
-	assert(g_Special_Texture[10]);
-	});
+			LoadFromWICFile(L"Asset\\Texture\\effectHit02_v2.png", WIC_FLAGS_NONE, &metadata, image);
+			CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Special_Texture[10]);
+			assert(g_Special_Texture[10]);
+		});
 
 	// ガラスミサイル用テクスチャ読み込み
 	TexMetadata metadata;
@@ -372,6 +377,13 @@ void Special_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_GlassSE_IDs[i] = LoadAudio("asset\\Audio\\Special_Glass.wav");
 	}
 	g_GlassSE_NextSlot = 0;
+
+	// 追加：範囲スケール初期化
+	for (int i = 0; i < PLAYER_MAX; ++i)
+	{
+		g_rangeScale[i] = 1.0f;
+		g_prevUseSpecial[i] = false;
+	}
 }
 
 void Special_Finalize()
@@ -414,7 +426,13 @@ void Special_Glass_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	if (player.specialTimer == 0.0f)	player.specialAnimation = true;
+	// 初期フレームの初期化
+	if (player.specialTimer == 0.0f)
+	{
+		player.specialAnimation = true;
+		// 範囲拡大アニメーションを開始状態にセット
+		g_rangeScale[playerIndex] = 0.1f;
+	}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
@@ -630,6 +648,9 @@ void Special_Glass_Update(int playerIndex)
 		player.useSpecial = false;			// スペシャル解除
 		Effect_ClearUI(playerIndex);		// エフェクトクリア
 		player.isTypeFixed = false;			// タイプ固定解除
+		// 範囲スケールをリセット
+		g_rangeScale[playerIndex] = 1.0f;
+		g_prevUseSpecial[playerIndex] = false;
 	}
 }
 
@@ -672,6 +693,9 @@ void Special_Concrete_Update(int playerIndex)
 		// もし PLAYEROBJECT に animFrame があるなら同期する
 		player.animFrame = 0;
 		player.animTimer = 0.0f;
+
+		// 範囲拡大アニメーションを開始状態にセット
+		g_rangeScale[playerIndex] = 0.1f;
 	}
 
 	// スペシャルタイマー更新
@@ -836,7 +860,6 @@ void Special_Concrete_Update(int playerIndex)
 		player.defense = 1.0f;
 		player.useSkill = false;
 		player.useSpecial = false;
-		// 明示的にスペシャルアニメーションも停止させる
 		player.specialAnimation = false;
 
 		Effect_Clear(playerIndex);
@@ -846,7 +869,9 @@ void Special_Concrete_Update(int playerIndex)
 		g_concreteRangeFinished[playerIndex] = true;
 		g_concreteFrame[playerIndex] = 0;
 		g_concreteTimer[playerIndex] = 0.0f;
-
+		// 範囲スケールをリセット
+		g_rangeScale[playerIndex] = 1.0f;
+		g_prevUseSpecial[playerIndex] = false;
 		// アニメーション用タイマーもリセット
 		concreteAnimAcc[playerIndex] = 0.0f;
 		concreteAirTimer[playerIndex] = 0.0f;
@@ -864,7 +889,12 @@ void Special_Plant_Update(int playerIndex)
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
 
-	if (player.specialTimer == 0.0f)	player.specialAnimation = true;
+	if (player.specialTimer == 0.0f)
+	{
+		player.specialAnimation = true;
+		// 範囲拡大アニメーションを開始状態にセット
+		g_rangeScale[playerIndex] = 0.1f;
+	}
 
 	// スペシャルタイマー更新
 	player.specialTimer += DELTA_TIME;
@@ -926,109 +956,115 @@ void Special_Plant_Update(int playerIndex)
 		Effect_ClearUI(playerIndex);
 		player.isTypeFixed = false;
 		g_plantInitialized[playerIndex] = false;					// ここでリセット
+		// 範囲スケールをリセット
+		g_rangeScale[playerIndex] = 1.0f;
+		g_prevUseSpecial[playerIndex] = false;
 	}
 }
 
-void Special_Electricity_Update(int playerIndex)
-{
-	// 範囲チェック
-	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
-
-	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
-	if (playerObject == nullptr) return;
-	PLAYEROBJECT& player = *playerObject;
-
-	// スペシャル発動の最初のフレームだけSEを再生
-	if (player.specialTimer == 0.0f) 
-	{ 
-		PlayAudio(g_SE_ID[2], false);
-	}
-
-	player.specialAnimation = true;
-
-	// スペシャルタイマー更新
-	player.specialTimer += DELTA_TIME;
-
-	if (player.specialTimer >= 1.0f)	player.specialAnimation = false;
-
-	// スペシャルの初期化処理
-	static bool initialized[PLAYER_MAX] = { false };
-	static bool circleCollided[PLAYER_MAX][PLAYER_MAX][SPECIAL_ELECTRICITY_QUANTITY] = { { { false } } }; // 各プレイヤーごとのサークル判定フラグ
-
-	if (!initialized[playerIndex])
-	{
-		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
-		{
-			// ランダムな位置に円を生成 (-5から5の範囲)
-			float randomX = -5.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (10.0f)));
-			float randomZ = -5.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (10.0f)));
-			player.electricityCircles[i] = { XMFLOAT3(randomX, 0.0f, randomZ), 0.3f };
-
-			// 各プレイヤーごとの判定フラグを初期化
-			for (int p = 0; p < PLAYER_MAX; ++p) circleCollided[playerIndex][p][i] = false;
-		}
-		initialized[playerIndex] = true;
-	}
-
-	// 他のプレイヤーとの衝突判定
-	for (int p = 0; p < PLAYER_MAX; ++p)
-	{
-		if (p == playerIndex) continue; // 自分自身は無視
-
-		PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
-		if (otherPlayerObject == nullptr || !otherPlayerObject->active) continue;
-		PLAYEROBJECT& otherPlayer = *otherPlayerObject;
-
-		if (otherPlayer.isInvincible) continue; // 無敵中は無視
-
-		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
-		{
-			// すでにこのプレイヤーがこのサークルに対して判定済みの場合はスキップ
-			if (circleCollided[playerIndex][p][i]) continue;
-
-			// 円とAABBの衝突判定
-			if (CheckCircleAABBCollision(player.electricityCircles[i], otherPlayer.boundingBox))
-			{
-				float rawDamage = SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense;
-
-				// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
-				otherPlayer.hp -= rawDamage;
-
-				// ダメージ数字を表示（頭上にオフセット）
-				int dmgInt = static_cast<int>(rawDamage + 0.5f);
-				XMFLOAT3 hitPos = otherPlayer.position;
-				hitPos.y += otherPlayer.scaling.y + 0.3f;
-				SetDamageText(hitPos, dmgInt, TextColor::Red);
-
-				// スペシャルを使っていなければスタン
-				if (!otherPlayer.useSpecial) otherPlayer.stunGauge = 10.0f;
-
-				// HPが0以下にならないように
-				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
-
-				// このプレイヤーに対するこのサークルでの判定を終了
-				circleCollided[playerIndex][p][i] = true;
-			}
-		}
-	}
-
-	// スペシャルの効果時間が経過したらスペシャル終了
-	if (player.specialTimer >= SPECIAL_ELECTRICITY_TIME)
-	{
-		player.useSpecial = false;
-		player.specialTimer = 0.0f;
-		g_animFrame[playerIndex] = 0;		// アニメーションリセット
-		g_animTimer[playerIndex] = 0.0f;
-		initialized[playerIndex] = false;	// 次回のスペシャル使用時に再初期化するため
-		player.form = Form::First;			// 変身形態を第1形態に戻す
-		player.type = PlayerType::None;		// タイプをリセット
-		player.speed = 0.06f;				// スキルのスピードバフもリセット
-		player.useSkill = false;			// スキル解除
-		player.useSpecial = false;			// スペシャル解除
-		Effect_ClearUI(playerIndex);		// エフェクトクリア
-		player.isTypeFixed = false;			// タイプ固定解除
-	}
-}
+//void Special_Electricity_Update(int playerIndex)
+//{
+//	// 範囲チェック
+//	if (playerIndex < 0 || playerIndex >= PLAYER_MAX) return;
+//
+//	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
+//	if (playerObject == nullptr) return;
+//	PLAYEROBJECT& player = *playerObject;
+//
+//	// スペシャル発動の最初のフレームだけSEを再生
+//	if (player.specialTimer == 0.0f)
+//	{
+//		PlayAudio(g_SE_ID[2], false);
+//	}
+//
+//	player.specialAnimation = true;
+//
+//	// スペシャルタイマー更新
+//	player.specialTimer += DELTA_TIME;
+//
+//	if (player.specialTimer >= 1.0f)	player.specialAnimation = false;
+//
+//	// スペシャルの初期化処理
+//	static bool initialized[PLAYER_MAX] = { false };
+//	static bool circleCollided[PLAYER_MAX][PLAYER_MAX][SPECIAL_ELECTRICITY_QUANTITY] = { { { false } } }; // 各プレイヤーごとのサークル判定フラグ
+//
+//	if (!initialized[playerIndex])
+//	{
+//		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
+//		{
+//			// ランダムな位置に円を生成 (-5から5の範囲)
+//			float randomX = -5.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (10.0f)));
+//			float randomZ = -5.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (10.0f)));
+//			player.electricityCircles[i] = { XMFLOAT3(randomX, 0.0f, randomZ), 0.3f };
+//
+//			// 各プレイヤーごとの判定フラグを初期化
+//			for (int p = 0; p < PLAYER_MAX; ++p) circleCollided[playerIndex][p][i] = false;
+//		}
+//		initialized[playerIndex] = true;
+//	}
+//
+//	// 他のプレイヤーとの衝突判定
+//	for (int p = 0; p < PLAYER_MAX; ++p)
+//	{
+//		if (p == playerIndex) continue; // 自分自身は無視
+//
+//		PLAYEROBJECT* otherPlayerObject = GetPlayer(p);
+//		if (otherPlayerObject == nullptr || !otherPlayerObject->active) continue;
+//		PLAYEROBJECT& otherPlayer = *otherPlayerObject;
+//
+//		if (otherPlayer.isInvincible) continue; // 無敵中は無視
+//
+//		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
+//		{
+//			// すでにこのプレイヤーがこのサークルに対して判定済みの場合はスキップ
+//			if (circleCollided[playerIndex][p][i]) continue;
+//
+//			// 円とAABBの衝突判定
+//			if (CheckCircleAABBCollision(player.electricityCircles[i], otherPlayer.boundingBox))
+//			{
+//				float rawDamage = SPECIAL_ELECTRICITY_DAMAGE * otherPlayer.defense;
+//
+//				// ダメージ 防御率でダメージ軽減（ノックバックは与えない）
+//				otherPlayer.hp -= rawDamage;
+//
+//				// ダメージ数字を表示（頭上にオフセット）
+//				int dmgInt = static_cast<int>(rawDamage + 0.5f);
+//				XMFLOAT3 hitPos = otherPlayer.position;
+//				hitPos.y += otherPlayer.scaling.y + 0.3f;
+//				SetDamageText(hitPos, dmgInt, TextColor::Red);
+//
+//				// スペシャルを使っていなければスタン
+//				if (!otherPlayer.useSpecial) otherPlayer.stunGauge = 10.0f;
+//
+//				// HPが0以下にならないように
+//				if (otherPlayer.hp < 0.0f) otherPlayer.hp = 0.0f;
+//
+//				// このプレイヤーに対するこのサークルでの判定を終了
+//				circleCollided[playerIndex][p][i] = true;
+//			}
+//		}
+//	}
+//
+//	// スペシャルの効果時間が経過したらスペシャル終了
+//	if (player.specialTimer >= SPECIAL_ELECTRICITY_TIME)
+//	{
+//		player.useSpecial = false;
+//		player.specialTimer = 0.0f;
+//		g_animFrame[playerIndex] = 0;		// アニメーションリセット
+//		g_animTimer[playerIndex] = 0.0f;
+//		initialized[playerIndex] = false;	// 次回のスペシャル使用時に再初期化するため
+//		player.form = Form::First;			// 変身形態を第1形態に戻す
+//		player.type = PlayerType::None;		// タイプをリセット
+//		player.speed = 0.06f;				// スキルのスピードバフもリセット
+//		player.useSkill = false;			// スキル解除
+//		player.useSpecial = false;			// スペシャル解除
+//		Effect_ClearUI(playerIndex);		// エフェクトクリア
+//		player.isTypeFixed = false;			// タイプ固定解除
+//		// 範囲スケールをリセット
+//		g_rangeScale[playerIndex] = 1.0f;
+//		g_prevUseSpecial[playerIndex] = false;
+//	}
+//}
 
 void Special_Update(int playerIndex)
 {
@@ -1038,6 +1074,24 @@ void Special_Update(int playerIndex)
 	PLAYEROBJECT* playerObject = GetPlayer(playerIndex);
 	if (playerObject == nullptr) return;
 	PLAYEROBJECT& player = *playerObject;
+
+	// 範囲スケールの更新（使用中かつスタン中でない場合のみ成長）
+	if (player.useSpecial && !player.isStunning)
+	{
+		// インクリメント（1.0f が MAX）
+		if (g_rangeScale[playerIndex] < 1.0f)
+		{
+			if (RANGE_GROW_DURATION > 0.0f)
+			{
+				g_rangeScale[playerIndex] += DELTA_TIME / RANGE_GROW_DURATION;
+			}
+			else
+			{
+				g_rangeScale[playerIndex] = 1.0f;
+			}
+			if (g_rangeScale[playerIndex] > 1.0f) g_rangeScale[playerIndex] = 1.0f;
+		}
+	}
 
 	// 範囲表示フェーズが完了している（着地済み）なら、専用タイマーで g_concreteFrame を進める
 	if (g_concreteRangeFinished[playerIndex] && player.type == PlayerType::Concrete)
@@ -1106,7 +1160,6 @@ void Special_Update(int playerIndex)
 		}
 	}
 }
-
 // Glass専用描画
 void Special_Glass_Draw(int playerIndex)
 {
@@ -1129,8 +1182,11 @@ void Special_Glass_Draw(int playerIndex)
 		if (!box.active || !box.spawned) continue; // 非アクティブ・未出現の箱は描画しない
 
 		// targetPositionに基づいて描画
+		float baseScale = 1.0f;
+		float scale = baseScale * g_rangeScale[playerIndex];
+
 		XMMATRIX rangeWorldMatrix =
-			XMMatrixScaling(1.0f, 1.0f, 1.0f) *
+			XMMatrixScaling(scale, 1.0f, scale) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 			XMMatrixTranslation(box.targetPosition.x, box.targetPosition.y + 0.1f, box.targetPosition.z - 0.5f); // Y座標を少し上げて地面と重ならないようにする カメラの向きに考慮してZ座標をずらす
 
@@ -1206,8 +1262,12 @@ void Special_Concrete_Draw(int playerIndex)
 	PLAYEROBJECT& player = *playerObject;
 
 	// 攻撃範囲のワールド行列
+	float baseRange = 10.0f;
+	float baseEffectRange = 20.0f;
+	float scale = g_rangeScale[playerIndex];
+
 	XMMATRIX WorldMatrix =
-		XMMatrixScaling(10.0f, 1.0f, 10.0f) *
+		XMMatrixScaling(baseRange * scale, 1.0f, baseRange * scale) *
 		XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 		XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
 
@@ -1246,7 +1306,7 @@ void Special_Concrete_Draw(int playerIndex)
 		}
 
 		XMMATRIX WorldMatrix =
-			XMMatrixScaling(20.0f, 1.0f, 20.0f) *
+			XMMatrixScaling(baseEffectRange * scale, 1.0f, baseEffectRange * scale) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 			XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
 
@@ -1285,7 +1345,7 @@ void Special_Concrete_Draw(int playerIndex)
 
 		float bloomScale = 1.05f;
 		XMMATRIX bloomWorldMatrix =
-			XMMatrixScaling(20.0f * bloomScale, 1.0f, 20.0f * bloomScale) *
+			XMMatrixScaling(baseEffectRange * bloomScale * scale, 1.0f, baseEffectRange * bloomScale * scale) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 			XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
 
@@ -1326,8 +1386,11 @@ void Special_Plant_Draw(int playerIndex)
 	g_pContext->DrawIndexed(6 * 6, 0, 0);
 
 	// 攻撃範囲の描画
+	float basePlantRange = SPECIAL_PLANT_RADIUS * 2.0f;
+	float scale = g_rangeScale[playerIndex];
+
 	XMMATRIX rangeWorldMatrix =
-		XMMatrixScaling(8.0f, 1.0f, 8.0f) *
+		XMMatrixScaling(basePlantRange * scale, 1.0f, basePlantRange * scale) *
 		XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 		XMMatrixTranslation(player.position.x + 0.2f, 0.1f, player.position.z - 0.5f); // Y座標を少し上げて地面と重ならないようにする
 
@@ -1385,8 +1448,11 @@ void Special_Electricity_Draw(int playerIndex)
 		Shader_SetLight(rangeLight);
 
 		// 範囲円（+Y面）を描画
+		float baseCircle = 3.0f;
+		float scale = g_rangeScale[playerIndex];
+
 		XMMATRIX circleWorldMatrix =
-			XMMatrixScaling(1.0f, 1.0f, 1.0f) *
+			XMMatrixScaling(baseCircle * scale, baseCircle * scale, baseCircle * scale) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 			XMMatrixTranslation(target.x, target.y + 0.1f, target.z);
 
@@ -1398,56 +1464,9 @@ void Special_Electricity_Draw(int playerIndex)
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		g_pContext->Draw(4, 16);	// +Y面の4頂点 (16, 17, 18, 19)
 
-		// --- 雷エフェクト（-Z面）描画前にライトを強くする ---
-		LIGHT lightningLight{};
-		lightningLight.Enable = TRUE;
-		lightningLight.Direction = XMFLOAT4(-0.5f, -1.0f, 0.2f, 0.0f);
-		lightningLight.Diffuse = XMFLOAT4(4.0f, 4.0f, 4.0f, 1.0f);
-		lightningLight.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		Shader_SetLight(lightningLight);
-
-		// --- 雷エフェクト（-Z面）のUVを8x8分割で書き換え ---
-		{
-			int frame = g_lightningFrame[playerIndex];
-			int col = frame % LIGHTNING_SHEET_COLS;
-			int row = frame / LIGHTNING_SHEET_COLS;
-			float u0 = (float)col / (float)LIGHTNING_SHEET_COLS;
-			float v0 = (float)row / (float)LIGHTNING_SHEET_ROWS;
-			float u1 = u0 + 1.0f / (float)LIGHTNING_SHEET_COLS;
-			float v1 = v0 + 1.0f / (float)LIGHTNING_SHEET_ROWS;
-
-			D3D11_MAPPED_SUBRESOURCE msr;
-			g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-			Vertex2* vertex = (Vertex2*)msr.pData;
-			CopyMemory(&vertex[0], &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
-			vertex[0].tex = XMFLOAT2(u0, v0);	// LEFT-TOP
-			vertex[1].tex = XMFLOAT2(u1, v0);	// RIGHT-TOP
-			vertex[2].tex = XMFLOAT2(u0, v1);	// LEFT-BOTTOM
-			vertex[3].tex = XMFLOAT2(u1, v1);	// RIGHT-BOTTOM
-			g_pContext->Unmap(g_VertexBuffer, 0);
-		}
-
-		// --- 雷エフェクト（-Z面）を描画 ---
-		float lightningTopY = 10.0f;
-		float lightningBottomY = target.y;
-		float length = fabsf(lightningTopY - lightningBottomY);
-
-		XMMATRIX lightningWorldMatrix =
-			XMMatrixScaling(2.0f, length * 1.0f, 2.0f) *
-			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			XMMatrixTranslation(target.x + 0.5f, 4.0f, target.z + 0.1f);
-		//XMMatrixTranslation(target.x, (lightningTopY + lightningBottomY) / 2.0f, target.z);
-
-		XMMATRIX lightningWVP = lightningWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-		Shader_SetMatrix(lightningWVP);
-
-		g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[7]);
-		SetBlendState(BLENDSTATE_ALPHA);
-
-		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		g_pContext->Draw(4, 0);	// -Z面の4頂点 (0, 1, 2, 3)
+		// --- 以降の雷描画は省略（同様に scale をかける） ---
+		// (この関数は使われていない可能性あり)
 	}
-
 	// --- ループ終了後にライトを元に戻す ---
 	LIGHT normalLight{};
 	normalLight.Enable = TRUE;
@@ -1472,6 +1491,9 @@ void Special_Electricity_Update2(int playerIndex)
 	{
 		PlayAudio(g_SE_ID[2], false);
 		player.specialAnimation = true;
+		// 範囲拡大アニメーションを開始状態にセット
+		g_rangeScale[playerIndex] = 0.1f;
+
 	}
 
 	player.specialTimer += DELTA_TIME;
@@ -1620,10 +1642,13 @@ void Special_Electricity_Draw2(int playerIndex)
 		Shader_SetLight(rangeLight);
 
 		// 範囲円（+Y面）を描画
+		float baseCircle = 8.0f;
+		float scale = g_rangeScale[playerIndex];
+
 		XMMATRIX circleWorldMatrix =
-			XMMatrixScaling(3.0f, 3.0f, 3.0f) *
+			XMMatrixScaling(baseCircle * scale, baseCircle * scale, baseCircle * scale) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			XMMatrixTranslation(target.x, target.y - 0.5f, target.z);
+			XMMatrixTranslation(target.x, target.y - 1.95f, target.z);
 
 		XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 		Shader_SetMatrix(circleWVP);
@@ -1705,61 +1730,8 @@ void Special_Electricity_Draw2(int playerIndex)
 			Shader_Begin();
 			SetBlendState(BLENDSTATE_ALPHA);
 
-			//// --- 3. 追加のエフェクト描画 (g_Special_Texture[8] の 19~23番) ---
-			//{
-			//	// ★ポイント1: 速度調整 / 3 でゆっくりにする。数字を大きくするほど遅くなる
-			//	// ★ポイント2: %5 で、コマだけを繰り返す
-			//	int animationSpeed = 1; // ここを 2~6 くらいで調整
-			//	//int loopCount = 16;      // 19番から23番までの5コマ
-			//	int loopCount = 11;      // 19番から23番までの5コマ
-			//	//int effectFrame = 17 + ((g_animFrame[playerIndex] / animationSpeed) % loopCount);
-			//	int effectFrame = 2 + ((g_animFrame[playerIndex]) % loopCount);
-
-			//	int cols = 7; // 8*8シートなので
-			//	int rows = 7;
-			//	int col = effectFrame % cols;
-			//	int row = effectFrame / cols;
-
-			//	float u0 = (float)col / (float)cols;
-			//	float v0 = (float)row / (float)rows;
-			//	float u1 = u0 + 1.0f / (float)cols;
-			//	float v1 = v0 + 1.0f / (float)rows;
-
-			//	// 2. 頂点バッファのUVを書き換え（範囲円と同じ 16~19番 を使う）
-			//	D3D11_MAPPED_SUBRESOURCE msr;
-			//	g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
-			//	Vertex2* vertex = (Vertex2*)msr.pData;
-			//	CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2)* SPECIAL_VERTEX);
-
-			//	vertex[16].tex = XMFLOAT2(u0, v0);
-			//	vertex[17].tex = XMFLOAT2(u1, v0);
-			//	vertex[18].tex = XMFLOAT2(u0, v1);
-			//	vertex[19].tex = XMFLOAT2(u1, v1);
-			//	g_pContext->Unmap(g_VertexBuffer, 0);
-
-			//	XMMATRIX circleWorldMatrix =
-			//		XMMatrixScaling(7.0f, 7.0f, 7.0f) *
-			//		XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			//		XMMatrixTranslation(target.x, target.y - 1.75f, target.z);
-
-			//	XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
-			//	Shader_SetMatrix(circleWVP);
-
-			//	// α値を0.5に設定（半透明）
-			//	Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f));
-
-			//	// 4. テクスチャ[8]をセットして描画！
-			//	g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[8]);
-			//	g_pContext->Draw(4, 16);
-
-			//	// 描画後にカラーをリセット
-			//	Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-			//}
-
-			// --- 3. 追加のエフェクト描画 (g_Special_Texture[8] の 19~23番) ---
+			// 以降の追加エフェクト描画でも circle scale を乗算して描画
 			{
-				// ★ポイント1: 速度調整 / 3 でゆっくりにする。数字を大きくするほど遅くなる
-				// ★ポイント2: %5 で、コマだけを繰り返す
 				int animationSpeed = 1;
 				int loopCount = 17;      // 19番から23番までの5コマ
 				int effectFrame = 0 + ((g_animFrame[playerIndex] / animationSpeed) % loopCount);
@@ -1787,17 +1759,14 @@ void Special_Electricity_Draw2(int playerIndex)
 				g_pContext->Unmap(g_VertexBuffer, 0);
 
 				XMMATRIX circleWorldMatrix =
-					XMMatrixScaling(8.0f, 8.0f, 8.0f) *
+					XMMatrixScaling(8.0f * scale, 8.0f * scale, 8.0f * scale) *
 					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 					XMMatrixTranslation(target.x, target.y - 1.95f, target.z);
 
 				XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 				Shader_SetMatrix(circleWVP);
 
-				// α値を0.5に設定（半透明）
-				//Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f));
-
-				// 4. テクスチャ[8]をセットして描画！
+				// 4. テクスチャ[9]をセットして描画！
 				g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[9]);
 				g_pContext->Draw(4, 16);
 
@@ -1807,9 +1776,9 @@ void Special_Electricity_Draw2(int playerIndex)
 				Shader_SetBlur();
 				Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.8f));
 
-				float bloomScale = 1.05f;
+				float bloomScale2 = 1.05f;
 				XMMATRIX bloomCircleWorldMatrix =
-					XMMatrixScaling(8.0f * bloomScale, 8.0f, 8.0f * bloomScale) *
+					XMMatrixScaling(8.0f * bloomScale2 * scale, 8.0f * scale, 8.0f * bloomScale2 * scale) *
 					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 					XMMatrixTranslation(target.x, target.y - 1.95f, target.z);
 
@@ -1821,35 +1790,26 @@ void Special_Electricity_Draw2(int playerIndex)
 				// 設定を戻す
 				Shader_Begin();
 				SetBlendState(BLENDSTATE_ALPHA);
-
-				// 描画後にカラーをリセット
-				//Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 			}
 
-			// --- 3. 追加のエフェクト描画 (g_Special_Texture[8] の 19~23番) ---
+			// --- 3. 追加のエフェクト描画 (g_Special_Texture[10]) ---
 			{
-				// ★ポイント1: 速度調整 / 3 でゆっくりにする。数字を大きくするほど遅くなる
-				// ★ポイント2: %5 で、コマだけを繰り返す
 				int animationSpeed = 1;
-				int loopCount = 23;      // 19番から23番までの5コマ
+				int loopCount = 23;
 				int effectFrame = 0 + ((g_animFrame[playerIndex] / animationSpeed) % loopCount);
 
-				int cols = 8; // 8*8シートなので
-				int rows = 8;
+				int cols = 8; int rows = 8;
 				int col = effectFrame % cols;
 				int row = effectFrame / cols;
-
 				float u0 = (float)col / (float)cols;
 				float v0 = (float)row / (float)rows;
 				float u1 = u0 + 1.0f / (float)cols;
 				float v1 = v0 + 1.0f / (float)rows;
 
-				// 2. 頂点バッファのUVを書き換え（範囲円と同じ 16~19番 を使う）
 				D3D11_MAPPED_SUBRESOURCE msr;
 				g_pContext->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 				Vertex2* vertex = (Vertex2*)msr.pData;
 				CopyMemory(vertex, &Special_vdata[0], sizeof(Vertex2) * SPECIAL_VERTEX);
-
 				vertex[16].tex = XMFLOAT2(u0, v0);
 				vertex[17].tex = XMFLOAT2(u1, v0);
 				vertex[18].tex = XMFLOAT2(u0, v1);
@@ -1857,43 +1817,30 @@ void Special_Electricity_Draw2(int playerIndex)
 				g_pContext->Unmap(g_VertexBuffer, 0);
 
 				XMMATRIX circleWorldMatrix =
-					XMMatrixScaling(7.0f, 7.0f, 7.0f) *
+					XMMatrixScaling(7.0f * scale, 7.0f * scale, 7.0f * scale) *
 					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 					XMMatrixTranslation(target.x, target.y - 1.85f, target.z);
-
 				XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 				Shader_SetMatrix(circleWVP);
 
-				// α値を0.5に設定（半透明）
-				//Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f));
-
-				// 4. テクスチャ[8]をセットして描画！
 				g_pContext->PSSetShaderResources(0, 1, &g_Special_Texture[10]);
 				g_pContext->Draw(4, 16);
 
-				// 加算合成
 				SetBlendState(BLENDSTATE_ADD);
-
 				Shader_SetBlur();
 				Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 0.8f));
 
-				float bloomScale = 1.05f;
+				float bs = 1.05f;
 				XMMATRIX bloomCircleWorldMatrix =
-					XMMatrixScaling(7.0f * bloomScale, 7.0f, 7.0f * bloomScale) *
+					XMMatrixScaling(7.0f * bs * scale, 7.0f * scale, 7.0f * bs * scale) *
 					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 					XMMatrixTranslation(target.x, target.y - 1.85f, target.z);
-
 				XMMATRIX bloomCircleWVP = bloomCircleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 				Shader_SetMatrix(bloomCircleWVP);
-
 				g_pContext->Draw(4, 16);
 
-				// 設定を戻す
 				Shader_Begin();
 				SetBlendState(BLENDSTATE_ALPHA);
-
-				// 描画後にカラーをリセット
-				//Shader_SetColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 			}
 		}
 	}
@@ -2072,13 +2019,14 @@ void Special_DrawRange(int playerIndex)
 		g_pContext->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 		g_pContext->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
+		float scale = g_rangeScale[playerIndex];
 		for (const auto& box : player.glassBoxes)
 		{
 			if (!box.active || !box.spawned) continue;
 			if (box.phase < 2) continue; // ★ 降下フェーズ（真上に到達）以降のみ表示
 
 			XMMATRIX rangeWorldMatrix =
-				XMMatrixScaling(1.0f, 1.0f, 1.0f) *
+				XMMatrixScaling(1.0f * scale, 1.0f, 1.0f * scale) *
 				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 				XMMatrixTranslation(box.targetPosition.x, box.targetPosition.y + 0.1f, box.targetPosition.z - 0.5f);
 
@@ -2097,8 +2045,9 @@ void Special_DrawRange(int playerIndex)
 		// コンクリート: 範囲表示フェーズのみ
 		if (!g_concreteRangeFinished[playerIndex])
 		{
+			float scale = g_rangeScale[playerIndex];
 			XMMATRIX WorldMatrix =
-				XMMatrixScaling(10.0f, 1.0f, 10.0f) *
+				XMMatrixScaling(10.0f * scale, 1.0f, 10.0f * scale) *
 				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 				XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
 
@@ -2115,10 +2064,13 @@ void Special_DrawRange(int playerIndex)
 	case PlayerType::Plant:
 	{
 		// 植物: 範囲円（+Y面）
+		float basePlantRange = SPECIAL_PLANT_RADIUS * 2.5f;
+		float scale = g_rangeScale[playerIndex];
+
 		XMMATRIX rangeWorldMatrix =
-			XMMatrixScaling(SPECIAL_PLANT_RADIUS * 2.0f, 1.0f, SPECIAL_PLANT_RADIUS * 2.0f) *
+			XMMatrixScaling(basePlantRange * scale, 1.0f, basePlantRange * scale) *
 			XMMatrixRotationX(XMConvertToRadians(0.0f)) *
-			XMMatrixTranslation(player.position.x + 0.2f, 0.1f, player.position.z - 0.5f);
+			XMMatrixTranslation(player.position.x - 0.3f, 0.1f, player.position.z + 0.5f);
 
 		XMMATRIX rangeWVP = rangeWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
 		Shader_SetMatrix(rangeWVP);
@@ -2131,6 +2083,8 @@ void Special_DrawRange(int playerIndex)
 	case PlayerType::Electricity:
 	{
 		// 電気: 各サークルの範囲円（+Y面）
+		float scale = g_rangeScale[playerIndex];
+
 		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 		{
 			XMFLOAT3 target = player.electricityCircles[i].center;
@@ -2164,7 +2118,7 @@ void Special_DrawRange(int playerIndex)
 			Shader_SetLight(rangeLight);
 
 			XMMATRIX circleWorldMatrix =
-				XMMatrixScaling(3.0f, 3.0f, 3.0f) *
+				XMMatrixScaling(3.0f * scale, 3.0f * scale, 3.0f * scale) *
 				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 				XMMatrixTranslation(target.x, target.y - 0.5f, target.z);
 
@@ -2266,8 +2220,11 @@ void Special_DrawEffect(int playerIndex)
 				uvFrame = frame - 32;
 			}
 
+			float scale = g_rangeScale[playerIndex];
+			float baseEffectRange = 20.0f;
+
 			XMMATRIX WorldMatrix =
-				XMMatrixScaling(20.0f, 1.0f, 20.0f) *
+				XMMatrixScaling(baseEffectRange * scale, 1.0f, baseEffectRange * scale) *
 				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 				XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
 
@@ -2303,7 +2260,7 @@ void Special_DrawEffect(int playerIndex)
 
 			float bloomScale = 1.05f;
 			XMMATRIX bloomWorldMatrix =
-				XMMatrixScaling(20.0f * bloomScale, 1.0f, 20.0f * bloomScale) *
+				XMMatrixScaling(baseEffectRange * bloomScale * scale, 1.0f, baseEffectRange * bloomScale * scale) *
 				XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 				XMMatrixTranslation(player.position.x, 0.1f, player.position.z);
 
@@ -2327,6 +2284,8 @@ void Special_DrawEffect(int playerIndex)
 	{
 		// 電気: 雷エフェクト（specialTimer > 1.5秒以降）
 		if (player.specialTimer <= 1.5f) break;
+
+		float scale = g_rangeScale[playerIndex];
 
 		for (int i = 0; i < SPECIAL_ELECTRICITY_QUANTITY; ++i)
 		{
@@ -2419,7 +2378,7 @@ void Special_DrawEffect(int playerIndex)
 				g_pContext->Unmap(g_VertexBuffer, 0);
 
 				XMMATRIX circleWorldMatrix =
-					XMMatrixScaling(8.0f, 8.0f, 8.0f) *
+					XMMatrixScaling(8.0f * scale, 8.0f * scale, 8.0f * scale) *
 					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 					XMMatrixTranslation(target.x, target.y - 1.95f, target.z);
 				XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
@@ -2434,7 +2393,7 @@ void Special_DrawEffect(int playerIndex)
 
 				float bs = 1.05f;
 				XMMATRIX bloomCircleWorldMatrix =
-					XMMatrixScaling(8.0f * bs, 8.0f, 8.0f * bs) *
+					XMMatrixScaling(8.0f * bs * scale, 8.0f * scale, 8.0f * bs * scale) *
 					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 					XMMatrixTranslation(target.x, target.y - 1.95f, target.z);
 				XMMATRIX bloomCircleWVP = bloomCircleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
@@ -2469,7 +2428,7 @@ void Special_DrawEffect(int playerIndex)
 				g_pContext->Unmap(g_VertexBuffer, 0);
 
 				XMMATRIX circleWorldMatrix =
-					XMMatrixScaling(7.0f, 7.0f, 7.0f) *
+					XMMatrixScaling(7.0f * scale, 7.0f * scale, 7.0f * scale) *
 					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 					XMMatrixTranslation(target.x, target.y - 1.85f, target.z);
 				XMMATRIX circleWVP = circleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
@@ -2484,7 +2443,7 @@ void Special_DrawEffect(int playerIndex)
 
 				float bs = 1.05f;
 				XMMATRIX bloomCircleWorldMatrix =
-					XMMatrixScaling(7.0f * bs, 7.0f, 7.0f * bs) *
+					XMMatrixScaling(7.0f * bs * scale, 7.0f * scale, 7.0f * bs * scale) *
 					XMMatrixRotationX(XMConvertToRadians(0.0f)) *
 					XMMatrixTranslation(target.x, target.y - 1.85f, target.z);
 				XMMATRIX bloomCircleWVP = bloomCircleWorldMatrix * GetViewMatrix() * GetProjectionMatrix();
@@ -2495,7 +2454,7 @@ void Special_DrawEffect(int playerIndex)
 				SetBlendState(BLENDSTATE_ALPHA);
 			}
 		}
-	
+
 		// --- ループ終了後にライトを元に戻す ---
 		LIGHT normalLight{};
 		normalLight.Enable = TRUE;

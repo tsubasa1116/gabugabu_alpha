@@ -146,14 +146,14 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	for (int p = 0; p < PLAYER_MAX; p++)
 	{
-		player[p].form = Form::First;
+		//player[p].form = Form::First;
 		//player[p].form = Form::Second;
-		//player[p].form = Form::Third;
+		player[p].form = Form::Third;
 
-		player[p].type = PlayerType::None;
+		//player[p].type = PlayerType::None;
 		//player[p].type = PlayerType::Glass;
 		//player[p].type = PlayerType::Concrete;
-		//player[p].type = PlayerType::Plant;
+		player[p].type = PlayerType::Plant;
 		//player[p].type = PlayerType::Electricity;
 
 		player[p].velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -654,6 +654,9 @@ void Player_Update()
 		// 非アクティブ時は Y座標を固定
 		if (!player[p].active)	player[p].position.y = 0.0f;
 
+		// 1位決定後は無敵状態
+		if (player[p].rank == 1)player[p].isInvincible = true;
+
 		// 回復フラグの更新
 		if (player[p].isHealing)
 		{
@@ -813,7 +816,6 @@ void Player_Update()
 			player[p].moveDir = { 0.0f, 0.0f, 0.0f };
 		}
 
-		// activeでも動かす（観戦用）
 		if (!player[p].isStunning && !player[p].isDown && player[p].rank != 1)
 		{
 			XMFLOAT2 moveInput = { 0.0f, 0.0f };
@@ -897,7 +899,7 @@ void Player_Update()
 				float dx = player[p].moveInput2D.x;
 				float dz = player[p].moveInput2D.y;
 
-				if (dx < 0.0f && dz < 0.0f) player[p].lastDir = PlayerDir::Down_Left;
+					 if (dx < 0.0f && dz < 0.0f) player[p].lastDir = PlayerDir::Down_Left;
 				else if (dx < 0.0f && dz > 0.0f) player[p].lastDir = PlayerDir::Up_Left;
 				else if (dx > 0.0f && dz > 0.0f) player[p].lastDir = PlayerDir::Up_Right;
 				else if (dx > 0.0f && dz < 0.0f) player[p].lastDir = PlayerDir::Down_Right;
@@ -950,6 +952,28 @@ void Player_Update()
 					player[p].isDown = false;
 					player[p].downTimer = 0.0f;
 
+					// ★追加：エフェクト関連フラグをリセット
+					player[p].isAttacked = false;
+					player[p].attackedTimer = 0.0f;
+					player[p].isDamageColor = false;
+					player[p].damageColorTimer = 0.0f;
+					player[p].isPoisoned = false;
+					player[p].poisonTimer = 0.0f;
+					player[p].isStunning = false;
+					player[p].stunTimer = 0.0f;
+					player[p].stunGauge = 0.0f;
+					player[p].useSkill = false;
+					player[p].skillTimer = 0.0f;
+					player[p].useSpecial = false;
+					player[p].specialTimer = 0.0f;
+					player[p].isHealing = false;
+					player[p].healingTimer = 0.0f;
+					player[p].isEvolving = false;
+					player[p].evolvingTimer = 0.0f;
+					player[p].skillAnimation = false;
+					player[p].specialAnimation = false;
+					Effect_Clear(p);
+
 					// 順位登録（内部で重複登録を防止）
 					Ranking(p);
 				}
@@ -974,6 +998,28 @@ void Player_Update()
 			{
 				// 残機無しで完全に非アクティブ化
 				player[p].active = false;
+
+				// エフェクト関連フラグをリセット
+				player[p].isAttacked = false;
+				player[p].attackedTimer = 0.0f;
+				player[p].isDamageColor = false;
+				player[p].damageColorTimer = 0.0f;
+				player[p].isPoisoned = false;
+				player[p].poisonTimer = 0.0f;
+				player[p].isStunning = false;
+				player[p].stunTimer = 0.0f;
+				player[p].stunGauge = 0.0f;
+				player[p].useSkill = false;
+				player[p].skillTimer = 0.0f;
+				player[p].useSpecial = false;
+				player[p].specialTimer = 0.0f;
+				player[p].isHealing = false;
+				player[p].healingTimer = 0.0f;
+				player[p].isEvolving = false;
+				player[p].evolvingTimer = 0.0f;
+				player[p].skillAnimation = false;
+				player[p].specialAnimation = false;
+				Effect_Clear(p);
 
 				// 順位登録
 				Ranking(p);
@@ -1113,12 +1159,6 @@ void Player_Update()
 			player[p].animFrame = idleStart; // 待機フレームにリセット
 		}
 
-		// ガラス・電気・植物: specialTimer に基づくアニメーション終了制御
-		// ※ useSpecial は true のまま（special.cpp のダメージ処理等は継続）
-		if (player[p].specialAnimation)
-		{
-			// ガラス・電気: 0～6を1回再生 → 4～6をループ
-		}
 		// ガラス・電気・植物: specialTimer に基づくアニメーション終了制御
 		// ※ useSpecial は true のまま（special.cpp のダメージ処理等は継続）
 		if (player[p].specialAnimation)
@@ -1895,7 +1935,7 @@ static void Player_DrawOutline(int p)
 	{
 		// 第1形態
 	case Form::First:
-		if (p == 0)				srv = g_Texture[0];
+			 if (p == 0)				srv = g_Texture[0];
 		else if (p == 1)				srv = g_Texture[1];
 		else if (p == 2)				srv = g_Texture[2];
 		else if (p == 3)				srv = g_Texture[3];
@@ -2081,43 +2121,43 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 
 			ID3D11ShaderResourceView* srv = nullptr;
 
-			// 形態とタイプに応じたテクスチャを設定
-			switch (player[idx].form)
-			{
-				// 第1形態
-			case Form::First:
-				if (idx == 0)					srv = g_Texture[0];
-				else if (idx == 1)				srv = g_Texture[1];
-				else if (idx == 2)				srv = g_Texture[2];
-				else if (idx == 3)				srv = g_Texture[3];
-				break;
-				// 第2形態
-			case Form::Second:
-				switch (player[idx].type)
-				{
-				case PlayerType::Glass:			srv = g_Texture[4];	break;
-				case PlayerType::Concrete:		srv = g_Texture[5];	break;
-				case PlayerType::Plant:			srv = g_Texture[6];	break;
-				case PlayerType::Electricity:	srv = g_Texture[7];	break;
-				default: break;
-				}
-				break;
-				// 第3形態
-			case Form::Third:
-				switch (player[idx].type)
-				{
-				case PlayerType::Glass:			srv = g_Texture[8];		break;
-				case PlayerType::Concrete:		srv = g_Texture[9];		break;
-				case PlayerType::Plant:			srv = g_Texture[10];	break;
-				case PlayerType::Electricity:	srv = g_Texture[11];	break;
-				default: break;
-				}
-				break;
-			}
+			//// 形態とタイプに応じたテクスチャを設定
+			//switch (player[idx].form)
+			//{
+			//	// 第1形態
+			//case Form::First:
+			//	if (idx == 0)					srv = g_Texture[0];
+			//	else if (idx == 1)				srv = g_Texture[1];
+			//	else if (idx == 2)				srv = g_Texture[2];
+			//	else if (idx == 3)				srv = g_Texture[3];
+			//	break;
+			//	// 第2形態
+			//case Form::Second:
+			//	switch (player[idx].type)
+			//	{
+			//	case PlayerType::Glass:			srv = g_Texture[4];	break;
+			//	case PlayerType::Concrete:		srv = g_Texture[5];	break;
+			//	case PlayerType::Plant:			srv = g_Texture[6];	break;
+			//	case PlayerType::Electricity:	srv = g_Texture[7];	break;
+			//	default: break;
+			//	}
+			//	break;
+			//	// 第3形態
+			//case Form::Third:
+			//	switch (player[idx].type)
+			//	{
+			//	case PlayerType::Glass:			srv = g_Texture[8];		break;
+			//	case PlayerType::Concrete:		srv = g_Texture[9];		break;
+			//	case PlayerType::Plant:			srv = g_Texture[10];	break;
+			//	case PlayerType::Electricity:	srv = g_Texture[11];	break;
+			//	default: break;
+			//	}
+			//	break;
+			//}
 
-			// スキル・スペシャル専用テクスチャ
-			if (player[idx].useSpecial && player[idx].specialAnimation)	srv = g_Texture[13];	// スペシャルアニメーション継続中のみ
-			else if (player[idx].skillAnimation)						srv = g_Texture[12];	// スキル発動アニメーション
+			//// スキル・スペシャル専用テクスチャ
+			//if (player[idx].useSpecial && player[idx].specialAnimation)	srv = g_Texture[13];	// スペシャルアニメーション継続中のみ
+			//else if (player[idx].skillAnimation)						srv = g_Texture[12];	// スキル発動アニメーション
 
 			g_pContext->PSSetShaderResources(0, 1, &srv);
 
@@ -2242,7 +2282,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	// カメラからの順番をソートしたもの(list)の順番で再度描画
 	for (auto& p : list)
 	{
-		Player_DrawOutline(p.second);
+		//Player_DrawOutline(p.second);
 
 		// 再描画でも本体は active のものだけ描画（非アクティブは Outline 関数内で弾かれる）
 		if (player[p.second].active)
@@ -2252,7 +2292,7 @@ void Player_Draw(bool s_IsKonamiCodeEntered)
 	}
 
 	// シルエット描画追加
-	for (auto& p : list) Player_DrawSilhouette(p.second);
+	//for (auto& p : list) Player_DrawSilhouette(p.second);
 
 	// スペシャルエフェクト本体
 	for (int p2 = 0; p2 < PLAYER_MAX; ++p2)

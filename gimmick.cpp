@@ -46,6 +46,10 @@ static MODEL* g_MeteorModel = NULL;
 // ギミック状態（プレイヤーごと）
 static GIMMICK_STATE g_Gimmick[PLAYER_MAX];
 
+// 追加：隕石の視覚的な範囲スケール（プレイヤーごと）
+static float g_meteorRangeScale[PLAYER_MAX];			// 0.1f .. 1.0f の正規化スケール（1.0 が MAX）
+static const float METEOR_RANGE_GROW_DURATION = 0.4f;	// 0.1 -> MAX に広がるまでの時間（秒）
+
 // マクロ定義（範囲描画で+Y面を使うため箱の頂点データは残す）
 #define METEOR_VERTEX (24)
 
@@ -152,6 +156,7 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Gimmick[p].canFire = false;
 		g_Gimmick[p].rangeAnimFrame = 0;
 		g_Gimmick[p].rangeAnimTimer = 0.0f;
+		g_Gimmick[p].hitPlayer = false;
 
 		g_Gimmick[p].meteor.position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Gimmick[p].meteor.rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -160,6 +165,9 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		g_Gimmick[p].meteor.collider = { XMFLOAT3(0.0f, 0.0f, 0.0f), METEOR_RANGE_RADIUS };
 		g_Gimmick[p].meteor.active = false;
 		g_Gimmick[p].meteor.landed = false;
+
+		// 追加：範囲スケール初期化
+		g_meteorRangeScale[p] = 1.0f;
 	}
 
 	// 頂点バッファ作成
@@ -381,6 +389,9 @@ void Meteor_Update()
 				g_Gimmick[p].meteor.rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 				g_Gimmick[p].meteor.scaling = XMFLOAT3(METEOR_MODEL_SCALE, METEOR_MODEL_SCALE, METEOR_MODEL_SCALE);
 
+				// 発射直後に視覚範囲スケールを小さくして拡大を開始
+				g_meteorRangeScale[p] = 0.1f;
+
 				g_Gimmick[p].canFire = false;
 				g_Gimmick[p].coolTimer = 0.0f;
 			}
@@ -391,6 +402,20 @@ void Meteor_Update()
 		// ------------------------------------------
 		if (g_Gimmick[p].meteor.active && !g_Gimmick[p].meteor.landed)
 		{
+			// 追加：落下中に範囲スケールを成長させる（視覚効果）
+			if (g_meteorRangeScale[p] < 1.0f)
+			{
+				if (METEOR_RANGE_GROW_DURATION > 0.0f)
+				{
+					g_meteorRangeScale[p] += DELTA_TIME / METEOR_RANGE_GROW_DURATION;
+				}
+				else
+				{
+					g_meteorRangeScale[p] = 1.0f;
+				}
+				if (g_meteorRangeScale[p] > 1.0f) g_meteorRangeScale[p] = 1.0f;
+			}
+
 			g_Gimmick[p].meteor.position.y -= METEOR_FALL_SPEED * DELTA_TIME;
 
 			// 回転演出
@@ -439,9 +464,15 @@ void Meteor_Update()
 				}
 				g_Gimmick[p].meteor.landed = true;
 
+				// 着弾時に視覚スケールを最大にしておく
+				g_meteorRangeScale[p] = 1.0f;
+
 				// ⑤ 円コライダーを着弾位置で更新
 				g_Gimmick[p].meteor.collider.center = g_Gimmick[p].meteor.position;
 				g_Gimmick[p].meteor.collider.radius = METEOR_RANGE_RADIUS;
+
+				// プレイヤーヒットフラグをリセット
+				g_Gimmick[p].hitPlayer = false;
 
 				// 全プレイヤーとの当たり判定（円 vs AABB）
 				for (int target = 0; target < PLAYER_MAX; target++)
@@ -465,6 +496,9 @@ void Meteor_Update()
 						targetObj->attackedTimer = 0.0f;
 						targetObj->isDamageColor = true;
 						targetObj->damageColorTimer = 0.0f;
+
+						// プレイヤーに命中したフラグを立てる
+						g_Gimmick[p].hitPlayer = true;
 					}
 				}
 			}
@@ -475,6 +509,9 @@ void Meteor_Update()
 		{
 			// 即座に非アクティブ
 			g_Gimmick[p].meteor.active = false;
+
+			// リセット（念のため）
+			g_meteorRangeScale[p] = 1.0f;
 		}
 	}
 }
@@ -532,7 +569,8 @@ void Meteor_Draw(bool debugDraw)
 			g_pContext->Unmap(g_VertexBuffer, 0);
 
 			// ワールド行列（プレイヤーの位置にスケール = 直径3 = 半径1.5）
-			float diameter = METEOR_RANGE_RADIUS * 2.0f;
+			// 変更：視覚スケールを適用して直径を変化させる
+			float diameter = METEOR_RANGE_RADIUS * 2.0f * g_meteorRangeScale[p];
 			XMMATRIX world = XMMatrixScaling(diameter, 1.0f, diameter)
 				* XMMatrixTranslation(
 					player.position.x + 0.2f,
@@ -636,7 +674,8 @@ void Meteor_DrawRange(bool debugDraw)
 			vertex[19].tex = XMFLOAT2(u1, v1);
 			g_pContext->Unmap(g_VertexBuffer, 0);
 
-			float diameter = METEOR_RANGE_RADIUS * 2.0f;
+			// 変更：視覚スケールを適用した直径
+			float diameter = METEOR_RANGE_RADIUS * 2.0f * g_meteorRangeScale[p];
 			XMMATRIX world = XMMatrixScaling(diameter, 1.0f, diameter)
 				* XMMatrixTranslation(
 					player.position.x + 0.2f,
