@@ -394,7 +394,7 @@ void Attack_Update(int playerIndex)
 
 						// 建物壊した時に 0.05秒くらい止める
 						//StartHitStop(1.0f);
-						player.g_hitStopTimer = 0.05f;
+						//player.g_hitStopTimer = 0.05f;
 					}
 				}
 			}
@@ -452,10 +452,10 @@ void Attack_Update(int playerIndex)
 					float rawDamage = player.attack * defender.defense;
 					defender.hp = max(defender.hp - rawDamage, 0.0f); // 0未満にならないように
 
-				// HP回復
-				player.hp += HP_HEAL;
-				// HPの上限
-				if (player.hp > PLAYER_MAX_HP)	player.hp = PLAYER_MAX_HP;
+					// HP回復
+					player.hp += HP_HEAL;
+					// HPの上限
+					if (player.hp > PLAYER_MAX_HP)	player.hp = PLAYER_MAX_HP;
 
 					// ダメージ文字
 					XMFLOAT3 hitPos = defender.position;
@@ -475,10 +475,10 @@ void Attack_Update(int playerIndex)
 
 
 
-					defender.g_hitStopTimer = 0.05f;
-					// プレイヤーに当てた時はちょっと長めに 0.1秒くらい止める
-					//StartHitStop(1.0f);
-					player.g_hitStopTimer = 0.05f;
+					//defender.g_hitStopTimer = 0.05f;
+					//// プレイヤーに当てた時はちょっと長めに 0.1秒くらい止める
+					////StartHitStop(1.0f);
+					//player.g_hitStopTimer = 0.05f;
 				}
 			}
 		}
