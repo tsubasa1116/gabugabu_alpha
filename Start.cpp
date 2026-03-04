@@ -166,12 +166,12 @@ void Start_Draw()
 
 		// カメラ：斜め上からの角度
 		const float camX = 0.0f;
-		const float camY = -10.0f;
-		const float camZ = -30.0f;
+		const float camY = +10.0f;
+		const float camZ = -10.0f;
 		XMVECTOR eyePos = XMVectorSet(camX, camY, camZ, 0.0f);
 
 		// 注視点はモデル中心（必要ならモデルのバウンディングボックス中心に変更）
-		XMVECTOR focus = XMVectorSet(0.0f, 2.0f, 0.0f, 0.0f);
+		XMVECTOR focus = XMVectorSet(-2.0f, 3.0f, 1.0f, 0.0f);
 
 		// 上方向ベクトル（標準）
 		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
@@ -242,7 +242,7 @@ void Start_Draw()
 			0.0f,
 			0.0f,
 			1.0f));
-		XMFLOAT2 basePos = { SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT * 0.37f + g_Texture3OffsetY };
+		XMFLOAT2 basePos = { SCREEN_WIDTH / 2 - 67, SCREEN_HEIGHT * 0.37f + g_Texture3OffsetY };
 
 		ID3D11ShaderResourceView* vSrv = g_StageVideo->GetSRV();
 		g_pContext->PSSetShaderResources(0, 1, &vSrv);
@@ -253,7 +253,7 @@ void Start_Draw()
 		float videoH = (float)g_StageVideo->GetHeight();
 		float desiredWidth = SCREEN_WIDTH * 0.23f; // 枠（30%）より少し小さくする例
 		float scale = desiredWidth / videoW;
-		XMFLOAT2 videoSize = { videoW * scale, videoH * scale };
+		XMFLOAT2 videoSize = { videoW * scale * 1.5f, videoH * scale * 1.5f };
 
 		SetBlendState(BLENDSTATE_NONE);
 		DrawSprite(basePos, videoSize, color::white);
@@ -269,12 +269,12 @@ void Start_Draw()
 		float texW = (g_Metadata3.width > 0) ? (float)g_Metadata3.width : 100.0f;
 		float texH = (g_Metadata3.height > 0) ? (float)g_Metadata3.height : 50.0f;
 
-		float desiredWidth = SCREEN_WIDTH * 0.30f; // 幅を画面の30%にする例
+		float desiredWidth = SCREEN_WIDTH * 0.315f; // 幅を画面の30%にする例
 		float scale = desiredWidth / texW;
-		XMFLOAT2 size = { texW * scale, texH * scale };
+		XMFLOAT2 size = { texW * scale * 1.5f, texH * scale * 1.5f };
 
 		// ベース位置にふよふよオフセットを加える
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT * 0.37f + g_Texture3OffsetY };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT * 0.37f + g_Texture3OffsetY };
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 		DrawSprite(pos, size, col);
