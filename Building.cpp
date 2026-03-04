@@ -433,7 +433,7 @@ void Building::Update()
 	if (!map[m_FieldIndex].isActive && !m_IsFalling && !m_IsShaking)
 	{
 		m_IsShaking = true;
-		m_ShakeTimer = 0.5f;   // 0.5秒振動
+		m_ShakeTimer = 2.0f;   
 	}
 
 	// --- 復活（消えていく）処理 ---
@@ -567,40 +567,57 @@ void Building::Update()
 
 	// CalculateAABBをここで呼ぶ（インスタンスごとの計算）
 	CalculateAABB(this->boundingBox, currentPos, actualSize);
-	// ==========================
-// 振動処理
-// ==========================
+
+	// ============================
+// 振動処理（落ちる前）
+// ============================
 	if (m_IsShaking)
 	{
-		m_ShakeTimer -= DELTA_TIME;
+		m_ShakeTimer += DELTA_TIME;
 
-		// 左右に小さく振動
-		float shakeAmount = 5.0f;
-		position.x += sin(GetTickCount() * 0.02f) * shakeAmount;
+		float shakePower =0.2f;    // 揺れ幅
+		float shakeSpeed = 40.0f;   // 揺れ速度
 
-		if (m_ShakeTimer <= 0.0f)
+		// 円を描くように細かく振動
+		position.x += sin(m_ShakeTimer * shakeSpeed) * shakePower;
+		position.z += cos(m_ShakeTimer * shakeSpeed) * shakePower;
+
+		// 1秒震えたら落下開始
+		if (m_ShakeTimer >= 3.0f)
 		{
 			m_IsShaking = false;
 			m_IsFalling = true;
 			m_FallSpeed = 0.0f;
+			m_FallTimer = 0.0f;   // ★追加（後述）
 		}
 	}
+
+
+	// ============================
+	// 落下処理
+	// ============================
 	if (m_IsFalling)
 	{
-		// 重力加速
-		m_FallSpeed += 0.03f * DELTA_TIME;
+		m_FallTimer += DELTA_TIME;
 
-		// 下に移動
+		float shakeAmount = 2.0f;
+		float shakeSpeed = 10.0f;
+
+		position.x += sin(m_FallTimer * shakeSpeed) * shakeAmount * DELTA_TIME;
+		position.z += cos(m_FallTimer * shakeSpeed) * shakeAmount * DELTA_TIME;
+
+		// ★ Field と同じ落下ロジック
+		m_FallSpeed += 0.2f * DELTA_TIME;
 		position.y -= m_FallSpeed;
 
-		// 一定距離落ちたら消す
 		if (position.y < -20.0f)
 		{
 			isActive = false;
+			m_IsFalling = false;
 		}
 	}
 
-
+	
 }
 
 //=========================================

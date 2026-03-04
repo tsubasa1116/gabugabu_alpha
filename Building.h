@@ -74,6 +74,8 @@ public:
 
 	float m_FallSpeed = 0.0f;
 	bool  m_IsFalling = false;
+
+	float m_FallTimer = 0.0f;
 	//=================================
 	// コンストラクタ
 	//=================================
