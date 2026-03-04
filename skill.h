@@ -18,7 +18,7 @@
 
 #define SKILL_SE_COUNT				(4)	// スキル SEの数
 
-#define SKILL_GLASS_RADIUS			(1.2f)	// ガラススキルの球の半径
+#define SKILL_GLASS_RADIUS			(1.5f)	// ガラススキルの球の半径
 
 struct SKILL_OBJECT
 {
