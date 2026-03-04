@@ -40,17 +40,23 @@ static float g_SlideOffsetTop = 0.0f;
 static float g_SlideOffsetBottom = 0.0f;
 const float SLIDE_SPEED = 2.0f;
 
-// アニメーション設定
-const int ANIM_COLS = 8;         // 1行あたりのコマ数
-const int ANIM_ROWS = 8;        // シート全体の行数
-const int ANIM_PLAY_START = 0;  // 行内の再生開始コマ
-const int ANIM_PLAY_END = 7;    // 行内の再生終了コマ
-const float ANIM_SPEED = 0.12f;       // 初回再生時の1フレームあたりの秒数
-const float ANIM_SPEED_LOOP = 0.3f;   // ループ部分の1フレームあたりの秒数
+// アニメーション設定（16×16シート：16列×16行、ただし12行使用）
+const int ANIM_COLS = 16;       // 1行あたりのコマ数
+const int ANIM_ROWS = 16;       // シート全体の行数（実際使うのは12行）
+const int ANIM_PLAY_START = 0;  // 再生開始コマ
+const int ANIM_PLAY_END = 15;   // 再生終了コマ
+const float ANIM_SPEED = 0.12f; // 1フレームあたりの秒数
 static int g_AnimFrame = ANIM_PLAY_START;
 static float g_AnimTimer = 0.0f;
 static int g_AnimRow = 0;       // 再生する行番号
-static bool g_AnimLooping = false; // ループ中フラグ
+
+// 行ごとのループ開始コマ
+// 行0～7（第2・第3形態）: コマ6～15をループ
+// 行8～11（第1形態）:     コマ5～15をループ
+static inline int GetLoopStart(int row)
+{
+	return (row >= 8) ? 5 : 6;
+}
 
 // 勝者情報
 static int g_WinnerIndex = -1;
@@ -119,48 +125,34 @@ static const wchar_t* GetWinTextPath(int winnerIndex)
 }
 
 //======================================================
-//	アニメーション画像パスを取得
-//	第1形態: 全プレイヤー共通の1枚シート（行=プレイヤー番号）
-//	第2・第3形態: 全属性共通の1枚シート（行=属性×形態）
-//======================================================
-static const wchar_t* GetWinAnimPath(Form form)
-{
-	if (form == Form::First)
-	{
-		// 第1形態は全プレイヤーが1枚のシートにまとまっている
-		return L"asset\\texture\\characterWin02_v3.png";
-	}
-	else
-	{
-		// 第2・第3形態は全属性が1枚のシートにまとまっている
-		return L"asset\\texture\\characterWin01_v2.png";
-	}
-}
-
-//======================================================
 //	形態・属性・プレイヤー番号からスプライトシートの行番号を取得
 //
-//	【第1形態シート】
-//	行0: 1P    行1: 2P    行2: 3P    行3: 4P
-//
-//	【第2・第3形態シート】
-//	行0: コンクリ 第2形態   行4: コンクリ 第3形態
-//	行1: 電気     第2形態   行5: 電気     第3形態
-//	行2: ガラス   第2形態   行6: ガラス   第3形態
-//	行3: 植物     第2形態   行7: 植物     第3形態
+//	【characterWinNew_v1.png（64×64シート）】
+//	行0:  コンクリ 第2形態
+//	行1:  電気     第2形態
+//	行2:  ガラス   第2形態
+//	行3:  植物     第2形態
+//	行4:  コンクリ 第3形態
+//	行5:  電気     第3形態
+//	行6:  ガラス   第3形態
+//	行7:  植物     第3形態
+//	行8:  1P 第1形態
+//	行9:  2P 第1形態
+//	行10: 3P 第1形態
+//	行11: 4P 第1形態
 //======================================================
 static int GetAnimRow(Form form, PlayerType type, int winnerIndex)
 {
 	if (form == Form::First)
 	{
-		// 第1形態シート: 行0=1P, 行1=2P, 行2=4P, 行3=3P
+		// 第1形態: 行8=1P, 行9=2P, 行10=3P, 行11=4P
 		switch (winnerIndex)
 		{
-		case 0: return 0; // 1P → 行0
-		case 1: return 1; // 2P → 行1
-		case 2: return 3; // 3P → 行3
-		case 3: return 2; // 4P → 行2
-		default: return 0;
+		case 0: return 8;  // 1P
+		case 1: return 9;  // 2P
+		case 2: return 10; // 3P
+		case 3: return 11; // 4P
+		default: return 8;
 		}
 	}
 
@@ -209,7 +201,6 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	const wchar_t* bgPath = GetWinBgPath(g_WinnerIndex);
 	const wchar_t* bandPath = GetWinBandPath(g_WinnerIndex);
 	const wchar_t* textPath = GetWinTextPath(g_WinnerIndex);
-	const wchar_t* animPath = GetWinAnimPath(g_WinnerForm);
 
 	// 背景テクスチャ読み込み
 	{
@@ -260,11 +251,11 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		assert(g_Texture5);
 	}
 
-	// アニメ―しぃん（勝者の形態に応じたシート）
+	// アニメーション（1枚に統合されたシート）
 	{
 		TexMetadata metadata;
 		ScratchImage image;
-		LoadFromWICFile(animPath, WIC_FLAGS_NONE, &metadata, image);
+		LoadFromWICFile(L"asset\\texture\\characterWinNew_v1.png", WIC_FLAGS_NONE, &metadata, image);
 		CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture6);
 		g_TexMeta6 = metadata;
 		assert(g_Texture6);
@@ -305,7 +296,6 @@ void Win_Finalize()
 	g_AnimFrame = ANIM_PLAY_START;
 	g_AnimTimer = 0.0f;
 	g_AnimRow = 0;
-	g_AnimLooping = false;
 	g_SlideOffsetTop = 0.0f;
 	g_SlideOffsetBottom = 0.0f;
 
@@ -336,20 +326,16 @@ void Win_Update()
 	if (g_SlideOffsetTop > WRAP_LIMIT) g_SlideOffsetTop -= WRAP_LIMIT;
 	if (g_SlideOffsetBottom < -WRAP_LIMIT) g_SlideOffsetBottom += WRAP_LIMIT;
 
-	// ループ中かどうかで速度を切り替え
-	float currentSpeed = g_AnimLooping ? ANIM_SPEED_LOOP : ANIM_SPEED;
-
 	g_AnimTimer += DELTA_TIME;
-	if (g_AnimTimer >= currentSpeed)
+	if (g_AnimTimer >= ANIM_SPEED)
 	{
 		g_AnimTimer = 0.0f;
 		g_AnimFrame++;
 
-		// コマ7まで到達したら、コマ6に戻してコマ6→7をループ
+		// コマ15を超えたらループ開始コマに戻る
 		if (g_AnimFrame > ANIM_PLAY_END)
 		{
-			g_AnimFrame = ANIM_PLAY_END - 1; // コマ6に戻る
-			g_AnimLooping = true;
+			g_AnimFrame = GetLoopStart(g_AnimRow);
 		}
 	}
 }
@@ -428,7 +414,7 @@ void Win_Draw()
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture6);
 
-		int frameX = g_AnimFrame; // 列 (0～7)
+		int frameX = g_AnimFrame; // 列 (0～15)
 		int frameY = g_AnimRow;   // 行 (形態・属性・プレイヤー番号で決定済み)
 
 		float frameWidth = (float)g_TexMeta6.width / (float)ANIM_COLS;
@@ -446,23 +432,23 @@ void Win_Draw()
 		switch (g_WinnerForm)
 		{
 		case Form::First:
-			pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 30.0f * SCREEN_ADJUST_Y };
-			size = { frameWidth * 0.8f, frameHeight * 0.8f };
+			pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 28.0f * SCREEN_ADJUST_Y };
+			size = { frameWidth * 1.5f, frameHeight * 1.5f };
 			break;
 
 		case Form::Second:
-			pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 150.0f * SCREEN_ADJUST_Y };
-			size = { frameWidth * 1.0f, frameHeight * 1.0f };
+			pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 140.0f * SCREEN_ADJUST_Y };
+			size = { frameWidth * 1.9f, frameHeight * 1.9f };
 			break;
 
 		case Form::Third:
 			pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 10.0f * SCREEN_ADJUST_Y };
-			size = { frameWidth * 0.8f, frameHeight * 0.8f };
+			size = { frameWidth * 1.4f, frameHeight * 1.4f };
 			break;
 
 		default:
 			pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 30.0f * SCREEN_ADJUST_Y };
-			size = { frameWidth * 0.8f, frameHeight * 0.8f };
+			size = { frameWidth * 1.2f, frameHeight * 1.2f };
 			break;
 		}
 
