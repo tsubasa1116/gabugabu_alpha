@@ -55,6 +55,20 @@ struct MAPDATA
 	float respawnTimer;
 	float respawnTimeMax;
 	float distFromCenter;
+	float fallSpeed = 0.0f;
+	bool  isFalling = false;
+
+	bool isShaking;      // 振動中フラグ
+	float shakeTimer;    // 振動時間カウント
+	float shakeOffsetX;  // 元位置保持用
+	float shakeOffsetZ;
+
+	//float fallSpeed;
+	//bool  isFalling;
+
+	float offsetY;      // 地面の落下量
+	XMFLOAT3 basePos;   // 元の位置
+
 };
 
 //======================================================

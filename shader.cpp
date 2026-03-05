@@ -570,7 +570,8 @@ void Shader_SetSkillCoolGaugeTextures(int typeIndex)
 //======================================================
 void Shader_SetSkillTextTextures(int typeIndex)
 {
-	if (!Loader::IsFinished) return;
+	
+
 
 	// タイプチェック
 	if (typeIndex < 0 || typeIndex >= 4)

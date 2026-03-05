@@ -350,7 +350,7 @@ void Meteor_Update()
 				moveInput.y /= len;
 
 				XMFLOAT3 worldDir = MeteorToWorldDir(moveInput);
-				float meteorSpeed = 0.05f; // 隕石範囲の移動速度
+				float meteorSpeed = 0.065f; // 隕石範囲の移動速度
 				player.position.x += worldDir.x * meteorSpeed;
 				player.position.z += worldDir.z * meteorSpeed;
 			}
@@ -459,12 +459,22 @@ void Meteor_Update()
 					// 衝突判定（円 vs AABB）
 					if (CheckCircleAABBCollision(g_Gimmick[p].meteor.collider, targetAABB))
 					{
+						// ダメージ計算
+						float rawDamage = METEOR_DAMAGE * targetObj->defense;
+
 						// ダメージ適用
-						targetObj->hp -= METEOR_DAMAGE * targetObj->defense;
+						targetObj->hp -= rawDamage;
 						targetObj->isAttacked = true;
 						targetObj->attackedTimer = 0.0f;
 						targetObj->isDamageColor = true;
 						targetObj->damageColorTimer = 0.0f;
+
+						// ダメージテキスト表示
+						int dmgInt = static_cast<int>(rawDamage + 0.5f);
+						XMFLOAT3 hitPos = targetObj->position;
+
+						hitPos.y += targetObj->scaling.y + 0.3f;
+						SetDamageText(hitPos, dmgInt, TextColor::Red);
 					}
 				}
 			}

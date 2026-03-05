@@ -14,13 +14,14 @@
 
 #define	PLAYER_MAX_HP				(500.0f)// プレイヤー 最大HP
 #define	PLAYER_MAX_SATIETY			(7.0f)	// プレイヤー 最大満腹度
-#define	PLAYER_EVOLUTION_GAUGE_RATE	(0.5f)	// プレイヤー 進化ゲージ増加率
+#define	PLAYER_EVOLUTION_GAUGE_RATE	(0.2f)	// プレイヤー 進化ゲージ増加率
 
 #define	EVOLUTIONGAUGE_MAX	(1.0f)	// 進化ゲージ最大値
 #define	ATTACKING_TIME		(0.2f)	// 攻撃持続時間
 #define	ATTACKED_TIME		(0.5f)	// ダメージ持続時間
 #define	HEALING_TIME		(2.0f)	// 回復持続時間
-#define	EVOLVING_TIME		(4.0f)	// 進化時間
+#define	HP_HEAL				(5.0f)	// HP回復
+#define	EVOLVING_TIME		(2.0f)	// 進化時間
 #define	STUNGAUGE_MAX		(10)	// スタンゲージ最大値
 #define	STUN_TIME			(5.0f)	// スタン持続時間
 #define	DOWN_TIME			(3.0f)	// ダウン持続時間
@@ -130,6 +131,11 @@ struct PLAYEROBJECT
 	bool isEggBreaking;		// 卵エフェクトが割れ始める瞬間
 	float eggBreakingTimer;	// 卵エフェクトのタイマー
 
+	//bool hasHit; // 今回の攻撃で既にダメージを与えたら true にする
+
+	// ここで実体を作る（1箇所だけ！）
+	float g_hitStopTimer = 0.0f;
+
 	float moveAngle = 0.0f;	// プレイヤー固有の回転補間用角度
 	XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f };	// 移動ベクトル
 	PlayerDir lastDir;							// 待機時の向き
@@ -165,7 +171,7 @@ struct PLAYEROBJECT
 void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 static void LoadTextureList(ID3D11Device* pDevice);
 void Player_Finalize();
-void Player_Update();
+void Player_Update(/*float currentDeltaTime*/);
 void Player_Draw(bool s_IsKonamiCodeEntered);
 void Player_DrawHP();
 
@@ -187,3 +193,5 @@ bool Player_CanUseSpecial(int playerIndex);
 
 void Player_Warmup();
 
+void LoopRange(int& animFrame, int start, int count, int advance);
+void Player_CheckWin();

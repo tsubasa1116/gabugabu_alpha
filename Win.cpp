@@ -327,7 +327,7 @@ void Win_Update()
 	{
 		PlayAudio(g_SeButtonID, false);
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
+		SetFade(40.0f, color, FADE_OUT, SCENE_TITLE);
 	}
 
 	// スライドオフセット更新（正規化しない。描画側で各自fmodfする）

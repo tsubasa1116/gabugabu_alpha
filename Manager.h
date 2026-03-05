@@ -3,15 +3,15 @@
 
 enum SCENE
 {
-	SCENE_NONE = 0,		//‰½‚à‚È‚µ
-	SCENE_TITLE,		//ƒ^ƒCƒgƒ‹ƒV[ƒ“
-	SCENE_START,		//ƒQ[ƒ€ƒXƒ^[ƒgƒV[ƒ“
-	SCENE_SETTING,		//Ý’èƒV[ƒ“
-	SCENE_SOUND,		//ƒTƒEƒ“ƒhƒeƒXƒgƒV[ƒ“
-	SCENE_READY,		//ƒQ[ƒ€€”õƒV[ƒ“
-	SCENE_GAME,			//ƒQ[ƒ€ƒV[ƒ“
-	SCENE_WIN,			//Ÿ—˜ƒV[ƒ“
-	SCENE_RESULT,		//ƒŠƒUƒ‹ƒgƒV[ƒ“
+	SCENE_NONE = 0,		//ä½•ã‚‚ãªã—
+	SCENE_TITLE,		//ã‚¿ã‚¤ãƒˆãƒ«ã‚·ãƒ¼ãƒ³
+	SCENE_START,		//ã‚²ãƒ¼ãƒ ã‚¹ã‚¿ãƒ¼ãƒˆã‚·ãƒ¼ãƒ³
+	SCENE_SETTING,		//è¨­å®šã‚·ãƒ¼ãƒ³
+	SCENE_SOUND,		//ã‚µã‚¦ãƒ³ãƒ‰ãƒ†ã‚¹ãƒˆã‚·ãƒ¼ãƒ³
+	SCENE_READY,		//ã‚²ãƒ¼ãƒ æº–å‚™ã‚·ãƒ¼ãƒ³
+	SCENE_GAME,			//ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³
+	SCENE_WIN,			//å‹åˆ©ã‚·ãƒ¼ãƒ³
+	//SCENE_RESULT,		//ãƒªã‚¶ãƒ«ãƒˆãƒ«ã‚·ãƒ¼ãƒ³
 
 };
 

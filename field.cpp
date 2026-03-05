@@ -376,6 +376,9 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		{
 			// 割り当てられなかった残りは非表示
 			Map[i].isActive = false;
+			Map[i].isShaking = true;
+			Map[i].shakeTimer = 0.5f;
+			Map[i].fallSpeed = 0.0f;
 		}
 	}
 
@@ -419,7 +422,7 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		}); 
 	//------------------------------------------------------------------
 
-	Building_Initialize(pDevice, pContext);
+	//Building_Initialize(pDevice, pContext);
 }
 
 
@@ -656,18 +659,66 @@ void Field_Draw(bool s_IsKonamiCodeEntered)
 //======================================================
 void Field_Update(void)
 {
+
 	// ==========================================
 	// 通常のバウンディング更新
 	// ==========================================
 	int i = 0;
 	while (Map[i].no != FIELD_MAX)
 	{
-		if (!Map[i].isActive)
+		if (!Map[i].isActive && !Map[i].isFalling)
 		{
 			i++;
 			continue;
 		}
+		// ============================
+// 振動処理（落ちる前）
+// ============================
+		if (Map[i].isShaking)
+		{
+			Map[i].shakeTimer += DELTA_TIME;
 
+			float shakePower = 0.2f;   // 揺れ幅（小さく）
+			float shakeSpeed = 40.0f;  // 速めにブルブル
+
+			Map[i].pos.x += sin(Map[i].shakeTimer * shakeSpeed) * shakePower;
+			Map[i].pos.z += cos(Map[i].shakeTimer * shakeSpeed) * shakePower;
+
+			// 0.5秒震えたら落下開始
+			if (Map[i].shakeTimer >= 1.0f)
+			{
+				Map[i].isShaking = false;
+				Map[i].isFalling = true;
+				Map[i].fallSpeed = 0.0f;
+			}
+		}
+	
+
+		// 落下処理
+		if (Map[i].isFalling)
+		{
+			static float time = 0.0f;
+			time += DELTA_TIME;
+
+			float shakeAmount = 2.0f;   // 揺れ幅（小さめ）
+			float shakeSpeed = 10.0f;  // 揺れ速度
+
+			// 横に規則的に振動
+			Map[i].pos.x += sin(time * shakeSpeed) * shakeAmount * DELTA_TIME;
+			Map[i].pos.z += cos(time * shakeSpeed) * shakeAmount * DELTA_TIME;
+
+
+			Map[i].fallSpeed += 0.2f * DELTA_TIME;   // ← ゆっくり重力
+			Map[i].pos.y -= Map[i].fallSpeed;
+
+			if (Map[i].pos.y < -20.0f)
+			{
+				Map[i].isActive = false;
+				Map[i].isFalling = false;
+			}
+		}
+
+		// バウンディング更新
 		Map[i].boundingBox.center = Map[i].pos;
 		Map[i].boundingBox.radius = Map[i].radius;
 		Map[i].boundingBox.height = Map[i].height;
@@ -679,7 +730,7 @@ void Field_Update(void)
 	// マップ縮小処理（10秒ごと）
 	// ==========================================
 	static float g_FieldShrinkTimer = 0.0f;
-	const float FIELD_SHRINK_INTERVAL = 10.0f; // 10秒
+	const float FIELD_SHRINK_INTERVAL = 5.0f; // 10秒
 
 	g_FieldShrinkTimer += DELTA_TIME;
 
@@ -708,7 +759,20 @@ void Field_Update(void)
 		// 見つかったら1マス消す
 		if (farIndex != -1)
 		{
-			Map[farIndex].isActive = false;
+			Map[farIndex].isShaking = true;
+			Map[farIndex].shakeTimer = 0.0f;
+
+			Building** blds = GetBuildings();
+			int count = GetBuildingCount();
+
+			for (int i = 0; i < count; i++)
+			{
+				if (blds[i] && blds[i]->GetFieldIndex() == farIndex)
+				{
+					blds[i]->m_IsFalling = true;
+					blds[i]->m_FallSpeed = 0.0f;
+				}
+			}
 		}
 	}
 }

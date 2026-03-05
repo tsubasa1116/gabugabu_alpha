@@ -73,7 +73,7 @@ bool VideoTexture::Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pConte
 
 	// 再生制御用の初期化
 	m_StartTime = std::chrono::steady_clock::now();   // 再生開始時刻を記録
-	m_LastTimestamp = 0;                              // 最後に表示したフレームのタイムスタンプ
+	m_LastTimestamp = -1;                              // 最後に表示したフレームのタイムスタンプ
 	m_PlaybackSpeed = 1.0f;
 	m_LoopSkipTime = 0.0;
 
@@ -226,7 +226,7 @@ void VideoTexture::Reset()
 
 		// 再生制御をリセット
 		m_StartTime = std::chrono::steady_clock::now();
-		m_LastTimestamp = 0;
+		m_LastTimestamp = -1;
 		m_Finished = false;
 	}
 }

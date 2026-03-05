@@ -119,7 +119,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, 
 	//RECT window_rect = { -960, -540, SCREEN_WIDTH, SCREEN_HEIGHT };
 
 	// ウィンドウのスタイル
-	DWORD window_style = WS_OVERLAPPEDWINDOW;
+	DWORD window_style = WS_POPUP;
 	// 指定したクライアント領域を確保するために新たな矩形座標を計算
 	AdjustWindowRect(&window_rect, window_style, FALSE);
 	// 調整された矩形の横と縦のサイズを計算
