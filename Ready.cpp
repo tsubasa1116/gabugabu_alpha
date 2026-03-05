@@ -443,7 +443,7 @@ void Ready_Update()
 		//キー入力チェック
 	//スタートボタンが押されたらシーンを切り替え
 	//フェード処理中はキーを受け付けない
-	if ((Keyboard_IsKeyDownTrigger(KK_ENTER) || (g_Input->X)) && (GetFadeState() == FADE_NONE) && !IsLoading())
+	if ((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input[0].X || g_Input[1].X || g_Input[2].X || g_Input[3].X) && (GetFadeState() == FADE_NONE) && !IsLoading())
 	{
 		if (g_AllJoinedTriggered)
 		{

@@ -177,7 +177,7 @@ void Player_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		player[p].power = 0.0f;
 		player[p].speed = 0.0f;
 		player[p].defense = 1.0f;
-		player[p].stock = 3;
+		player[p].stock = 2;
 		player[p].rank = 0;
 		player[p].active = true;
 		player[p].satiety = 0.0f;

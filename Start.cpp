@@ -1,7 +1,7 @@
 //======================================================
 //	start.cpp
 // 
-//	åˆ¶ä½œè€…ï¼šç”°ä¸­ä½‘å¥ˆ			æ—¥ä»˜ï¼š2026//
+//	§ìÒF“c’†—C“Ş			“ú•tF2026//
 //======================================================
 
 #include	"Manager.h"
@@ -15,7 +15,7 @@
 #include "transition.h"
 #include "shader.h"
 
-#include "model.h" // è¿½åŠ ï¼šãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿ç”¨
+#include "model.h" // ’Ç‰ÁFƒ‚ƒfƒ‹“Ç‚İ‚İ—p
 
 #include <chrono>
 #include <cmath>
@@ -26,11 +26,11 @@
 #include "VideoTexture.h"
 #include "color.h"
 
-static	ID3D11ShaderResourceView* g_Texture = NULL;	//å¾“æ¥ã®ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³UIãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼ˆå¿…è¦ãªã‚‰æ®‹ã™ï¼‰
-static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//å¾“æ¥ã®ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³UIãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼ˆå¿…è¦ãªã‚‰æ®‹ã™ï¼‰
+static	ID3D11ShaderResourceView* g_Texture = NULL;	//]—ˆ‚Ìƒtƒ‹ƒXƒNƒŠ[ƒ“UIƒeƒNƒXƒ`ƒƒi•K—v‚È‚çc‚·j
+static	ID3D11ShaderResourceView* g_Texture3 = NULL;	//]—ˆ‚Ìƒtƒ‹ƒXƒNƒŠ[ƒ“UIƒeƒNƒXƒ`ƒƒi•K—v‚È‚çc‚·j
 static	DirectX::TexMetadata		g_Metadata3{};
-static MODEL* g_StartModel = nullptr;                 // è¿½åŠ ï¼šFBXãƒ¢ãƒ‡ãƒ«
-static ID3D11ShaderResourceView* g_StartTex = nullptr; // è¿½åŠ ï¼šFBXã«è²¼ã‚‹PNGãƒ†ã‚¯ã‚¹ãƒãƒ£
+static MODEL* g_StartModel = nullptr;                 // ’Ç‰ÁFFBXƒ‚ƒfƒ‹
+static ID3D11ShaderResourceView* g_StartTex = nullptr; // ’Ç‰ÁFFBX‚É“\‚éPNGƒeƒNƒXƒ`ƒƒ
 
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
@@ -38,12 +38,12 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 static int g_BgmID = NULL;
 static int g_SeButtonID = NULL;
 
-// --- ãƒ­ã‚´ãµã‚ˆãµã‚ˆç”¨ï¼ˆèª¿æ•´å¯èƒ½ï¼‰ ---
+// --- ƒƒS‚Ó‚æ‚Ó‚æ—pi’²®‰Â”\j ---
 static std::chrono::steady_clock::time_point g_LastTime;
 static float g_Texture3FloatTime = 0.0f;
 static float g_Texture3OffsetY = 0.0f;
-static constexpr float g_Texture3Amplitude = 9.0f; // æŒ¯å¹…ï¼ˆãƒ”ã‚¯ã‚»ãƒ«ï¼‰
-static constexpr float g_Texture3Speed = 2.0f;     // é€Ÿåº¦ï¼ˆå‘¨æœŸä¿‚æ•°ï¼‰
+static constexpr float g_Texture3Amplitude = 9.0f; // U•iƒsƒNƒZƒ‹j
+static constexpr float g_Texture3Speed = 2.0f;     // ‘¬“xiüŠúŒW”j
 // ---------------------------------------
 
 static VideoTexture* g_StageVideo = nullptr;
@@ -53,14 +53,14 @@ void Start_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// æ™‚é–“åˆæœŸåŒ–
+	// ŠÔ‰Šú‰»
 	g_LastTime = std::chrono::steady_clock::now();
 
-	// FBXãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿
+	// FBXƒ‚ƒfƒ‹“Ç‚İ‚İ
 	g_StartModel = ModelLoad("asset\\model\\uiStartMap_v1.fbx");
 	assert(g_StartModel);
 
-	// fbxã«è²¼ã‚‹ã‚„ã¤
+	// fbx‚É“\‚é‚â‚Â
 	{
 		DirectX::TexMetadata metadata2;
 		DirectX::ScratchImage image2;
@@ -70,24 +70,24 @@ void Start_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		assert(g_StartTex);
 	}
 
-	// ãƒŸãƒ¼ãƒ«ã‚·ãƒ†ã‚£
+	// ƒ~[ƒ‹ƒVƒeƒB
 	{
 		DirectX::TexMetadata	metadata3;
 		DirectX::ScratchImage	image3;
 		HRESULT hr = LoadFromWICFile(L"asset\\texture\\stageBoard.png", WIC_FLAGS_NONE, &metadata3, image3);
 		assert(SUCCEEDED(hr));
 		CreateShaderResourceView(pDevice, image3.GetImages(), image3.GetImageCount(), metadata3, &g_Texture3);
-		assert(g_Texture3);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+		assert(g_Texture3);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 
-		// å®Ÿãƒ”ã‚¯ã‚»ãƒ«ã‚µã‚¤ã‚ºã‚’ä¿æŒï¼ˆæç”»æ™‚ã«ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã‚’ä¿ã¤ãŸã‚ï¼‰
+		// ÀƒsƒNƒZƒ‹ƒTƒCƒY‚ğ•Ûi•`‰æ‚ÉƒAƒXƒyƒNƒg”ä‚ğ•Û‚Â‚½‚ßj
 		g_Metadata3 = metadata3;
 	}
 
 	g_StageVideo = new VideoTexture();
-	// ãƒ•ã‚¡ã‚¤ãƒ«åã¯å®Ÿéš›ã®å‹•ç”»ãƒ•ã‚¡ã‚¤ãƒ«ã«åˆã‚ã›ã¦å¤‰æ›´ã—ã¦ãã ã•ã„
+	// ƒtƒ@ƒCƒ‹–¼‚ÍÀÛ‚Ì“®‰æƒtƒ@ƒCƒ‹‚É‡‚í‚¹‚Ä•ÏX‚µ‚Ä‚­‚¾‚³‚¢
 	if (!g_StageVideo->Initialize(pDevice, pContext, L"asset\\movie\\start.mp4")) { g_StageVideo->Update(); }
 
-	//ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã®ã‚»ãƒƒãƒˆï¼ˆåˆæœŸå…¥åŠ›ã¯ã“ã“ã§ç„¡è¦–ã—ã¦ã‚‚è‰¯ã„ï¼‰
+	//ƒtƒF[ƒhƒCƒ“‚ÌƒZƒbƒgi‰Šú“ü—Í‚Í‚±‚±‚Å–³‹‚µ‚Ä‚à—Ç‚¢j
 	if (Keyboard_IsKeyDown(KK_ENTER))
 	{
 		XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -103,10 +103,10 @@ void Start_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 void Start_Finalize()
 {
-	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®è§£æ”¾ãªã©
+	//ƒeƒNƒXƒ`ƒƒ‚Ì‰ğ•ú‚È‚Ç
 	SAFE_RELEASE(g_Texture);
 
-	// Start ç”¨ãƒªã‚½ãƒ¼ã‚¹è§£æ”¾
+	// Start —pƒŠƒ\[ƒX‰ğ•ú
 	if (g_StartModel)
 	{
 		ModelRelease(g_StartModel);
@@ -127,13 +127,13 @@ void Start_Finalize()
 
 void Start_Update()
 {
-	// æ™‚é–“å·®åˆ†ã‚’è¨ˆç®—ã—ã¦ãµã‚ˆãµã‚ˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’æ›´æ–°
+	// ŠÔ·•ª‚ğŒvZ‚µ‚Ä‚Ó‚æ‚Ó‚æƒAƒjƒ[ƒVƒ‡ƒ“‚ğXV
 	auto now = std::chrono::steady_clock::now();
 	std::chrono::duration<float> elapsed = now - g_LastTime;
 	float dt = elapsed.count();
 	g_LastTime = now;
 
-	// ã‚µã‚¤ãƒ³æ³¢ã§ä¸Šä¸‹ç§»å‹•
+	// ƒTƒCƒ“”g‚Åã‰ºˆÚ“®
 	g_Texture3FloatTime += dt * g_Texture3Speed;
 	g_Texture3OffsetY = std::sinf(g_Texture3FloatTime) * g_Texture3Amplitude;
 
@@ -146,13 +146,13 @@ void Start_Update()
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 
 			SetFadeWithLoading(40, color, FADE_OUT, SCENE_READY, L"asset\\movie\\readyLoad.mp4");
-			// å†ç”Ÿçµ‚äº†ï¼ˆUpdateãŒfalseã‚’è¿”ã™ï¼‰ã—ãŸã‚‰æœ€åˆã‹ã‚‰ãƒªã‚»ãƒƒãƒˆ
+			// Ä¶I—¹iUpdate‚ªfalse‚ğ•Ô‚·j‚µ‚½‚çÅ‰‚©‚çƒŠƒZƒbƒg
 			g_StageVideo->Reset();
 		}
 	}
 
-	// ã‚­ãƒ¼å…¥åŠ›ãƒã‚§ãƒƒã‚¯
-	if ((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A)&& (GetFadeState() == FADE_NONE) && !IsLoading())
+	// ƒL[“ü—Íƒ`ƒFƒbƒN
+	if ((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input[0].A || g_Input[1].A || g_Input[2].A || g_Input[3].A && (GetFadeState() == FADE_NONE) && !IsLoading()))
 	{
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFadeWithLoading(40, color, FADE_OUT, SCENE_READY, L"asset\\movie\\readyLoad.mp4");
@@ -162,10 +162,10 @@ void Start_Update()
 
 void Start_Draw()
 {
-	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
+	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
 	Shader_Begin();
 
-	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«å¤‰æ›è¡Œåˆ—ã‚’è¨­å®šï¼ˆUIç”¨ï¼šç›´äº¤æŠ•å½±ï¼‰
+	// ’¸“_ƒVƒF[ƒ_[‚É•ÏŠ·s—ñ‚ğİ’èiUI—pF’¼Œğ“Š‰ej
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
 		0.0f,
 		SCREEN_WIDTH,
@@ -174,42 +174,42 @@ void Start_Draw()
 		0.0f,
 		1.0f));
 
-	// FBXãƒ¢ãƒ‡ãƒ«ã‚’æç”»ï¼ˆå…¨ãƒ¡ãƒƒã‚·ãƒ¥ã« g_StartTex ã‚’é©ç”¨ã—ã¦æç”»ï¼‰
+	// FBXƒ‚ƒfƒ‹‚ğ•`‰æi‘SƒƒbƒVƒ…‚É g_StartTex ‚ğ“K—p‚µ‚Ä•`‰æj
 	if (g_StartModel && g_StartTex)
 	{
 		ID3D11DeviceContext* ctx = Direct3D_GetDeviceContext();
 
-		// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ï¼ˆæ—¢å­˜ã®å›è»¢ã‚’ç¶­æŒï¼‰
+		// ƒ[ƒ‹ƒhs—ñiŠù‘¶‚Ì‰ñ“]‚ğˆÛj
 		XMMATRIX world = XMMatrixRotationZ(XM_PI) * XMMatrixRotationY(XM_PI);
 
-		// ã‚«ãƒ¡ãƒ©ï¼šæ–œã‚ä¸Šã‹ã‚‰ã®è§’åº¦
+		// ƒJƒƒ‰FÎ‚ßã‚©‚ç‚ÌŠp“x
 		const float camX = 0.0f;
 		const float camY = +10.0f;
 		const float camZ = -10.0f;
 		XMVECTOR eyePos = XMVectorSet(camX, camY, camZ, 0.0f);
 
-		// æ³¨è¦–ç‚¹ã¯ãƒ¢ãƒ‡ãƒ«ä¸­å¿ƒï¼ˆå¿…è¦ãªã‚‰ãƒ¢ãƒ‡ãƒ«ã®ãƒã‚¦ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ãƒœãƒƒã‚¯ã‚¹ä¸­å¿ƒã«å¤‰æ›´ï¼‰
+		// ’‹“_‚Íƒ‚ƒfƒ‹’†Si•K—v‚È‚çƒ‚ƒfƒ‹‚ÌƒoƒEƒ“ƒfƒBƒ“ƒOƒ{ƒbƒNƒX’†S‚É•ÏXj
 		XMVECTOR focus = XMVectorSet(-2.0f, 3.0f, 1.0f, 0.0f);
 
-		// ä¸Šæ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ï¼ˆæ¨™æº–ï¼‰
+		// ã•ûŒüƒxƒNƒgƒ‹i•W€j
 		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-		// ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ï¼ˆæ–œã‚ä¸Šã‹ã‚‰ã®è¦–ç‚¹ï¼‰
+		// ƒrƒ…[s—ñiÎ‚ßã‚©‚ç‚Ì‹“_j
 		XMMATRIX view = XMMatrixLookAtLH(eyePos, focus, up);
 
-		// æŠ•å½±è¡Œåˆ—
+		// “Š‰es—ñ
 		float aspect = (SCREEN_HEIGHT != 0.0f) ? (SCREEN_WIDTH / SCREEN_HEIGHT) : 1.0f;
 		XMMATRIX proj = XMMatrixPerspectiveFovLH(XM_PIDIV4, aspect, 0.1f, 1000.0f);
 
-		// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ã«æœ€çµ‚è¡Œåˆ—ã‚’ã‚»ãƒƒãƒˆï¼ˆãƒ¯ãƒ¼ãƒ«ãƒ‰*ãƒ“ãƒ¥ãƒ¼*ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³ï¼‰
+		// ’¸“_ƒVƒF[ƒ_‚ÉÅIs—ñ‚ğƒZƒbƒgiƒ[ƒ‹ƒh*ƒrƒ…[*ƒvƒƒWƒFƒNƒVƒ‡ƒ“j
 		Shader_SetMatrix(world * view * proj);
 
-		// æ·±åº¦ã‚¹ãƒ†ãƒ¼ãƒˆã®ãƒãƒƒã‚¯ã‚¢ãƒƒãƒ—
+		// [“xƒXƒe[ƒg‚ÌƒoƒbƒNƒAƒbƒv
 		ID3D11DepthStencilState* oldDepth = nullptr;
 		UINT oldRef = 0;
 		ctx->OMGetDepthStencilState(&oldDepth, &oldRef);
 
-		// ä¸€æ™‚çš„ã«æ·±åº¦ãƒ†ã‚¹ãƒˆã¨æ·±åº¦æ›¸ãè¾¼ã¿ã‚’æœ‰åŠ¹ã«ã—ãŸã‚¹ãƒ†ãƒ¼ãƒˆã‚’ä½œæˆã—ã¦ã‚»ãƒƒãƒˆ
+		// ˆê“I‚É[“xƒeƒXƒg‚Æ[“x‘‚«‚İ‚ğ—LŒø‚É‚µ‚½ƒXƒe[ƒg‚ğì¬‚µ‚ÄƒZƒbƒg
 		ID3D11DepthStencilState* pDepthState = nullptr;
 		D3D11_DEPTH_STENCIL_DESC dsDesc;
 		ZeroMemory(&dsDesc, sizeof(dsDesc));
@@ -222,29 +222,29 @@ void Start_Draw()
 			ctx->OMSetDepthStencilState(pDepthState, 0);
 		}
 
-		// ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–è¨­å®šã¯ ModelDraw ã¨åŒã˜
+		// ƒvƒŠƒ~ƒeƒBƒuİ’è‚Í ModelDraw ‚Æ“¯‚¶
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		for (unsigned int m = 0; m < g_StartModel->AiScene->mNumMeshes; m++)
 		{
 			aiMesh* mesh = g_StartModel->AiScene->mMeshes[m];
 
-			// å¸¸ã« g_StartTex ã‚’ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ã«ãƒã‚¤ãƒ³ãƒ‰
+			// í‚É g_StartTex ‚ğƒsƒNƒZƒ‹ƒVƒF[ƒ_‚ÉƒoƒCƒ“ƒh
 			ctx->PSSetShaderResources(0, 1, &g_StartTex);
 
-			// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚»ãƒƒãƒˆ
+			// ’¸“_ƒoƒbƒtƒ@ƒZƒbƒg
 			UINT stride = sizeof(Vertex3D);
 			UINT offset = 0;
 			ctx->IASetVertexBuffers(0, 1, &g_StartModel->VertexBuffer[m], &stride, &offset);
 
-			// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã‚»ãƒƒãƒˆ
+			// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@ƒZƒbƒg
 			ctx->IASetIndexBuffer(g_StartModel->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
 
-			// æç”»
+			// •`‰æ
 			ctx->DrawIndexed(mesh->mNumFaces * 3, 0, 0);
 		}
 
-		// æ·±åº¦ã‚¹ãƒ†ãƒ¼ãƒˆã‚’å¾©å…ƒ
+		// [“xƒXƒe[ƒg‚ğ•œŒ³
 		ctx->OMSetDepthStencilState(oldDepth, oldRef);
 		if (oldDepth) oldDepth->Release();
 
@@ -260,16 +260,16 @@ void Start_Draw()
 			0.0f,
 			0.0f,
 			1.0f));
-		XMFLOAT2 basePos = { SCREEN_WIDTH / 2 - 67, SCREEN_HEIGHT * 0.37f + g_Texture3OffsetY };
+		XMFLOAT2 basePos = { SCREEN_WIDTH / 2 - 75, SCREEN_HEIGHT * 0.37f + g_Texture3OffsetY };
 
 		ID3D11ShaderResourceView* vSrv = g_StageVideo->GetSRV();
 		g_pContext->PSSetShaderResources(0, 1, &vSrv);
 
-		// å‹•ç”»ã®ã‚µã‚¤ã‚ºï¼ˆæ ã‚ˆã‚Šå°‘ã—å°ã•ãã€ã‚ã‚‹ã„ã¯æ ã®ç©´ã®ã‚µã‚¤ã‚ºã«åˆã‚ã›ã¦èª¿æ•´ï¼‰
-		// ã¨ã‚Šã‚ãˆãšæ ã¨åŒã˜ã‚¹ã‚±ãƒ¼ãƒ«è¨ˆç®—ã‚’æµç”¨ã—ã¾ã™
+		// “®‰æ‚ÌƒTƒCƒYi˜g‚æ‚è­‚µ¬‚³‚­A‚ ‚é‚¢‚Í˜g‚ÌŒŠ‚ÌƒTƒCƒY‚É‡‚í‚¹‚Ä’²®j
+		// ‚Æ‚è‚ ‚¦‚¸˜g‚Æ“¯‚¶ƒXƒP[ƒ‹ŒvZ‚ğ—¬—p‚µ‚Ü‚·
 		float videoW = (float)g_StageVideo->GetWidth();
 		float videoH = (float)g_StageVideo->GetHeight();
-		float desiredWidth = SCREEN_WIDTH * 0.23f; // æ ï¼ˆ30%ï¼‰ã‚ˆã‚Šå°‘ã—å°ã•ãã™ã‚‹ä¾‹
+		float desiredWidth = SCREEN_WIDTH * 0.23f; // ˜gi30%j‚æ‚è­‚µ¬‚³‚­‚·‚é—á
 		float scale = desiredWidth / videoW;
 		XMFLOAT2 videoSize = { videoW * scale * 1.5f, videoH * scale * 1.5f };
 
@@ -277,21 +277,21 @@ void Start_Draw()
 		DrawSprite(basePos, videoSize, color::white);
 	}
 
-	// ãƒŸãƒ¼ãƒ«ã‚·ãƒ†ã‚£ã®æç”»
+	// ƒ~[ƒ‹ƒVƒeƒB‚Ì•`‰æ
 	if (g_Texture3)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture3);
 		SetBlendState(BLENDSTATE_ALPHA);
 
-		// å¹…ã‚’ç”»é¢å¹…ã®30%ã«åˆã‚ã›ã€é«˜ã•ã¯ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã§è¨ˆç®—ã™ã‚‹
+		// •‚ğ‰æ–Ê•‚Ì30%‚É‡‚í‚¹A‚‚³‚ÍƒeƒNƒXƒ`ƒƒ‚ÌƒAƒXƒyƒNƒg”ä‚ÅŒvZ‚·‚é
 		float texW = (g_Metadata3.width > 0) ? (float)g_Metadata3.width : 100.0f;
 		float texH = (g_Metadata3.height > 0) ? (float)g_Metadata3.height : 50.0f;
 
-		float desiredWidth = SCREEN_WIDTH * 0.315f; // å¹…ã‚’ç”»é¢ã®30%ã«ã™ã‚‹ä¾‹
+		float desiredWidth = SCREEN_WIDTH * 0.315f; // •‚ğ‰æ–Ê‚Ì30%‚É‚·‚é—á
 		float scale = desiredWidth / texW;
 		XMFLOAT2 size = { texW * scale * 1.5f, texH * scale * 1.5f };
 
-		// ãƒ™ãƒ¼ã‚¹ä½ç½®ã«ãµã‚ˆãµã‚ˆã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’åŠ ãˆã‚‹
+		// ƒx[ƒXˆÊ’u‚É‚Ó‚æ‚Ó‚æƒIƒtƒZƒbƒg‚ğ‰Á‚¦‚é
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT * 0.37f + g_Texture3OffsetY };
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -307,11 +307,11 @@ void Start_Draw()
 	//	ID3D11ShaderResourceView* vSrv = g_StageVideo->GetSRV();
 	//	g_pContext->PSSetShaderResources(0, 1, &vSrv);
 
-	//	// å‹•ç”»ã®ã‚µã‚¤ã‚ºï¼ˆæ ã‚ˆã‚Šå°‘ã—å°ã•ãã€ã‚ã‚‹ã„ã¯æ ã®ç©´ã®ã‚µã‚¤ã‚ºã«åˆã‚ã›ã¦èª¿æ•´ï¼‰
-	//	// ã¨ã‚Šã‚ãˆãšæ ã¨åŒã˜ã‚¹ã‚±ãƒ¼ãƒ«è¨ˆç®—ã‚’æµç”¨ã—ã¾ã™
+	//	// “®‰æ‚ÌƒTƒCƒYi˜g‚æ‚è­‚µ¬‚³‚­A‚ ‚é‚¢‚Í˜g‚ÌŒŠ‚ÌƒTƒCƒY‚É‡‚í‚¹‚Ä’²®j
+	//	// ‚Æ‚è‚ ‚¦‚¸˜g‚Æ“¯‚¶ƒXƒP[ƒ‹ŒvZ‚ğ—¬—p‚µ‚Ü‚·
 	//	float videoW = (float)g_StageVideo->GetWidth();
 	//	float videoH = (float)g_StageVideo->GetHeight();
-	//	float desiredWidth = SCREEN_WIDTH * 0.28f; // æ ï¼ˆ30%ï¼‰ã‚ˆã‚Šå°‘ã—å°ã•ãã™ã‚‹ä¾‹
+	//	float desiredWidth = SCREEN_WIDTH * 0.28f; // ˜gi30%j‚æ‚è­‚µ¬‚³‚­‚·‚é—á
 	//	float scale = desiredWidth / videoW;
 	//	XMFLOAT2 videoSize = { videoW * scale, videoH * scale };
 

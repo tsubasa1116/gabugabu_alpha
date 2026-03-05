@@ -177,7 +177,7 @@ void Title_Update()
 		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetSwipe(40.0f, color, SWIPE_OUT, SCENE_SOUND);
 	}
-	if (((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A) && (GetFadeState() == FADE_NONE)) && set == false)
+	if (((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input[0].A || g_Input[1].A || g_Input[2].A || g_Input[3].A) && (GetFadeState() == FADE_NONE)) && set == false)
 	{
 		PlayAudio(g_SeButtonID, false);
 		set = true;
