@@ -432,32 +432,32 @@ void Camera_UpdateAuto()
 	//=================================================================
 	// ImGui
 	//=================================================================
-	if (s_ShowImgui)
-	{
-		ImGui::Begin("CameraDebug");
+	//if (s_ShowImgui)
+	//{
+	//	ImGui::Begin("CameraDebug");
 
-		ImGui::Text("Follow Mode:");
-		ImGui::RadioButton("SingleCam", &s_FollowMode, FOLLOW_SINGLE);
-		ImGui::SameLine();
-		ImGui::RadioButton("CenterCam", &s_FollowMode, FOLLOW_ALL);
+	//	ImGui::Text("Follow Mode:");
+	//	ImGui::RadioButton("SingleCam", &s_FollowMode, FOLLOW_SINGLE);
+	//	ImGui::SameLine();
+	//	ImGui::RadioButton("CenterCam", &s_FollowMode, FOLLOW_ALL);
 
-		ImGui::SliderFloat("CamRange", &margin, 0.0f, 100.0f);
+	//	ImGui::SliderFloat("CamRange", &margin, 0.0f, 100.0f);
 
-		if (s_FollowMode == FOLLOW_SINGLE)
-			ImGui::SliderInt("pTarget", &s_TargetIndex, 0, PLAYER_MAX - 1);
-		if (s_FollowMode == FOLLOW_ALL)
-			ImGui::SliderInt("pCenter", &s_CenterTarget, 0, PLAYER_MAX);
+	//	if (s_FollowMode == FOLLOW_SINGLE)
+	//		ImGui::SliderInt("pTarget", &s_TargetIndex, 0, PLAYER_MAX - 1);
+	//	if (s_FollowMode == FOLLOW_ALL)
+	//		ImGui::SliderInt("pCenter", &s_CenterTarget, 0, PLAYER_MAX);
 
-		// コントロール
-		ImGui::Separator();
-		ImGui::Text("RotateDebug");
-		ImGui::Checkbox("EnableRotate", &s_RotateEnabled);
-		ImGui::SliderFloat("RotateRadius", &s_RotateRadius, 1.0f, 200.0f);
-		ImGui::SliderFloat("RotateHeight", &s_RotateHeight, 0.0f, 80.0f);
-		ImGui::SliderFloat("RotateSpeed ", &s_RotateSpeed, -6.2831853f, 6.2831853f);
+	//	// コントロール
+	//	ImGui::Separator();
+	//	ImGui::Text("RotateDebug");
+	//	ImGui::Checkbox("EnableRotate", &s_RotateEnabled);
+	//	ImGui::SliderFloat("RotateRadius", &s_RotateRadius, 1.0f, 200.0f);
+	//	ImGui::SliderFloat("RotateHeight", &s_RotateHeight, 0.0f, 80.0f);
+	//	ImGui::SliderFloat("RotateSpeed ", &s_RotateSpeed, -6.2831853f, 6.2831853f);
 
-		ImGui::End();
-	}
+	//	ImGui::End();
+	//}
 	//=================================================================
 
 	// 注視点は中心（目標に設定する）

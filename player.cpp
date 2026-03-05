@@ -518,78 +518,78 @@ void Player_Update(/*float currentDeltaTime*/)
 
 	if (Keyboard_IsKeyDownTrigger(KK_TAB))	s_ShowImgui = !s_ShowImgui;
 
-	if (s_ShowImgui)
-	{
-		// デバッグ用 ImGui ウィンドウ
-		ImGui::Begin("Player Debug");
+	//if (s_ShowImgui)
+	//{
+	//	// デバッグ用 ImGui ウィンドウ
+	//	ImGui::Begin("Player Debug");
 
-		for (int p = 0; p < PLAYER_MAX; ++p)
-		{
-			GIMMICK_STATE* meteorObject = GetGimmick(p);
-			if (meteorObject == nullptr) return;
-			GIMMICK_STATE& meteor = *meteorObject;
+	//	for (int p = 0; p < PLAYER_MAX; ++p)
+	//	{
+	//		GIMMICK_STATE* meteorObject = GetGimmick(p);
+	//		if (meteorObject == nullptr) return;
+	//		GIMMICK_STATE& meteor = *meteorObject;
 
-			// プレイヤーごとに ID を分ける（同ラベル衝突回避）
-			ImGui::PushID(p);
-			ImGui::Text("Player %d", p + 1);
-			ImGui::Indent();
+	//		// プレイヤーごとに ID を分ける（同ラベル衝突回避）
+	//		ImGui::PushID(p);
+	//		ImGui::Text("Player %d", p + 1);
+	//		ImGui::Indent();
 
-			ImGui::SliderFloat("poisonTimer", &player[p].poisonTimer, 0.0f, 5.0f);
-			ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
-			ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
-			ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
-			ImGui::BulletText("position.x        : %.2f", player[p].position.x);
-			ImGui::BulletText("position.y        : %.2f", player[p].position.y);
-			ImGui::BulletText("position.z        : %.2f", player[p].position.z);
-			ImGui::BulletText("meteor.canFire    : %d", meteor.canFire);
-			ImGui::BulletText("isEggBreaking     : %d", player[p].isEggBreaking);
-			ImGui::BulletText("isShadowEnabled   : %d", player[p].isShadowEnabled);
-			ImGui::BulletText("isHealing         : %d", player[p].isHealing);
-			ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
-			ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
-			ImGui::BulletText("useSkill          : %d", player[p].useSkill);
-			ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
-			ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
+	//		ImGui::SliderFloat("poisonTimer", &player[p].poisonTimer, 0.0f, 5.0f);
+	//		ImGui::SliderFloat("specialTimer", &player[p].specialTimer, 0.0f, 10.0f);
+	//		ImGui::SliderFloat("stunGauge", &player[p].stunGauge, 0.0f, 10.0f);
+	//		ImGui::SliderFloat("satiety", &player[p].satiety, 0.0f, 6.0f);
+	//		ImGui::BulletText("position.x        : %.2f", player[p].position.x);
+	//		ImGui::BulletText("position.y        : %.2f", player[p].position.y);
+	//		ImGui::BulletText("position.z        : %.2f", player[p].position.z);
+	//		ImGui::BulletText("meteor.canFire    : %d", meteor.canFire);
+	//		ImGui::BulletText("isEggBreaking     : %d", player[p].isEggBreaking);
+	//		ImGui::BulletText("isShadowEnabled   : %d", player[p].isShadowEnabled);
+	//		ImGui::BulletText("isHealing         : %d", player[p].isHealing);
+	//		ImGui::BulletText("isPoisoned        : %d", player[p].isPoisoned);
+	//		ImGui::BulletText("isInvincible      : %d", player[p].isInvincible);
+	//		ImGui::BulletText("useSkill          : %d", player[p].useSkill);
+	//		ImGui::BulletText("EvolutionGauge    : %.1f", player[p].evolutionGauge);
+	//		ImGui::BulletText("EvolutionGaugeRate: %.1f", player[p].evolutionGaugeRate);
 
-			if (ImGui::Button("hp -1"))			player[p].hp -= 0.1f;
-			if (ImGui::Button("gl +1"))			player[p].breakCount_Glass += 1;
-			else if (ImGui::Button("pl +1"))	player[p].breakCount_Plant += 1;
-			else if (ImGui::Button("co +1"))	player[p].breakCount_Concrete += 1;
-			else if (ImGui::Button("el +1"))	player[p].breakCount_Electricity += 1;
+	//		if (ImGui::Button("hp -1"))			player[p].hp -= 0.1f;
+	//		if (ImGui::Button("gl +1"))			player[p].breakCount_Glass += 1;
+	//		else if (ImGui::Button("pl +1"))	player[p].breakCount_Plant += 1;
+	//		else if (ImGui::Button("co +1"))	player[p].breakCount_Concrete += 1;
+	//		else if (ImGui::Button("el +1"))	player[p].breakCount_Electricity += 1;
 
-			ImGui::SliderFloat("HP", &player[p].hp, 0.0f, 500.0f);
-			ImGui::SliderFloat("Outer", &player[p].evolutionGauge, 0.0f, 1.0f);
-			ImGui::BulletText("2 Concrete breaks : %d", player[p].breakCount_Concrete);
-			ImGui::BulletText("3 Plant breaks    : %d", player[p].breakCount_Plant);
-			ImGui::BulletText("4 Electricity breaks : %d", player[p].breakCount_Electricity);
+	//		ImGui::SliderFloat("HP", &player[p].hp, 0.0f, 500.0f);
+	//		ImGui::SliderFloat("Outer", &player[p].evolutionGauge, 0.0f, 1.0f);
+	//		ImGui::BulletText("2 Concrete breaks : %d", player[p].breakCount_Concrete);
+	//		ImGui::BulletText("3 Plant breaks    : %d", player[p].breakCount_Plant);
+	//		ImGui::BulletText("4 Electricity breaks : %d", player[p].breakCount_Electricity);
 
-			// 履歴リストのサイズを表示
-			size_t historySize = player[p].brokenHistory.size();
-			ImGui::BulletText("brokenHistory Size : %zu", historySize);
+	//		// 履歴リストのサイズを表示
+	//		size_t historySize = player[p].brokenHistory.size();
+	//		ImGui::BulletText("brokenHistory Size : %zu", historySize);
 
-			if (historySize > 0)
-			{
-				ImGui::Indent(); // 履歴をさらに一段インデント
-				ImGui::Text("History (Latest -> Oldest):");
+	//		if (historySize > 0)
+	//		{
+	//			ImGui::Indent(); // 履歴をさらに一段インデント
+	//			ImGui::Text("History (Latest -> Oldest):");
 
-				// 履歴を最新（末尾）から古い方へループして表示
-				for (int i = (int)historySize - 1; i >= 0; --i)
-				{
-					ImGui::SameLine(); // 同じ行に表示
-					ImGui::Text("%d", (int)player[p].brokenHistory[i]);
-				}
+	//			// 履歴を最新（末尾）から古い方へループして表示
+	//			for (int i = (int)historySize - 1; i >= 0; --i)
+	//			{
+	//				ImGui::SameLine(); // 同じ行に表示
+	//				ImGui::Text("%d", (int)player[p].brokenHistory[i]);
+	//			}
 
-				// 履歴が横に並びすぎないよう改行
-				ImGui::NewLine();
-				ImGui::Unindent();
-			}
+	//			// 履歴が横に並びすぎないよう改行
+	//			ImGui::NewLine();
+	//			ImGui::Unindent();
+	//		}
 
-			ImGui::Unindent();
-			ImGui::Separator();
-			ImGui::PopID();
-		}
-		ImGui::End();
-	}
+	//		ImGui::Unindent();
+	//		ImGui::Separator();
+	//		ImGui::PopID();
+	//	}
+	//	ImGui::End();
+	//}
 
 	for (int p = 0; p < PLAYER_MAX; ++p)
 	{

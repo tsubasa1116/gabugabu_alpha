@@ -205,28 +205,28 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd, 
 				// ImGui描画テスト
 #ifdef _DEBUG
 				int gamepadCount = Gamepad_GetCount();
-				if (gamepadCount > 0)
-				{
-					ImGui::Begin("Gamepad Debug");
-					for (int p = 0; p < gamepadCount; p++)
-					{
-						
-						ImGui::Text("=== Gamepad %d ===", p);
-						ImGui::Text("Name: %s", Gamepad_GetName(p));
-						ImGui::Text("LStick X : %.3f", g_Input[p].LStickX);
-						ImGui::Text("LStick Y : %.3f", g_Input[p].LStickY);
-						ImGui::Text("A Button : %d", g_Input[p].A);
-						ImGui::Text("B Button : %d", g_Input[p].B);
-						ImGui::Text("X Button : %d", g_Input[p].X);
-						ImGui::Text("Y Button : %d", g_Input[p].Y);
-						ImGui::Text("D-Pad: U:%d D:%d L:%d R:%d",
-							g_Input[p].Up, g_Input[p].Down,
-							g_Input[p].Left, g_Input[p].Right);
-						ImGui::Separator();
-						
-					}
-					ImGui::End();
-				}
+				//if (gamepadCount > 0)
+				//{
+				//	ImGui::Begin("Gamepad Debug");
+				//	for (int p = 0; p < gamepadCount; p++)
+				//	{
+				//		
+				//		ImGui::Text("=== Gamepad %d ===", p);
+				//		ImGui::Text("Name: %s", Gamepad_GetName(p));
+				//		ImGui::Text("LStick X : %.3f", g_Input[p].LStickX);
+				//		ImGui::Text("LStick Y : %.3f", g_Input[p].LStickY);
+				//		ImGui::Text("A Button : %d", g_Input[p].A);
+				//		ImGui::Text("B Button : %d", g_Input[p].B);
+				//		ImGui::Text("X Button : %d", g_Input[p].X);
+				//		ImGui::Text("Y Button : %d", g_Input[p].Y);
+				//		ImGui::Text("D-Pad: U:%d D:%d L:%d R:%d",
+				//			g_Input[p].Up, g_Input[p].Down,
+				//			g_Input[p].Left, g_Input[p].Right);
+				//		ImGui::Separator();
+				//		
+				//	}
+				//	ImGui::End();
+				//}
 #endif
 				// 描画処理
 				Direct3D_Clear();	// バックバッファをクリア
