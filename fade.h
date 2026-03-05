@@ -32,7 +32,7 @@ void SetFade(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene);
 
 // ロード画面付きフェード
 void SetFadeWithLoading(int fadeframe, XMFLOAT4 color, FADE_STATE state, SCENE scene, 
-						const wchar_t* videoPath = L"asset\\movie\\road.mp4");
+						const wchar_t* videoPath = L"asset\\movie\\gameLoad.mp4");
 
 FADE_STATE GetFadeState();
 

@@ -323,7 +323,7 @@ void Win_Finalize()
 void Win_Update()
 {
 	// キー入力チェック
-	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
+	if ((Keyboard_IsKeyDownTrigger(KK_ENTER) || g_Input->A) && (GetFadeState() == FADE_NONE))
 	{
 		PlayAudio(g_SeButtonID, false);
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);

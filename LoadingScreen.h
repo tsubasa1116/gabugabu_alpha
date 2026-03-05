@@ -56,7 +56,7 @@ bool LoadingScreen_Update();  // 戻り値: true=ロード中 / false=完了
 void LoadingScreen_Draw();
 
 // ロード画面付きでシーン遷移を開始
-void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath = L"asset\\movie\\road.mp4");
+void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath = L"asset\\movie\\gameLoad.mp4");
 void SetSceneSimple(SCENE nextScene);
 
 // ロード中かどうか

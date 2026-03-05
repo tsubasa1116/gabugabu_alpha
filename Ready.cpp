@@ -1,7 +1,7 @@
 //======================================================
 //	ready.cpp[]
 // 
-//	åˆ¶ä½œè€…ï¼šç”°ä¸­ä½‘å¥ˆ			æ—¥ä»˜ï¼š2024//
+//	§ìÒF“c’†—C“Ş			“ú•tF2024//
 //======================================================
 
 //Ready.cpp
@@ -23,7 +23,7 @@
 #include "LoadingScreen.h"
 #include "loadThread.h"
 
-static	ID3D11ShaderResourceView* g_Texture = NULL;	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ï¼‘æšã‚’è¡¨ã™ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+static	ID3D11ShaderResourceView* g_Texture = NULL;	//ƒeƒNƒXƒ`ƒƒ‚P–‡‚ğ•\‚·ƒIƒuƒWƒFƒNƒg
 static	ID3D11ShaderResourceView* g_Texture2 = NULL;
 static	ID3D11ShaderResourceView* g_Texture3 = NULL;
 static	ID3D11ShaderResourceView* g_Texture4 = NULL;
@@ -65,27 +65,27 @@ static TexMetadata g_TexMeta17{};
 static TexMetadata g_TexMeta18{};
 static TexMetadata g_TexMeta19{};
 
-// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å‚åŠ ãƒ•ãƒ©ã‚°ï¼ˆä¸€åº¦æŠ¼ã—ãŸã‚‰trueï¼‰
+// ƒvƒŒƒCƒ„[Q‰Áƒtƒ‰ƒOiˆê“x‰Ÿ‚µ‚½‚çtruej
 static bool g_PlayerJoined[4] = { false, false, false, false };
 
-// OKãƒãƒƒãƒ—ã‚¤ãƒ³ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”¨
-static constexpr float OK_POP_DURATION = 0.4f; // ãƒãƒƒãƒ—ã‚¤ãƒ³æ‰€è¦æ™‚é–“ï¼ˆç§’ï¼‰
-static float g_OKPopElapsed[4] = { -1.0f, -1.0f, -1.0f, -1.0f }; // -1 = éè¡¨ç¤º
+// OKƒ|ƒbƒvƒCƒ“ƒAƒjƒ[ƒVƒ‡ƒ“—p
+static constexpr float OK_POP_DURATION = 0.4f; // ƒ|ƒbƒvƒCƒ“Š—vŠÔi•bj
+static float g_OKPopElapsed[4] = { -1.0f, -1.0f, -1.0f, -1.0f }; // -1 = ”ñ•\¦
 
-// æº–å‚™å®Œäº†ã‚¹ãƒ©ã‚¤ãƒ‰ã‚¤ãƒ³ç”¨
-static constexpr float READY_SLIDE_DURATION = 0.3f; // ã‚¹ãƒ©ã‚¤ãƒ‰æ‰€è¦æ™‚é–“ï¼ˆç§’ï¼‰
-static float g_ReadySlideElapsed = -1.0f; // -1 = éè¡¨ç¤º
-static bool g_AllJoinedTriggered = false;  // å…¨å“¡å‚åŠ æ¤œçŸ¥æ¸ˆã¿ãƒ•ãƒ©ã‚°
+// €”õŠ®—¹ƒXƒ‰ƒCƒhƒCƒ“—p
+static constexpr float READY_SLIDE_DURATION = 0.3f; // ƒXƒ‰ƒCƒhŠ—vŠÔi•bj
+static float g_ReadySlideElapsed = -1.0f; // -1 = ”ñ•\¦
+static bool g_AllJoinedTriggered = false;  // ‘SˆõQ‰ÁŒŸ’mÏ‚İƒtƒ‰ƒO
 
-// æº–å‚™ãƒ†ã‚­ã‚¹ãƒˆãƒãƒƒãƒ—ã‚¢ã‚¦ãƒˆç”¨
-static constexpr float TEXT_POPOUT_DURATION = 0.3f; // ãƒãƒƒãƒ—ã‚¢ã‚¦ãƒˆæ‰€è¦æ™‚é–“ï¼ˆç§’ï¼‰
-static float g_TextPopOutElapsed = -1.0f; // -1 = æœªé–‹å§‹
+// €”õƒeƒLƒXƒgƒ|ƒbƒvƒAƒEƒg—p
+static constexpr float TEXT_POPOUT_DURATION = 0.3f; // ƒ|ƒbƒvƒAƒEƒgŠ—vŠÔi•bj
+static float g_TextPopOutElapsed = -1.0f; // -1 = –¢ŠJn
 
-// å…¨å“¡å‚åŠ å¾Œã®è‡ªå‹•é·ç§»ã‚¿ã‚¤ãƒãƒ¼
-static constexpr float AUTO_TRANSITION_DELAY = 2.0f; // å…¨å“¡OKå¾Œã®å¾…æ©Ÿæ™‚é–“ï¼ˆç§’ï¼‰
-static float g_AutoTransitionTimer = -1.0f;           // -1 = æœªé–‹å§‹
+// ‘SˆõQ‰ÁŒã‚Ì©“®‘JˆÚƒ^ƒCƒ}[
+static constexpr float AUTO_TRANSITION_DELAY = 2.0f; // ‘SˆõOKŒã‚Ì‘Ò‹@ŠÔi•bj
+static float g_AutoTransitionTimer = -1.0f;           // -1 = –¢ŠJn
 
-// æ™‚é–“ç®¡ç†
+// ŠÔŠÇ—
 static std::chrono::steady_clock::time_point g_ReadyLastTime;
 
 static bool g_ReadyInitialized = false;
@@ -94,7 +94,7 @@ static bool g_IsWarmedUp = false;
 static int g_BgmID = NULL;
 static int g_SeButtonID = NULL;
 
-// ã‚¤ãƒ¼ã‚¸ãƒ³ã‚°ï¼ˆã‚µã‚¤ãƒ³ã®ã‚¤ãƒ¼ã‚ºã‚¢ã‚¦ãƒˆï¼‰
+// ƒC[ƒWƒ“ƒOiƒTƒCƒ“‚ÌƒC[ƒYƒAƒEƒgj
 static inline float EaseOutSine(float t) {
 	if (t <= 0.0f) return 0.0f;
 	if (t >= 1.0f) return 1.0f;
@@ -112,36 +112,36 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
-	// å‚åŠ ãƒ•ãƒ©ã‚°åˆæœŸåŒ–
+	// Q‰Áƒtƒ‰ƒO‰Šú‰»
 	for (int i = 0; i < 4; i++) g_PlayerJoined[i] = false;
 
-	// OKãƒãƒƒãƒ—ã‚¤ãƒ³åˆæœŸåŒ–
+	// OKƒ|ƒbƒvƒCƒ“‰Šú‰»
 	for (int i = 0; i < 4; i++) g_OKPopElapsed[i] = -1.0f;
 
-	// æº–å‚™å®Œäº†ã‚¹ãƒ©ã‚¤ãƒ‰åˆæœŸåŒ–
+	// €”õŠ®—¹ƒXƒ‰ƒCƒh‰Šú‰»
 	g_ReadySlideElapsed = -1.0f;
 	g_AllJoinedTriggered = false;
 	g_TextPopOutElapsed = -1.0f;
 	g_IsWarmedUp = false;
 
-	// è‡ªå‹•é·ç§»ã‚¿ã‚¤ãƒãƒ¼åˆæœŸåŒ–
+	// ©“®‘JˆÚƒ^ƒCƒ}[‰Šú‰»
 	g_AutoTransitionTimer = -1.0f;
 
-	// æ™‚é–“åˆæœŸåŒ–
+	// ŠÔ‰Šú‰»
 	g_ReadyLastTime = std::chrono::steady_clock::now();
 
 	Loader::AddTask([pDevice]()
 		{
-			//ç™½ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
+			//”’ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
 			{
 				TexMetadata		metadata;
 				ScratchImage	image;
 				LoadFromWICFile(L"asset\\texture\\white.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture);
-				assert(g_Texture);//èª­ã¿è¾¼ã¿å¤±æ•—æ™‚ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
+				assert(g_Texture);//“Ç‚İ‚İ¸”s‚Éƒ_ƒCƒAƒƒO‚ğ•\¦
 			}
 
-			// èƒŒæ™¯èª­ã¿è¾¼ã¿
+			// ”wŒi“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -151,7 +151,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture2);
 			}
 
-			// é»’æ èª­ã¿è¾¼ã¿
+			// •˜g“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -161,7 +161,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture3);
 			}
 
-			// 1ï¼°ã‚·ãƒ«ã‚¨ãƒƒãƒˆèª­ã¿è¾¼ã¿
+			// 1‚oƒVƒ‹ƒGƒbƒg“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -171,7 +171,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture4);
 			}
 
-			// ï¼’ï¼°ã‚·ãƒ«ã‚¨ãƒƒãƒˆèª­ã¿è¾¼ã¿
+			// ‚Q‚oƒVƒ‹ƒGƒbƒg“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -181,7 +181,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture5);
 			}
 
-			// ï¼“ï¼°ã‚·ãƒ«ã‚¨ãƒƒãƒˆèª­ã¿è¾¼ã¿
+			// ‚R‚oƒVƒ‹ƒGƒbƒg“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -191,7 +191,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture6);
 			}
 
-			// ï¼”ï¼°ã‚·ãƒ«ã‚¨ãƒƒãƒˆèª­ã¿è¾¼ã¿
+			// ‚S‚oƒVƒ‹ƒGƒbƒg“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -201,7 +201,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture7);
 			}
 
-			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒŠãƒ³ãƒãƒ¼èª­ã¿è¾¼ã¿
+			// ƒvƒŒƒCƒ„[ƒiƒ“ƒo[“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -211,7 +211,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture8);
 			}
 
-			// å¹ãå‡ºã—èª­ã¿è¾¼ã¿
+			// ‚«o‚µ“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -221,7 +221,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture9);
 			}
 
-			// å¹ãå‡ºã—èª­ã¿è¾¼ã¿
+			// ‚«o‚µ“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -231,7 +231,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture10);
 			}
 
-			// ï¼‘ï¼°ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼èª­ã¿è¾¼ã¿
+			// ‚P‚oƒLƒƒƒ‰ƒNƒ^[“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -241,7 +241,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture11);
 			}
 
-			// ï¼’ï¼°ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼èª­ã¿è¾¼ã¿
+			// ‚Q‚oƒLƒƒƒ‰ƒNƒ^[“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -251,7 +251,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture12);
 			}
 
-			// ï¼“ï¼°ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼èª­ã¿è¾¼ã¿
+			// ‚R‚oƒLƒƒƒ‰ƒNƒ^[“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -261,7 +261,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture13);
 			}
 
-			// ï¼”ï¼°ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼èª­ã¿è¾¼ã¿
+			// ‚S‚oƒLƒƒƒ‰ƒNƒ^[“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -271,7 +271,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture14);
 			}
 
-			// ï¼‘ï¼°ï¼¯ï¼«èª­ã¿è¾¼ã¿
+			// ‚P‚o‚n‚j“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -281,7 +281,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture15);
 			}
 
-			// ï¼’ï¼°ï¼¯ï¼«èª­ã¿è¾¼ã¿
+			// ‚Q‚o‚n‚j“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -291,7 +291,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture16);
 			}
 
-			// ï¼“ï¼°ï¼¯ï¼«èª­ã¿è¾¼ã¿
+			// ‚R‚o‚n‚j“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -301,7 +301,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture17);
 			}
 
-			// ï¼”ï¼°ï¼¯ï¼«èª­ã¿è¾¼ã¿
+			// ‚S‚o‚n‚j“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
@@ -311,11 +311,11 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				assert(g_Texture18);
 			}
 
-			// æº–å‚™å®Œäº†èª­ã¿è¾¼ã¿
+			// €”õŠ®—¹“Ç‚İ‚İ
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\ReadyOk.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\everyoneOk.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture19);
 				g_TexMeta19 = metadata;
 				assert(g_Texture19);
@@ -332,7 +332,7 @@ void Ready_Warmup()
 {
 	if (!g_pContext) return;
 
-	// èœˆï½¨ç¹ãƒ»ã‘ç¹§ï½¹ç¹âˆšÎ•ç¹§å¸ãƒ»è›»åŠ±â†“ç¸ºï½¾ç¸ºï½¨ç¹§âˆšï½‹
+	// å…¨ãƒE‚¯ã‚¹ãƒãƒ£ã‚’éEåˆ—ã«ã¾ã¨ã‚ã‚‹
 	ID3D11ShaderResourceView* textures[] = {
 		g_Texture,  g_Texture2,  g_Texture3,  g_Texture4,  g_Texture5,
 		g_Texture6,  g_Texture7,  g_Texture8,  g_Texture9,  g_Texture10,
@@ -344,21 +344,21 @@ void Ready_Warmup()
 	{
 		if (tex)
 		{
-			// ç¹§ï½¹ç¹ï½­ç¹ãƒ»ãƒ¨0ç¸ºï½«ç¹§ï½»ç¹ãƒ»ãƒ¨ç¸ºåŠ±â€»ç¸²ãƒ»ç¹æ˜´Îœç¹§ï½´ç¹ï½³è¬ å†—åˆ¤ãƒ»åŒ»ãƒ°ç¹§ï½¤ç¹ï½³ç¹å³¨ï½’è ‘ï½·è›»ï½¶ç¸ºå¶ï½‹ãƒ»ãƒ»
+			// ã‚¹ãƒ­ãƒEƒˆ0ã«ã‚»ãƒEƒˆã—ã¦ã€Eãƒãƒªã‚´ãƒ³æç”»Eˆãƒã‚¤ãƒ³ãƒ‰ã‚’å¼·åˆ¶ã™ã‚‹EE
 			g_pContext->PSSetShaderResources(0, 1, &tex);
 			g_pContext->Draw(0, 0);
 		}
 	}
 
 
-	// é‚¨ã‚…ï½ç¸ºï½£ç¸ºæº˜ï½‰ç¹§ï½¹ç¹ï½­ç¹ãƒ»ãƒ¨ç¹§å ¤ï½©ï½ºç¸ºï½«ç¸ºåŠ±â€»ç¸ºç¿«ï¿¥
+	// çµ‚ã‚ã£ãŸã‚‰ã‚¹ãƒ­ãƒEƒˆã‚’ç©ºã«ã—ã¦ãŠã
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	g_pContext->PSSetShaderResources(0, 1, &nullSRV);
 }
 
 void Ready_Finalize()
 {
-	//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®è§£æ”¾ãªã©
+	//ƒeƒNƒXƒ`ƒƒ‚Ì‰ğ•ú‚È‚Ç
 	SAFE_RELEASE(g_Texture);
 	SAFE_RELEASE(g_Texture2);
 	SAFE_RELEASE(g_Texture3);
@@ -387,13 +387,13 @@ void Ready_Finalize()
 
 void Ready_Update()
 {
-	// æ™‚é–“å·®åˆ†æ›´æ–°
+	// ŠÔ·•ªXV
 	auto now = std::chrono::steady_clock::now();
 	std::chrono::duration<float> elapsed = now - g_ReadyLastTime;
 	float dt = elapsed.count();
 	g_ReadyLastTime = now;
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å‚åŠ åˆ¤å®šï¼ˆæŠ¼ã™ãŸã³ã«ãƒãƒƒãƒ—ã‚¤ãƒ³ãƒªã‚¹ã‚¿ãƒ¼ãƒˆï¼‰
+	// ƒvƒŒƒCƒ„[Q‰Á”»’èi‰Ÿ‚·‚½‚Ñ‚Éƒ|ƒbƒvƒCƒ“ƒŠƒXƒ^[ƒgj
 	if (Keyboard_IsKeyDownTrigger(KK_D1) || (g_Input[0].A)) { g_PlayerJoined[0] = true; g_OKPopElapsed[0] = 0.0f; 				PlayAudio(g_SeButtonID, false);
 	}
 	if (Keyboard_IsKeyDownTrigger(KK_D2) || (g_Input[1].A)) { g_PlayerJoined[1] = true; g_OKPopElapsed[1] = 0.0f; 				PlayAudio(g_SeButtonID, false);
@@ -403,14 +403,14 @@ void Ready_Update()
 	if (Keyboard_IsKeyDownTrigger(KK_D4) || (g_Input[3].A)) { g_PlayerJoined[3] = true; g_OKPopElapsed[3] = 0.0f; 				PlayAudio(g_SeButtonID, false);
 	}
 
-	// OKãƒãƒƒãƒ—ã‚¤ãƒ³ã‚¿ã‚¤ãƒãƒ¼é€²è¡Œ
+	// OKƒ|ƒbƒvƒCƒ“ƒ^ƒCƒ}[is
 	for (int i = 0; i < 4; i++)
 	{
 		if (g_OKPopElapsed[i] >= 0.0f)
 			g_OKPopElapsed[i] += dt;
 	}
 
-	// å…¨å“¡å‚åŠ ã—ãŸã‚‰æº–å‚™å®Œäº†ã‚¹ãƒ©ã‚¤ãƒ‰é–‹å§‹ & ãƒ†ã‚­ã‚¹ãƒˆãƒãƒƒãƒ—ã‚¢ã‚¦ãƒˆé–‹å§‹ & è‡ªå‹•é·ç§»ã‚¿ã‚¤ãƒãƒ¼é–‹å§‹
+	// ‘SˆõQ‰Á‚µ‚½‚ç€”õŠ®—¹ƒXƒ‰ƒCƒhŠJn & ƒeƒLƒXƒgƒ|ƒbƒvƒAƒEƒgŠJn & ©“®‘JˆÚƒ^ƒCƒ}[ŠJn
 	if (!g_AllJoinedTriggered &&
 		g_PlayerJoined[0] && g_PlayerJoined[1] &&
 		g_PlayerJoined[2] && g_PlayerJoined[3])
@@ -421,25 +421,36 @@ void Ready_Update()
 		g_AutoTransitionTimer = 0.0f;
 	}
 
-	// æº–å‚™å®Œäº†ã‚¹ãƒ©ã‚¤ãƒ‰ã‚¿ã‚¤ãƒãƒ¼é€²è¡Œ
+	// €”õŠ®—¹ƒXƒ‰ƒCƒhƒ^ƒCƒ}[is
 	if (g_ReadySlideElapsed >= 0.0f)
 		g_ReadySlideElapsed += dt;
 
-	// ãƒ†ã‚­ã‚¹ãƒˆãƒãƒƒãƒ—ã‚¢ã‚¦ãƒˆã‚¿ã‚¤ãƒãƒ¼é€²è¡Œ
+	// ƒeƒLƒXƒgƒ|ƒbƒvƒAƒEƒgƒ^ƒCƒ}[is
 	if (g_TextPopOutElapsed >= 0.0f)
 		g_TextPopOutElapsed += dt;
 
-	// å…¨å“¡å‚åŠ å¾Œã€2ç§’çµŒéã§è‡ªå‹•é·ç§»
-	if (g_AutoTransitionTimer >= 0.0f)
+	//// ‘SˆõQ‰ÁŒãA2•bŒo‰ß‚Å©“®‘JˆÚ
+	//if (g_AutoTransitionTimer >= 0.0f)
+	//{
+	//	if(g_AllJoinedTriggered)
+	//	{
+	//		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
+	//		SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\road.mp4");
+	//		g_AutoTransitionTimer = -1.0f; // “ñdŒÄ‚Ño‚µ–h~
+	//	}
+	//}
+
+		//ƒL[“ü—Íƒ`ƒFƒbƒN
+	//ƒXƒ^[ƒgƒ{ƒ^ƒ“‚ª‰Ÿ‚³‚ê‚½‚çƒV[ƒ“‚ğØ‚è‘Ö‚¦
+	//ƒtƒF[ƒhˆ—’†‚ÍƒL[‚ğó‚¯•t‚¯‚È‚¢
+	if ((Keyboard_IsKeyDownTrigger(KK_ENTER) || (g_Input->X)) && (GetFadeState() == FADE_NONE) && !IsLoading())
 	{
-		if(g_AllJoinedTriggered)
+		if (g_AllJoinedTriggered)
 		{
 			XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
-			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\road.mp4");
-			g_AutoTransitionTimer = -1.0f; // äºŒé‡å‘¼ã³å‡ºã—é˜²æ­¢
+			SetFadeWithLoading(40, color, FADE_OUT, SCENE_GAME, L"asset\\movie\\gameLoad.mp4");
 		}
 	}
-	
 }
 
 void Ready_Draw()
@@ -452,10 +463,10 @@ void Ready_Draw()
 		g_IsWarmedUp = true;
 	}
 
-	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
+	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
 	Shader_Begin();
 
-	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«å¤‰æ›è¡Œåˆ—ã‚’è¨­å®š
+	// ’¸“_ƒVƒF[ƒ_[‚É•ÏŠ·s—ñ‚ğİ’è
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
 		0.0f,
 		SCREEN_WIDTH,
@@ -464,139 +475,139 @@ void Ready_Draw()
 		0.0f,
 		1.0f));
 
-	// ç™½æç”»
+	// ”’•`‰æ
 	if (g_Texture)
 	{
-		g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Textureã‚’ä½¿ã†ã‚ˆã†ã«è¨­å®šã™ã‚‹
-		SetBlendState(BLENDSTATE_NONE);//ãƒ–ãƒ¬ãƒ³ãƒ‰ç„¡ã—
-		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®è‰²
+		g_pContext->PSSetShaderResources(0, 1, &g_Texture);//g_Texture‚ğg‚¤‚æ‚¤‚Éİ’è‚·‚é
+		SetBlendState(BLENDSTATE_NONE);//ƒuƒŒƒ“ƒh–³‚µ
+		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };	//ƒXƒvƒ‰ƒCƒg‚ÌF
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 		XMFLOAT2 size = { SCREEN_WIDTH, SCREEN_HEIGHT };
-		DrawSprite(pos, size, col);//1æšçµµã‚’è¡¨ç¤º
+		DrawSprite(pos, size, col);//1–‡ŠG‚ğ•\¦
 	}
 
-	// èƒŒæ™¯æç”»
+	// ”wŒi•`‰æ
 	if (g_Texture2)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture2);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta2.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta2.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta2.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta2.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒŠãƒ³ãƒãƒ¼æç”»
+	// ƒvƒŒƒCƒ„[ƒiƒ“ƒo[•`‰æ
 	if (g_Texture8)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture8);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 110 * SCREEN_ADJUST_Y }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta8.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta8.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 110 * SCREEN_ADJUST_Y }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta8.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta8.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// ï¼‘ï¼°ã‚·ãƒ«ã‚¨ãƒƒãƒˆæç”»
+	// ‚P‚oƒVƒ‹ƒGƒbƒg•`‰æ
 	if (g_Texture4)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture4);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2 + 50, SCREEN_HEIGHT / 2 + 30 * SCREEN_ADJUST_Y }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta4.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta4.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2 + 50, SCREEN_HEIGHT / 2 + 30 * SCREEN_ADJUST_Y }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta4.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta4.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// ï¼’ï¼°ã‚·ãƒ«ã‚¨ãƒƒãƒˆæç”»
+	// ‚Q‚oƒVƒ‹ƒGƒbƒg•`‰æ
 	if (g_Texture5)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture5);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2 , SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta5.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta5.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2 , SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta5.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta5.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// ï¼“ï¼°ã‚·ãƒ«ã‚¨ãƒƒãƒˆæç”»
+	// ‚R‚oƒVƒ‹ƒGƒbƒg•`‰æ
 	if (g_Texture6)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture6);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta6.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta6.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta6.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta6.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// ï¼”ï¼°ã‚·ãƒ«ã‚¨ãƒƒãƒˆæç”»
+	// ‚S‚oƒVƒ‹ƒGƒbƒg•`‰æ
 	if (g_Texture7)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture7);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta7.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.08f * SCREEN_ADJUST_Y};
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta7.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.8f * SCREEN_ADJUST_Y};
 		DrawSprite(pos, size, col);
 	}
 
-	// ï¼‘ï¼°æç”»ï¼ˆå‚åŠ æ¸ˆã¿ãªã‚‰å¸¸ã«è¡¨ç¤ºï¼‰
+	// ‚P‚o•`‰æiQ‰ÁÏ‚İ‚È‚çí‚É•\¦j
 	if (g_PlayerJoined[0] && g_Texture11)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture11);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 30 }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta11.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta11.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 30 }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta11.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta11.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// ï¼’ï¼°æç”»ï¼ˆå‚åŠ æ¸ˆã¿ãªã‚‰å¸¸ã«è¡¨ç¤ºï¼‰
+	// ‚Q‚o•`‰æiQ‰ÁÏ‚İ‚È‚çí‚É•\¦j
 	if (g_PlayerJoined[1] && g_Texture12)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture12);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2 , SCREEN_HEIGHT / 2 + 33 }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta12.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta12.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2 , SCREEN_HEIGHT / 2 + 33 }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta12.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta12.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// ï¼“ï¼°æç”»ï¼ˆå‚åŠ æ¸ˆã¿ãªã‚‰å¸¸ã«è¡¨ç¤ºï¼‰
+	// ‚R‚o•`‰æiQ‰ÁÏ‚İ‚È‚çí‚É•\¦j
 	if (g_PlayerJoined[2] && g_Texture13)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture13);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 25 }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta13.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta13.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 25 }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta13.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta13.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// ï¼”ï¼°æç”»ï¼ˆå‚åŠ æ¸ˆã¿ãªã‚‰å¸¸ã«è¡¨ç¤ºï¼‰
+	// ‚S‚o•`‰æiQ‰ÁÏ‚İ‚È‚çí‚É•\¦j
 	if (g_PlayerJoined[3] && g_Texture14)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture14);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 28  }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta14.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta14.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 28  }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta14.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta14.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// é»’æ æç”»
+	// •˜g•`‰æ
 	if (g_Texture3)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture3);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta3.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta3.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta3.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta3.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// æº–å‚™ãŒã§ããŸã‚‰ãƒœã‚¿ãƒ³ã‚’æŠ¼ã—ã¦ã­æç”»ï¼ˆå…¨å“¡å‚åŠ ã§å³ã¸ãƒãƒƒãƒ—ã‚¢ã‚¦ãƒˆï¼‰
+	// €”õ‚ª‚Å‚«‚½‚çƒ{ƒ^ƒ“‚ğ‰Ÿ‚µ‚Ä‚Ë•`‰æi‘SˆõQ‰Á‚Å‰E‚Öƒ|ƒbƒvƒAƒEƒgj
 	if (g_Texture10)
 	{
 		if (g_TextPopOutElapsed >= 0.0f)
@@ -605,13 +616,13 @@ void Ready_Draw()
 			if (t > 1.0f) t = 1.0f;
 			float e = EaseOutSine(t);
 
-			// ä¸­å¤®ã‹ã‚‰å³ç”»é¢å¤–ã¸
+			// ’†‰›‚©‚ç‰E‰æ–ÊŠO‚Ö
 			float startX = SCREEN_WIDTH / 2;
 			float endX = SCREEN_WIDTH * 1.5f;
 			float posX = startX + (endX - startX) * e;
 			float alpha = 1.0f - e;
 
-			// å®Œå…¨ã«æ¶ˆãˆãŸã‚‰æç”»ã—ãªã„
+			// Š®‘S‚ÉÁ‚¦‚½‚ç•`‰æ‚µ‚È‚¢
 			if (t < 1.0f)
 			{
 				g_pContext->PSSetShaderResources(0, 1, &g_Texture10);
@@ -624,7 +635,7 @@ void Ready_Draw()
 		}
 		else
 		{
-			// é€šå¸¸è¡¨ç¤º
+			// ’Êí•\¦
 			g_pContext->PSSetShaderResources(0, 1, &g_Texture10);
 			SetBlendState(BLENDSTATE_ALPHA);
 			XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -634,14 +645,14 @@ void Ready_Draw()
 		}
 	}
 
-	// æº–å‚™å®Œäº†æç”»ï¼ˆå…¨å“¡å‚åŠ ã§å·¦ã‹ã‚‰ã‚¹ãƒ©ã‚¤ãƒ‰ã‚¤ãƒ³ï¼‰
+	// €”õŠ®—¹•`‰æi‘SˆõQ‰Á‚Å¶‚©‚çƒXƒ‰ƒCƒhƒCƒ“j
 	if (g_ReadySlideElapsed >= 0.0f && g_Texture19)
 	{
 		float t = g_ReadySlideElapsed / READY_SLIDE_DURATION;
 		if (t > 1.0f) t = 1.0f;
 		float e = EaseOutSine(t);
 
-		// å·¦ç”»é¢å¤–ã‹ã‚‰ã‚¹ãƒ©ã‚¤ãƒ‰ã‚¤ãƒ³
+		// ¶‰æ–ÊŠO‚©‚çƒXƒ‰ƒCƒhƒCƒ“
 		float startX = -SCREEN_WIDTH * 0.3f;
 		float endX = SCREEN_WIDTH / 2;
 		float posX = startX + (endX - startX) * e;
@@ -654,40 +665,40 @@ void Ready_Draw()
 		DrawSprite(pos, size, col);
 	}
 
-	// å¹ãå‡ºã—æç”»
+	// ‚«o‚µ•`‰æ
 	if (g_Texture9)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture9);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.078f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.78f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.78f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// æç”»
+	// •`‰æ
 	if (g_Texture9)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture9);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.078f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.78f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.78f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// å¹ãå‡ºã—æç”»
+	// ‚«o‚µ•`‰æ
 	if (g_Texture9)
 	{
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture9);
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // ä½ç½®ã¯ãŠå¥½ã¿ã§
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.078f * SCREEN_ADJUST_Y };
+		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // ˆÊ’u‚Í‚¨D‚İ‚Å
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.78f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.78f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
-	// OKãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ»ä½ç½®ã®å®šç¾©ï¼ˆ1P?4Pï¼‰
+	// OKƒeƒNƒXƒ`ƒƒEˆÊ’u‚Ì’è‹`i1P?4Pj
 	ID3D11ShaderResourceView* okTextures[4] = { g_Texture15, g_Texture16, g_Texture17, g_Texture18 };
 	TexMetadata* okMetas[4] = { &g_TexMeta15, &g_TexMeta16, &g_TexMeta17, &g_TexMeta18 };
 	XMFLOAT2 okPositions[4] = {
@@ -698,7 +709,7 @@ void Ready_Draw()
 	};
 
 
-	// ï¼‘ï¼°ï½ï¼”ï¼°ï¼¯ï¼«æç”»ï¼ˆãƒãƒƒãƒ—ã‚¤ãƒ³ä»˜ãï¼‰
+	// ‚P‚o`‚S‚o‚n‚j•`‰æiƒ|ƒbƒvƒCƒ“•t‚«j
 	for (int i = 0; i < 4; i++)
 	{
 		if (g_OKPopElapsed[i] < 0.0f || !okTextures[i]) continue;
@@ -707,11 +718,11 @@ void Ready_Draw()
 		if (t > 1.0f) t = 1.0f;
 		float e = EaseOutSine(t);
 
-		float okScale = 0.5f + 0.5f * e;  // 0.5 â†’ 1.0
-		float okAlpha = e;                 // 0 â†’ 1
+		float okScale = 0.5f + 0.5f * e;  // 0.5 ¨ 1.0
+		float okAlpha = e;                 // 0 ¨ 1
 
-		float baseScaleX = (i == 3) ? 0.078f : 0.08f; // 4Pã ã‘å…ƒã®ã‚¹ã‚±ãƒ¼ãƒ«ãŒé•ã†
-		float baseScaleY = (i == 3) ? 0.078f : 0.08f;
+		float baseScaleX = (i == 3) ? 0.78f : 0.8f; // 4P‚¾‚¯Œ³‚ÌƒXƒP[ƒ‹‚ªˆá‚¤
+		float baseScaleY = (i == 3) ? 0.78f : 0.8f;
 
 		XMFLOAT2 baseSize = {
 			(float)okMetas[i]->width * baseScaleX,
