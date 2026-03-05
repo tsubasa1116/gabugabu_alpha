@@ -23,6 +23,7 @@ using namespace DirectX;
 #include "loadThread.h"
 #include "model.h"
 #include "debug_render.h"
+#include "Audio.h"
 
 //======================================================
 //	グローバル変数
@@ -45,6 +46,9 @@ static MODEL* g_MeteorModel = NULL;
 
 // ギミック状態（プレイヤーごと）
 static GIMMICK_STATE g_Gimmick[PLAYER_MAX];
+
+// SE
+static int g_SE_MeteorLand = NULL;
 
 // マクロ定義（範囲描画で+Y面を使うため箱の頂点データは残す）
 #define METEOR_VERTEX (24)
@@ -188,7 +192,10 @@ void Meteor_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		UINT* index = (UINT*)msr.pData;
 		CopyMemory(&index[0], &Meteor_idxdata[0], sizeof(UINT) * 6 * 6);
 		pContext->Unmap(g_IndexBuffer, 0);
-	}	
+	}
+
+	// SE読み込み
+	g_SE_MeteorLand = LoadAudio("asset\\Audio\\Meteor.wav");
 
 	// テクスチャ読み込み
 	Loader::AddTask([pDevice]()
@@ -255,6 +262,9 @@ void Meteor_Finalize()
 			g_RangeTexture[i] = NULL;
 		}
 	}
+
+	// SE解放
+	UnloadAudio(g_SE_MeteorLand);
 
 	g_pDevice = NULL;
 	g_pContext = NULL;
@@ -438,6 +448,9 @@ void Meteor_Update()
 					g_Gimmick[p].meteor.position.y = g_Gimmick[p].meteor.targetPos.y;
 				}
 				g_Gimmick[p].meteor.landed = true;
+
+				// 着弾SE再生
+				PlayAudio(g_SE_MeteorLand, false);
 
 				// ⑤ 円コライダーを着弾位置で更新
 				g_Gimmick[p].meteor.collider.center = g_Gimmick[p].meteor.position;

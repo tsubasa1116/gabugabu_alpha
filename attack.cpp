@@ -374,9 +374,10 @@ void Attack_Update(int playerIndex)
 
 						buildingObjects[i]->isActive = false;
 						buildingObjects[i]->isDestroyed = true;
+						PlayAudio(g_SE_ID[0], false); // 建物崩壊音
 						buildingObjects[i]->m_RespawnTimer = 5.0f; // 5秒後にリスポーン
 						player.brokenHistory.push_back(type);
-						player.evolutionGauge += player.evolutionGaugeRate;
+						if (player.form < Form::Third)    player.evolutionGauge += player.evolutionGaugeRate;
 
 						// HPと満腹度を回復（上限を超えないように min を使うと1行で書けるよ！）
 						player.hp = min(player.hp + 10.0f, PLAYER_MAX_HP);
