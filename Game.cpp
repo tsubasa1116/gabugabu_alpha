@@ -1,7 +1,7 @@
 	//======================================================
 //	Game.cpp[]
 // 
-//	制作老E��前野翼			日付！E024//
+//	蛻ｶ菴懆・ｼ壼燕驥守ｿｼ			譌･莉假ｼ・024//
 //======================================================
 
 #include "Manager.h"
@@ -44,7 +44,7 @@ LIGHTOBJECT Light;
 static int g_BgmID[4] = { -1, -1, -1, -1 };
 bool input2 = false;
 
-// �R�}���h�����͂��ꂽ�Ƃ��ɗ��t���O
+// コマンドが入力されたときに立つフラグ
 static bool s_IsKonamiCodeEntered = false;
 static bool g_GameInitialized = false;
 static bool g_IsFirstFrame = true;
@@ -58,12 +58,12 @@ static	ID3D11ShaderResourceView* g_Texture[6];
 static int s_OldCount = -1;
 static float s_CountAnimeTimer = 0.0f;
 
-// �J�E���g�_�E���p���[����
+// カウントダウン用いーじんぐ
 static inline float EaseCountDown(float t)
 {
-	const float bounceScale = 0.7f;          // ���˕Ԃ�̋���
-	const float bounce = bounceScale + 1.0f; // ���˕Ԃ�̑傫���𒲐�����
-	float timeAdj = t - 1.0f;                // ���Ԃ𒲐�����-1����0�͈̔͂ŕω�������
+	const float bounceScale = 0.7f;          // 跳ね返りの強さ
+	const float bounce = bounceScale + 1.0f; // 跳ね返りの大きさを調整する
+	float timeAdj = t - 1.0f;                // 時間を調整して-1から0の範囲で変化させる
 
 	// f(t) = 1 + C3(bounceScale - 1)^3 + C1(bounce - 1)^2
 	return 1.0f + bounceScale * powf(timeAdj, 3.0f) + bounce * powf(timeAdj, 2.0f);
@@ -122,10 +122,10 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//P_Initialize(pDevice, pContext);		
 	//Score_Initialize(pDevice, pContext);
 
-	//g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// サウンドローチE
-	//PlayAudio(g_BgmID, true);		// 再生開始（ループあり！E
-	//PlayAudio(g_BgmID);			// 再生開始（ループなし！E
-	//PlayAudio(g_BgmID, false);	// 再生開始（ループなし！E
+	//g_BgmID = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");	// 繧ｵ繧ｦ繝ｳ繝峨Ο繝ｼ繝・
+	//PlayAudio(g_BgmID, true);		// 蜀咲函髢句ｧ具ｼ医Ν繝ｼ繝励≠繧奇ｼ・
+	//PlayAudio(g_BgmID);			// 蜀咲函髢句ｧ具ｼ医Ν繝ｼ繝励↑縺暦ｼ・
+	//PlayAudio(g_BgmID, false);	// 蜀咲函髢句ｧ具ｼ医Ν繝ｼ繝励↑縺暦ｼ・
 
 	XMFLOAT4 para;
 	para = XMFLOAT4(0.7f, 0.7f, 0.9999f, 1.0f);
@@ -173,7 +173,7 @@ void Game_Finalize()
 }
 
 //======================================================
-//	更新処琁E
+//	譖ｴ譁ｰ蜃ｦ逅・
 //======================================================
 void Game_Update()
 {
@@ -182,7 +182,7 @@ void Game_Update()
 		Player_Warmup();
 		Effect_Warmup();
 
-		g_BgmID[0] = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");
+		g_BgmID = LoadAudio("asset\\Audio\\BGM.wav");
 
 		g_IsFirstFrame = false;
 	}
@@ -201,14 +201,14 @@ void Game_Update()
 	{
 		PlayAudio(g_BgmID[0], true);
 
-		// 全プレイヤーの卵を割めE
+		// 蜈ｨ繝励Ξ繧､繝､繝ｼ縺ｮ蜊ｵ繧貞牡繧・
 		for (int i = 0; i < PLAYER_MAX; i++)
 		{
 			PLAYEROBJECT* p = GetPlayer(i);
 			if (p && p->active && p->duringRespawn)
 			{
-				p->duringRespawn = false;// 卵状態を解除
-				p->isEggBreaking = true; // 割めE
+				p->duringRespawn = false;// 蜊ｵ迥ｶ諷九ｒ隗｣髯､
+				p->isEggBreaking = true; // 蜑ｲ繧・
 			}
 		}
 		s_GameStarted = true;
@@ -217,7 +217,7 @@ void Game_Update()
 	// ------------------------------------
 	// 
 	// ------------------------------------
-	// コマンドで使用する全てのキーの押下トリガーをチェチE��し、検�E関数に渡ぁE
+	// 繧ｳ繝槭Φ繝峨〒菴ｿ逕ｨ縺吶ｋ蜈ｨ縺ｦ縺ｮ繧ｭ繝ｼ縺ｮ謚ｼ荳九ヨ繝ｪ繧ｬ繝ｼ繧偵メ繧ｧ繝・け縺励∵､懷・髢｢謨ｰ縺ｫ貂｡縺・
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
 		if (!s_IsKonamiCodeEntered)	 s_IsKonamiCodeEntered = true;
@@ -226,13 +226,13 @@ void Game_Update()
 
 	//float currentDeltaTime = DELTA_TIME;
 
-	//// �q�b�g�X�g�b�v���Ȃ�^�C�}�[�����炵�āADELTA_TIME��0�ɂ���
+	//// ヒットストップ中ならタイマーを減らして、DELTA_TIMEを0にする
 	//if (g_hitStopTimer > 0.0f) {
 	//	g_hitStopTimer -= DELTA_TIME;
-	//	currentDeltaTime = 0.0f; // �����~�߂�I
+	//	currentDeltaTime = 0.0f; // 時を止める！
 	//}
 
-	// �v���C���[�⌚���̍X�V�ɂ� currentDeltaTime ���g���悤�ɂ���
+	// プレイヤーや建物の更新には currentDeltaTime を使うようにする
 	// ------------------------------------
 	// 
 	// ------------------------------------
@@ -245,7 +245,7 @@ void Game_Update()
 	MeteorEffectUpdate();
 	Cutin_Update();
 
-	// �����G�t�F�N�g�X�V�i1�����j
+	// 建物エフェクト更新（1棟ずつ）
 	int buildingCount = GetBuildingCount();
 	for (int i = 0; i < buildingCount; i++)
 	{
@@ -259,10 +259,10 @@ void Game_Update()
 	SkyBall_Update();
 	DamageText_Update();
 
-	//�Q�[���V�[���֑J��
+	//ゲームシーンへ遷移
 	if (Keyboard_IsKeyDownTrigger(KK_F1) && (GetFadeState() == FADE_NONE))
 	{
-		// フェードアウトさせてシーンを�Eり替える
+		// 繝輔ぉ繝ｼ繝峨い繧ｦ繝医＆縺帙※繧ｷ繝ｼ繝ｳ繧貞・繧頑崛縺医ｋ
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_WIN);
 	}
@@ -290,7 +290,7 @@ void Game_Draw()
 
 	Field_Draw(s_IsKonamiCodeEntered);
 
-	// �����̕`��
+	// 建物の描画
 	{
 		Shader_Begin();
 		SetBlendState(BLENDSTATE_ALPHA);
@@ -306,17 +306,17 @@ void Game_Draw()
 		SetDepthTest(TRUE);
 	}
 
-	// 覐�: �͈͕\���̂�
+	// 隕石: 範囲表示のみ
 	Meteor_DrawRange(s_IsKonamiCodeEntered);
 	MeteorEffectDraw();
 	if (GetGamePhase() == PHASE_COUNTDOWN || GetGamePhase() == PHASE_PLAY)
 	{
 		Player_Draw(s_IsKonamiCodeEntered);
 	}
-	// 覐�: ���f���̂�
+	// 隕石: モデルのみ
 	Meteor_DrawModel(s_IsKonamiCodeEntered);
 
-	// 2D�`��
+	// 2D描画
 	Light.SetEnable(FALSE);
 	Shader_SetLight(Light.Light);
 	SetDepthTest(FALSE);
@@ -325,7 +325,7 @@ void Game_Draw()
 	Cutin_Draw();
 
 	if (GetGamePhase() == PHASE_INTRO)
-	{// ミ�EルシチE��名札
+	{// 繝溘・繝ｫ繧ｷ繝・ぅ蜷肴惆
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
@@ -337,12 +337,12 @@ void Game_Draw()
 		Shader_BeginUI();
 		DrawSprite(pos, size, color::white);
 
-		//DrawTextEx(L"ミ�EルシチE��", cx - 620.0f, cy - 340.0f, 70.0f, L"FZゴンタかな", TextColor::Black);
+		//DrawTextEx(L"繝溘・繝ｫ繧ｷ繝・ぅ", cx - 620.0f, cy - 340.0f, 70.0f, L"FZ繧ｴ繝ｳ繧ｿ縺九↑", TextColor::Black);
 	}
 
-	// フェード�E琁E
+	// 繝輔ぉ繝ｼ繝牙・逅・
 	float fadeAlpha = 0.0f;
-	float INTRO_TIME = 3.5f; // INTRO_DURATION�E�Eamera.cpp�E�と同じ数値にする
+	float INTRO_TIME = 3.5f; // INTRO_DURATION・・amera.cpp・峨→蜷後§謨ｰ蛟､縺ｫ縺吶ｋ
 	float FADE_TIME = 0.5f;
 
 	if (GetGamePhase() == PHASE_INTRO)
@@ -355,7 +355,7 @@ void Game_Draw()
 			fadeAlpha = (timer - fadeStartTime) / FADE_TIME;
 		}
 
-		// �t�F�[�h�C��������iFADE_TIME�o�ߌ�j��BGM���Đ��J�n
+		// フェードイン完了後（FADE_TIME経過後）にBGMを再生開始
 		if (!s_IsIntroSound && timer >= 0.25f) 
 		{
 			s_IsIntroSound = true;
@@ -367,7 +367,7 @@ void Game_Draw()
 	{
 		float timer = GetGamePhaseTimer();
 
-		// カウントダウンの序盤は徐、E��明るくする（透�E度 1.0 ↁE0.0�E�E
+		// 繧ｫ繧ｦ繝ｳ繝医ム繧ｦ繝ｳ縺ｮ蠎冗乢縺ｯ蠕舌・↓譏弱ｋ縺上☆繧具ｼ磯乗・蠎ｦ 1.0 竊・0.0・・
 		if (timer <= FADE_TIME)
 		{
 			fadeAlpha = 1.0f - (timer / FADE_TIME);
@@ -397,7 +397,7 @@ void Game_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		Shader_SetColor(color::white);
 
-		// 画面中央の座標を計箁E
+		// 逕ｻ髱｢荳ｭ螟ｮ縺ｮ蠎ｧ讓吶ｒ險育ｮ・
 		float cx = (float)Direct3D_GetBackBufferWidth() / 2.0f;
 		float cy = (float)Direct3D_GetBackBufferHeight() / 2.0f;
 
@@ -414,16 +414,16 @@ void Game_Draw()
 		}	
 
 		if (s_OldCount != count)
-		{// �J�E���g���ς������A�j���[�V���������Z�b�g
+		{// カウントが変わったらアニメーションをリセット
 			s_OldCount = count;
 			s_CountAnimeTimer = 0.0f;
 		}
 
-		// �^�C�}�[��i�߂�
-		s_CountAnimeTimer += (1.0f / 60.0f) * 3.5f; // *�ŃA�j���[�V�������x�𒲐�
+		// タイマーを進める
+		s_CountAnimeTimer += (1.0f / 60.0f) * 3.5f; // *でアニメーション速度を調節
 		if (s_CountAnimeTimer > 1.0f) s_CountAnimeTimer = 1.0f;
 
-		// �A�j���[�V�����W�����v�Z
+		// アニメーション係数を計算
 		float animScale = EaseCountDown(s_CountAnimeTimer);
 		XMFLOAT2 animaSize = { size.x * animScale, size.y * animScale };
 		XMFLOAT2 animaSizeGO = { sizeGO.x * animScale, sizeGO.y * animScale };
@@ -451,10 +451,10 @@ void Game_Draw()
 		}
 	}
 
-	// UI描画�E�にめE��3�E�E
+	// UI謠冗判・医↓繧・▲3・・
 	if (GetGamePhase() == PHASE_PLAY)
 	{
-		// スライドインの計箁E
+		// 繧ｹ繝ｩ繧､繝峨う繝ｳ縺ｮ險育ｮ・
 		float playTime = GetGamePhaseTimer();
 		float slideDuration = 0.4f;
 		float OffsetY = 0.0f;
@@ -462,32 +462,32 @@ void Game_Draw()
 		if (playTime < slideDuration)
 		{
 			float t = playTime / slideDuration;
-			float easeT = 1.0f - powf(1.0f - t, 3.0f); // 最初�E速い、最後に減送E
+			float easeT = 1.0f - powf(1.0f - t, 3.0f); // 譛蛻昴・騾溘＞縲∵怙蠕後↓貂幃・
 
-			// 画面外から定位置に向かって移勁E
+			// 逕ｻ髱｢螟悶°繧牙ｮ壻ｽ咲ｽｮ縺ｫ蜷代°縺｣縺ｦ遘ｻ蜍・
 			OffsetY = 800.0f * (1.0f - easeT);
 		}
 
-		// ビューポ�EチE描画領域)を一時的にずらぁE
+		// 繝薙Η繝ｼ繝昴・繝・謠冗判鬆伜沺)繧剃ｸ譎ら噪縺ｫ縺壹ｉ縺・
 		ID3D11DeviceContext* pContext = Direct3D_GetDeviceContext();
 		UINT numViewports = 1;
 		D3D11_VIEWPORT vp;
 
-		// 現在の設定を保存しておく
+		// 迴ｾ蝨ｨ縺ｮ險ｭ螳壹ｒ菫晏ｭ倥＠縺ｦ縺翫￥
 		pContext->RSGetViewports(&numViewports, &vp);
 
-		// ずらす用の設定を作り適用する
+		// 縺壹ｉ縺咏畑縺ｮ險ｭ螳壹ｒ菴懊ｊ驕ｩ逕ｨ縺吶ｋ
 		D3D11_VIEWPORT slideVp = vp;
-		slideVp.TopLeftY += OffsetY; // 画面全体をオフセチE��刁E��にずらぁE
+		slideVp.TopLeftY += OffsetY; // 逕ｻ髱｢蜈ｨ菴薙ｒ繧ｪ繝輔そ繝・ヨ蛻・ｸ九↓縺壹ｉ縺・
 		pContext->RSSetViewports(1, &slideVp);
 	
-		// ずれた画面に対してぁE��も通りUIを描画する
+		// 縺壹ｌ縺溽判髱｢縺ｫ蟇ｾ縺励※縺・▽繧る壹ｊUI繧呈緒逕ｻ縺吶ｋ
 		Shader_SetColor(color::white);
 		Effect_Draw();
 		Player_DrawHP();
 		Player_DrawText();
 
-		// 描画が終わったら允E�Eビューポ�EチE画面位置)に戻ぁE
+		// 謠冗判縺檎ｵゅｏ縺｣縺溘ｉ蜈・・繝薙Η繝ｼ繝昴・繝・逕ｻ髱｢菴咲ｽｮ)縺ｫ謌ｻ縺・
 		pContext->RSSetViewports(1, &vp);
 	}
 

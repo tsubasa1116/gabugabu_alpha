@@ -15,6 +15,7 @@
 #include "model.h"
 #include "input.h"
 #include "color.h"
+#include "Audio.h"
 
 static ID3D11ShaderResourceView* g_Texture = NULL;		// 背景
 static ID3D11ShaderResourceView* g_Texture2 = NULL;		// ストライプ
@@ -39,6 +40,9 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 static float g_SlideOffsetTop = 0.0f;
 static float g_SlideOffsetBottom = 0.0f;
 const float SLIDE_SPEED = 2.0f;
+
+static int g_BgmID = NULL;
+static int g_SeButtonID = NULL;
 
 // アニメーション設定（16×16シート：16列×16行、ただし12行使用）
 const int ANIM_COLS = 16;       // 1行あたりのコマ数
@@ -264,6 +268,11 @@ void Win_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// フェードインのセット
 	XMFLOAT4	color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	SetFade(60.0f, color, FADE_IN, SCENE_GAME);
+
+	g_BgmID = LoadAudio("asset\\Audio\\Watermelon_Fruit_Punch.wav");
+	PlayAudio(g_BgmID, true);
+
+	g_SeButtonID = LoadAudio("asset\\Audio\\button.wav");
 }
 
 //======================================================
@@ -303,6 +312,9 @@ void Win_Finalize()
 	g_WinnerIndex = -1;
 	g_WinnerType = PlayerType::None;
 	g_WinnerForm = Form::First;
+
+	UnloadAudio(g_BgmID);
+	UnloadAudio(g_SeButtonID);
 }
 
 //======================================================
@@ -313,6 +325,7 @@ void Win_Update()
 	// キー入力チェック
 	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
 	{
+		PlayAudio(g_SeButtonID, false);
 		XMFLOAT4 color(0.0f, 0.0f, 0.0f, 1.0f);
 		SetFade(40.0f, color, FADE_OUT, SCENE_TITLE);
 	}

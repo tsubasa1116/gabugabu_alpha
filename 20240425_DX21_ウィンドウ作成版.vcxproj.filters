@@ -175,6 +175,7 @@
     </ClCompile>
     <ClCompile Include="cutin.cpp" />
     <ClCompile Include="gimmick.cpp" />
+    <ClCompile Include="transition.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attack.h">
@@ -330,6 +331,7 @@
     <ClInclude Include="loadThread.h" />
     <ClInclude Include="cutin.h" />
     <ClInclude Include="gimmick.h" />
+    <ClInclude Include="transition.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="cpp">

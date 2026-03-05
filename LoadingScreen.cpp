@@ -343,12 +343,15 @@ SCENE GetLoadingNextScene()
 void SetSceneWithLoading(SCENE nextScene, const wchar_t* videoPath)
 {
 
-    // 既存のロード画面があれば解放
+    // 既存のローディング画面があれば解放
     LoadingScreen_Finalize();
 
     Loader::Reset();
 
-    // 新しいロード画面を作成
+    // 現在のシーンを終了する（BGM停止等）
+    FinalizeCurrentScene();
+
+    // 新しいローディング画面を作成
     g_pLoadingScreen = new LoadingScreen();
 
     if (!g_pLoadingScreen->Initialize(g_pDevice, g_pContext, videoPath))
