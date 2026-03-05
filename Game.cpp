@@ -1,4 +1,4 @@
-//======================================================
+	//======================================================
 //	Game.cpp[]
 // 
 //	蛻ｶ菴懆・ｼ壼燕驥守ｿｼ			譌･莉假ｼ・024//
@@ -41,7 +41,7 @@ LIGHTOBJECT Light;
 //======================================================
 //
 //======================================================
-static int g_BgmID[3];
+static int g_BgmID[4] = { -1, -1, -1, -1 };
 bool input2 = false;
 
 // コマンドが入力されたときに立つフラグ
@@ -50,6 +50,7 @@ static bool g_GameInitialized = false;
 static bool g_IsFirstFrame = true;
 static bool s_GameStarted = false;
 static bool s_IsCountSound = false;
+static bool s_IsIntroSound = false;
 
 static ID3D11DeviceContext* g_pContext = NULL;
 static	ID3D11ShaderResourceView* g_Texture[6];
@@ -168,6 +169,7 @@ void Game_Finalize()
 	s_GameStarted = false;
 	Loader::Reset();
 	s_IsCountSound = false;
+	s_IsIntroSound = false;
 }
 
 //======================================================
@@ -183,6 +185,16 @@ void Game_Update()
 		g_BgmID[0] = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");
 
 		g_IsFirstFrame = false;
+	}
+	// If the intro BGM was played, stop and unload it once we leave the INTRO phase
+	if (s_IsIntroSound && GetGamePhase() != PHASE_INTRO)
+	{
+		if (g_BgmID[2] >= 0)
+		{
+			UnloadAudio(g_BgmID[2]);
+			g_BgmID[2] = -1;
+		}
+		s_IsIntroSound = false;
 	}
 
 	if (GetGamePhase() == PHASE_PLAY && !s_GameStarted)
@@ -208,8 +220,8 @@ void Game_Update()
 	// 繧ｳ繝槭Φ繝峨〒菴ｿ逕ｨ縺吶ｋ蜈ｨ縺ｦ縺ｮ繧ｭ繝ｼ縺ｮ謚ｼ荳九ヨ繝ｪ繧ｬ繝ｼ繧偵メ繧ｧ繝・け縺励∵､懷・髢｢謨ｰ縺ｫ貂｡縺・
 	if (Keyboard_IsKeyDownTrigger(KK_P))
 	{
-		if (!s_IsKonamiCodeEntered)	s_IsKonamiCodeEntered = true;
-		else						s_IsKonamiCodeEntered = false;
+		if (!s_IsKonamiCodeEntered)	 s_IsKonamiCodeEntered = true;
+		else					s_IsKonamiCodeEntered = false;
 	}
 
 	//float currentDeltaTime = DELTA_TIME;
@@ -341,6 +353,14 @@ void Game_Draw()
 		if (timer >= fadeStartTime)
 		{
 			fadeAlpha = (timer - fadeStartTime) / FADE_TIME;
+		}
+
+		// フェードイン完了後（FADE_TIME経過後）にBGMを再生開始
+		if (!s_IsIntroSound && timer >= 0.25f) 
+		{
+			s_IsIntroSound = true;
+			g_BgmID[2] = LoadAudio("asset\\Audio\\BGM_Game_Gengengenkidamon.wav");
+			PlayAudio(g_BgmID[2], false);
 		}
 	}
 	else if (GetGamePhase() == PHASE_COUNTDOWN)

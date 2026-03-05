@@ -137,7 +137,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\ready_color.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\ready_color2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture2);
 				g_TexMeta2 = metadata;
 				assert(g_Texture2);
@@ -147,7 +147,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\blackLine.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\blackLine2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture3);
 				g_TexMeta3 = metadata;
 				assert(g_Texture3);
@@ -157,7 +157,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\character1OFF.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\character1OFF2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture4);
 				g_TexMeta4 = metadata;
 				assert(g_Texture4);
@@ -167,7 +167,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\character2OFF.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\character2OFF2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture5);
 				g_TexMeta5 = metadata;
 				assert(g_Texture5);
@@ -177,7 +177,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\character3OFF.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\character3OFF2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture6);
 				g_TexMeta6 = metadata;
 				assert(g_Texture6);
@@ -187,7 +187,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\character4OFF.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\character4OFF2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture7);
 				g_TexMeta7 = metadata;
 				assert(g_Texture7);
@@ -197,7 +197,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\playerNumber.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\playerNumber2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture8);
 				g_TexMeta8 = metadata;
 				assert(g_Texture8);
@@ -207,7 +207,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\hukidashi.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\hukidashi2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture9);
 				g_TexMeta9 = metadata;
 				assert(g_Texture9);
@@ -217,7 +217,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\ready1.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\ready2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture10);
 				g_TexMeta10 = metadata;
 				assert(g_Texture10);
@@ -227,7 +227,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\character1ON.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\character1ON2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture11);
 				g_TexMeta11 = metadata;
 				assert(g_Texture11);
@@ -237,7 +237,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\character2ON.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\character2ON2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture12);
 				g_TexMeta12 = metadata;
 				assert(g_Texture12);
@@ -247,7 +247,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\character3ON.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\character3ON2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture13);
 				g_TexMeta13 = metadata;
 				assert(g_Texture13);
@@ -257,7 +257,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\character4ON.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\character4ON2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture14);
 				g_TexMeta14 = metadata;
 				assert(g_Texture14);
@@ -267,7 +267,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\OK2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture15);
 				g_TexMeta15 = metadata;
 				assert(g_Texture15);
@@ -277,7 +277,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\OK2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture16);
 				g_TexMeta16 = metadata;
 				assert(g_Texture16);
@@ -287,7 +287,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\OK2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture17);
 				g_TexMeta17 = metadata;
 				assert(g_Texture17);
@@ -297,7 +297,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\OK.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\OK2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture18);
 				g_TexMeta18 = metadata;
 				assert(g_Texture18);
@@ -307,7 +307,7 @@ void Ready_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			{
 				TexMetadata metadata;
 				ScratchImage image;
-				LoadFromWICFile(L"asset\\texture\\everyoneOK.png", WIC_FLAGS_NONE, &metadata, image);
+				LoadFromWICFile(L"asset\\texture\\everyoneOK2.png", WIC_FLAGS_NONE, &metadata, image);
 				CreateShaderResourceView(pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_Texture19);
 				g_TexMeta19 = metadata;
 				assert(g_Texture19);
@@ -439,7 +439,7 @@ void Ready_Draw()
 	}
 
 	// シェーダーを描画パイプラインに設宁E
-	Shader_Begin();
+	Shader_BeginUI();
 
 	// 頂点シェーダーに変換行�Eを設宁E
 	Shader_SetMatrix(XMMatrixOrthographicOffCenterLH(
@@ -468,7 +468,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta2.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta2.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta2.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta2.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -479,7 +479,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 110 * SCREEN_ADJUST_Y }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta8.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta8.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta8.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta8.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -490,7 +490,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2 + 50, SCREEN_HEIGHT / 2 + 30 * SCREEN_ADJUST_Y }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta4.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta4.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta4.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta4.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -501,7 +501,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2 , SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta5.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta5.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta5.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta5.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -512,7 +512,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta6.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta6.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta6.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta6.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -523,7 +523,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 33 * SCREEN_ADJUST_Y }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta7.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.08f * SCREEN_ADJUST_Y};
+		XMFLOAT2 size = { (float)g_TexMeta7.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.8f * SCREEN_ADJUST_Y};
 		DrawSprite(pos, size, col);
 	}
 
@@ -534,7 +534,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 30 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta11.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta11.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta11.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta11.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -545,7 +545,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2 , SCREEN_HEIGHT / 2 + 33 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta12.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta12.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta12.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta12.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -556,7 +556,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 25 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta13.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta13.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta13.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta13.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -567,7 +567,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 28  }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta14.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta14.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta14.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta14.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -578,7 +578,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta3.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta3.height * 0.08f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta3.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta3.height * 0.8f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -604,7 +604,7 @@ void Ready_Draw()
 				SetBlendState(BLENDSTATE_ALPHA);
 				XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, alpha };
 				XMFLOAT2 pos = { posX * SCREEN_ADJUST_X, SCREEN_HEIGHT / 2 + 4 * SCREEN_ADJUST_Y };
-				XMFLOAT2 size = { (float)g_TexMeta9.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta9.height * 0.012f * SCREEN_ADJUST_Y };
+				XMFLOAT2 size = { (float)g_TexMeta9.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta9.height * 0.12f * SCREEN_ADJUST_Y };
 				DrawSprite(pos, size, col);
 			}
 		}
@@ -615,7 +615,7 @@ void Ready_Draw()
 			SetBlendState(BLENDSTATE_ALPHA);
 			XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 			XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 4 * SCREEN_ADJUST_Y };
-			XMFLOAT2 size = { (float)g_TexMeta9.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta9.height * 0.012f * SCREEN_ADJUST_Y };
+			XMFLOAT2 size = { (float)g_TexMeta9.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta9.height * 0.12f * SCREEN_ADJUST_Y };
 			DrawSprite(pos, size, col);
 		}
 	}
@@ -636,7 +636,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, e };
 		XMFLOAT2 pos = { posX , SCREEN_HEIGHT / 2 + 4 * SCREEN_ADJUST_Y };
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.08f * SCREEN_ADJUST_X, (float)g_TexMeta9.height * 0.012f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.8f * SCREEN_ADJUST_X, (float)g_TexMeta9.height * 0.12f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -647,7 +647,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.078f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.78f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.78f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -658,7 +658,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.078f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.78f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.78f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -669,7 +669,7 @@ void Ready_Draw()
 		SetBlendState(BLENDSTATE_ALPHA);
 		XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		XMFLOAT2 pos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60 * SCREEN_ADJUST_Y }; // 位置はお好みで
-		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.078f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.078f * SCREEN_ADJUST_Y };
+		XMFLOAT2 size = { (float)g_TexMeta9.width * 0.78f * SCREEN_ADJUST_X, (float)g_TexMeta7.height * 0.78f * SCREEN_ADJUST_Y };
 		DrawSprite(pos, size, col);
 	}
 
@@ -696,8 +696,8 @@ void Ready_Draw()
 		float okScale = 0.5f + 0.5f * e;  // 0.5 ↁE1.0
 		float okAlpha = e;                 // 0 ↁE1
 
-		float baseScaleX = (i == 3) ? 0.078f : 0.08f; // 4Pだけ�Eのスケールが違ぁE
-		float baseScaleY = (i == 3) ? 0.078f : 0.08f;
+		float baseScaleX = (i == 3) ? 0.78f : 0.8f; // 4Pだけ�Eのスケールが違ぁE
+		float baseScaleY = (i == 3) ? 0.78f : 0.8f;
 
 		XMFLOAT2 baseSize = {
 			(float)okMetas[i]->width * baseScaleX,
